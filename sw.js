@@ -1,8 +1,8 @@
 /* Service worker — network-first com fallback em cache: o app abre offline
    e atualiza sozinho quando há internet. Bump da versão a cada deploy. */
-const CACHE = "np-demandas-v19";
+const CACHE = "np-demandas-v20";
 const SHELL = ["./", "./index.html", "./css/app.css", "./js/app.js",
-  "./js/docxlite.js", "./js/nc.js", "./js/sync.js", "./manifest.json",
+  "./js/docxlite.js", "./js/dg.js", "./js/nc.js", "./js/sync.js", "./manifest.json",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

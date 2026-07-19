@@ -207,10 +207,11 @@ const ICO={
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
 const TAB_ORDER=["dg","nc","list","add"];
 const TABS={
-  dg:{label:"Demandas Gerais",tipo:"dg",panel:"tab-list",
+  dg:{label:"Demandas Gerais",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
-      subtitle:n=>"Demandas gerais da unidade — "+n,
-      onShow(){configTableTab("dg");}},
+      subtitle:n=>"",
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="dg";renderDG();}},
   nc:{label:"Relatório de Não Conformidade - Gerência",tipo:"nc",panel:"tab-nc",
       icone:ICO.nc,cor:"#1668b8",corFundo:"#e7f0f9",hub:true,
       subtitle:n=>"Relatório de Não Conformidade — Gerência — "+n,
@@ -246,7 +247,7 @@ function showHub(){
   document.getElementById("cards").style.display="none";
   document.getElementById("tabs").style.display="none";
   currentTab=null;
-  document.getElementById("appSubtitle").textContent="Escolha por onde começar — "+currentStoreName;
+  document.getElementById("appSubtitle").textContent="";
   renderHub();renderBreadcrumb();syncNav();window.scrollTo(0,0);
 }
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
@@ -268,7 +269,8 @@ function renderBreadcrumb(){
   const aba=currentTab&&TABS[currentTab]?` › <b>${esc(TABS[currentTab].label)}</b>`:" › <b>Início</b>";
   c.innerHTML=`<span onclick="goHome()" title="Voltar à Central de Empresas">Capa</span> › <span onclick="showHub()" title="Voltar ao início desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
 }
-function updateSubtitle(t){document.getElementById("appSubtitle").textContent=(TABS[t]||TABS.dg).subtitle(currentStoreName);}
+/* subtítulo removido a pedido de Lê (19/07): a trilha #crumb já diz onde ela está */
+function updateSubtitle(t){const el=document.getElementById("appSubtitle");if(el)el.textContent="";}
 
 /* Status por tipo de aba — a aba NC ganha vocabulário próprio na Fase 3 */
 const STATUS_FNS={
