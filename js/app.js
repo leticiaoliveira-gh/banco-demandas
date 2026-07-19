@@ -263,7 +263,8 @@ function showHub(){
   document.getElementById("cards").style.display="none";
   document.getElementById("tabs").style.display="none";
   currentTab=null;
-  document.getElementById("appSubtitle").textContent="";
+  document.getElementById("appTitle").textContent=nomeCurto(currentStoreName||"");
+  document.getElementById("appSubtitle").innerHTML=`<span class="loja-pill">Escolha um quadro</span>`;
   renderHub();renderBreadcrumb();syncNav();window.scrollTo(0,0);
 }
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
@@ -285,8 +286,14 @@ function renderBreadcrumb(){
   const aba=currentTab&&TABS[currentTab]?` › <b>${esc(TABS[currentTab].label)}</b>`:" › <b>Início</b>";
   c.innerHTML=`<span onclick="goHome()" title="Voltar à Central de Empresas">Capa</span> › <span onclick="showHub()" title="Voltar ao início desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
 }
-/* subtítulo removido a pedido de Lê (19/07): a trilha #crumb já diz onde ela está */
-function updateSubtitle(t){const el=document.getElementById("appSubtitle");if(el)el.textContent="";}
+/* Cabeçalho padrão de TODAS as abas (pedido de Lê, 19/07):
+   título grande = nome do quadro · embaixo, a loja numa pílula verde. */
+function updateSubtitle(t){
+  const h1=document.getElementById("appTitle"),sub=document.getElementById("appSubtitle");
+  const aba=TABS[t]&&TABS[t].label;
+  if(h1)h1.textContent=aba||nomeCurto(currentStoreName||"");
+  if(sub)sub.innerHTML=currentStore?`<span class="loja-pill">${esc(nomeCurto(currentStoreName||""))}</span>`:"";
+}
 
 /* Status por tipo de aba — a aba NC ganha vocabulário próprio na Fase 3 */
 const STATUS_FNS={

@@ -109,7 +109,7 @@ function renderDG(){
       </span>
       <button class="btn ghost sm" onclick="dgTriagem()" title="Classificar rapidinho, uma por vez, o que está sem prioridade">⚡ Triagem</button>
       <button class="btn ghost sm" onclick="dgImprimir()" title="Gerar a folha do dia para imprimir ou salvar em PDF">🖨 Folha do dia</button>
-      <button class="btn sm" onclick="dgNova()">+ Nova demanda</button>
+      <button class="btn sm" onclick="dgNovaPorTexto()" title="Escreva ou fale a demanda">+ Nova demanda</button>
     </div>
     ${dgBarraMassaHTML()}
     ${corpo||`<div class="empty">Nenhuma demanda aqui ainda. Use "+ Nova demanda" para criar a primeira.</div>`}`;
@@ -132,7 +132,8 @@ function dgPainelHTML(lista){
     {ch:"urgentes",rot:"Urgentes",n:urgentes.length,cor:"#a23bb0",fundo:"#f6ecf8",dica:"Marcadas como urgente"},
     {ch:"andamento",rot:"Em andamento",n:andamento.length,cor:"#1668b8",fundo:"#e7f0f9",dica:"Já comecei"}
   ];
-  const faixa=`<div class="dg-foco">${foco.map(f=>
+  const faixa=`<p class="dg-pergunta">O que realmente merece sua atenção agora?</p>
+  <div class="dg-foco">${foco.map(f=>
     `<button class="dg-foco-c${DG_FOCO===f.ch?" on":""}" style="--c:${f.cor};--f:${f.fundo}"
        onclick="dgSetFoco('${f.ch}')" title="${f.dica} — clique para ver só estas">
        <span class="n">${f.n}</span><span class="r">${f.rot}</span></button>`).join("")}
@@ -235,6 +236,8 @@ function dgLinhaHTML(d,irmaos,idx){
         </select>`:""}
         <button class="btn ghost sm" onclick="dgEditarTitulo('${d.uid}')">✎ Renomear</button>
         <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
+      <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')">🗺 Fluxograma</button>
+        <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')" title="Ver esta demanda como um mapa/fluxograma">🗺 Fluxograma</button>
         <button class="btn ghost sm" style="margin-left:auto" onclick="dgExcluir('${d.uid}')">🗑</button>
       </div>
       ${dgItensHTML(d)}
@@ -405,6 +408,126 @@ function dgBarraMassaHTML(){
   </div>`;
 }
 
+/* ===== FLUXOGRAMA (ideia do exemplo "Fluxograma" do Airtable) =====
+   Desenha a demanda como um mapa: o título no centro e os itens saindo dele,
+   respeitando os níveis. Não precisa de internet nem de inteligência artificial —
+   ele lê a estrutura que já existe na lista. */
+function dgFluxo(uid){
+  const d=dgAchar(uid);if(!d)return;
+  const itens=(d.itens||[]).filter(i=>(i.texto||"").trim());
+  if(!itens.length){toast("Escreva os itens da lista primeiro — o mapa nasce deles");return;}
+  const cores=["#1d6b57","#1668b8","#b3730a","#a23bb0","#e5484d","#0f766e"];
+  /* monta a árvore a partir dos níveis */
+  const raiz={texto:d.titulo||"Demanda",filhos:[],nivel:-1},pilha=[raiz];
+  for(const it of itens){
+    const n={texto:it.texto,feito:!!it.feito,tipo:it.tipoLinha,nivel:it.nivel||0,filhos:[]};
+    while(pilha.length>1&&pilha[pilha.length-1].nivel>=n.nivel)pilha.pop();
+    pilha[pilha.length-1].filhos.push(n);pilha.push(n);
+  }
+  const ramo=(n,prof)=>{
+    const cor=cores[prof%cores.length];
+    return `<li>
+      <div class="fx-no${n.feito?" ok":""}" style="--c:${cor}">${n.feito?"✓ ":""}${esc(n.texto)}
+        ${n.filhos.length?`<span class="fx-n">${n.filhos.length}</span>`:""}</div>
+      ${n.filhos.length?`<ul>${n.filhos.map(f=>ramo(f,prof+1)).join("")}</ul>`:""}
+    </li>`;};
+  const total=itens.filter(i=>i.tipo==="check").length,ok=itens.filter(i=>i.tipo==="check"&&i.feito).length;
+  const w=window.open("");
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+  <title>Fluxograma — ${esc(d.titulo||"")}</title><style>
+  @page{margin:12mm;size:landscape}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#2d2e3a;margin:0;padding:26px;background:#fff}
+  h1{font-size:22px;margin:0 0 3px}
+  .sub{color:#8a8b96;font-size:12px;margin-bottom:26px}
+  .fx{font-size:13px}
+  .fx ul{list-style:none;margin:0;padding-left:30px;position:relative}
+  .fx>ul{padding-left:0}
+  .fx li{position:relative;padding:5px 0}
+  .fx ul ul li::before{content:"";position:absolute;left:-18px;top:19px;width:16px;height:1.5px;background:#d6d8dc}
+  .fx ul ul::before{content:"";position:absolute;left:-18px;top:0;bottom:22px;width:1.5px;background:#d6d8dc}
+  .fx-no{display:inline-block;border:1.5px solid var(--c);border-left-width:5px;border-radius:9px;
+    padding:7px 13px;background:#fff;color:#2d2e3a;line-height:1.35;max-width:560px;break-inside:avoid}
+  .fx-no.ok{opacity:.55;text-decoration:line-through}
+  .fx-n{display:inline-block;background:#f1f1f3;color:#8a8b96;border-radius:9px;padding:0 7px;font-size:10.5px;font-weight:700;margin-left:7px}
+  .raiz{background:linear-gradient(135deg,#17756a,#2a9d8a);color:#fff;border:0;font-weight:700;font-size:15px;padding:11px 18px;border-radius:11px;display:inline-block;margin-bottom:14px}
+  .noprint{margin-bottom:16px}
+  @media print{.noprint{display:none}}
+  </style></head><body>
+  <div class="noprint"><button onclick="print()" style="padding:8px 14px;cursor:pointer;font-size:13px">🖨 Imprimir / Salvar PDF</button></div>
+  <h1>Fluxograma da demanda</h1>
+  <div class="sub">${ok}/${total} itens concluídos · gerado em ${brDate(today())}</div>
+  <div class="raiz">${esc(d.titulo||"Demanda")}</div>
+  <div class="fx"><ul>${raiz.filhos.map(f=>ramo(f,0)).join("")}</ul></div>
+  </body></html>`);
+  w.document.close();
+}
+
+/* ===== DITADO POR VOZ — falar em vez de digitar (funciona no Chrome, sem internet paga) ===== */
+function dgVozDisponivel(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+let DG_VOZ=null;
+function dgDitar(botao,destinoUid){
+  if(!dgVozDisponivel()){alert("Este navegador não reconhece voz.\n\nNo computador funciona no Chrome; no iPhone, use o microfone do próprio teclado.");return;}
+  if(DG_VOZ){DG_VOZ.stop();DG_VOZ=null;return;}
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new R();r.lang="pt-BR";r.continuous=true;r.interimResults=true;
+  let finalizado="";
+  botao.classList.add("ouvindo");botao.textContent="⏹ Parar";
+  const cx=document.getElementById("dg-voz-texto");
+  r.onresult=e=>{
+    let parcial="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal)finalizado+=t+" ";else parcial+=t;
+    }
+    if(cx)cx.value=(finalizado+parcial).replace(/\s+/g," ").trim();
+  };
+  r.onerror=e=>{toast("Não consegui ouvir ("+e.error+")");dgPararVoz(botao);};
+  r.onend=()=>dgPararVoz(botao);
+  r.start();DG_VOZ=r;
+}
+function dgPararVoz(botao){if(DG_VOZ){try{DG_VOZ.stop();}catch(e){}DG_VOZ=null;}
+  if(botao){botao.classList.remove("ouvindo");botao.textContent="🎤 Falar";}}
+
+/* Criar demanda escrevendo OU falando: cada linha do texto vira um item da lista */
+function dgNovaPorTexto(){
+  if(!currentStore){toast("Escolha uma empresa primeiro");return;}
+  ncModal(`<h2>Nova demanda</h2>
+    <p class="desc">Escreva ou <b>fale</b> o que precisa. Cada linha vira um item da lista —
+    use espaços no começo da linha para criar subitens.</p>
+    <div class="field"><label>Título</label><input id="dg-voz-tit" placeholder="Ex.: Organizar a câmara fria"></div>
+    <div class="field"><label>Passos (um por linha)</label>
+      <textarea id="dg-voz-texto" rows="9" placeholder="Conferir a temperatura&#10;  Anotar no formulário&#10;Chamar o [executor-removido] se estiver alta"></textarea></div>
+    <div class="form-actions">
+      <button class="btn ghost" id="dg-voz-bt" onclick="dgDitar(this)">🎤 Falar</button>
+      <button class="btn" onclick="dgCriarPorTexto()">Criar demanda</button>
+      <button class="btn ghost" onclick="dgPararVoz();ncFechar()">Cancelar</button>
+    </div>`);
+}
+async function dgCriarPorTexto(){
+  dgPararVoz(document.getElementById("dg-voz-bt"));
+  const tit=(document.getElementById("dg-voz-tit").value||"").trim();
+  const txt=(document.getElementById("dg-voz-texto").value||"").trim();
+  if(!tit&&!txt){toast("Escreva ou fale alguma coisa");return;}
+  /* quebra por linha; e também por ponto final quando a pessoa ditou tudo corrido —
+     mas sem cortar abreviações como "[executor-removido]", "[nome-removido]", "etc." */
+  const linhas=txt.split("\n").flatMap(l=>{
+    if(l.includes("\n")||l.trim().split(/\s+/).length<8)return [l];
+    const rec=(l.match(/^\s*/)||[""])[0];
+    return l.split(/(?<=[a-záéíóúâêôãõç]{4})\.\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ])/).map((p,i)=>i?rec+p:p);
+  }).map(l=>l.replace(/\s+$/,"")).filter(l=>l.trim());
+  const itens=linhas.map(l=>{
+    const rec=(l.match(/^\s*/)||[""])[0].length;
+    return {uid:newUid(),texto:l.trim().replace(/^[-•*]\s*/,""),feito:false,
+      nivel:Math.min(4,Math.floor(rec/2)),tipoLinha:"check"};
+  });
+  const o={uid:newUid(),mod:nowISO(),tipo:"dg",loja:dgLojaBase(),criado:"manual",escopo:"",ordem:0,
+    titulo:tit||linhas[0]||"Nova demanda",prioridade:"",situacao:"nao_iniciado",prazo:"",criadoEm:today(),
+    itens:tit?itens:itens.slice(1)};
+  const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
+  ncFechar();DG_ABERTAS[o.uid]=true;renderDG();
+  toast("Demanda criada com "+o.itens.length+" item"+(o.itens.length===1?"":"ns")+" ✓");
+}
+
 /* ===== TRIAGEM (ideia do exemplo "flashcard" do Airtable) =====
    Uma demanda por vez, grande na tela, para decidir a prioridade num clique.
    Serve para dar conta rápido da pilha de "sem prioridade". ===== */
@@ -493,6 +616,7 @@ function dgFoco(uid){
     <div class="dg-foco-corpo">${dgItensHTML(d)}</div>
     <div class="dg-foco-pe">
       <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
+      <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')">🗺 Fluxograma</button>
       <span class="dg-mini" style="margin-left:auto">Esc para fechar</span>
     </div>
   </div>`;
