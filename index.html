@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Central de Demandas NP</title>
+<!-- PWA: instalável na tela de início (iPhone: Safari → Compartilhar → Adicionar à Tela de Início) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1d6b57">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="NP Demandas">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css?v=19">
+</head>
+<body>
+<div class="app">
+  <div class="rail">
+    <div class="logo" style="cursor:pointer" onclick="goHome()" title="Voltar à Capa (Central de Empresas)">NP</div>
+    <div class="ricon" title="Voltar à Capa (Central de Empresas)" onclick="goHome()">🏠</div>
+    <div class="ricon" title="Início da empresa (todos os quadros)" onclick="showHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+    <div id="railTabs" class="rail-tabs" hidden></div>
+    <div class="rail-ver" title="Versão do site">v4.9</div>
+  </div>
+
+  <!-- CAPA -->
+  <div class="main" id="view-home">
+    <div class="home-wrap">
+      <div class="home-head">
+        <div class="home-head-left">
+          <h1>Central de Empresas</h1>
+          <p id="rt-linha" class="store-sub" style="margin-top:7px;cursor:pointer" title="Toque para editar" onclick="editarRtInfo()"></p>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px">
+            <button class="btn ghost" id="syncPillHome" title="Configurar/ver o status da sincronização (vale para o site inteiro)" onclick="openSyncModal()">⚙ Sincronização</button>
+            <span id="backup-top" class="backup-top"></span>
+          </div>
+        </div>
+        <div class="placeholder-cards" id="home-cards"></div>
+      </div>
+
+      <div id="backup-banner"></div>
+
+      <div>
+        <div>
+          <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">Empresas
+            <button class="btn sm" onclick="toggleEmpresaForm()">+ Nova empresa</button></div>
+          <div class="emp-toolbar">
+            <div class="emp-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="empQ" placeholder="Pesquisar empresa..." oninput="renderHome()">
+            </div>
+            <select id="empFiltro" onchange="renderHome()" title="Filtrar empresas">
+              <option value="">Todas</option>
+              <option value="ativas">Só ativas</option>
+              <option value="inativas">Só inativas</option>
+            </select>
+            <select id="empOrdem" onchange="renderHome()" title="Ordenar empresas">
+              <option value="az">A–Z</option>
+              <option value="pend">Mais pendentes primeiro</option>
+            </select>
+          </div>
+          <div class="form-wrap" id="empresa-form" style="display:none;margin-bottom:14px;max-width:none">
+            <form onsubmit="addEmpresa(event)">
+              <div class="grid2">
+                <div class="field"><label>Nome da empresa *</label><input id="empNome" placeholder="Ex.: Búzios" required></div>
+                <div class="field"><label>Código (sigla) *</label><input id="empCode" placeholder="Ex.: BZ" maxlength="4" style="text-transform:uppercase" required></div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn">Adicionar empresa</button>
+                <button type="button" class="btn ghost" onclick="toggleEmpresaForm()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+          <div class="store-list" id="store-list"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;text-align:center">
+        <span class="back-link" style="margin:0" title="Use ao sair de um computador que não é seu" onclick="limparDispositivo()">🧹 Limpar dados deste dispositivo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANCO DE DADOS DA LOJA -->
+  <div class="main" id="view-app" style="display:none">
+    <div class="back-link" onclick="goHome()">← Capa</div>
+    <div class="head">
+      <div>
+        <h1 id="appTitle">Banco de Não Conformidades</h1>
+        <p id="appSubtitle">Manutenção (Sr. João) e Elétrica (Matheus)</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn ghost sm" id="syncPill" style="display:none" title="Status da sincronização — configuração fica na capa" onclick="openSyncModal()">⚙ Sincronização</button>
+        <button class="btn ghost sm" onclick="exportExcel()">⬇ Exportar Excel</button>
+        <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Importar</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn" onclick="showTab('add')">+ Nova</button>
+      </div>
+    </div>
+    <div class="crumb" id="crumb"></div>
+    <div class="rt-banner">Responsável Técnica: <b id="rtName">Letícia Oliveira (Nutricionista de Produção – RT)</b></div>
+
+    <!-- HUB: porta de entrada da empresa (cards gerados de TAB_ORDER) -->
+    <div id="view-hub" style="display:none">
+      <div class="hub-grid" id="hub-grid"></div>
+      <p class="hub-dica">Dica: use os ícones coloridos da barra lateral para pular entre os quadros a qualquer momento — ou aperte <b>Ctrl + K</b>.</p>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <!-- Barra de abas gerada de TAB_ORDER/TABS (renderTabs) -->
+    <div class="tabs" id="tabs"></div>
+
+    <div id="tab-list" class="tab-panel">
+      <div class="toolbar">
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="q" placeholder="Buscar por não conformidade, ação ou área..." oninput="render()">
+        </div>
+        <select id="fExec" onchange="render()"><option value="">Todos os responsáveis</option></select>
+        <select id="fStatus" onchange="render()"><option value="">Todos os status</option><option value="Pendente">Pendentes</option><option value="Concluído">Concluídos</option></select>
+        <select id="fArea" onchange="render()"><option value="">Todas as áreas</option></select>
+        <button class="btn ghost sm" onclick="gerirExecutores()">👷 Executores</button>
+        <button class="btn ghost sm" title="Move todos os itens do filtro atual para outra empresa" onclick="moverFiltrados()">⇄ Mover p/ empresa</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th class="col-loja">Empresa</th>
+            <th class="col-area">Área</th>
+            <th class="col-nc" id="thNC">Não Conformidade</th>
+            <th class="col-acao">Ação Corretiva</th>
+            <th class="col-rt">Resp. Técnica</th>
+            <th class="col-exec">Executor</th>
+            <th class="col-data">Data do Relato</th>
+            <th class="col-atu">Atualização</th>
+            <th class="col-st">Status</th>
+            <th class="col-del"></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== NP · Gestão de NC (painel próprio; regras do projeto entram na Fase 3) ===== -->
+    <div id="tab-nc" class="tab-panel" style="display:none">
+      <div class="form-wrap">
+        <h2>Relatório de Não Conformidade - Gerência</h2>
+        <p class="desc">Carregando as não conformidades da empresa...</p>
+      </div>
+    </div>
+
+    <div id="tab-add" class="tab-panel" style="display:none">
+      <div class="form-wrap">
+        <h2>Adicionar não conformidade</h2>
+        <p class="desc">Preencha os campos para incluir manualmente um novo item no banco.</p>
+        <form id="ncForm" onsubmit="addItem(event)">
+          <div class="field"><label>Aba *</label>
+            <select id="fmTipo" onchange="document.getElementById('lbNc').textContent=this.value==='dg'?'Demanda *':'Não Conformidade *'"><option value="dg">Demandas Gerais</option><option value="mnt">Manutenções e Elétrica</option></select></div>
+          <div class="grid2">
+            <div class="field"><label>Empresa *</label>
+              <select id="fmLoja"></select></div>
+            <div class="field"><label>Área *</label>
+              <input list="areas" id="fmArea" placeholder="Ex.: Padaria, Cozinha, Câmara Zero..." required>
+              <datalist id="areas"></datalist></div>
+          </div>
+          <div class="field"><label id="lbNc">Não Conformidade *</label>
+            <textarea id="fmNc" placeholder="Descreva o problema identificado..." required></textarea></div>
+          <div class="field"><label>Ação Corretiva</label>
+            <textarea id="fmAcao" placeholder="O que deve ser feito para corrigir..."></textarea></div>
+          <div class="grid2">
+            <div class="field"><label>Responsável Técnica</label>
+              <input id="fmRt" value="Letícia Oliveira (Nutricionista de Produção – RT)"></div>
+            <div class="field"><label>Executor</label>
+              <select id="fmExec"><option value="Sr. João">Sr. João (Manutenção)</option><option value="Matheus">Matheus (Elétrica)</option><option value="Outro">Outro</option></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Data do Relato</label><input type="date" id="fmData"></div>
+            <div class="field"><label>Status</label>
+              <select id="fmStatus"><option value="Pendente">Pendente</option><option value="Concluído">Concluído</option></select></div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Adicionar ao banco</button>
+            <button type="button" class="btn ghost" onclick="showTab('list')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Barra de navegação do celular (a coluna lateral some em telas pequenas) -->
+<nav class="mnav" id="mobileNav" hidden></nav>
+
+<!-- Busca rápida de abas (Ctrl + K) -->
+<div class="pal-overlay" id="palOverlay" style="display:none" onclick="if(event.target===this)closePalette()">
+  <div class="pal-box">
+    <input id="palInput" type="text" placeholder="Ir para... (digite o nome do quadro)" oninput="paletteFilter()" autocomplete="off">
+    <div id="palList"></div>
+    <div class="pal-foot">↑ ↓ para escolher · Enter para abrir · Esc para fechar</div>
+  </div>
+</div>
+
+<script src="js/app.js?v=19"></script>
+<script src="js/docxlite.js?v=19"></script>
+<script src="js/nc.js?v=19"></script>
+<script src="js/sync.js?v=19"></script>
+</body>
+</html>
