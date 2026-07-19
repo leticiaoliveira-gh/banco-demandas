@@ -104,6 +104,12 @@ async function syncMergeEnvelope(env){
    await metaSet("rtInfo",RT_INFO);await metaSet("rtInfoMod",RT_INFO_MOD);
    changed=true;
  }else if(env&&(RT_INFO_MOD||"")>(env.rtInfoMod||""))localAhead=true;
+ /* nomes das abas que ela renomeou: vence o mais novo */
+ if(env&&env.abaNomes&&(env.abaNomesMod||"")>(ABA_NOMES_MOD||"")){
+   ABA_NOMES=env.abaNomes;ABA_NOMES_MOD=env.abaNomesMod;
+   await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
+   if(window.renderTabs)renderTabs();changed=true;
+ }else if(env&&(ABA_NOMES_MOD||"")>(env.abaNomesMod||""))localAhead=true;
  return {changed,localAhead};
 }
 

@@ -241,6 +241,27 @@ const TABS={
       onShow(){configAddTab();}}
 };
 const ABAS_HUB=()=>TAB_ORDER.filter(t=>TABS[t].hub);
+/* ===== NOMES DAS ABAS EDITÁVEIS (regra fixa de Lê: TUDO é editável) =====
+   O nome que ela escrever vence o nome de fábrica, e viaja entre os aparelhos. */
+let ABA_NOMES={},ABA_NOMES_MOD="";
+async function loadAbaNomes(){ABA_NOMES=await metaGet("abaNomes")||{};ABA_NOMES_MOD=await metaGet("abaNomesMod")||"";}
+function rotuloAba(t){return (ABA_NOMES&&ABA_NOMES[t])||(TABS[t]&&TABS[t].label)||t;}
+async function renomearAba(t,novo){
+  novo=String(novo||"").trim();if(!novo||novo===rotuloAba(t))return;
+  ABA_NOMES[t]=novo;ABA_NOMES_MOD=nowISO();
+  await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
+  renderTabs();updateSubtitle(currentTab);dataChanged();toast("Nome do quadro atualizado ✓");
+}
+/* nome da loja editável na pílula (mantém o sufixo da rede: "· Super Fricarnes") */
+async function renomearLojaCurto(novo){
+  const e=empresa(currentStore);if(!e)return;
+  novo=String(novo||"").trim();if(!novo)return;
+  const resto=e.name.includes("·")?" ·"+e.name.split("·").slice(1).join("·"):"";
+  const completo=novo+resto;
+  if(completo===e.name)return;
+  e.name=completo;currentStoreName=nomeCurto(completo);
+  await saveEmpresas();fillLojaSelects();updateSubtitle(currentTab);toast("Empresa renomeada ✓");
+}
 /* "Arraial do Cabo · Super Fricarnes" -> "Arraial do Cabo" (usado dentro das abas) */
 function nomeCurto(n){return String(n||"").split("·")[0].trim()||String(n||"");}
 /* A barra de abas de TEXTO foi removida a pedido de Lê (19/07: "está poluído").
@@ -251,10 +272,10 @@ function renderHub(){
   const box=document.getElementById("hub-grid");if(!box)return;
   box.innerHTML=ABAS_HUB().map(t=>{const a=TABS[t];
     /* card BRANCO: a cor fica só na barra, no fundo do ícone e no título (pedido de Lê, 19/07) */
-    return `<button class="hub-card" data-hub="${t}" style="color:${a.cor}" onclick="showTab('${t}')" title="${esc(a.label)}">
+    return `<button class="hub-card" data-hub="${t}" style="color:${a.cor}" onclick="showTab('${t}')" title="${esc(rotuloAba(t))}">
       <span class="bar" style="background:${a.cor}"></span>
       <span class="ico" style="background:${a.corFundo}">${a.icone}</span>
-      <span class="nm">${esc(a.label)}</span></button>`;}).join("");
+      <span class="nm">${esc(rotuloAba(t))}</span></button>`;}).join("");
 }
 function showHub(){
   if(!currentStore)return goHome();
@@ -269,7 +290,7 @@ function showHub(){
 }
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
 function navItemHTML(t){const a=TABS[t];
-  return `<button class="ricon nav-item" data-tab="${t}" style="color:${a.cor}" title="${esc(a.label)}" aria-label="${esc(a.label)}" onclick="showTab('${t}')">${a.icone}</button>`;}
+  return `<button class="ricon nav-item" data-tab="${t}" style="color:${a.cor}" title="${esc(rotuloAba(t))}" aria-label="${esc(rotuloAba(t))}" onclick="showTab('${t}')">${a.icone}</button>`;}
 function renderRailTabs(){const b=document.getElementById("railTabs");if(b)b.innerHTML=TAB_ORDER.map(navItemHTML).join("");}
 function renderMobileNav(){const b=document.getElementById("mobileNav");
   if(b)b.innerHTML=`<button class="ricon nav-item" title="Hub da empresa" aria-label="Hub da empresa" onclick="showHub()">${ICO.hub}</button>`+TAB_ORDER.map(navItemHTML).join("");}
@@ -293,16 +314,27 @@ function fecharMenuMais(){const m=document.getElementById("menuMais");if(m)m.hid
 /* trilha removida a pedido de Lê (19/07) — o cabeçalho já diz o quadro e a loja */
 function renderBreadcrumb(){
   const c=document.getElementById("crumb");if(!c)return;
-  const aba=currentTab&&TABS[currentTab]?` › <b>${esc(TABS[currentTab].label)}</b>`:" › <b>Início</b>";
+  const aba=currentTab&&TABS[currentTab]?` › <b>${esc(rotuloAba(currentTab))}</b>`:" › <b>Início</b>";
   c.innerHTML=`<span onclick="goHome()" title="Voltar à Central de Empresas">Capa</span> › <span onclick="showHub()" title="Voltar ao início desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
 }
 /* Cabeçalho padrão de TODAS as abas (pedido de Lê, 19/07):
    título grande = nome do quadro · embaixo, a loja numa pílula verde. */
 function updateSubtitle(t){
   const h1=document.getElementById("appTitle"),sub=document.getElementById("appSubtitle");
-  const aba=TABS[t]&&TABS[t].label;
-  if(h1)h1.textContent=aba||nomeCurto(currentStoreName||"");
-  if(sub)sub.innerHTML=currentStore?`<span class="loja-pill">${esc(nomeCurto(currentStoreName||""))}</span>`:"";
+  const aba=TABS[t]&&rotuloAba(t);
+  if(h1){
+    h1.textContent=aba||nomeCurto(currentStoreName||"");
+    /* TUDO editável: o nome do quadro também se muda aqui, clicando */
+    if(aba){h1.contentEditable="plaintext-only";h1.title="Clique para renomear este quadro";
+      h1.onblur=()=>renomearAba(t,h1.textContent);
+      h1.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();h1.blur();}};
+    }else{h1.contentEditable="false";h1.onblur=h1.onkeydown=null;h1.title="";}
+  }
+  if(sub)sub.innerHTML=currentStore
+    ?`<span class="loja-pill" contenteditable="plaintext-only" title="Clique para renomear a empresa"
+        onblur="renomearLojaCurto(this.textContent)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(nomeCurto(currentStoreName||""))}</span>`
+    :"";
 }
 
 /* Status por tipo de aba — a aba NC ganha vocabulário próprio na Fase 3 */
@@ -673,7 +705,7 @@ function renderNC(){}
 
 /* ===== export / import / backup automático ===== */
 /* Envelope versionado: leva itens E empresas; o import aceita também o formato antigo (array puro) */
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -811,11 +843,11 @@ function paletteFilter(){
  const q=semAcento(document.getElementById("palInput").value.trim());
  /* ranking: quem COMEÇA com o termo vem antes (digitar "man" deve achar Manutenções,
     não "deMANdas"); depois quem tem alguma palavra começando com ele; por fim o resto */
- const peso=t=>{const l=semAcento(TABS[t].label);
+ const peso=t=>{const l=semAcento(rotuloAba(t));
    if(l.startsWith(q))return 0;
    if(l.split(/[\s·\-]+/).some(p=>p.startsWith(q)))return 1;
    return 2;};
- PAL_ITENS=TAB_ORDER.filter(t=>!q||semAcento(TABS[t].label).includes(q));
+ PAL_ITENS=TAB_ORDER.filter(t=>!q||semAcento(rotuloAba(t)).includes(q));
  if(q)PAL_ITENS.sort((a,b)=>peso(a)-peso(b));
  PAL_SEL=0;paletteDraw();
 }
@@ -823,7 +855,7 @@ function paletteDraw(){
  const l=document.getElementById("palList");
  l.innerHTML=PAL_ITENS.length?PAL_ITENS.map((t,i)=>{const a=TABS[t];
    return `<div class="pal-item${i===PAL_SEL?" sel":""}" onclick="showTab('${t}');closePalette()">
-     <span class="pal-ico" style="color:${a.cor}">${a.icone}</span>${esc(a.label)}</div>`;}).join("")
+     <span class="pal-ico" style="color:${a.cor}">${a.icone}</span>${esc(rotuloAba(t))}</div>`;}).join("")
    :`<div class="pal-item" style="color:var(--muted)">Nenhuma aba encontrada</div>`;
 }
 function paletteMove(d){if(!PAL_ITENS.length)return;PAL_SEL=(PAL_SEL+d+PAL_ITENS.length)%PAL_ITENS.length;paletteDraw();}
@@ -849,7 +881,7 @@ function mapaDoSite(){
   const vivos=DATA.filter(d=>!d.deleted);
   const cont=t=>vivos.filter(d=>d.tipo===t).length;
   const emp=EMPRESAS.map(e=>`<li><b>${esc(e.name)}</b> (${esc(e.code)})${e.grupo?` · grupo <b>${esc(e.grupo)}</b>`:" · sem grupo (agenda própria)"}${e.ativa?"":" · inativa"}</li>`).join("");
-  const abas=TAB_ORDER.map(t=>`<li><b>${esc(TABS[t].label)}</b> — guarda itens do tipo <code>${esc(TABS[t].tipo||"—")}</code>, aparece no quadro de entrada: ${TABS[t].hub?"sim":"não"}</li>`).join("");
+  const abas=TAB_ORDER.map(t=>`<li><b>${esc(rotuloAba(t))}</b> — guarda itens do tipo <code>${esc(TABS[t].tipo||"—")}</code>, aparece no quadro de entrada: ${TABS[t].hub?"sim":"não"}</li>`).join("");
   ncModal(`<h2 style="margin-bottom:4px">🗺 Mapa do site</h2>
   <p class="desc">Como as peças se ligam. Serve para você mexer no site sozinha — e para explicar a quem for te ajudar.</p>
 
@@ -916,7 +948,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();
  goHome();
