@@ -129,6 +129,21 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
 > O LAYOUT vem antes de tudo porque ela quer mexer no visual POR PARTES (capa →
 > Demandas Gerais → demais abas) antes de qualquer conferência de dados.
 
+## v5.1 (19/07) — visual e agenda compartilhada
+- Fundo `--bg:#fbfbfc` (quase branco). REGRA VISUAL DE Lê: **cor só nos detalhes**
+  (barrinha, ícone, contorno, etiqueta) — nunca preenchendo áreas grandes. Cards do hub
+  e cabeçalhos de grupo são brancos com contorno colorido.
+- Banner "Responsável Técnica" saiu do #view-app (fica só na Capa, em #rt-linha).
+- `nomeCurto()` (js/app.js): dentro das abas e na trilha o nome vai curto
+  ("Cabo Frio"); na Capa fica "Cabo Frio · Super Fricarnes (CF)" — a pílula sumiu.
+- **GRUPO DE EMPRESAS** (`GRUPO_SF="SF"`): CF e AC têm `grupo:"SF"` e dividem UMA agenda
+  de Demandas Gerais. Item dg é gravado com `loja` = código do GRUPO e um campo `escopo`
+  ("" = as duas lojas; "CF"/"AC" = exclusiva). `dgLojaBase()`/`dgVivos()` em js/dg.js.
+  As exclusivas aparecem num bloco à parte ACIMA das compartilhadas. Filtro por loja na barra.
+  ⚠️ EMPRESA NOVA NASCE SEM GRUPO = agenda própria (regra explícita de Lê, não mudar).
+  Migração `mig_grupo_sf` + migração de itens dg antigos (loja CF/AC -> SF) no boot.
+- Ordem manual das demandas: campo `ordem`, arrastar-e-soltar no PC e setas ▲▼ no celular.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
