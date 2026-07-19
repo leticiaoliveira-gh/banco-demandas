@@ -370,7 +370,10 @@ function navItemHTML(t){const a=TABS[t];
   return `<button class="ricon nav-item" data-tab="${t}" style="color:${a.cor}" title="${esc(rotuloAba(t))}" aria-label="${esc(rotuloAba(t))}" onclick="showTab('${t}')">${a.icone}</button>`;}
 function renderRailTabs(){const b=document.getElementById("railTabs");if(b)b.innerHTML=TAB_ORDER.map(navItemHTML).join("");}
 function renderMobileNav(){const b=document.getElementById("mobileNav");
-  if(b)b.innerHTML=`<button class="ricon nav-item" title="Hub da empresa" aria-label="Hub da empresa" onclick="showHub()">${ICO.hub}</button>`+TAB_ORDER.map(navItemHTML).join("");}
+  /* no celular a barra lateral some, então o DESFAZER também mora aqui */
+  if(b)b.innerHTML=`<button class="ricon nav-item" title="Hub da empresa" aria-label="Hub da empresa" onclick="showHub()">${ICO.hub}</button>`
+    +TAB_ORDER.map(navItemHTML).join("")
+    +`<button class="ricon" id="btDesfazerM" onclick="desfazer()" title="Desfazer" aria-label="Desfazer">←</button>`;}
 /* destaque da aba atual — única função que marca "active" em TODAS as navegações */
 function syncNav(){
   document.querySelectorAll("[data-tab]").forEach(el=>{
@@ -519,6 +522,8 @@ async function refazer(){
 }
 function atualizarBotoesHist(){
   const d=document.getElementById("btDesfazer"),r=document.getElementById("btRefazer");
+  const dm=document.getElementById("btDesfazerM");
+  if(dm){dm.disabled=HIST_POS<0;dm.title=HIST_POS<0?"Nada para desfazer":"Desfazer "+histRotulo(HIST[HIST_POS]);}
   if(d){d.disabled=HIST_POS<0;d.title=HIST_POS<0?"Nada para desfazer":"Desfazer "+histRotulo(HIST[HIST_POS])+" (Ctrl+Z)";}
   if(r){r.disabled=HIST_POS>=HIST.length-1;r.title=HIST_POS>=HIST.length-1?"Nada para refazer":"Refazer (Ctrl+Shift+Z)";}
 }
