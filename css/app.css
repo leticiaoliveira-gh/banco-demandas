@@ -16,6 +16,13 @@
   .rail .nav-item:hover{opacity:1;background:rgba(255,255,255,.16)}
   .rail .nav-item.active{opacity:1;background:rgba(255,255,255,.22);box-shadow:inset 3px 0 0 #fff}
   .rail-ver{color:rgba(255,255,255,.55) !important}
+  /* IDEIA 1 da referência: ao passar o mouse, o nome da aba aparece numa pílula clara */
+  .rail .ricon,.rail .nav-item{position:relative}
+  .rail .ricon::after,.rail .nav-item::after{content:attr(title);position:absolute;left:46px;top:50%;
+    transform:translateY(-50%);background:#fff;color:var(--text);font-size:12px;font-weight:600;
+    padding:6px 11px;border-radius:8px;white-space:nowrap;box-shadow:0 3px 14px rgba(15,91,82,.18);
+    opacity:0;pointer-events:none;transition:opacity .12s;z-index:40}
+  .rail .ricon:hover::after,.rail .nav-item:hover::after{opacity:1}
   .rail .ricon svg{width:20px;height:20px}
   /* navegação permanente das abas (barra lateral) */
   .rail-tabs{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:4px;padding-top:10px;border-top:1px solid var(--border);width:34px}
@@ -136,8 +143,10 @@
   .app{background:#f2f4f4}
   .main{flex:1;padding:24px 30px 70px;min-width:0;background:#fff;border-radius:18px 0 0 18px;margin:10px 0 10px -6px;box-shadow:0 2px 24px rgba(15,91,82,.10)}
   #view-home{border-radius:18px 0 0 18px}
-  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:14px;flex-wrap:wrap}
-  .head h1{font-size:25px;font-weight:700;letter-spacing:-.3px}
+  /* IDEIA 3: título grande e com ar em volta, como na referência */
+  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:14px;flex-wrap:wrap;padding-top:6px}
+  .head h1{font-size:33px;font-weight:700;letter-spacing:-.8px;line-height:1.15}
+  .crumb{margin-bottom:22px !important}
   .head p{color:var(--muted);margin-top:3px;font-size:13px}
   .rt-banner{font-size:12.5px;color:var(--muted);margin-bottom:20px}
   .rt-banner b{color:var(--text)}

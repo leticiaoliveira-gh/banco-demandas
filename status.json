@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.8",
-  "ondeParamos": "v5.8 (visual novo, referencia \"Launch tracker\"): a Capa e a barra lateral ganharam o degrade esmeralda->teal, e o conteudo passou a viver num painel branco flutuante de canto arredondado. Aba QUADRO GERAL segue com as duas visoes (Lista e Painel).",
-  "proximoPasso": "Le dizer se gostou do degrade teal; depois, layout das abas de NC e Manutencoes"
+  "versao": "5.9",
+  "ondeParamos": "v5.9: mais tres ideias da referencia — passando o mouse na barra lateral aparece o NOME da aba numa pilula clara; cada tarefa ganhou uma LISTRA colorida na borda esquerda indicando a prioridade (menos texto na tela); e o titulo da pagina ficou grande e com mais ar em volta.",
+  "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }

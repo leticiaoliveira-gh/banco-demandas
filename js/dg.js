@@ -154,7 +154,9 @@ function dgCartaoHTML(d){
   const p=dgProgresso(d),sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
   const atras=dgEhAtrasada(d),hoje=dgEhHoje(d);
   const aberta=!!DG_ABERTAS[d.uid];
-  return `<div class="dg-item dg-cartao${d.situacao==="concluido"?" done":""}" data-uid="${d.uid}">
+  const cp=DG_PRIOS[d.prioridade];
+  return `<div class="dg-item dg-cartao${d.situacao==="concluido"?" done":""}" data-uid="${d.uid}"
+      style="${cp?`box-shadow:inset 3px 0 0 ${cp.cor}`:""}">
     <div class="dg-cartao-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste" onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
       <span class="dg-tit">${esc(d.titulo||"(sem título)")}</span>
@@ -199,7 +201,9 @@ function dgSalvarFechados(){try{localStorage.setItem("dg_fechados",JSON.stringif
 function dgLinhaHTML(d,irmaos,idx){
   const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
   const concl=(d.situacao==="concluido");
-  return `<div class="dg-item${concl?" done":""}" data-uid="${d.uid}">
+  const cp=DG_PRIOS[d.prioridade];      /* listra colorida = prioridade, sem precisar escrever */
+  return `<div class="dg-item${concl?" done":""}" data-uid="${d.uid}"
+      style="${cp?`box-shadow:inset 3px 0 0 ${cp.cor}`:""}" ${cp?`title="${cp.rotulo}"`:""}>
     <div class="dg-item-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste para mudar a ordem"
         onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
