@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.0",
-  "ondeParamos": "Demandas Gerais virou AGENDA (v5.0): tarefas agrupadas por prioridade, com checklist aninhado e secoes que abrem/fecham, igual ao Notion. Importacao das 15 tarefas do Notion em andamento. Historico do repositorio publico foi limpo por privacidade.",
-  "proximoPasso": "Conferir as tarefas importadas do Notion na aba Demandas Gerais"
+  "versao": "5.1",
+  "ondeParamos": "v5.1: fundo quase branco (cor so nos detalhes), banner da RT so na Capa, nome curto dentro das abas. Demandas Gerais agora e UMA agenda para [loja-A] + Arraial (grupo [rede-removida]), com opcao de marcar demanda como exclusiva de uma loja (aparece num bloco separado em cima) e ordem manual por arrastar ou setas.",
+  "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }
