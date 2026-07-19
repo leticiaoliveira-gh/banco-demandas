@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.5",
-  "ondeParamos": "v5.5: o arraste agora e livre dentro da coluna, igual ao Notion — arrastando uma tarefa de MEDIA para URGENTE a prioridade muda sozinha. A tarefa nao pula para a outra coluna (isso mudaria a loja; para isso existe o seletor dentro da demanda).",
-  "proximoPasso": "Ouvir o que Le achou do arraste e seguir para as abas de NC e Manutencoes"
+  "versao": "5.6",
+  "ondeParamos": "v5.6: a aba Demandas Gerais agora tem DUAS VISOES, para voce escolher qual prefere — o botao Lista/Painel fica na barra de cima. LISTA e a que ja existia. PAINEL e o quadro geral: em cima uma faixa de foco (Atrasadas, Para hoje, Urgentes, Em andamento) que responde \"o que eu faco agora\", e embaixo o quadro com uma coluna por prioridade.",
+  "proximoPasso": "Le escolher entre a visao Lista e a visao Painel"
 }

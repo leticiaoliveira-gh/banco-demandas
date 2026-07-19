@@ -24,6 +24,11 @@ let DG_ABERTAS={};        /* uid da demanda -> aberta? (só visual, não sincron
 let DG_GRUPO="prioridade";
 /* grupos/blocos recolhidos — igual ao Notion. Fica no aparelho (não sincroniza) */
 let DG_FECHADOS=(()=>{try{return JSON.parse(localStorage.getItem("dg_fechados"))||{};}catch(e){return {};}})();
+/* DUAS VISÕES da mesma agenda (Lê escolhe qual prefere):
+   "lista"  = agrupada por prioridade, em duas colunas (a que ela já aprovou)
+   "painel" = quadro geral: faixa de FOCO ("o que eu faço agora") + colunas por prioridade */
+let DG_VISAO=localStorage.getItem("dg_visao")||"lista";
+let DG_FOCO="";     /* filtro rápido da faixa de foco: atrasadas | hoje | andamento | urgentes */
 
 /* Onde a demanda mora:
    - loja = código do GRUPO (ex.: "SF") quando vale para as lojas do grupo;
@@ -68,7 +73,9 @@ function renderDG(){
       <div class="dg-bloco-h" onclick="dgToggleGrupo('bloco|${id}')" title="${fechado?"Abrir":"Fechar"} esta coluna">
         <span class="dg-caret${fechado?"":" open"}">▸</span>${titulo}<span class="dg-cont">${itens.length}</span></div>
       ${fechado?"":`<div class="dg-bloco-corpo">${dgGruposHTML(itens,id)}</div>`}</div>`;};
-  if(temGrupo){
+  if(DG_VISAO==="painel"){
+    corpo=dgPainelHTML(lista);                       /* quadro geral, tudo junto */
+  }else if(temGrupo){
     /* esquerda: o que vale para as duas lojas | direita: o que é só desta loja */
     corpo=`<div class="dg-colunas">
       ${blocoHTML("grupo","Demandas e Prioridades",doGrupo,"compart")}
@@ -96,11 +103,73 @@ function renderDG(){
         <option value="compart"${fEsc==="compart"?" selected":""}>Só as das duas lojas</option>
         <option value="minha"${fEsc==="minha"?" selected":""}>Só desta loja</option>
       </select>`:""}
+      <span class="dg-visao" title="Trocar o jeito de ver a agenda">
+        <button class="${DG_VISAO==="lista"?"on":""}" onclick="dgSetVisao('lista')">☰ Lista</button>
+        <button class="${DG_VISAO==="painel"?"on":""}" onclick="dgSetVisao('painel')">▦ Painel</button>
+      </span>
       <button class="btn sm" onclick="dgNova()">+ Nova demanda</button>
     </div>
     ${corpo||`<div class="empty">Nenhuma demanda aqui ainda. Use "+ Nova demanda" para criar a primeira.</div>`}`;
   requestAnimationFrame(()=>{const i=document.getElementById("dgQ");if(i&&q)  {i.focus();i.setSelectionRange(i.value.length,i.value.length);}});
 }
+
+/* ===== VISÃO 2: PAINEL =====
+   Referência: Matriz de Eisenhower (urgente x importante) + "board view".
+   A ideia é responder, nesta ordem: (1) o que eu faço AGORA, (2) como está o todo. */
+function dgEhAtrasada(d){return d.prazo&&d.prazo<today()&&d.situacao!=="concluido";}
+function dgEhHoje(d){return d.prazo===today()&&d.situacao!=="concluido";}
+function dgPainelHTML(lista){
+  const atrasadas=lista.filter(dgEhAtrasada);
+  const hoje=lista.filter(dgEhHoje);
+  const andamento=lista.filter(d=>d.situacao==="andamento");
+  const urgentes=lista.filter(d=>d.prioridade==="URGENTE"&&d.situacao!=="concluido");
+  const foco=[
+    {ch:"atrasadas",rot:"Atrasadas",n:atrasadas.length,cor:"#e5484d",fundo:"#ffecec",dica:"Passou do prazo"},
+    {ch:"hoje",rot:"Para hoje",n:hoje.length,cor:"#b3730a",fundo:"#fdf0e0",dica:"Vence hoje"},
+    {ch:"urgentes",rot:"Urgentes",n:urgentes.length,cor:"#a23bb0",fundo:"#f6ecf8",dica:"Marcadas como urgente"},
+    {ch:"andamento",rot:"Em andamento",n:andamento.length,cor:"#1668b8",fundo:"#e7f0f9",dica:"Já comecei"}
+  ];
+  const faixa=`<div class="dg-foco">${foco.map(f=>
+    `<button class="dg-foco-c${DG_FOCO===f.ch?" on":""}" style="--c:${f.cor};--f:${f.fundo}"
+       onclick="dgSetFoco('${f.ch}')" title="${f.dica} — clique para ver só estas">
+       <span class="n">${f.n}</span><span class="r">${f.rot}</span></button>`).join("")}
+    ${DG_FOCO?`<button class="dg-foco-x" onclick="dgSetFoco('')" title="Mostrar tudo de novo">✕ limpar</button>`:""}
+  </div>`;
+  /* aplica o filtro da faixa */
+  let l=lista;
+  if(DG_FOCO==="atrasadas")l=atrasadas; else if(DG_FOCO==="hoje")l=hoje;
+  else if(DG_FOCO==="andamento")l=andamento; else if(DG_FOCO==="urgentes")l=urgentes;
+  /* colunas por prioridade — o quadro geral */
+  const cols=[...Object.keys(DG_PRIOS).map(k=>({chave:k,...DG_PRIOS[k]})),{chave:"",...DG_SEM}];
+  const quadro=`<div class="dg-quadro">${cols.map(c=>{
+    const itens=dgOrdenar(l.filter(d=>(d.prioridade||"")===c.chave));
+    return `<div class="dg-col" data-chave="${c.chave}">
+      <div class="dg-col-h" style="color:${c.cor};background:${c.fundo}">${esc(c.rotulo)}<span class="dg-cont">${itens.length}</span></div>
+      <div class="dg-grupo" data-chave="${c.chave}">
+        ${itens.map(d=>dgCartaoHTML(d)).join("")||`<div class="dg-vazio">—</div>`}
+      </div></div>`;}).join("")}</div>`;
+  return faixa+quadro;
+}
+function dgCartaoHTML(d){
+  const p=dgProgresso(d),sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
+  const atras=dgEhAtrasada(d),hoje=dgEhHoje(d);
+  const aberta=!!DG_ABERTAS[d.uid];
+  return `<div class="dg-item dg-cartao${d.situacao==="concluido"?" done":""}" data-uid="${d.uid}">
+    <div class="dg-cartao-top" onclick="dgToggleAberta('${d.uid}')">
+      <span class="dg-alca" title="Segure e arraste" onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
+      <span class="dg-tit">${esc(d.titulo||"(sem título)")}</span>
+    </div>
+    <div class="dg-cartao-pe" onclick="dgToggleAberta('${d.uid}')">
+      ${d.escopo?`<span class="dg-mini" title="Só desta loja">📍</span>`:""}
+      ${p.total?`<span class="dg-mini">${p.feitos}/${p.total}</span>`:""}
+      <span class="dg-mini" style="color:${sit.cor}">${sit.rotulo}</span>
+      ${d.prazo?`<span class="dg-mini${atras?" atrasado":hoje?" hoje":""}">${atras?"⚠ ":""}${brDate(d.prazo)}</span>`:""}
+    </div>
+    ${aberta?`<div class="dg-corpo">${dgItensHTML(d)}</div>`:""}
+  </div>`;
+}
+function dgSetFoco(f){DG_FOCO=(DG_FOCO===f)?"":f;renderDG();}
+function dgSetVisao(v){DG_VISAO=v;localStorage.setItem("dg_visao",v);DG_FOCO="";renderDG();}
 
 /* dentro de cada bloco, os grupos por prioridade (ou situação) do jeito que ela já usa */
 function dgGruposHTML(lista,pref){
