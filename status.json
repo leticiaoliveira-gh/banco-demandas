@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "7.3",
-  "ondeParamos": "v7.3: o modo edicao agora alcanca o site quase todo — 82 textos marcados: capa, Quadro Geral (botoes, blocos, a pergunta da faixa de foco), aba de Nao Conformidade, Manutencoes, cabecalhos da tabela, formulario de cadastro, menu tres pontinhos e cards de resumo. Ligue em ... > Editar os textos do site.",
+  "versao": "7.4",
+  "ondeParamos": "v7.4: DESFAZER e REFAZER no site inteiro — os botoes seta na barra lateral e os atalhos Ctrl+Z / Ctrl+Shift+Z. Funciona para tudo: criar, excluir, editar texto, alterar varias de uma vez e importar arquivo. O que foi feito junto se desfaz junto, e o aviso na tela diz o que foi desfeito.",
   "proximoPasso": "Testar tudo no Chrome; depois, layout das abas de NC e Manutencoes"
 }

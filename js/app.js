@@ -439,8 +439,82 @@ function openDB(){return new Promise((res,rej)=>{const req=indexedDB.open(DB_NAM
  req.onsuccess=e=>{db=e.target.result;res()};req.onerror=e=>rej(e);});}
 function tx(s,m){return db.transaction(s,m).objectStore(s);}
 function getAll(){return new Promise(r=>{const q=tx(STORE,"readonly").getAll();q.onsuccess=()=>r(q.result);});}
-function putItem(o){return new Promise(r=>{const q=tx(STORE,"readwrite").put(o);q.onsuccess=()=>r(q.result);});}
-function delDB(id){return new Promise(r=>{const q=tx(STORE,"readwrite").delete(id);q.onsuccess=()=>r();});}
+function getOne(id){return new Promise(r=>{const q=tx(STORE,"readonly").get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null);});}
+/* Toda gravação passa por aqui — é por isso que o DESFAZER funciona no site inteiro:
+   antes de gravar/apagar, guardamos como o item estava. */
+async function putItem(o){
+  if(HIST_LIGADO&&o&&o.id!==undefined)await histRegistrar({tipo:"put",id:o.id,antes:await getOne(o.id),depois:JSON.parse(JSON.stringify(o))});
+  const id=await new Promise(r=>{const q=tx(STORE,"readwrite").put(o);q.onsuccess=()=>r(q.result);});
+  if(HIST_LIGADO&&(o.id===undefined))await histRegistrar({tipo:"put",id,antes:null,depois:JSON.parse(JSON.stringify({...o,id}))});
+  return id;
+}
+async function delDB(id){
+  if(HIST_LIGADO)await histRegistrar({tipo:"del",id,antes:await getOne(id),depois:null});
+  return new Promise(r=>{const q=tx(STORE,"readwrite").delete(id);q.onsuccess=()=>r();});
+}
+
+/* ===== DESFAZER / REFAZER (Ctrl+Z e Ctrl+Shift+Z, e os botões ← →) =====
+   Guarda o que mudou em cada ação. Ações feitas juntas (ex.: alterar 5 demandas
+   de uma vez) entram como UM passo só, para desfazer tudo de uma vez. */
+let HIST=[],HIST_POS=-1,HIST_LIGADO=true,HIST_ATUAL=null,HIST_T=null;
+const HIST_MAX=40;
+async function histRegistrar(m){
+  if(!HIST_ATUAL){HIST_ATUAL={quando:Date.now(),mudancas:[]};}
+  HIST_ATUAL.mudancas.push(m);
+  clearTimeout(HIST_T);
+  HIST_T=setTimeout(histFechar,350);          /* o que acontece junto vira um passo só */
+}
+function histFechar(){
+  if(!HIST_ATUAL||!HIST_ATUAL.mudancas.length){HIST_ATUAL=null;return;}
+  HIST=HIST.slice(0,HIST_POS+1);
+  HIST.push(HIST_ATUAL);
+  if(HIST.length>HIST_MAX)HIST.shift();
+  HIST_POS=HIST.length-1;HIST_ATUAL=null;
+  atualizarBotoesHist();
+}
+function histRotulo(p){
+  const n=p.mudancas.length;
+  const criou=p.mudancas.filter(m=>!m.antes).length,apagou=p.mudancas.filter(m=>!m.depois).length;
+  if(criou===n)return n===1?"criação":n+" criações";
+  if(apagou===n)return n===1?"exclusão":n+" exclusões";
+  return n===1?"alteração":n+" alterações";
+}
+async function histAplicar(passo,voltando){
+  HIST_LIGADO=false;
+  try{
+    const mudancas=voltando?[...passo.mudancas].reverse():passo.mudancas;
+    for(const m of mudancas){
+      const alvo=voltando?m.antes:m.depois;
+      if(alvo){await new Promise(r=>{const q=tx(STORE,"readwrite").put(alvo);q.onsuccess=()=>r();});}
+      else{await new Promise(r=>{const q=tx(STORE,"readwrite").delete(m.id);q.onsuccess=()=>r();});}
+    }
+    DATA=await getAll();
+    if(typeof renderDG==="function"&&currentTab==="dg")renderDG();
+    if(typeof renderNC==="function"&&currentTab==="nc")renderNC();
+    if(typeof render==="function"&&(currentTab==="list"||currentTab==="add"))render();
+    if(document.getElementById("view-home").style.display!=="none")await renderHome();
+    if(window.syncSchedule)syncSchedule();
+  }finally{HIST_LIGADO=true;}
+}
+async function desfazer(){
+  histFechar();
+  if(HIST_POS<0){toast("Nada para desfazer");return;}
+  const p=HIST[HIST_POS];
+  await histAplicar(p,true);HIST_POS--;atualizarBotoesHist();
+  toast("Desfeito: "+histRotulo(p));
+}
+async function refazer(){
+  histFechar();
+  if(HIST_POS>=HIST.length-1){toast("Nada para refazer");return;}
+  HIST_POS++;const p=HIST[HIST_POS];
+  await histAplicar(p,false);atualizarBotoesHist();
+  toast("Refeito: "+histRotulo(p));
+}
+function atualizarBotoesHist(){
+  const d=document.getElementById("btDesfazer"),r=document.getElementById("btRefazer");
+  if(d){d.disabled=HIST_POS<0;d.title=HIST_POS<0?"Nada para desfazer":"Desfazer "+histRotulo(HIST[HIST_POS])+" (Ctrl+Z)";}
+  if(r){r.disabled=HIST_POS>=HIST.length-1;r.title=HIST_POS>=HIST.length-1?"Nada para refazer":"Refazer (Ctrl+Shift+Z)";}
+}
 function metaGet(k){return new Promise(r=>{const q=tx("meta","readonly").get(k);q.onsuccess=()=>r(q.result?q.result.v:null);q.onerror=()=>r(null);});}
 function metaSet(k,v){return new Promise(r=>{const q=tx("meta","readwrite").put({k,v});q.onsuccess=()=>r();});}
 
@@ -944,6 +1018,12 @@ function paletteMove(d){if(!PAL_ITENS.length)return;PAL_SEL=(PAL_SEL+d+PAL_ITENS
 function paletteEnter(){const t=PAL_ITENS[PAL_SEL];if(t){showTab(t);closePalette();}}
 function initAtalhos(){
  document.addEventListener("keydown",e=>{
+   /* desfazer/refazer valem no site inteiro — menos enquanto ela digita num campo */
+   const digitando=/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)
+     ||document.activeElement.isContentEditable;
+   if((e.ctrlKey||e.metaKey)&&(e.key==="z"||e.key==="Z")&&!digitando){
+     e.preventDefault();e.shiftKey?refazer():desfazer();return;}
+   if((e.ctrlKey||e.metaKey)&&(e.key==="y"||e.key==="Y")&&!digitando){e.preventDefault();refazer();return;}
    /* Esc fecha o modo foco da demanda antes de qualquer outra coisa */
    if(e.key==="Escape"&&document.getElementById("dg-foco-tela")){e.preventDefault();dgFocoFechar();return;}
    const aberto=document.getElementById("palOverlay").style.display==="flex";
@@ -1032,7 +1112,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  }
  await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
  document.getElementById("fmData").value=today();
- renderTabs();fillExecSelects();initAtalhos();
+ renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();
  goHome();
  if(window.syncInit)syncInit();
  /* PWA: service worker só em https (GitHub Pages); no file:// é ignorado */
