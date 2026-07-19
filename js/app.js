@@ -222,7 +222,7 @@ const ICO={
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
 const TAB_ORDER=["dg","nc","list","add"];
 const TABS={
-  dg:{label:"Demandas Gerais",tipo:"dg",panel:"tab-dg",
+  dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
       subtitle:n=>"",
       renderCards(){document.getElementById("cards").innerHTML="";},
