@@ -80,6 +80,8 @@ function renderDG(){
     const alvo=semAcento(d.titulo||"")+" "+semAcento((d.itens||[]).map(i=>i.texto).join(" "));
     return alvo.includes(q);
   });
+  /* concluídas somem da vista — só aparecem se ela filtrar por elas (pedido de Lê) */
+  if(fSit!==DG_CHAVE_CONCLUIDO)lista=lista.filter(d=>d.situacao!==DG_CHAVE_CONCLUIDO);
   const fEsc=document.getElementById("dgEscopo")?.value||"";
   if(fEsc==="minha")lista=lista.filter(d=>d.escopo===currentStore);
   else if(fEsc==="compart")lista=lista.filter(d=>!d.escopo);
@@ -217,7 +219,7 @@ function dgGruposHTML(lista,pref){
     for(const k of ordenarOpc(DG_SIT))grupos.push({chave:k,rotulo:DG_SIT[k].rotulo.toUpperCase(),cor:DG_SIT[k].cor,fundo:DG_SIT[k].fundo,itens:lista.filter(d=>(d.situacao||ordenarOpc(DG_SIT)[0])===k)});
   }
   /* cada grupo recolhe no ▸, igual ao Notion: fechado mostra só a etiqueta e a contagem */
-  return grupos.filter(g=>g.itens.length).map(g=>{
+  return grupos.map(g=>{
     const ch=(pref||"")+"|"+g.chave, fechado=!!DG_FECHADOS[ch];
     return `<div class="dg-grupo" data-chave="${esc(g.chave)}">
       <div class="dg-grupo-lin" onclick="dgToggleGrupo('${esc(ch)}')" title="${fechado?"Abrir":"Fechar"} este grupo">
@@ -225,7 +227,7 @@ function dgGruposHTML(lista,pref){
         <span class="dg-grupo-h" style="color:${g.cor};background:${g.fundo}">${esc(g.rotulo)}</span>
         <span class="dg-cont">${g.itens.length}</span>
       </div>
-      ${fechado?"":g.itens.map((d,i)=>dgLinhaHTML(d,g.itens,i)).join("")}
+      ${fechado?"":(g.itens.map((d,i)=>dgLinhaHTML(d,g.itens,i)).join("")||`<div class="dg-grupo-vazio">arraste uma demanda para cá</div>`)}
     </div>`;}).join("");
 }
 function dgToggleGrupo(ch){DG_FECHADOS[ch]=!DG_FECHADOS[ch];dgSalvarFechados();renderDG();}
@@ -264,11 +266,12 @@ function dgLinhaHTML(d,irmaos,idx){
         </select>`:""}
         <button class="btn ghost sm" onclick="dgEditarTitulo('${d.uid}')">✎ Renomear</button>
         <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
-      <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')">🗺 Fluxograma</button>
-        <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')" title="Ver esta demanda como um mapa/fluxograma">🗺 Fluxograma</button>
+        <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')" title="Ver esta demanda como um mapa">🗺 Fluxograma</button>
+        <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar planilha, Word, PDF ou imagem nesta demanda">📎 Anexar</button>
         <button class="btn ghost sm" style="margin-left:auto" onclick="dgExcluir('${d.uid}')">🗑</button>
       </div>
       ${dgItensHTML(d)}
+      ${typeof anexosHTML==="function"?anexosHTML(d):""}
     </div>`:""}
   </div>`;
 }
@@ -367,6 +370,8 @@ function dgImprimir(){
 function dgVisiveis(){
   const q=semAcento((document.getElementById("dgQ")?.value)||"");
   const fSit=document.getElementById("dgSit")?.value||"";
+  /* concluídas somem da vista — só aparecem se ela filtrar por elas (pedido de Lê) */
+  if(fSit!==DG_CHAVE_CONCLUIDO)lista=lista.filter(d=>d.situacao!==DG_CHAVE_CONCLUIDO);
   const fEsc=document.getElementById("dgEscopo")?.value||"";
   let l=dgVivos().filter(d=>{
     if(fSit&&(d.situacao||ordenarOpc(DG_SIT)[0])!==fSit)return false;
@@ -442,12 +447,22 @@ function clarear(hex){                       /* gera o fundo pastel a partir da 
   const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,m=x=>Math.round(x+(255-x)*.88);
   return "#"+[m(r),m(g),m(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
 }
-function dgGerirOpcoes(qual){                /* qual: "prios" | "sits" */
-  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
-  const nome=qual==="prios"?"prioridades":"situações";
-  const campo=qual==="prios"?"prioridade":"situacao";
+/* qual: "prios" | "sits" | "urg" (urgências da aba de Não Conformidade).
+   A mesma tela serve TODAS as abas — regra de Lê: o que vale para uma, vale para todas. */
+function dgOpcMapa(qual){return qual==="prios"?DG_PRIOS:qual==="sits"?DG_SIT:NC_URG;}
+function dgOpcCampo(qual){return qual==="prios"?"prioridade":qual==="sits"?"situacao":"urgencia";}
+async function dgOpcSalvar(qual){return qual==="urg"?ncSalvarUrgencias():dgSalvarOpcoes();}
+function dgOpcUso(qual,k){
+  const campo=dgOpcCampo(qual);
+  if(qual==="urg")return DATA.filter(d=>!d.deleted&&d.tipo==="nc"&&d.loja===currentStore&&(d[campo]||"")===k).length;
+  return dgVivos().filter(d=>(d[campo]||"")===k).length;
+}
+function dgGerirOpcoes(qual){
+  const mapa=dgOpcMapa(qual);
+  const nome=qual==="prios"?"prioridades":qual==="sits"?"situações":"urgências";
+  const campo=dgOpcCampo(qual);
   const linhas=ordenarOpc(mapa).map((k,i,arr)=>{
-    const o=mapa[k],uso=dgVivos().filter(d=>(d[campo]||"")===k).length;
+    const o=mapa[k],uso=dgOpcUso(qual,k);
     return `<div class="opc-linha">
       <span class="opc-cor" style="background:${o.cor}" title="Trocar a cor"
         onclick="dgTrocarCor('${qual}','${k}')"></span>
@@ -462,7 +477,7 @@ function dgGerirOpcoes(qual){                /* qual: "prios" | "sits" */
     existem continuam nos seus lugares — o site guarda a ligação por dentro.</p>
     <div class="opc-lista">${linhas}</div>
     <div class="opc-nova">
-      <input id="opc-novo" placeholder="Nome da nova ${qual==="prios"?"prioridade":"situação"}"
+      <input id="opc-novo" placeholder="Nome ${qual==="prios"?"da nova prioridade":qual==="sits"?"da nova situação":"da nova urgência"}"
         onkeydown="if(event.key==='Enter')dgAddOpc('${qual}')">
       <button class="btn sm" onclick="dgAddOpc('${qual}')">+ Criar</button>
     </div>
@@ -472,38 +487,38 @@ function dgGerirOpcoes(qual){                /* qual: "prios" | "sits" */
     <div class="form-actions"><button class="btn" onclick="ncFechar()">Fechar</button></div>`);
 }
 async function dgRenomearOpc(qual,k,novo){
-  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const mapa=dgOpcMapa(qual);
   novo=String(novo||"").trim();if(!novo||!mapa[k])return;
-  mapa[k].rotulo=novo;await dgSalvarOpcoes();dgGerirOpcoes(qual);
+  mapa[k].rotulo=novo;await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
 async function dgTrocarCor(qual,k){
-  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;if(!mapa[k])return;
+  const mapa=dgOpcMapa(qual);if(!mapa[k])return;
   const atual=mapa[k].cor;
   const i=CORES_PRONTAS.indexOf(atual);
   mapa[k].cor=CORES_PRONTAS[(i+1)%CORES_PRONTAS.length];   /* clique passa para a próxima cor */
   mapa[k].fundo=clarear(mapa[k].cor);
-  await dgSalvarOpcoes();dgGerirOpcoes(qual);
+  await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
 async function dgMoverOpc(qual,k,dir){
-  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const mapa=dgOpcMapa(qual);
   const ks=ordenarOpc(mapa),i=ks.indexOf(k),j=i+dir;
   if(i<0||j<0||j>=ks.length)return;
   ks[i]=ks[j];ks[j]=k;ks.forEach((x,n)=>mapa[x].ordem=n);
-  await dgSalvarOpcoes();dgGerirOpcoes(qual);
+  await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
 async function dgAddOpc(qual){
   const inp=document.getElementById("opc-novo"),nome=(inp.value||"").trim();
   if(!nome)return;
-  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const mapa=dgOpcMapa(qual);
   const chave="opc_"+newUid();                 /* chave própria: nunca colide com as antigas */
   const cor=CORES_PRONTAS[Object.keys(mapa).length%CORES_PRONTAS.length];
   mapa[chave]={rotulo:nome,cor,fundo:clarear(cor),ordem:Object.keys(mapa).length};
-  await dgSalvarOpcoes();dgGerirOpcoes(qual);
+  await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
 async function dgExcluirOpc(qual,k){
-  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
-  const campo=qual==="prios"?"prioridade":"situacao";
-  const emUso=dgVivos().filter(d=>(d[campo]||"")===k);
+  const mapa=dgOpcMapa(qual);
+  const campo=dgOpcCampo(qual);
+  const emUso=(qual==="urg"?DATA.filter(d=>!d.deleted&&d.tipo==="nc"&&(d[campo]||"")===k):dgVivos().filter(d=>(d[campo]||"")===k));
   if(Object.keys(mapa).length<=1){alert("Precisa sobrar pelo menos uma opção.");return;}
   if(qual==="sits"&&k===DG_CHAVE_CONCLUIDO){
     alert("Esta é a situação que marca a demanda como pronta.\n\nAntes de excluir, escolha outra para esse papel.");return;}
@@ -516,7 +531,7 @@ async function dgExcluirOpc(qual,k){
     const destino=qual==="prios"?outras[idx-1]:outras[idx-1];
     for(const d of emUso){d[campo]=destino;d.mod=nowISO();await putItem(d);}
   }else if(!confirm("Excluir \""+mapa[k].rotulo+"\"?"))return;
-  delete mapa[k];await dgSalvarOpcoes();dgGerirOpcoes(qual);
+  delete mapa[k];await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
 
 /* ===== FLUXOGRAMA (ideia do exemplo "Fluxograma" do Airtable) =====
@@ -724,10 +739,11 @@ function dgFoco(uid){
       </div>
       <button class="btn ghost sm" onclick="dgFocoFechar()">✕ Fechar</button>
     </div>
-    <div class="dg-foco-corpo">${dgItensHTML(d)}</div>
+    <div class="dg-foco-corpo">${dgItensHTML(d)}${typeof anexosHTML==="function"?anexosHTML(d):""}</div>
     <div class="dg-foco-pe">
       <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
       <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')">🗺 Fluxograma</button>
+      <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')">📎 Anexar</button>
       <span class="dg-mini" style="margin-left:auto">Esc para fechar</span>
     </div>
   </div>`;
@@ -809,9 +825,14 @@ function dgArrastarIni(ev,alca){
   ev.preventDefault();ev.stopPropagation();
   const item=alca.closest(".dg-item");
   /* a coluna é o limite do arraste; no Painel é a coluna do quadro, na Lista é o bloco */
-  DG_ARR={item,coluna:item.closest(".dg-bloco, .dg-col")||item.closest(".dg-colunas")||document.getElementById("tab-dg"),
-    y:ev.clientY,moveu:false};
+  /* linha que mostra EXATAMENTE onde a demanda vai cair (o que faltava para ficar
+     fluido como no Notion): o card vira fantasma e segue o cursor, e esta marca
+     abre espaço entre os vizinhos. */
+  const marca=document.createElement("div");marca.className="dg-marca";
+  DG_ARR={item,marca,coluna:item.closest(".dg-bloco, .dg-col")||item.closest(".dg-colunas")||document.getElementById("tab-dg"),
+    x:ev.clientX,y:ev.clientY,moveu:false};
   item.classList.add("arrastando");
+  item.style.width=item.getBoundingClientRect().width+"px";
   /* IMPORTANTE: os handlers vão no DOCUMENTO, não na alça.
      Mover o card no meio da lista tira o elemento do lugar e o navegador cancela
      a "prisão do ponteiro" (setPointerCapture) — era por isso que o arraste morria
@@ -825,8 +846,11 @@ function dgArrastarMove(ev){
   if(!DG_ARR)return;
   ev.preventDefault();
   const {item,coluna}=DG_ARR;
-  if(Math.abs(ev.clientY-DG_ARR.y)>3)DG_ARR.moveu=true;
-  /* candidatos: todas as tarefas E todos os cabeçalhos de grupo desta coluna */
+  if(Math.abs(ev.clientY-DG_ARR.y)>3||Math.abs(ev.clientX-DG_ARR.x)>3)DG_ARR.moveu=true;
+  if(!DG_ARR.moveu)return;
+  /* o card segue o dedo/cursor, como no Notion */
+  item.style.transform=`translate(${ev.clientX-DG_ARR.x}px, ${ev.clientY-DG_ARR.y}px)`;
+  /* onde ele vai cair: linha indicadora entre os vizinhos */
   const alvos=[...coluna.querySelectorAll(".dg-item, .dg-grupo")].filter(e=>e!==item&&!item.contains(e));
   let destino=null,antesDe=null;
   for(const el of alvos){
@@ -842,12 +866,19 @@ function dgArrastarMove(ev){
     destino=gs[gs.length-1];antesDe=null;
   }
   if(!destino)return;
-  if(antesDe)destino.insertBefore(item,antesDe);else destino.appendChild(item);
+  const marca=DG_ARR.marca;
+  if(antesDe)destino.insertBefore(marca,antesDe);else destino.appendChild(marca);
+  DG_ARR.destino=destino;DG_ARR.antesDe=antesDe;
 }
 async function dgArrastarFim(ev){
   if(!DG_ARR)return;
-  const {item,moveu}=DG_ARR;
+  const {item,moveu,marca,destino,antesDe}=DG_ARR;
+  /* o card vai para o lugar que a linha estava marcando */
+  if(moveu&&destino){if(antesDe&&antesDe.parentElement===destino)destino.insertBefore(item,antesDe);
+    else destino.appendChild(item);}
+  if(marca&&marca.parentElement)marca.remove();
   item.classList.remove("arrastando");
+  item.style.transform="";item.style.width="";
   document.removeEventListener("pointermove",dgArrastarMove);
   document.removeEventListener("pointerup",dgArrastarFim);
   document.removeEventListener("pointercancel",dgArrastarFim);

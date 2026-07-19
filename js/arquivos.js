@@ -271,6 +271,75 @@ async function arqCriarDemanda(){
   ncFechar();DG_ABERTAS[o.uid]=true;showTab("dg");renderDG();toast("Demanda criada com a imagem ✓");
 }
 
+/* ===== ANEXAR DENTRO DE UM ITEM (demanda, NC ou manutenção) =====
+   Mesma leitura de arquivos da tela geral, mas o resultado gruda NAQUELE item:
+   imagem vira anexo visual; planilha/Word/PDF viram itens da lista (ou anexo). */
+let ANEXO_ALVO=null;
+function anexarNoItem(uid){
+  ANEXO_ALVO=uid;
+  let inp=document.getElementById("anexoInput");
+  if(!inp){
+    inp=document.createElement("input");inp.type="file";inp.id="anexoInput";inp.style.display="none";
+    inp.accept=".csv,.txt,.md,.xlsx,.xlsm,.docx,.pdf,.jpg,.jpeg,.png,.webp";
+    inp.onchange=anexoSelecionado;document.body.appendChild(inp);
+  }
+  inp.value="";inp.click();
+}
+async function anexoSelecionado(e){
+  const f=e.target.files[0];if(!f||!ANEXO_ALVO)return;
+  const item=DATA.find(d=>d.uid===ANEXO_ALVO&&!d.deleted);
+  if(!item){toast("Item não encontrado");return;}
+  toast("Lendo "+f.name+"…");
+  try{
+    const a=await lerArquivo(f);
+    if(a.tipo==="imagem"){
+      (item.fotos=item.fotos||[]).push(a.dataUrl);
+      item.mod=nowISO();await putItem(item);dataChanged();
+      if(typeof renderDG==="function")renderDG();
+      if(typeof renderNC==="function"&&item.tipo==="nc")renderNC();
+      toast("Imagem anexada ✓");return;
+    }
+    const linhas=a.tipo==="tabela"?a.linhas.map(l=>l.filter(c=>String(c).trim()).join(" · "))
+                                  :(a.linhas||[]).map(l=>l.texto);
+    const uteis=linhas.filter(t=>String(t).trim());
+    if(!uteis.length){alert("Abri \""+f.name+"\", mas não achei texto dentro.");return;}
+    if(item.tipo==="dg"){
+      const novos=uteis.map((t,i)=>({uid:newUid(),texto:String(t),feito:false,
+        nivel:(a.tipo==="linhas"&&a.linhas[i])?(a.linhas[i].nivel||0):0,tipoLinha:"check"}));
+      if(!confirm("Trazer "+novos.length+" linha(s) de \""+f.name+"\" para dentro desta demanda?"))return;
+      (item.itens=item.itens||[]).push(...novos);
+      item.mod=nowISO();await putItem(item);dataChanged();renderDG();
+      toast(novos.length+" itens adicionados ✓");
+    }else{
+      /* NC e manutenção não têm lista: o conteúdo entra na observação */
+      const txtArq=uteis.join("\n");
+      if(!confirm("Anexar o conteúdo de \""+f.name+"\" na observação deste item?"))return;
+      item.obs=((item.obs||"")+(item.obs?"\n\n":"")+"["+f.name+"]\n"+txtArq).slice(0,20000);
+      item.mod=nowISO();await putItem(item);dataChanged();
+      if(typeof renderNC==="function")renderNC();
+      if(typeof render==="function")render();
+      toast("Conteúdo anexado na observação ✓");
+    }
+  }catch(err){
+    alert("Não consegui ler \""+f.name+"\".\n\n"+(err.message||"")+
+      "\n\nAceita: Excel (.xlsx), CSV, texto, Word (.docx), PDF de texto e imagens.");
+  }
+  e.target.value="";ANEXO_ALVO=null;
+}
+/* mostra os anexos de imagem de um item (usado na demanda) */
+function anexosHTML(d){
+  if(!d.fotos||!d.fotos.length)return "";
+  return `<div class="anexos">${d.fotos.map((f,i)=>
+    `<span class="anexo"><img src="${f}" onclick="window.open('').document.write('<img src=\\''+this.src+'\\' style=\\'max-width:100%\\'>')" title="Clique para ampliar">
+      <button onclick="removerAnexo('${d.uid}',${i})" title="Remover">×</button></span>`).join("")}</div>`;
+}
+async function removerAnexo(uid,i){
+  const d=DATA.find(x=>x.uid===uid&&!x.deleted);if(!d||!d.fotos)return;
+  if(!confirm("Remover este anexo?"))return;
+  d.fotos.splice(i,1);d.mod=nowISO();await putItem(d);dataChanged();
+  if(typeof renderDG==="function")renderDG();
+}
+
 /* ---------- porta de entrada ---------- */
 async function lerArquivo(file){
   const nome=file.name,ext=(nome.split(".").pop()||"").toLowerCase();
