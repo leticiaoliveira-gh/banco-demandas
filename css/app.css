@@ -111,6 +111,32 @@
   .dg-mini.atrasado{background:#ffecec;color:#e5484d}
   .dg-mini.hoje{background:#fdf0e0;color:#b3730a}
   @media(max-width:1000px){.dg-quadro{grid-template-columns:1fr}.dg-foco-c{min-width:calc(50% - 5px);flex:1}}
+  /* ===== seleção múltipla (ações em massa) ===== */
+  .dg-sel{flex:none;cursor:pointer;margin:0;opacity:0;transition:opacity .12s}
+  .dg-item:hover .dg-sel,.dg-sel:checked{opacity:1}
+  @media(hover:none){.dg-sel{opacity:.65}}
+  .dg-massa{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#eef5f2;border:1.5px solid #bcd9cf;
+    border-radius:11px;padding:9px 13px;margin-bottom:14px;font-size:12.5px;color:var(--accent)}
+  .dg-massa select{border:1px solid var(--border);border-radius:7px;padding:5px 8px;font-size:12px;background:#fff;color:var(--text);font-family:inherit}
+  /* botão de abrir sozinha (modo foco) */
+  .dg-lupa{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:1px 5px;border-radius:5px;opacity:0;flex:none;transition:opacity .12s}
+  .dg-item:hover .dg-lupa{opacity:.75}
+  .dg-lupa:hover{opacity:1 !important;background:#f1f1f3;color:var(--text)}
+  /* ===== modo foco: a demanda sozinha na tela ===== */
+  .dg-focotela{position:fixed;inset:0;background:rgba(15,45,40,.55);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow:auto}
+  .dg-foco-box{background:#fff;border-radius:16px;width:min(760px,100%);box-shadow:0 24px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:92vh}
+  .dg-foco-h{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:18px 20px 14px;border-left:5px solid transparent;border-bottom:1px solid var(--border)}
+  .dg-foco-h h2{font-size:21px;font-weight:700;line-height:1.25;margin-top:8px;letter-spacing:-.3px}
+  .dg-foco-tags{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .dg-foco-corpo{padding:14px 16px;overflow:auto;flex:1}
+  .dg-foco-pe{display:flex;gap:8px;align-items:center;padding:12px 16px;border-top:1px solid var(--border);background:#fbfbfc;border-radius:0 0 16px 16px}
+  .dg-foco-pe a.btn{text-decoration:none}
+  /* ===== mapa do site ===== */
+  .mapa-cx{border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:11px;background:#fff}
+  .mapa-cx h3{font-size:13px;color:var(--accent);margin-bottom:7px}
+  .mapa-cx ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.65;color:var(--text)}
+  .mapa-cx code{background:#f1f1f3;border-radius:4px;padding:1px 5px;font-size:11.5px}
+  .mapa-nota{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.55}
   .dg-item.done .dg-tit{text-decoration:line-through;opacity:.6}
   .dg-item-top{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer}
   .dg-item-top:hover{background:#fafafa}

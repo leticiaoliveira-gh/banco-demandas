@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.9",
-  "ondeParamos": "v5.9: mais tres ideias da referencia — passando o mouse na barra lateral aparece o NOME da aba numa pilula clara; cada tarefa ganhou uma LISTRA colorida na borda esquerda indicando a prioridade (menos texto na tela); e o titulo da pagina ficou grande e com mais ar em volta.",
+  "versao": "6.0",
+  "ondeParamos": "v6.0 — quatro recursos novos inspirados nos exemplos do Airtable: (1) FOLHA DO DIA, imprime a agenda com quadradinhos para riscar na unidade; (2) ACOES EM MASSA, marca varias demandas e muda prioridade/situacao de uma vez; (3) MODO FOCO, abre a demanda sozinha na tela (Esc fecha); (4) MAPA DO SITE na capa, explicando como tudo funciona por dentro — e atendendo a pendencia de autonomia.",
   "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }
