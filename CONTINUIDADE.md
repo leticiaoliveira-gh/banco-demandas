@@ -163,6 +163,20 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
   ocultar concluídas, card só com título+progresso, focar uma coluna por vez, altura
   máxima com rolagem interna, controle Confortável/Compacto.
 
+## v5.4/v5.5 (19/07) — nomes das colunas e ARRASTE
+- Colunas da agenda (nomes escolhidos por Lê): ESQUERDA "Demandas e Prioridades"
+  (valem para as duas lojas) · DIREITA "[Nome da loja] (exclusivas)".
+- ARRASTE pela alça ⠿ (pointer events: funciona com mouse E com o dedo).
+  `dgArrastarIni/Move/Fim` em js/dg.js. Regras que ela definiu:
+  · dentro da COLUNA vai para onde quiser, inclusive para outro grupo de prioridade —
+    e aí a PRIORIDADE muda sozinha (comportamento do Notion, com toast avisando);
+  · NÃO pula para a outra coluna (isso mudaria a loja; para isso existe o seletor).
+  · As setas ▲▼ foram REMOVIDAS a pedido dela ("esquece esse botão de sobe desce").
+- ARMADILHA CORRIGIDA: `setPointerCapture` lança exceção quando o pointerId não existe
+  e derrubava o registro dos handlers — está em try/catch. Sem isso o arraste "não pega".
+- LIMITAÇÃO conhecida: só dá para arrastar para grupos que já têm alguma tarefa
+  (grupos vazios não são desenhados). Ela foi avisada; se pedir, mostrar grupos vazios.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
