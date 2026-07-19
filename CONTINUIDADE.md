@@ -253,6 +253,38 @@ Airtable); as IDEIAS viraram:
 - NOVOS: `ordemDeServico()` (js/app.js, aba Manutencoes) — folha por executor com espaco
   de assinatura; `dgTriagem()` (js/dg.js) — uma demanda por vez para classificar prioridade.
 
+## v7.0-v7.5 (19/07) — o site virou CONFIGURAVEL por ela
+REGRA MAIOR DELA, repetida 4x e agora estrutural: "ABSOLUTAMENTE TUDO TEM QUE SER
+EDITAVEL". Nada novo pode nascer sem caminho de edicao pela interface.
+- `txt(chave,padrao)` + dicionario TEXTOS em meta + atributo `data-txt` no HTML.
+  MODO EDICAO (menu ... > Editar os textos do site) liga contenteditable em todos de uma
+  vez, com barra flutuante e "Restaurar os originais". 82 textos ja marcados.
+  Ao criar tela nova: marcar os textos com data-txt (e data-txt-ph para placeholder).
+- OPCOES DOS FILTROS configuraveis: DG_PRIOS/DG_SIT (js/dg.js) e NC_URG (js/nc.js) sairam
+  de constantes para meta. Tela unica `dgGerirOpcoes(qual)` com qual = prios|sits|urg —
+  renomear, cor (paleta ciclica), reordenar, criar, excluir (bloqueia/migra se em uso).
+  >>> REGRA DE OURO: a CHAVE nunca muda; so o rotulo/cor. E o que protege os itens gravados.
+  Papeis especiais em DG_CHAVE_CONCLUIDO/ANDAMENTO/URGENTE — nunca voltar a escrever
+  "concluido"/"URGENTE" na mao.
+- DESFAZER/REFAZER no site inteiro: putItem/delDB registram antes/depois; `HIST` guarda 40
+  passos; operacoes em ate 350ms viram UM passo. Ctrl+Z / Ctrl+Shift+Z e botoes na rail.
+  Nao captura enquanto ela digita em campo (deixa o navegador desfazer as letras).
+- ANEXO POR ITEM: `anexarNoItem(uid)` (js/arquivos.js) em cada demanda e em cada NC —
+  imagem vira miniatura, planilha/Word/PDF viram itens da lista (dg) ou vao para obs (nc).
+- ARRASTE: card segue o cursor (transform) + `.dg-marca` (linha verde) mostrando onde cai.
+  Sem isso ela dizia que "nao era fluido como o Notion".
+- Concluidas ficam OCULTAS (so aparecem filtrando por Concluido). Grupos vazios APARECEM,
+  para poder arrastar para eles.
+- ERRO MEU QUE CUSTOU CARO: deixei o titulo sempre contenteditable e ela renomeou
+  "Quadro Geral" para "Arraial do Cabo" so de clicar. Restaurei no banco (commit 806caf65)
+  e agora titulo/pilula so editam DENTRO do modo edicao.
+  LICAO: editavel != editavel por acidente. Edicao de CONFIGURACAO exige modo edicao;
+  edicao de CONTEUDO (itens, titulos de demanda) pode ser direta.
+- Empresa inativa: `<span class="btn iniciar off">🔒</span>` — mesmo tamanho, sem texto.
+- CUIDADO OPERACIONAL: eu testo no navegador embutido do Claude, que ela tambem usa para
+  conferir. Meus dados de teste apareceram para ela e a confundiram. LIMPAR o IndexedDB
+  do navegador de teste ao terminar (indexedDB.deleteDatabase + localStorage.clear).
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
