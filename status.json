@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.3",
-  "ondeParamos": "v6.3 — AGORA TUDO E EDITAVEL: clique em qualquer texto (titulo, item da lista, secao) e escreva. Enter cria a linha de baixo, Tab avanca um nivel, Shift+Tab volta, e apagar tudo + Backspace remove a linha. O botao do Notion foi removido e as sobras de codigo da importacao (<tr>) sao limpas sozinhas.",
+  "versao": "6.4",
+  "ondeParamos": "v6.4: cabecalho novo em TODAS as abas (nome do quadro em cima, a loja numa pilula verde embaixo); a pergunta \"O que realmente merece sua atencao agora?\" no Painel; criar demanda FALANDO (botao Falar, no Chrome) ou escrevendo, onde cada linha vira um item; e o FLUXOGRAMA, que desenha a demanda como um mapa a partir da propria lista.",
   "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }

@@ -134,6 +134,10 @@
   .dg-foco-corpo .dg-sec{font-size:13.5px}
   .dg-foco-pe{display:flex;gap:8px;align-items:center;padding:14px 30px;border-top:1px solid var(--border);background:#fbfbfc;max-width:900px;width:100%;margin:0 auto}
   .dg-foco-pe a.btn{text-decoration:none}
+  .dg-pergunta{font-size:16px;font-weight:700;color:var(--text);margin-bottom:13px;letter-spacing:-.2px}
+  /* botão de ditado por voz */
+  .btn.ouvindo{background:#e5484d !important;color:#fff !important;border-color:#e5484d !important;animation:pulsa 1.1s infinite}
+  @keyframes pulsa{0%,100%{opacity:1}50%{opacity:.62}}
   /* ===== triagem: uma demanda por vez, para decidir rápido ===== */
   .dg-tri-box{background:#fff;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:22px 16px}
   .dg-tri-topo{display:flex;justify-content:space-between;align-items:center;width:min(680px,100%);font-size:12.5px;color:var(--muted);margin-bottom:9px}
@@ -207,6 +211,10 @@
   /* IDEIA 3: título grande e com ar em volta, como na referência */
   .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:14px;flex-wrap:wrap;padding-top:6px}
   .head h1{font-size:33px;font-weight:700;letter-spacing:-.8px;line-height:1.15}
+  /* pílula com o nome da loja, no degradê da marca (referência escolhida por Lê) */
+  .loja-pill{display:inline-block;margin-top:9px;padding:6px 16px;border-radius:20px;
+    background:linear-gradient(135deg,#17756a,#2a9d8a);color:#fff;font-size:12.5px;font-weight:700;letter-spacing:.2px;
+    box-shadow:0 2px 8px rgba(23,117,106,.25)}
   .crumb{margin-bottom:22px !important}
   .head p{color:var(--muted);margin-top:3px;font-size:13px}
   .rt-banner{font-size:12.5px;color:var(--muted);margin-bottom:20px}
