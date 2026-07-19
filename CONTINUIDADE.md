@@ -101,7 +101,21 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
    #crumb e busca Ctrl+K (#palOverlay). Criar aba nova = 1 entrada em TABS +
    TAB_ORDER + um .tab-panel; todo o resto se atualiza sozinho.
    Corrigido de quebra: quickAdd() sem empresa criava item órfão.
-5. **LAYOUT — dentro da aba Demandas Gerais.**
+5. **DEMANDAS GERAIS = AGENDA (v5.0, 19/07) — FEITA**: painel próprio `#tab-dg` +
+   `js/dg.js`. Item {tipo:"dg"} tem titulo/prioridade/situacao/prazo/notionUrl e
+   `itens[]` = lista PLANA com campo `nivel` (a hierarquia mora aí; `tipoLinha`
+   check|secao|texto). Grupos por prioridade (ou situação), contador de progresso,
+   seções que abrem/fecham, busca que varre o conteúdo dos itens. Sem cards de
+   estatística e sem subtítulo (updateSubtitle agora zera #appSubtitle em TODAS as abas).
+   IMPORTADAS 15 tarefas do Notion (banco "Overview", as sem prioridade em aberto) =
+   1.106 linhas, escritas DIRETO no banco.json privado (commit 49bda99a). Entraram na
+   empresa AC (era a ativa) — mover se Lê pedir.
+6. **PRIVACIDADE (19/07) — FEITO**: o repo do código é PÚBLICO e o histórico continha
+   32 NCs reais de CF. Histórico consolidado em 1 commit limpo + branch antiga
+   `claude/unified-demand-system-2lxhro` apagada do GitHub (ela também vazava tudo).
+   Backup em "- BACKUPS\Backups - Relatório Não Conformidades\Backup repo banco-demandas
+   - 19.07.26". Conta é plano FREE: repo privado NÃO pode ter GitHub Pages — por isso
+   ficou público e limpo. REGRA: nenhum dado real de Lê entra no repo do código.
 5. **LAYOUT — demais abas** (Relatório de NC · Gerência, Manutenções e Elétrica),
    uma de cada vez, na ordem que ela pedir.
 6. Conferir no site as NCs de CF e AC e as manutenções das duas lojas.
