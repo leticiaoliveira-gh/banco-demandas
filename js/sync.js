@@ -33,6 +33,37 @@ function syncEnabled(){return !!syncCfg().token;}
 function syncApi(c){return "https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/"+SYNC_FILE;}
 function syncHdrs(c){return {"Authorization":"Bearer "+c.token,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};}
 
+/* ---- validade REAL do token ----
+   A API do GitHub devolve, em TODA resposta autenticada, o cabeçalho
+   github-authentication-token-expiration com a data exata em que o token
+   vence (exposto via CORS, então o navegador consegue ler). Guardamos esse
+   valor para avisar com a validade verdadeira — e não com um palpite de 1 ano. */
+function syncCaptureExpiry(r){
+ try{
+   const h=r&&r.headers&&r.headers.get("github-authentication-token-expiration");
+   if(!h)return;
+   const bucket=(function(){try{
+     if(localStorage.getItem("gh_sync_token"))return localStorage;
+     if(sessionStorage.getItem("gh_sync_token"))return sessionStorage;
+   }catch(e){}return localStorage;})();
+   bucket.setItem("gh_sync_token_expires",h.trim());
+ }catch(e){}
+}
+/* Interpreta o valor guardado (formatos vistos: "2027-07-17 00:00:00 UTC"
+   ou "2027-07-17 00:00:00 +0000"; o GitHub sempre entrega em UTC). */
+function syncExpiryDate(){
+ const raw=(syncGetAny("gh_sync_token_expires")||"").trim();
+ if(!raw)return null;
+ const m=raw.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+ if(!m)return null;
+ const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]));
+ return isNaN(d.getTime())?null:d;
+}
+function syncExpiryDias(){
+ const d=syncExpiryDate();
+ return d?Math.ceil((d.getTime()-Date.now())/864e5):null;
+}
+
 /* base64 seguro para UTF-8 (acentos) */
 function b64encUtf8(s){const b=new TextEncoder().encode(s);let bin="";const CH=0x8000;
  for(let i=0;i<b.length;i+=CH)bin+=String.fromCharCode.apply(null,b.subarray(i,i+CH));return btoa(bin);}
@@ -139,6 +170,7 @@ async function syncMergeEnvelope(env){
 async function syncPull(){
  const c=syncCfg();
  const r=await fetch(syncApi(c),{headers:syncHdrs(c),cache:"no-store"});
+ syncCaptureExpiry(r);
  if(r.status===404){syncSha=null;return {changed:false,localAhead:DATA.length>0||EMPRESAS.length>0};}
  if(!r.ok)throw new Error("GET "+r.status);
  const j=await r.json();syncSha=j.sha;
@@ -200,10 +232,20 @@ function syncInit(){
  if(syncEnabled()){
    syncNow();
    if(syncIsTemporario())setTimeout(()=>toast("🔓 Sincronização temporária ativa — some sozinha ao fechar esta aba."),2500);
-   /* aviso de validade do token (fine-grained PAT dura no máx. 1 ano) */
-   const td=syncGetAny("gh_sync_token_date");
-   if(td&&(Date.now()-new Date(td).getTime())>335*864e5)
-     setTimeout(()=>toast("⚠ O token de sincronização está perto de vencer — gere um novo em GitHub → Settings → Developer settings."),2500);
+   /* aviso de validade do token — usa a data REAL devolvida pela API */
+   const dias=syncExpiryDias();
+   if(dias!=null){
+     const quando=syncExpiryDate().toLocaleDateString("pt-BR");
+     if(dias<=0)
+       setTimeout(()=>toast("⛔ O token de sincronização VENCEU em "+quando+" — gere um novo em GitHub → Settings → Developer settings para os dados voltarem a sincronizar."),2500);
+     else if(dias<=21)
+       setTimeout(()=>toast("⚠ O token de sincronização vence em "+dias+" dia"+(dias===1?"":"s")+" ("+quando+") — gere um novo em GitHub → Settings → Developer settings."),2500);
+   }else{
+     /* sem cabeçalho de validade: cai no palpite antigo (token de ~1 ano) */
+     const td=syncGetAny("gh_sync_token_date");
+     if(td&&(Date.now()-new Date(td).getTime())>335*864e5)
+       setTimeout(()=>toast("⚠ O token de sincronização pode estar perto de vencer — gere um novo em GitHub → Settings → Developer settings."),2500);
+   }
  }else setSyncState("off");
  document.addEventListener("visibilitychange",()=>{
    if(!document.hidden&&syncEnabled()&&!syncBusy&&Date.now()-syncLast>60000)syncNow();});
@@ -270,13 +312,23 @@ async function testSyncConnection(){
  msg.textContent="Testando…";msg.style.color="";
  try{
    const r=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo,{headers:syncHdrs(c)});
+   syncCaptureExpiry(r);
    if(r.status===404)throw new Error("Repositório não encontrado — confira o nome e se o token tem acesso a ele.");
    if(r.status===401)throw new Error("Token inválido ou expirado.");
    if(!r.ok)throw new Error("Erro "+r.status+" ao acessar o repositório.");
    const j=await r.json();
    if(!j.private){msg.textContent="⚠ Esse repositório é PÚBLICO. Use um repositório privado para os seus dados.";msg.style.color="var(--amber)";return;}
    if(!(j.permissions&&j.permissions.push)){msg.textContent="⚠ O token não tem permissão de escrita (Contents: Read and write).";msg.style.color="var(--amber)";return;}
-   msg.textContent="✓ Conexão OK — repositório privado com permissão de escrita.";msg.style.color="var(--green)";
+   const dias=syncExpiryDias();
+   let extra="";
+   if(dias!=null){
+     const quando=syncExpiryDate().toLocaleDateString("pt-BR");
+     extra=dias<=0?" ⛔ Mas o token VENCEU em "+quando+".":
+           dias<=21?" ⚠ Token vence em "+dias+" dia"+(dias===1?"":"s")+" ("+quando+").":
+           " Token válido até "+quando+".";
+   }
+   msg.textContent="✓ Conexão OK — repositório privado com permissão de escrita."+extra;
+   msg.style.color=(dias!=null&&dias<=21)?"var(--amber)":"var(--green)";
  }catch(e){msg.textContent="✗ "+e.message;msg.style.color="var(--amber)";}
 }
 
@@ -286,8 +338,12 @@ async function saveSyncConfig(){
  const temporario=document.getElementById("syTemp").checked;
  const guarda=temporario?sessionStorage:localStorage;
  const outra=temporario?localStorage:sessionStorage;
- try{["gh_sync_owner","gh_sync_repo","gh_sync_token","gh_sync_token_date"].forEach(k=>outra.removeItem(k));}catch(e){}
- if(c.token!==(syncGetAny("gh_sync_token")||""))guarda.setItem("gh_sync_token_date",nowISO());
+ try{["gh_sync_owner","gh_sync_repo","gh_sync_token","gh_sync_token_date","gh_sync_token_expires"].forEach(k=>outra.removeItem(k));}catch(e){}
+ if(c.token!==(syncGetAny("gh_sync_token")||"")){
+   guarda.setItem("gh_sync_token_date",nowISO());
+   /* token novo: descarta a validade antiga; será recapturada no próximo acesso */
+   try{localStorage.removeItem("gh_sync_token_expires");sessionStorage.removeItem("gh_sync_token_expires");}catch(e){}
+ }
  guarda.setItem("gh_sync_owner",c.owner);
  guarda.setItem("gh_sync_repo",c.repo);
  guarda.setItem("gh_sync_token",c.token);
@@ -296,6 +352,6 @@ async function saveSyncConfig(){
 }
 
 function disableSync(){
- try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
+ try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date","gh_sync_token_expires"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
  setSyncState("off");closeSyncModal();toast("Sincronização desativada neste dispositivo");
 }

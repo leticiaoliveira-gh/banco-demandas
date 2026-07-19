@@ -986,7 +986,7 @@ async function limparDispositivo(){
  if(!confirm("Tem certeza? Esta ação não pode ser desfeita neste dispositivo."))return;
  try{if(db)db.close();}catch(e){}
  await new Promise(r=>{const q=indexedDB.deleteDatabase(DB_NAME);q.onsuccess=q.onerror=q.onblocked=()=>r();});
- try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
+ try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date","gh_sync_token_expires"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
  try{if(window.caches)for(const k of await caches.keys())await caches.delete(k);}catch(e){}
  try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();for(const rg of rs)await rg.unregister();}}catch(e){}
  alert("Dados deste dispositivo apagados ✓");

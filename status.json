@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "7.7",
-  "ondeParamos": "v7.7: passei o site inteiro por uma bateria de testes (QA). Corrigi a Triagem e a Folha do dia, que eu havia quebrado, e coloquei o botao DESFAZER tambem na barra de baixo do celular — antes ele so existia na barra lateral, que some no telefone. Proximo assunto: o layout da aba Relatorio de Nao Conformidade.",
+  "versao": "7.8",
+  "ondeParamos": "v7.8: aviso de expiracao do token de sincronizacao agora usa a data REAL devolvida pela API do GitHub (cabecalho github-authentication-token-expiration), em vez de um palpite de 1 ano. Avisa quantos dias faltam e a data exata; alerta forte quando ja venceu; o teste de conexao mostra a validade do token.",
   "proximoPasso": "Layout da aba Relatorio de Nao Conformidade - Gerencia"
 }
