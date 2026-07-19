@@ -178,11 +178,19 @@
   .dg-acts select,.dg-acts input[type=date]{border:1px solid var(--border);border-radius:7px;padding:5px 8px;font-size:12px;background:#fff;color:var(--text);font-family:inherit}
   .dg-acts a.btn{text-decoration:none;display:inline-flex;align-items:center}
   .dg-lista{display:flex;flex-direction:column}
-  .dg-chk{display:flex;align-items:flex-start;gap:9px;padding:6px 8px 6px 12px;border-radius:7px;cursor:pointer;font-size:13px;line-height:1.45}
-  .dg-chk:hover{background:#f4f4f6}
+  .dg-chk{display:flex;align-items:flex-start;gap:9px;padding:6px 8px 6px 12px;border-radius:7px;font-size:13px;line-height:1.45}
+  .dg-chk:hover{background:#f8f8f9}
   .dg-chk input{margin-top:2.5px;flex:none;cursor:pointer}
-  .dg-chk .feito{text-decoration:line-through;color:var(--muted)}
+  .dg-chk span[data-feito="1"]{text-decoration:line-through;color:var(--muted)}
   .dg-chk span{flex:1;min-width:0;word-break:break-word}
+  /* campos editáveis: clique e escreva (Enter=nova linha, Tab=nível, ×=excluir) */
+  .dg-ed{outline:0;border-radius:4px;padding:1px 3px;margin:-1px -3px;cursor:text;min-height:1.2em}
+  .dg-ed:hover{background:#f1f1f3}
+  .dg-ed:focus{background:#fff;box-shadow:0 0 0 2px var(--accent)}
+  .dg-ed-tit{outline:0;border-radius:6px;padding:2px 6px;margin-left:-6px;cursor:text}
+  .dg-ed-tit:hover{background:#f4f4f6}
+  .dg-ed-tit:focus{background:#fff;box-shadow:0 0 0 2px var(--accent)}
+  .dg-foco-tags select,.dg-foco-tags input[type=date]{border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:12px;background:#fff;color:var(--text);font-family:inherit}
   .dg-del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;opacity:0;flex:none}
   .dg-chk:hover .dg-del{opacity:.7}
   .dg-del:hover{color:#e5484d;opacity:1}

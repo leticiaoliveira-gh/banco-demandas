@@ -873,6 +873,12 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
    let dirty=false;
    if(!d.tipo){d.tipo="mnt";dirty=true;}   /* itens antigos = Manutenções e Elétrica */
    if(!d.uid){d.uid=(d.criado==="inicial")?seedUid(d.area,d.nc,d.executor):newUid();dirty=true;}  /* estável p/ sync; seed = determinístico */
+   /* limpeza: a importação do Notion trouxe restos de HTML como linha (ex.: "<tr>") */
+   if(d.tipo==="dg"&&Array.isArray(d.itens)){
+     const antes=d.itens.length;
+     d.itens=d.itens.filter(i=>!/^\s*<\/?[a-z][^>]*>\s*$/i.test(i.texto||""));
+     if(d.itens.length!==antes){d.mod=nowISO();dirty=true;}
+   }
    /* 19/07: demandas gerais das lojas do grupo passam a ser do GRUPO (agenda única CF+AC) */
    if(d.tipo==="dg"&&d.loja!==GRUPO_SF&&(d.loja==="CF"||d.loja==="AC")&&!d.escopo){
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
