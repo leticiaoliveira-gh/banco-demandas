@@ -201,6 +201,20 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
   DENTRO das abas (#view-app) continua tudo BRANCO — a Capa e vitrine, o trabalho e no branco.
 - As DUAS VISOES (Lista e Painel) ficam mantidas por decisao dela.
 
+## v5.8/v5.9 (19/07) — IDENTIDADE VISUAL APROVADA ("simplesmente AMEI")
+Referencia escolhida por ela: dashboard "Launch tracker" (sidebar em degrade + conteudo
+em cartao branco). NAO mexer nisso sem pedido dela — foi o unico visual que a agradou.
+- Degrade da marca: `linear-gradient(155deg,#0f5b52,#17756a,#2a9d8a)` na CAPA e
+  `170deg` na BARRA LATERAL. Icones/logo/versao da rail em branco translucido.
+- Conteudo em PAINEL BRANCO FLUTUANTE: `.main` com `border-radius:18px 0 0 18px`,
+  margem negativa de -6px (encaixa na rail) e sombra suave; `.app` com fundo #f2f4f4.
+  No celular (<=1000px) a margem/raio/sombra sao zerados e a rail some.
+- Pilula com o NOME da aba ao passar o mouse nos icones da rail (`::after` com attr(title))
+  — repoe a clareza perdida quando a barra de abas de texto foi removida.
+- LISTRA de prioridade: `box-shadow:inset 3px 0 0 <cor>` na borda esquerda de cada tarefa
+  (vermelho/roxo/ambar/verde). Menos texto na tela, prioridade lida pela cor.
+- Titulo da pagina 33px com ar em volta.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
