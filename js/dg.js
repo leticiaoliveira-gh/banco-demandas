@@ -235,7 +235,6 @@ function dgLinhaHTML(d,irmaos,idx){
         </select>`:""}
         <button class="btn ghost sm" onclick="dgEditarTitulo('${d.uid}')">✎ Renomear</button>
         <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
-        ${d.notionUrl?`<a class="btn ghost sm" href="${esc(d.notionUrl)}" target="_blank" rel="noopener" title="Abrir a tarefa original no Notion">↗ Notion</a>`:""}
         <button class="btn ghost sm" style="margin-left:auto" onclick="dgExcluir('${d.uid}')">🗑</button>
       </div>
       ${dgItensHTML(d)}
@@ -251,17 +250,26 @@ function dgItensHTML(d){
   itens.forEach((it,i)=>{
     if(escondeAte>=0){ if(it.nivel>escondeAte)return; escondeAte=-1; }
     const pad=12+(it.nivel||0)*20;
+    /* TUDO editável: clique no texto e escreva. Enter cria a linha de baixo,
+       Tab avança um nível, Shift+Tab volta, apagar tudo + Backspace remove a linha. */
+    const ed=`contenteditable="plaintext-only" spellcheck="false" class="dg-ed"
+      onblur="dgTexto('${d.uid}',${i},this.innerText)"
+      onkeydown="dgTecla(event,'${d.uid}',${i},this)"`;
     if(it.tipoLinha==="secao"){
       if(!it.aberto)escondeAte=it.nivel||0;
-      html+=`<div class="dg-sec" style="padding-left:${pad}px" onclick="dgToggleSecao('${d.uid}',${i})">
-        <span class="dg-caret${it.aberto?" open":""}">▸</span>${esc(it.texto)}</div>`;
+      html+=`<div class="dg-sec" style="padding-left:${pad}px">
+        <span class="dg-caret${it.aberto?" open":""}" onclick="dgToggleSecao('${d.uid}',${i})" title="Abrir/fechar">▸</span>
+        <span ${ed}>${esc(it.texto)}</span>
+        <button class="dg-del" title="Excluir" onclick="dgDelLinha('${d.uid}',${i})">×</button></div>`;
     }else if(it.tipoLinha==="texto"){
-      html+=`<div class="dg-txt" style="padding-left:${pad+18}px">${dgLink(it.texto)}</div>`;
+      html+=`<div class="dg-txt" style="padding-left:${pad+18}px">
+        <span ${ed}>${esc(it.texto)}</span>
+        <button class="dg-del" title="Excluir" onclick="dgDelLinha('${d.uid}',${i})">×</button></div>`;
     }else{
-      html+=`<label class="dg-chk" style="padding-left:${pad}px">
+      html+=`<div class="dg-chk" style="padding-left:${pad}px">
         <input type="checkbox" ${it.feito?"checked":""} onchange="dgToggleItem('${d.uid}',${i},this.checked)">
-        <span class="${it.feito?"feito":""}">${dgLink(it.texto)}</span>
-        <button class="dg-del" title="Excluir este item" onclick="event.preventDefault();dgDelLinha('${d.uid}',${i})">×</button></label>`;
+        <span ${ed} data-feito="${it.feito?1:0}">${esc(it.texto)}</span>
+        <button class="dg-del" title="Excluir esta linha" onclick="dgDelLinha('${d.uid}',${i})">×</button></div>`;
     }
   });
   return `<div class="dg-lista">${html}</div>`;
@@ -464,21 +472,27 @@ function dgFoco(uid){
   if(!el){el=document.createElement("div");el.id="dg-foco-tela";el.className="dg-focotela";document.body.appendChild(el);}
   el.innerHTML=`<div class="dg-foco-box">
     <div class="dg-foco-h" style="${cp?`border-color:${cp.cor}`:""}">
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="dg-foco-tags">
-          ${cp?`<span class="dg-grupo-h" style="color:${cp.cor};background:${cp.fundo}">${cp.rotulo}</span>`:""}
-          <span class="dg-badge" style="color:${sit.cor};background:${sit.fundo}">${sit.rotulo}</span>
-          ${d.prazo?`<span class="dg-mini${dgEhAtrasada(d)?" atrasado":""}">${brDate(d.prazo)}</span>`:""}
+          <select onchange="dgSetCampo('${d.uid}','prioridade',this.value)" title="Prioridade">
+            <option value=""${!d.prioridade?" selected":""}>Sem prioridade</option>
+            ${Object.keys(DG_PRIOS).map(k=>`<option value="${k}"${d.prioridade===k?" selected":""}>${DG_PRIOS[k].rotulo}</option>`).join("")}
+          </select>
+          <select onchange="dgSetCampo('${d.uid}','situacao',this.value)" title="Situação">
+            ${Object.keys(DG_SIT).map(k=>`<option value="${k}"${(d.situacao||"nao_iniciado")===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
+          </select>
+          <input type="date" value="${esc(d.prazo||"")}" onchange="dgSetCampo('${d.uid}','prazo',this.value)" title="Prazo">
           ${p.total?`<span class="dg-mini">${p.feitos}/${p.total} concluídos</span>`:""}
         </div>
-        <h2>${esc(d.titulo||"")}</h2>
+        <h2 contenteditable="plaintext-only" spellcheck="false" class="dg-ed-tit"
+          onblur="dgSetCampo('${d.uid}','titulo',this.innerText.trim()||'(sem título)')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(d.titulo||"")}</h2>
       </div>
       <button class="btn ghost sm" onclick="dgFocoFechar()">✕ Fechar</button>
     </div>
     <div class="dg-foco-corpo">${dgItensHTML(d)}</div>
     <div class="dg-foco-pe">
       <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
-      ${d.notionUrl?`<a class="btn ghost sm" href="${esc(d.notionUrl)}" target="_blank" rel="noopener">↗ Notion</a>`:""}
       <span class="dg-mini" style="margin-left:auto">Esc para fechar</span>
     </div>
   </div>`;
@@ -503,6 +517,46 @@ async function dgSetCampo(uid,campo,val){const d=dgAchar(uid);if(!d)return;
 async function dgEditarTitulo(uid){const d=dgAchar(uid);if(!d)return;
   const t=prompt("Título da demanda:",d.titulo||"");if(t===null)return;
   d.titulo=t.trim()||d.titulo;await dgSalvar(d);renderDG();}
+/* ---- edição direta das linhas (como no Notion) ---- */
+async function dgTexto(uid,i,txt){
+  const d=dgAchar(uid);if(!d||!d.itens[i])return;
+  const novo=(txt||"").replace(/\s+$/,"");
+  if(d.itens[i].texto===novo)return;
+  d.itens[i].texto=novo;await dgSalvar(d);      /* sem redesenhar: não perde o cursor */
+}
+async function dgTecla(ev,uid,i,el){
+  const d=dgAchar(uid);if(!d||!d.itens[i])return;
+  const it=d.itens[i];
+  if(ev.key==="Enter"&&!ev.shiftKey){            /* Enter = nova linha logo abaixo */
+    ev.preventDefault();
+    it.texto=el.innerText.replace(/\s+$/,"");
+    d.itens.splice(i+1,0,{uid:newUid(),texto:"",feito:false,nivel:it.nivel||0,tipoLinha:"check"});
+    await dgSalvar(d);dgRedesenhaFoco(uid,i+1);return;
+  }
+  if(ev.key==="Tab"){                            /* Tab = mais um nível · Shift+Tab = volta */
+    ev.preventDefault();
+    const n=(it.nivel||0)+(ev.shiftKey?-1:1);
+    it.nivel=Math.max(0,Math.min(8,n));
+    it.texto=el.innerText.replace(/\s+$/,"");
+    await dgSalvar(d);dgRedesenhaFoco(uid,i);return;
+  }
+  if(ev.key==="Backspace"&&!el.innerText.trim()&&d.itens.length>1){  /* linha vazia: apaga */
+    ev.preventDefault();
+    d.itens.splice(i,1);await dgSalvar(d);dgRedesenhaFoco(uid,Math.max(0,i-1));return;
+  }
+}
+/* redesenha e devolve o cursor para a linha certa */
+function dgRedesenhaFoco(uid,idx){
+  const emFoco=!!document.getElementById("dg-foco-tela");
+  if(emFoco)dgFoco(uid);else renderDG();
+  requestAnimationFrame(()=>{
+    const cx=emFoco?document.querySelector(".dg-foco-corpo"):document.querySelector(`.dg-item[data-uid="${uid}"] .dg-lista`);
+    const alvo=cx&&cx.querySelectorAll(".dg-ed")[idx];
+    if(alvo){alvo.focus();
+      const r=document.createRange(),s=getSelection();
+      r.selectNodeContents(alvo);r.collapse(false);s.removeAllRanges();s.addRange(r);}
+  });
+}
 async function dgAddLinha(uid){const d=dgAchar(uid);if(!d)return;
   const t=prompt("Novo item da lista:");if(!t||!t.trim())return;
   (d.itens=d.itens||[]).push({uid:newUid(),texto:t.trim(),feito:false,nivel:0,tipoLinha:"check"});
