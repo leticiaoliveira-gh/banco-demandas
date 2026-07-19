@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "7.1",
-  "ondeParamos": "v7.1: o aviso de empresa inativa ficou do mesmo tamanho do botao Iniciar, so apagado e com cadeado.",
-  "proximoPasso": "Marcar mais textos das abas de NC e Manutencoes no modo edicao"
+  "versao": "7.2",
+  "ondeParamos": "v7.2: arraste fluido (o card segue o dedo e uma linha verde mostra onde vai cair, como no Notion); concluidas somem da lista e so aparecem no filtro \"Concluido\"; todos os grupos de prioridade aparecem, mesmo vazios, para poder arrastar para eles; botao ANEXAR dentro de cada demanda e de cada NC (aceita Excel, Word, PDF, CSV e imagem); as urgencias da aba de NC tambem passaram a ser configuraveis, na mesma tela das prioridades.",
+  "proximoPasso": "Testar tudo no Chrome e seguir para o layout das abas de NC e Manutencoes"
 }

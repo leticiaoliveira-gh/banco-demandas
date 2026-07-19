@@ -63,10 +63,28 @@ function ncPisos(areas){const seen=[];for(const a of areas)if(!seen.includes(a.p
       tiver palavra reconhecida vence;
    3) NENHUMA palavra reconhecida → ATENÇÃO + revisão pendente (regra do
       CLAUDE.md do bot). Listas de palavras idênticas às do arquivo. */
-const NC_URG={URGENTE:{rotulo:"URGENTE",cor:"#e5484d",fundo:"#ffecec"},
- OBSERVACAO:{rotulo:"OBSERVAÇÃO",cor:"#047857",fundo:"#d1fae5"}};
+/* urgências EDITÁVEIS por ela (mesma regra do Quadro Geral: a chave nunca muda) */
+const NC_URG_PADRAO={URGENTE:{rotulo:"URGENTE",cor:"#e5484d",fundo:"#ffecec",ordem:0},
+ OBSERVACAO:{rotulo:"OBSERVAÇÃO",cor:"#047857",fundo:"#d1fae5",ordem:1}};
+let NC_URG={...NC_URG_PADRAO},NC_URG_MOD="";
 /* compatibilidade: itens antigos ATENCAO exibem como OBSERVAÇÃO */
 Object.defineProperty(NC_URG,"ATENCAO",{value:NC_URG.OBSERVACAO,enumerable:false});
+async function ncLoadUrgencias(){
+  const g=await metaGet("ncUrgencias");NC_URG_MOD=await metaGet("ncUrgenciasMod")||"";
+  if(g&&Object.keys(g).length){
+    NC_URG={...g};
+    if(!Object.getOwnPropertyDescriptor(NC_URG,"ATENCAO"))
+      Object.defineProperty(NC_URG,"ATENCAO",{value:NC_URG.OBSERVACAO||Object.values(NC_URG)[0],enumerable:false});
+  }
+}
+async function ncSalvarUrgencias(){
+  NC_URG_MOD=nowISO();
+  const puro={};for(const k of ordenarOpc(NC_URG))puro[k]=NC_URG[k];
+  await metaSet("ncUrgencias",puro);await metaSet("ncUrgenciasMod",NC_URG_MOD);
+  dataChanged();if(window.renderNC)renderNC();
+}
+/* usa o MESMO gerenciador do Quadro Geral, para a experiência ser igual em todas as abas */
+function ncGerirUrgencias(){dgGerirOpcoes("urg");}
 function ncNormalizar(t){return (t||"").toLowerCase().trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"");}
 const NC_KW={
  URGENTE:["mofo","mofad","bolor","contamina","contaminaç","cruzad",
@@ -259,7 +277,7 @@ async function ncCapSugerir(){
 function ncCapRenderChips(atual,revisar){
  const el=document.getElementById("nc-cap-chips");if(!el)return;
  el.dataset.urg=atual;el.dataset.revisar=revisar?"1":"";
- el.innerHTML=Object.keys(NC_URG).map(u=>{const c=NC_URG[u];
+ el.innerHTML=ordenarOpc(NC_URG).map(u=>{const c=NC_URG[u];
   return `<span class="nc-chip ${u===atual?"on":""}" style="${u===atual?`background:${c.fundo};color:${c.cor};border-color:${c.cor}`:""}" onclick="ncCapUrgManual='${u}';ncCapRenderChips('${u}',false)">${c.rotulo}</span>`;}).join("")
   +(revisar?'<span class="nc-chip warn">⚠ revisar</span>':"");
 }
@@ -323,7 +341,7 @@ async function ncBuildToolbar(areas){
    <input type="text" id="nc-f-q" placeholder="Buscar nas NCs..." oninput="ncF.q=this.value;ncRenderList()"></div>
   <select onchange="ncF.piso=this.value;ncF.area='';ncFillAreaFilter();ncRenderList()"><option value="">Todos os pisos</option>${ncOptions(pisos,ncF.piso)}</select>
   <select id="nc-f-area" onchange="ncF.area=this.value;ncRenderList()"><option value="">Todas as áreas</option>${areas.map(a=>`<option>${esc(a.nome)}</option>`).join("")}</select>
-  <select onchange="ncF.urg=this.value;ncRenderList()"><option value="">Todas as urgências</option>${Object.keys(NC_URG).map(u=>`<option value="${u}">${NC_URG[u].rotulo}</option>`).join("")}</select>
+  <button class="filtro-cfg-bt" onclick="ncGerirUrgencias()" title="Configurar as urgências">⚙</button><select onchange="ncF.urg=this.value;ncRenderList()"><option value="">Todas as urgências</option>${ordenarOpc(NC_URG).map(u=>`<option value="${u}">${NC_URG[u].rotulo}</option>`).join("")}</select>
   <select onchange="ncF.status=this.value;ncRenderList()">
    <option value="Abertas">Abertas</option><option value="Resolvidas">Resolvidas</option><option value="Todas">Todas</option></select>`;
 }
@@ -371,7 +389,8 @@ function ncRenderList(){
    <div class="nc-texto">${esc(d.texto_tecnico||d.texto_bruto||"(sem descrição — ver fotos)")}</div>
    ${pontos}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}
    <div class="nc-acts">
-    <button class="btn ghost sm" onclick="ncEditar(${d.id})">✎ Editar</button>
+    <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar arquivo ou imagem nesta NC">📎</button>
+     <button class="btn ghost sm" onclick="ncEditar(${d.id})">✎ Editar</button>
     ${resolvida?`<button class="btn ghost sm" onclick="ncReabrir(${d.id})">↩ Reabrir</button>`
      :`<button class="btn sm" onclick="ncResolver(${d.id})">✓ Resolver</button>`}
     <button class="delbtn" title="Excluir" onclick="removeItem(${d.id})">🗑</button>
@@ -420,7 +439,7 @@ async function ncEditar(id){
    <div class="field"><label>Observação (aparece com 👁 no relatório)</label><textarea id="nc-e-obs">${esc(d.obs||"")}</textarea></div>
   </div>
   <div class="grid2">
-   <div class="field"><label>Urgência</label><select id="nc-e-urg">${Object.keys(NC_URG).map(u=>`<option value="${u}" ${u===d.urgencia?"selected":""}>${NC_URG[u].rotulo}</option>`).join("")}</select></div>
+   <div class="field"><label>Urgência</label><select id="nc-e-urg">${ordenarOpc(NC_URG).map(u=>`<option value="${u}" ${u===d.urgencia?"selected":""}>${NC_URG[u].rotulo}</option>`).join("")}</select></div>
    <div class="field"><label>Data do relato</label><input type="date" id="nc-e-relato" value="${d.relato||""}"></div>
   </div>
   <div class="field"><label><input type="checkbox" id="nc-e-rev" ${d.revisar?"checked":""} style="width:auto;margin-right:6px">Marcada para revisão</label></div>

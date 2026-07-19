@@ -515,7 +515,7 @@ async function renderHome(){
      <button class="btn ghost sm" title="Excluir empresa" onclick="removeEmpresa('${emp.code}')">🗑</button>
      ${emp.ativa
        ?`<button class="btn iniciar" onclick="enterStore('${emp.code}')">Iniciar →</button>`
-       :`<span class="btn iniciar off" title="Ative a empresa no botão ao lado para poder entrar">🔒 Iniciar →</span>`}
+       :`<span class="btn iniciar off" title="Ative a empresa no botão ao lado para poder entrar">🔒</span>`}
    </div>`;
  }
  document.getElementById("store-list").innerHTML=html;
@@ -786,7 +786,7 @@ function renderNC(){}
 
 /* ===== export / import / backup automático ===== */
 /* Envelope versionado: leva itens E empresas; o import aceita também o formato antigo (array puro) */
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:(window.DG_PRIOS?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null),dgOpcoesMod:(window.DG_OPC_MOD||""),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:(window.DG_PRIOS?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null),dgOpcoesMod:(window.DG_OPC_MOD||""),ncUrgencias:(window.NC_URG?JSON.parse(JSON.stringify(NC_URG)):null),ncUrgenciasMod:(window.NC_URG_MOD||""),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -1030,7 +1030,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();
  goHome();
