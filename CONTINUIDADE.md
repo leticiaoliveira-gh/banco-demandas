@@ -130,9 +130,12 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
 > Demandas Gerais → demais abas) antes de qualquer conferência de dados.
 
 ## v5.1 (19/07) — visual e agenda compartilhada
-- Fundo `--bg:#fbfbfc` (quase branco). REGRA VISUAL DE Lê: **cor só nos detalhes**
-  (barrinha, ícone, contorno, etiqueta) — nunca preenchendo áreas grandes. Cards do hub
-  e cabeçalhos de grupo são brancos com contorno colorido.
+- Fundo `--bg:#ffffff` (BRANCO PURO, v5.2 — referência explícita dela: o Notion).
+  REGRA VISUAL: página branca; a cor aparece em **etiquetas com fundo pastel**
+  (igual às pílulas de prioridade do Notion), na barrinha do card do hub e no ícone —
+  nunca preenchendo áreas grandes de fundo.
+- Grupos e blocos da agenda são RECOLHÍVEIS no ▸ (`DG_FECHADOS` em localStorage,
+  por aparelho — não sincroniza). Fechado mostra só etiqueta + contagem, como no Notion.
 - Banner "Responsável Técnica" saiu do #view-app (fica só na Capa, em #rt-linha).
 - `nomeCurto()` (js/app.js): dentro das abas e na trilha o nome vai curto
   ("Cabo Frio"); na Capa fica "Cabo Frio · Super Fricarnes (CF)" — a pílula sumiu.
