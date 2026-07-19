@@ -156,9 +156,7 @@ function dgCartaoHTML(d){
   const p=dgProgresso(d),sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
   const atras=dgEhAtrasada(d),hoje=dgEhHoje(d);
   const aberta=!!DG_ABERTAS[d.uid];
-  const cp=DG_PRIOS[d.prioridade];
-  return `<div class="dg-item dg-cartao${d.situacao==="concluido"?" done":""}" data-uid="${d.uid}"
-      style="${cp?`box-shadow:inset 3px 0 0 ${cp.cor}`:""}">
+  return `<div class="dg-item dg-cartao${d.situacao==="concluido"?" done":""}" data-uid="${d.uid}">
     <div class="dg-cartao-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste" onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
       <input type="checkbox" class="dg-sel" ${DG_SEL.has(d.uid)?"checked":""}
@@ -206,9 +204,8 @@ function dgSalvarFechados(){try{localStorage.setItem("dg_fechados",JSON.stringif
 function dgLinhaHTML(d,irmaos,idx){
   const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
   const concl=(d.situacao==="concluido");
-  const cp=DG_PRIOS[d.prioridade];      /* listra colorida = prioridade, sem precisar escrever */
-  return `<div class="dg-item${concl?" done":""}" data-uid="${d.uid}"
-      style="${cp?`box-shadow:inset 3px 0 0 ${cp.cor}`:""}" ${cp?`title="${cp.rotulo}"`:""}>
+  /* sem listra colorida: Lê não gostou do resultado (19/07) — card limpo como antes */
+  return `<div class="dg-item${concl?" done":""}" data-uid="${d.uid}">
     <div class="dg-item-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste para mudar a ordem"
         onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
@@ -463,11 +460,18 @@ let DG_ARR=null;
 function dgArrastarIni(ev,alca){
   ev.preventDefault();ev.stopPropagation();
   const item=alca.closest(".dg-item");
-  DG_ARR={item,coluna:item.closest(".dg-bloco"),y:ev.clientY,moveu:false};
+  /* a coluna é o limite do arraste; no Painel é a coluna do quadro, na Lista é o bloco */
+  DG_ARR={item,coluna:item.closest(".dg-bloco, .dg-col")||item.closest(".dg-colunas")||document.getElementById("tab-dg"),
+    y:ev.clientY,moveu:false};
   item.classList.add("arrastando");
-  try{alca.setPointerCapture(ev.pointerId);}catch(e){}   /* não pode derrubar o arraste */
-  alca.onpointermove=dgArrastarMove;
-  alca.onpointerup=alca.onpointercancel=e=>dgArrastarFim(e,alca);
+  /* IMPORTANTE: os handlers vão no DOCUMENTO, não na alça.
+     Mover o card no meio da lista tira o elemento do lugar e o navegador cancela
+     a "prisão do ponteiro" (setPointerCapture) — era por isso que o arraste morria
+     no primeiro movimento. Ouvindo no documento, o gesto continua até soltar. */
+  document.addEventListener("pointermove",dgArrastarMove,{passive:false});
+  document.addEventListener("pointerup",dgArrastarFim);
+  document.addEventListener("pointercancel",dgArrastarFim);
+  document.body.style.userSelect="none";
 }
 function dgArrastarMove(ev){
   if(!DG_ARR)return;
@@ -492,12 +496,14 @@ function dgArrastarMove(ev){
   if(!destino)return;
   if(antesDe)destino.insertBefore(item,antesDe);else destino.appendChild(item);
 }
-async function dgArrastarFim(ev,alca){
+async function dgArrastarFim(ev){
   if(!DG_ARR)return;
   const {item,moveu}=DG_ARR;
   item.classList.remove("arrastando");
-  alca.onpointermove=alca.onpointerup=alca.onpointercancel=null;
-  try{alca.releasePointerCapture(ev.pointerId);}catch(e){}
+  document.removeEventListener("pointermove",dgArrastarMove);
+  document.removeEventListener("pointerup",dgArrastarFim);
+  document.removeEventListener("pointercancel",dgArrastarFim);
+  document.body.style.userSelect="";
   DG_ARR=null;
   if(!moveu)return;                               /* clique simples: não mexe em nada */
   /* mudou de grupo? então a prioridade (ou a situação) passa a ser a do grupo de destino */

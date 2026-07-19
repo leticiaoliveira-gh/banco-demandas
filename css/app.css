@@ -77,12 +77,11 @@
   .dg-item:hover{box-shadow:0 1px 6px rgba(0,0,0,.07)}
   .dg-item.arrastando{opacity:.55;box-shadow:0 6px 18px rgba(0,0,0,.16);border-color:var(--accent)}
   /* alça de arrastar (⠿) — segure e mova, igual ao Notion; funciona com o dedo também */
-  .dg-alca{flex:none;color:#c4c5cc;cursor:grab;font-size:13px;line-height:1;padding:2px 1px;
-    touch-action:none;user-select:none;opacity:0;transition:opacity .12s}
-  .dg-item:hover .dg-alca{opacity:1}
-  .dg-alca:hover{color:var(--muted)}
-  .dg-alca:active{cursor:grabbing}
-  @media(hover:none){.dg-alca{opacity:.75}}   /* no celular fica sempre visível */
+  /* alça SEMPRE visível e com área boa de pega (Lê não conseguia arrastar) */
+  .dg-alca{flex:none;color:#b9bac2;cursor:grab;font-size:15px;line-height:1;padding:4px 5px;margin-left:-3px;
+    border-radius:5px;touch-action:none;user-select:none;transition:background .12s,color .12s}
+  .dg-alca:hover{color:var(--accent);background:#eef5f2}
+  .dg-alca:active,.dg-item.arrastando .dg-alca{cursor:grabbing;color:var(--accent);background:#e0ece7}
   .dg-excl{font-weight:600;color:var(--muted);font-size:11px}
   /* ===== VISÃO PAINEL (quadro geral) ===== */
   .dg-visao{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
@@ -123,13 +122,17 @@
   .dg-item:hover .dg-lupa{opacity:.75}
   .dg-lupa:hover{opacity:1 !important;background:#f1f1f3;color:var(--text)}
   /* ===== modo foco: a demanda sozinha na tela ===== */
-  .dg-focotela{position:fixed;inset:0;background:rgba(15,45,40,.55);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow:auto}
-  .dg-foco-box{background:#fff;border-radius:16px;width:min(760px,100%);box-shadow:0 24px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:92vh}
-  .dg-foco-h{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:18px 20px 14px;border-left:5px solid transparent;border-bottom:1px solid var(--border)}
-  .dg-foco-h h2{font-size:21px;font-weight:700;line-height:1.25;margin-top:8px;letter-spacing:-.3px}
+  /* TELA CHEIA de verdade: cobre o site inteiro, nada aparece atrás */
+  .dg-focotela{position:fixed;inset:0;background:#fff;z-index:200;display:flex;flex-direction:column}
+  .dg-foco-box{background:#fff;width:100%;height:100%;max-width:none;display:flex;flex-direction:column}
+  .dg-foco-h{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:26px 30px 18px;
+    border-bottom:1px solid var(--border);max-width:900px;width:100%;margin:0 auto}
+  .dg-foco-h h2{font-size:27px;font-weight:700;line-height:1.22;margin-top:10px;letter-spacing:-.5px}
   .dg-foco-tags{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-  .dg-foco-corpo{padding:14px 16px;overflow:auto;flex:1}
-  .dg-foco-pe{display:flex;gap:8px;align-items:center;padding:12px 16px;border-top:1px solid var(--border);background:#fbfbfc;border-radius:0 0 16px 16px}
+  .dg-foco-corpo{padding:20px 30px 30px;overflow:auto;flex:1;max-width:900px;width:100%;margin:0 auto}
+  .dg-foco-corpo .dg-chk{font-size:14px;padding:8px 10px 8px 12px}
+  .dg-foco-corpo .dg-sec{font-size:13.5px}
+  .dg-foco-pe{display:flex;gap:8px;align-items:center;padding:14px 30px;border-top:1px solid var(--border);background:#fbfbfc;max-width:900px;width:100%;margin:0 auto}
   .dg-foco-pe a.btn{text-decoration:none}
   /* ===== mapa do site ===== */
   .mapa-cx{border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:11px;background:#fff}
