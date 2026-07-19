@@ -60,16 +60,22 @@ function renderDG(){
   const soDaLoja=dgOrdenar(lista.filter(d=>d.escopo===currentStore));
   const doGrupo=dgOrdenar(lista.filter(d=>!d.escopo));
   const nomeLoja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
+  /* cada bloco é uma COLUNA com moldura própria, envolvendo todas as prioridades dentro */
   let corpo="";
   const blocoHTML=(id,titulo,itens,cls)=>{
     const fechado=!!DG_FECHADOS["bloco|"+id];
-    return `<div class="dg-bloco">
-      <div class="dg-bloco-h ${cls||""}" onclick="dgToggleGrupo('bloco|${id}')" title="${fechado?"Abrir":"Fechar"}">
+    return `<div class="dg-bloco ${cls||""}">
+      <div class="dg-bloco-h" onclick="dgToggleGrupo('bloco|${id}')" title="${fechado?"Abrir":"Fechar"} esta coluna">
         <span class="dg-caret${fechado?"":" open"}">▸</span>${titulo}<span class="dg-cont">${itens.length}</span></div>
-      ${fechado?"":dgGruposHTML(itens,id)}</div>`;};
-  if(temGrupo&&soDaLoja.length)corpo+=blocoHTML("loja","📍 Só "+esc(nomeLoja),soDaLoja);
-  if(doGrupo.length)corpo+=temGrupo?blocoHTML("grupo","🔗 As duas lojas",doGrupo,"compart")
-    :`<div class="dg-bloco">${dgGruposHTML(doGrupo,"g")}</div>`;
+      ${fechado?"":`<div class="dg-bloco-corpo">${dgGruposHTML(itens,id)}</div>`}</div>`;};
+  if(temGrupo){
+    corpo=`<div class="dg-colunas">
+      ${blocoHTML("loja","📍 Só "+esc(nomeLoja),soDaLoja,"so-loja")}
+      ${blocoHTML("grupo","🔗 As duas lojas",doGrupo,"compart")}
+    </div>`;
+  }else{
+    corpo=`<div class="dg-bloco"><div class="dg-bloco-corpo">${dgGruposHTML(doGrupo,"g")}</div></div>`;
+  }
   box.innerHTML=`
     <div class="dg-bar">
       <div class="emp-search" style="flex:1">
@@ -97,6 +103,7 @@ function renderDG(){
 
 /* dentro de cada bloco, os grupos por prioridade (ou situação) do jeito que ela já usa */
 function dgGruposHTML(lista,pref){
+  if(!lista.length)return `<div class="dg-vazio">Nada aqui por enquanto.</div>`;
   const grupos=[];
   if(DG_GRUPO==="prioridade"){
     for(const k of Object.keys(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});

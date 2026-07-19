@@ -243,11 +243,9 @@ const TABS={
 const ABAS_HUB=()=>TAB_ORDER.filter(t=>TABS[t].hub);
 /* "Arraial do Cabo · Super Fricarnes" -> "Arraial do Cabo" (usado dentro das abas) */
 function nomeCurto(n){return String(n||"").split("·")[0].trim()||String(n||"");}
-function renderTabs(){
-  document.getElementById("tabs").innerHTML=ABAS_HUB().map(t=>
-    `<div class="tab${t===currentTab?" active":""}" data-tab="${t}" onclick="showTab('${t}')">${TABS[t].label}</div>`).join("");
-  renderRailTabs();renderMobileNav();
-}
+/* A barra de abas de TEXTO foi removida a pedido de Lê (19/07: "está poluído").
+   A navegação vive na barra lateral (ícones), na barra do celular, no hub e no Ctrl+K. */
+function renderTabs(){renderRailTabs();renderMobileNav();}
 /* ===== Hub de cards (porta de entrada da empresa) ===== */
 function renderHub(){
   const box=document.getElementById("hub-grid");if(!box)return;
