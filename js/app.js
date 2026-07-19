@@ -305,6 +305,7 @@ function toggleModoEdicao(){
   MODO_EDICAO=!MODO_EDICAO;
   document.body.classList.toggle("modo-edicao",MODO_EDICAO);
   document.querySelectorAll("[data-txt]").forEach(el=>MODO_EDICAO?ligarEdicao(el):desligarEdicao(el));
+  updateSubtitle(currentTab);   /* o nome do quadro e a pílula da loja seguem o modo */
   toast(MODO_EDICAO?"Modo edição LIGADO — clique em qualquer texto para trocar"
                    :"Modo edição desligado");
   if(MODO_EDICAO)barraModoEdicao();else{const b=document.getElementById("barraEdicao");if(b)b.remove();}
@@ -400,16 +401,22 @@ function updateSubtitle(t){
   const aba=TABS[t]&&rotuloAba(t);
   if(h1){
     h1.textContent=aba||nomeCurto(currentStoreName||"");
-    /* TUDO editável: o nome do quadro também se muda aqui, clicando */
-    if(aba){h1.contentEditable="plaintext-only";h1.title="Clique para renomear este quadro";
+    /* SÓ edita no modo edição — antes ficava sempre editável e ela renomeou a aba
+       sem querer só de clicar (aconteceu em 19/07: "Quadro Geral" virou "[loja-B]") */
+    if(aba&&MODO_EDICAO){
+      h1.contentEditable="plaintext-only";h1.classList.add("editando");
+      h1.title="Escreva o novo nome deste quadro";
       h1.onblur=()=>renomearAba(t,h1.textContent);
-      h1.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();h1.blur();}};
-    }else{h1.contentEditable="false";h1.onblur=h1.onkeydown=null;h1.title="";}
+      h1.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();h1.blur();}
+        if(e.key==="Escape"){h1.textContent=rotuloAba(t);h1.blur();}};
+    }else{h1.contentEditable="false";h1.classList.remove("editando");
+      h1.onblur=h1.onkeydown=null;h1.title=MODO_EDICAO?"":"Para renomear: menu ⋯ → Editar os textos do site";}
   }
   if(sub)sub.innerHTML=currentStore
-    ?`<span class="loja-pill" contenteditable="plaintext-only" title="Clique para renomear a empresa"
+    ?`<span class="loja-pill"${MODO_EDICAO?` contenteditable="plaintext-only" title="Escreva o novo nome da empresa"
         onblur="renomearLojaCurto(this.textContent)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(nomeCurto(currentStoreName||""))}</span>`
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"`
+      :` title="Para renomear: menu ⋯ → Editar os textos do site"`}>${esc(nomeCurto(currentStoreName||""))}</span>`
     :"";
 }
 
