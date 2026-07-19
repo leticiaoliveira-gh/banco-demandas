@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "7.6",
-  "ondeParamos": "v7.6: CORRIGIDO um erro meu que quebrou a Triagem e a Folha do dia — ao fazer as concluidas sumirem da lista, escrevi a regra no lugar errado do codigo. As duas voltaram a funcionar.",
-  "proximoPasso": "Testar Triagem e Folha do dia no Chrome; depois, layout das abas de NC e Manutencoes"
+  "versao": "7.7",
+  "ondeParamos": "v7.7: passei o site inteiro por uma bateria de testes (QA). Corrigi a Triagem e a Folha do dia, que eu havia quebrado, e coloquei o botao DESFAZER tambem na barra de baixo do celular — antes ele so existia na barra lateral, que some no telefone. Proximo assunto: o layout da aba Relatorio de Nao Conformidade.",
+  "proximoPasso": "Layout da aba Relatorio de Nao Conformidade - Gerencia"
 }

@@ -489,3 +489,7 @@
     width:30px;height:28px;border-radius:7px}
   .rail-hist .ricon:hover:not(:disabled){background:rgba(255,255,255,.18);color:#fff}
   .rail-hist .ricon:disabled{opacity:.22;cursor:default}
+  @media(max-width:1000px){
+    .mnav #btDesfazerM{border:0;background:none;font-size:19px;font-weight:700;color:var(--muted);opacity:.55}
+    .mnav #btDesfazerM:disabled{opacity:.2}
+  }
