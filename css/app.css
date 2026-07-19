@@ -72,6 +72,33 @@
   .dg-alca:active{cursor:grabbing}
   @media(hover:none){.dg-alca{opacity:.75}}   /* no celular fica sempre visível */
   .dg-excl{font-weight:600;color:var(--muted);font-size:11px}
+  /* ===== VISÃO PAINEL (quadro geral) ===== */
+  .dg-visao{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .dg-visao button{border:0;background:#fff;color:var(--muted);font:inherit;font-size:12px;padding:7px 11px;cursor:pointer}
+  .dg-visao button.on{background:var(--accent);color:#fff;font-weight:600}
+  /* faixa de foco: responde "o que eu faço agora" antes de mostrar o todo */
+  .dg-foco{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .dg-foco-c{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:104px;
+    border:1.5px solid var(--border);border-radius:11px;padding:9px 13px;background:#fff;cursor:pointer;font:inherit;text-align:left}
+  .dg-foco-c:hover{border-color:var(--c)}
+  .dg-foco-c.on{border-color:var(--c);background:var(--f)}
+  .dg-foco-c .n{font-size:21px;font-weight:700;color:var(--c);line-height:1.1}
+  .dg-foco-c .r{font-size:11.5px;color:var(--muted);font-weight:600}
+  .dg-foco-x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;text-decoration:underline}
+  /* quadro por prioridade */
+  .dg-quadro{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:start}
+  .dg-col{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fdfdfd;min-height:90px}
+  .dg-col-h{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;font-weight:700;letter-spacing:.5px;padding:8px 11px}
+  .dg-col .dg-grupo{padding:8px;margin:0;min-height:44px}
+  /* cartão do quadro */
+  .dg-cartao{border-radius:8px;margin-bottom:7px}
+  .dg-cartao-top{display:flex;align-items:flex-start;gap:6px;padding:9px 10px 5px;cursor:pointer}
+  .dg-cartao-top .dg-tit{font-size:12px;font-weight:600;line-height:1.35}
+  .dg-cartao-pe{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:0 10px 9px;cursor:pointer}
+  .dg-mini{font-size:10px;color:var(--muted);background:#f4f4f6;border-radius:9px;padding:1px 7px;font-weight:600;white-space:nowrap}
+  .dg-mini.atrasado{background:#ffecec;color:#e5484d}
+  .dg-mini.hoje{background:#fdf0e0;color:#b3730a}
+  @media(max-width:1000px){.dg-quadro{grid-template-columns:1fr}.dg-foco-c{min-width:calc(50% - 5px);flex:1}}
   .dg-item.done .dg-tit{text-decoration:line-through;opacity:.6}
   .dg-item-top{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer}
   .dg-item-top:hover{background:#fafafa}
