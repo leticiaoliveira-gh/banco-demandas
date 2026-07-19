@@ -170,6 +170,13 @@
   .dg-tri-emoji{font-size:44px;color:var(--accent);margin-bottom:10px}
   .dg-tri-fim h2{font-size:23px;margin-bottom:6px}
   .dg-tri-fim .desc{margin-bottom:18px}
+  /* ===== leitura de arquivos (Excel, Word, PDF...) ===== */
+  .arq-box{border:1px solid var(--border);border-radius:10px;max-height:230px;overflow:auto;background:#fbfbfc}
+  .arq-tab{width:100%;border-collapse:collapse;font-size:12px}
+  .arq-tab td{border-bottom:1px solid var(--border);padding:6px 9px;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+  .arq-tab tr:first-child td{font-weight:700;background:#f3f5f5}
+  .arq-lista{margin:0;padding:8px 8px 8px 26px;font-size:12.5px;line-height:1.6}
+  .arq-ck{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);margin:8px 0 2px;cursor:pointer}
   /* ===== mapa do site ===== */
   .mapa-cx{border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:11px;background:#fff}
   .mapa-cx h3{font-size:13px;color:var(--accent);margin-bottom:7px}
