@@ -147,6 +147,22 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
   Migração `mig_grupo_sf` + migração de itens dg antigos (loja CF/AC -> SF) no boot.
 - Ordem manual das demandas: campo `ordem`, arrastar-e-soltar no PC e setas ▲▼ no celular.
 
+## v5.3 (19/07) — combate à poluição visual (queixa forte de Lê)
+- Lê disse literalmente que o site estava "uma grande poluição visual" e que "a cabeça buga".
+  TRATAR DENSIDADE COMO REQUISITO, não como detalhe: menos elementos na tela, cards baixos.
+- Barra de abas de TEXTO (#tabs) foi ESCONDIDA (hidden). renderTabs() agora só popula a
+  barra lateral e a do celular. Navegação = ícones da rail + hub + Ctrl+K.
+- Cards da agenda compactos (39px de altura; padding 8px 11px, fonte 12.5px).
+- Agenda em DUAS COLUNAS (.dg-colunas, auto-fit minmax(330px,1fr)): cada bloco é uma
+  coluna com MOLDURA própria envolvendo todas as prioridades — "📍 Só [loja]" (borda
+  cinza) e "🔗 As duas lojas" (borda verde), cabeçalho preenchido. No celular vira 1 coluna.
+- PENDÊNCIA NOVA no banco dela: "AUTONOMIA: aprender/ter no site como editar tudo sozinha
+  (layout, abas, cores, textos) sem depender do Claude". Ela NÃO quer explicação sobre isso
+  agora — só registrado. Quando for tratar, lembrar da REGRA DE PORTABILIDADE do CLAUDE.md.
+- Ideias de melhoria já oferecidas (aguardando escolha dela): modo compacto extremo,
+  ocultar concluídas, card só com título+progresso, focar uma coluna por vez, altura
+  máxima com rolagem interna, controle Confortável/Compacto.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
