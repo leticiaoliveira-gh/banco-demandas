@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.6",
-  "ondeParamos": "v6.6: o botao de importar agora se chama \"Restaurar backup (.json)\" e ficou SEGURO — antes ele apagava tudo sem alternativa. Agora o padrao e JUNTAR com o que voce ja tem (sem duplicar), e substituir tudo exige duas confirmacoes. Se o arquivo nao servir, ele explica qual arquivo usar.",
-  "proximoPasso": "Le decidir onde ficam Exportar/Importar; depois, layout das abas de NC e Manutencoes"
+  "versao": "6.7",
+  "ondeParamos": "v6.7: agora da para TRAZER ARQUIVOS para o site (menu tres pontinhos > Trazer arquivo): Excel, CSV, Word e PDF de texto sao lidos, ele mostra o que encontrou e voce escolhe se aquilo vira uma demanda com lista, varias demandas ou itens de manutencao. Imagens viram anexo de uma demanda. Tudo e lido dentro do proprio navegador, nada e enviado para lugar nenhum.",
+  "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }
