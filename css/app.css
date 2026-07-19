@@ -42,6 +42,40 @@
   /* barra de navegação do celular */
   .mnav{display:none}
   [hidden]{display:none !important}
+  /* ===== Demandas Gerais: agenda com checklist ===== */
+  .dg-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .dg-bar select{border:1px solid var(--border);border-radius:8px;padding:8px 9px;background:var(--card);font-size:12.5px;color:var(--muted)}
+  .dg-grupo{margin-bottom:20px}
+  .dg-grupo-h{display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;letter-spacing:.6px;padding:7px 13px;border-radius:7px;margin-bottom:9px;width:fit-content}
+  .dg-cont{background:rgba(255,255,255,.75);border-radius:11px;padding:1px 8px;font-size:11px}
+  .dg-item{background:var(--card);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden}
+  .dg-item.done .dg-tit{text-decoration:line-through;opacity:.6}
+  .dg-item-top{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer}
+  .dg-item-top:hover{background:#fafafa}
+  .dg-caret{color:var(--muted);font-size:11px;transition:transform .15s;display:inline-block;flex:none}
+  .dg-caret.open{transform:rotate(90deg)}
+  .dg-tit{flex:1;font-weight:600;font-size:13.5px;line-height:1.4;min-width:0}
+  .dg-prog{font-size:11.5px;color:var(--muted);background:#f1f1f3;border-radius:11px;padding:2px 9px;font-weight:700;flex:none}
+  .dg-badge{font-size:11px;font-weight:700;border-radius:11px;padding:3px 10px;white-space:nowrap;flex:none}
+  .dg-prazo{font-size:11.5px;color:var(--muted);white-space:nowrap;flex:none}
+  .dg-corpo{border-top:1px solid var(--border);padding:12px 15px 14px;background:#fcfcfc}
+  .dg-acts{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .dg-acts select,.dg-acts input[type=date]{border:1px solid var(--border);border-radius:7px;padding:5px 8px;font-size:12px;background:#fff;color:var(--text);font-family:inherit}
+  .dg-acts a.btn{text-decoration:none;display:inline-flex;align-items:center}
+  .dg-lista{display:flex;flex-direction:column}
+  .dg-chk{display:flex;align-items:flex-start;gap:9px;padding:6px 8px 6px 12px;border-radius:7px;cursor:pointer;font-size:13px;line-height:1.45}
+  .dg-chk:hover{background:#f4f4f6}
+  .dg-chk input{margin-top:2.5px;flex:none;cursor:pointer}
+  .dg-chk .feito{text-decoration:line-through;color:var(--muted)}
+  .dg-chk span{flex:1;min-width:0;word-break:break-word}
+  .dg-del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;opacity:0;flex:none}
+  .dg-chk:hover .dg-del{opacity:.7}
+  .dg-del:hover{color:#e5484d;opacity:1}
+  .dg-sec{font-weight:700;font-size:12.5px;padding:8px 8px 8px 12px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px;border-radius:7px;line-height:1.45}
+  .dg-sec:hover{background:#f1f1f3}
+  .dg-txt{font-size:12.5px;color:var(--muted);padding:5px 8px;line-height:1.5;word-break:break-word}
+  .dg-vazio{color:var(--muted);font-size:12.5px;padding:6px 2px}
+  .dg-lista a{color:var(--blue)}
   .main{flex:1;padding:24px 30px 70px;min-width:0}
   .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:14px;flex-wrap:wrap}
   .head h1{font-size:25px;font-weight:700;letter-spacing:-.3px}

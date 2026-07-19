@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "4.9",
-  "ondeParamos": "Nova navegacao publicada (v4.9): ao entrar na empresa aparece o HUB de cards coloridos (Demandas Gerais, Relatorio de NC, Manutencoes). Para pular entre quadros: icones na barra lateral, barra inferior no celular ou Ctrl+K. Proximo: ajustes de layout dentro de cada aba.",
-  "proximoPasso": "Layout interno da aba Demandas Gerais"
+  "versao": "5.0",
+  "ondeParamos": "Demandas Gerais virou AGENDA (v5.0): tarefas agrupadas por prioridade, com checklist aninhado e secoes que abrem/fecham, igual ao Notion. Importacao das 15 tarefas do Notion em andamento. Historico do repositorio publico foi limpo por privacidade.",
+  "proximoPasso": "Conferir as tarefas importadas do Notion na aba Demandas Gerais"
 }
