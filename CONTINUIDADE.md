@@ -300,3 +300,8 @@ EDITAVEL". Nada novo pode nascer sem caminho de edicao pela interface.
 - Há um artefato de design publicado (link acima) aguardando as respostas dela.
 - Lembretes automáticos das 18h podem disparar fora de hora — checar o histórico real
   antes de agir como se a etapa não tivesse sido feita.
+
+## SENTINELA AUTOMÁTICA DO GITHUB (gravado em 19/07/2026 — v7.8)
+- **O que foi corrigido em v7.8**: o aviso de vencimento do token de sincronização era um palpite (1 ano a partir da colagem). Agora `js/sync.js` lê a validade REAL pelo cabeçalho `github-authentication-token-expiration` da API do GitHub: avisa com dias restantes + data exata (≤21 dias), alerta forte se já venceu, e o "Testar conexão" mostra "Token válido até DD/MM/AAAA". Chave local: `gh_sync_token_expires` (limpa ao trocar/desativar token).
+- **Rotina permanente**: Routine "Sentinela GitHub — banco-demandas" (trig_01QBuWfpLATSDwDUNiHtBWPn), toda segunda ~9h (Brasília), abre sessão nova e sozinha: checa Actions/issues/PRs, roda node --check em todos os js, carrega o site headless (Playwright) caçando erros de runtime, confere expirações de token, corrige o que achar, faz push em branch claude/* e avisa Lê por push/e-mail. Cadastrada como AUT-0014 no Cadastro de Automações (Notion).
+- **Tokens conhecidos** (print de 19/07/2026): "demandas de sincronização de banco" expira 17/07/2027 (o do site, OK); "Site de Sincronização UAN" expira 16/08/2026 e NUNCA foi usado (outro projeto — renovar ou excluir).
