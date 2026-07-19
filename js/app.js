@@ -1,7 +1,12 @@
 const RT_DEFAULT="Letícia Oliveira (Nutricionista de Produção – RT)";
 
 /* ===== Empresas dinâmicas (gerenciáveis pela Central de Empresas) ===== */
+/* Grupo = conjunto de lojas que dividem a MESMA agenda de Demandas Gerais.
+   Só as lojas do Super Fricarnes (CF e AC) têm grupo; empresa nova nasce sem. */
+const GRUPO_SF="SF";
 let EMPRESAS=[],EMPRESAS_MOD="";
+function grupoDe(code){const e=(EMPRESAS||[]).find(x=>x.code===code);return (e&&e.grupo)||"";}
+function lojasDoGrupo(g){return (EMPRESAS||[]).filter(e=>e.grupo===g);}
 async function loadEmpresas(){
  EMPRESAS_MOD=await metaGet("empresasMod")||"";
  let v=await metaGet("empresas");
@@ -24,6 +29,16 @@ async function loadEmpresas(){
    }
    if(mudou){EMPRESAS_MOD=nowISO();await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);}
    await metaSet("mig_nome_rede",true);
+ }
+ /* GRUPO (19/07): as lojas do Super Fricarnes dividem a MESMA agenda de Demandas Gerais.
+    Empresa criada depois nasce SEM grupo -> agenda própria (regra explícita de Lê). */
+ if(!(await metaGet("mig_grupo_sf"))){
+   let mudou=false;
+   for(const e of EMPRESAS){
+     if((e.code==="CF"||e.code==="AC")&&!e.grupo){e.grupo=GRUPO_SF;mudou=true;}
+   }
+   if(mudou){EMPRESAS_MOD=nowISO();await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);}
+   await metaSet("mig_grupo_sf",true);
  }
 }
 /* botão ▶ Iniciar da capa: entra direto na (única) empresa ativa */
@@ -226,6 +241,8 @@ const TABS={
       onShow(){configAddTab();}}
 };
 const ABAS_HUB=()=>TAB_ORDER.filter(t=>TABS[t].hub);
+/* "Arraial do Cabo · Super Fricarnes" -> "Arraial do Cabo" (usado dentro das abas) */
+function nomeCurto(n){return String(n||"").split("·")[0].trim()||String(n||"");}
 function renderTabs(){
   document.getElementById("tabs").innerHTML=ABAS_HUB().map(t=>
     `<div class="tab${t===currentTab?" active":""}" data-tab="${t}" onclick="showTab('${t}')">${TABS[t].label}</div>`).join("");
@@ -235,9 +252,10 @@ function renderTabs(){
 function renderHub(){
   const box=document.getElementById("hub-grid");if(!box)return;
   box.innerHTML=ABAS_HUB().map(t=>{const a=TABS[t];
-    return `<button class="hub-card" data-hub="${t}" style="background:${a.corFundo};color:${a.cor}" onclick="showTab('${t}')" title="${esc(a.label)}">
+    /* card BRANCO: a cor fica só na barra, no fundo do ícone e no título (pedido de Lê, 19/07) */
+    return `<button class="hub-card" data-hub="${t}" style="color:${a.cor}" onclick="showTab('${t}')" title="${esc(a.label)}">
       <span class="bar" style="background:${a.cor}"></span>
-      <span class="ico">${a.icone}</span>
+      <span class="ico" style="background:${a.corFundo}">${a.icone}</span>
       <span class="nm">${esc(a.label)}</span></button>`;}).join("");
 }
 function showHub(){
@@ -362,10 +380,9 @@ async function renderHome(){
    const done=vivos.filter(d=>d.loja===emp.code&&isConcluido(d)).length;
    html+=`<div class="store-row">
      <div class="store-info">
-       <div class="store-title">${esc(emp.name)}</div>
+       <div class="store-title">${esc(emp.name)} (${esc(emp.code)})</div>
        <div class="store-sub">${pend} pendente${pend===1?"":"s"} · ${done} concluído${done===1?"":"s"}</div>
      </div>
-     <span class="store-badge">${esc(emp.code)}</span>
      <div class="store-toggle-wrap">
        <label class="switch" title="Ativar/desativar empresa"><input type="checkbox" aria-label="Ativar ou desativar empresa" ${emp.ativa?"checked":""} onchange="onToggleEmpresa('${emp.code}',this.checked)"><span class="slider"></span></label>
        <span class="store-toggle-label ${emp.ativa?"on":"off"}">${emp.ativa?"Ativa":"Inativa"}</span>
@@ -425,8 +442,9 @@ async function removeEmpresa(code){const e=empresa(code);if(!e)return;
 function enterStore(code){
  currentStore=code;
  const e=empresa(code)||{name:"Empresa"};
- document.getElementById("appTitle").textContent=e.name+" ("+code+")";
- currentStoreName=e.name;
+ /* dentro das abas o nome vai CURTO ("Arraial do Cabo"); o completo fica só na Capa */
+ document.getElementById("appTitle").textContent=nomeCurto(e.name);
+ currentStoreName=nomeCurto(e.name);
  showView("app");showHub();   /* entra pelo HUB de cards, não direto numa aba */
 }
 
@@ -747,6 +765,9 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
    let dirty=false;
    if(!d.tipo){d.tipo="mnt";dirty=true;}   /* itens antigos = Manutenções e Elétrica */
    if(!d.uid){d.uid=(d.criado==="inicial")?seedUid(d.area,d.nc,d.executor):newUid();dirty=true;}  /* estável p/ sync; seed = determinístico */
+   /* 19/07: demandas gerais das lojas do grupo passam a ser do GRUPO (agenda única CF+AC) */
+   if(d.tipo==="dg"&&d.loja!==GRUPO_SF&&(d.loja==="CF"||d.loja==="AC")&&!d.escopo){
+     d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
  await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadStatusSite();

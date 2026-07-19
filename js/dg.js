@@ -23,7 +23,19 @@ const DG_SEM={rotulo:"SEM PRIORIDADE",cor:"#8a8b96",fundo:"#f1f1f3"};
 let DG_ABERTAS={};        /* uid da demanda -> aberta? (só visual, não sincroniza) */
 let DG_GRUPO="prioridade";
 
-function dgVivos(){return DATA.filter(d=>!d.deleted&&d.tipo==="dg"&&d.loja===currentStore);}
+/* Onde a demanda mora:
+   - loja = código do GRUPO (ex.: "SF") quando vale para as lojas do grupo;
+   - loja = código da EMPRESA quando ela não pertence a nenhum grupo;
+   - escopo = "" (todas as lojas do grupo) ou o código de UMA loja (exclusiva dela). */
+function dgLojaBase(){const g=grupoDe(currentStore);return g||currentStore;}
+function dgVivos(){
+  const base=dgLojaBase();
+  return DATA.filter(d=>!d.deleted&&d.tipo==="dg"&&d.loja===base
+    &&(!d.escopo||d.escopo===currentStore));
+}
+function dgCompartilhada(d){return grupoDe(currentStore)&&!d.escopo;}
+function dgOrdenar(l){return l.slice().sort((a,b)=>
+  (a.ordem??1e9)-(b.ordem??1e9) || String(a.prazo||"9").localeCompare(String(b.prazo||"9")));}
 function dgProgresso(d){const l=(d.itens||[]).filter(i=>i.tipoLinha==="check");
   return {feitos:l.filter(i=>i.feito).length,total:l.length};}
 
@@ -37,19 +49,22 @@ function renderDG(){
     const alvo=semAcento(d.titulo||"")+" "+semAcento((d.itens||[]).map(i=>i.texto).join(" "));
     return alvo.includes(q);
   });
-  /* agrupamento no estilo do Notion */
-  const grupos=[];
-  if(DG_GRUPO==="prioridade"){
-    for(const k of Object.keys(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});
-    grupos.push({chave:"",...DG_SEM,itens:lista.filter(d=>!d.prioridade)});
-  }else{
-    for(const k of Object.keys(DG_SIT))grupos.push({chave:k,rotulo:DG_SIT[k].rotulo.toUpperCase(),cor:DG_SIT[k].cor,fundo:DG_SIT[k].fundo,itens:lista.filter(d=>(d.situacao||"nao_iniciado")===k)});
-  }
-  const corpo=grupos.filter(g=>g.itens.length).map(g=>`
-    <div class="dg-grupo">
-      <div class="dg-grupo-h" style="color:${g.cor};background:${g.fundo}">${esc(g.rotulo)}<span class="dg-cont">${g.itens.length}</span></div>
-      ${g.itens.map(dgLinhaHTML).join("")}
-    </div>`).join("");
+  const fEsc=document.getElementById("dgEscopo")?.value||"";
+  if(fEsc==="minha")lista=lista.filter(d=>d.escopo===currentStore);
+  else if(fEsc==="compart")lista=lista.filter(d=>!d.escopo);
+
+  /* dois blocos: as EXCLUSIVAS desta loja em cima, depois as que valem para as duas */
+  const temGrupo=!!grupoDe(currentStore);
+  const soDaLoja=dgOrdenar(lista.filter(d=>d.escopo===currentStore));
+  const doGrupo=dgOrdenar(lista.filter(d=>!d.escopo));
+  const nomeLoja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
+  let corpo="";
+  if(temGrupo&&soDaLoja.length)
+    corpo+=`<div class="dg-bloco"><div class="dg-bloco-h">📍 Só ${esc(nomeLoja)}<span class="dg-cont">${soDaLoja.length}</span></div>
+      ${dgGruposHTML(soDaLoja)}</div>`;
+  if(doGrupo.length)
+    corpo+=`<div class="dg-bloco">${temGrupo?`<div class="dg-bloco-h compart">🔗 As duas lojas<span class="dg-cont">${doGrupo.length}</span></div>`:""}
+      ${dgGruposHTML(doGrupo)}</div>`;
   box.innerHTML=`
     <div class="dg-bar">
       <div class="emp-search" style="flex:1">
@@ -64,17 +79,45 @@ function renderDG(){
         <option value="">Todas as situações</option>
         ${Object.keys(DG_SIT).map(k=>`<option value="${k}"${fSit===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
       </select>
+      ${grupoDe(currentStore)?`<select id="dgEscopo" onchange="renderDG()" title="Filtrar por loja">
+        <option value=""${fEsc===""?" selected":""}>Todas as demandas</option>
+        <option value="compart"${fEsc==="compart"?" selected":""}>Só as das duas lojas</option>
+        <option value="minha"${fEsc==="minha"?" selected":""}>Só desta loja</option>
+      </select>`:""}
       <button class="btn sm" onclick="dgNova()">+ Nova demanda</button>
     </div>
     ${corpo||`<div class="empty">Nenhuma demanda aqui ainda. Use "+ Nova demanda" para criar a primeira.</div>`}`;
   requestAnimationFrame(()=>{const i=document.getElementById("dgQ");if(i&&q)  {i.focus();i.setSelectionRange(i.value.length,i.value.length);}});
 }
 
-function dgLinhaHTML(d){
+/* dentro de cada bloco, os grupos por prioridade (ou situação) do jeito que ela já usa */
+function dgGruposHTML(lista){
+  const grupos=[];
+  if(DG_GRUPO==="prioridade"){
+    for(const k of Object.keys(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});
+    grupos.push({chave:"",...DG_SEM,itens:lista.filter(d=>!d.prioridade)});
+  }else{
+    for(const k of Object.keys(DG_SIT))grupos.push({chave:k,rotulo:DG_SIT[k].rotulo.toUpperCase(),cor:DG_SIT[k].cor,fundo:DG_SIT[k].fundo,itens:lista.filter(d=>(d.situacao||"nao_iniciado")===k)});
+  }
+  return grupos.filter(g=>g.itens.length).map(g=>`
+    <div class="dg-grupo">
+      <div class="dg-grupo-h" style="color:${g.cor};border-color:${g.cor}">${esc(g.rotulo)}<span class="dg-cont">${g.itens.length}</span></div>
+      ${g.itens.map((d,i)=>dgLinhaHTML(d,g.itens,i)).join("")}
+    </div>`).join("");
+}
+
+function dgLinhaHTML(d,irmaos,idx){
   const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
   const concl=(d.situacao==="concluido");
-  return `<div class="dg-item${concl?" done":""}">
+  const irm=(irmaos||[]).map(x=>x.uid);
+  return `<div class="dg-item${concl?" done":""}" draggable="true"
+      ondragstart="dgDragIni(event,'${d.uid}')" ondragover="event.preventDefault()"
+      ondrop="dgDrop(event,'${d.uid}',${JSON.stringify(irm).replace(/"/g,"&quot;")})">
     <div class="dg-item-top" onclick="dgToggleAberta('${d.uid}')">
+      <span class="dg-mover" onclick="event.stopPropagation()" title="Mudar a ordem">
+        <button ${idx===0?"disabled":""} onclick="dgMover('${d.uid}',-1,${JSON.stringify(irm).replace(/"/g,"&quot;")})" title="Subir">▲</button>
+        <button ${idx===(irmaos||[]).length-1?"disabled":""} onclick="dgMover('${d.uid}',1,${JSON.stringify(irm).replace(/"/g,"&quot;")})" title="Descer">▼</button>
+      </span>
       <span class="dg-caret${aberta?" open":""}">▸</span>
       <span class="dg-tit">${esc(d.titulo||"(sem título)")}</span>
       ${p.total?`<span class="dg-prog" title="itens concluídos">${p.feitos}/${p.total}</span>`:""}
@@ -91,6 +134,10 @@ function dgLinhaHTML(d){
           ${Object.keys(DG_SIT).map(k=>`<option value="${k}"${(d.situacao||"nao_iniciado")===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
         </select>
         <input type="date" value="${esc(d.prazo||"")}" onchange="dgSetCampo('${d.uid}','prazo',this.value)" title="Prazo">
+        ${grupoDe(currentStore)?`<select onchange="dgSetCampo('${d.uid}','escopo',this.value)" title="Esta demanda vale para quais lojas?">
+          <option value=""${!d.escopo?" selected":""}>Vale para: as duas lojas</option>
+          ${lojasDoGrupo(grupoDe(currentStore)).map(l=>`<option value="${esc(l.code)}"${d.escopo===l.code?" selected":""}>Só ${esc(nomeCurto(l.name))}</option>`).join("")}
+        </select>`:""}
         <button class="btn ghost sm" onclick="dgEditarTitulo('${d.uid}')">✎ Renomear</button>
         <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
         ${d.notionUrl?`<a class="btn ghost sm" href="${esc(d.notionUrl)}" target="_blank" rel="noopener" title="Abrir a tarefa original no Notion">↗ Notion</a>`:""}
@@ -150,10 +197,29 @@ async function dgAddLinha(uid){const d=dgAchar(uid);if(!d)return;
 async function dgDelLinha(uid,i){const d=dgAchar(uid);if(!d)return;
   if(!confirm("Excluir este item?\n\n"+(d.itens[i]?.texto||"")))return;
   d.itens.splice(i,1);await dgSalvar(d);renderDG();}
+/* ---- ordem manual (arrastar no computador, setas ▲▼ no celular) ---- */
+let DG_ARRASTANDO=null;
+function dgDragIni(ev,uid){DG_ARRASTANDO=uid;ev.dataTransfer.effectAllowed="move";}
+async function dgDrop(ev,alvoUid,irmaos){
+  ev.preventDefault();ev.stopPropagation();
+  if(!DG_ARRASTANDO||DG_ARRASTANDO===alvoUid)return;
+  const lista=irmaos.filter(u=>u!==DG_ARRASTANDO);
+  const pos=lista.indexOf(alvoUid);
+  lista.splice(pos<0?lista.length:pos,0,DG_ARRASTANDO);
+  DG_ARRASTANDO=null;await dgGravarOrdem(lista);}
+async function dgMover(uid,dir,irmaos){
+  const lista=irmaos.slice(),i=lista.indexOf(uid),j=i+dir;
+  if(i<0||j<0||j>=lista.length)return;
+  lista[i]=lista[j];lista[j]=uid;await dgGravarOrdem(lista);}
+async function dgGravarOrdem(uids){
+  for(let i=0;i<uids.length;i++){const d=dgAchar(uids[i]);
+    if(d&&d.ordem!==i){d.ordem=i;d.mod=nowISO();await putItem(d);}}
+  dataChanged();renderDG();}
+
 async function dgNova(){
   if(!currentStore){toast("Escolha uma empresa primeiro");return;}
   const t=prompt("Nova demanda:");if(!t||!t.trim())return;
-  const o={uid:newUid(),mod:nowISO(),tipo:"dg",loja:currentStore,criado:"manual",
+  const o={uid:newUid(),mod:nowISO(),tipo:"dg",loja:dgLojaBase(),criado:"manual",escopo:"",ordem:0,
     titulo:t.trim(),prioridade:"",situacao:"nao_iniciado",prazo:"",criadoEm:today(),itens:[]};
   const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
   DG_ABERTAS[o.uid]=true;renderDG();}

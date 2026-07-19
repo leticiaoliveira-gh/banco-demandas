@@ -1,5 +1,5 @@
 :root{
-    --accent:#1d6b57;--accent-dark:#155244;--bg:#f7f7f5;--card:#fff;--border:#e6e7eb;
+    --accent:#1d6b57;--accent-dark:#155244;--bg:#fbfbfc;--card:#fff;--border:#e6e7eb;
     --text:#2d2e3a;--muted:#8a8b96;--green:#12b76a;--amber:#f59e0b;--blue:#1668b8;--purple:#a23bb0;
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -23,10 +23,10 @@
   .crumb span:hover{color:var(--accent)}
   /* HUB de cards — porta de entrada da empresa (até 5 por linha) */
   .hub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;max-width:1000px}
-  .hub-card{border:1px solid var(--border);border-radius:14px;padding:0 0 20px;overflow:hidden;cursor:pointer;text-align:center;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:158px;transition:transform .12s,box-shadow .12s}
+  .hub-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:0 0 20px;overflow:hidden;cursor:pointer;text-align:center;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:158px;transition:transform .12s,box-shadow .12s}
   .hub-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.09)}
   .hub-card .bar{display:block;height:6px;width:100%}
-  .hub-card .ico{margin:20px 0 12px}
+  .hub-card .ico{margin:20px 0 12px;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center}
   .hub-card .ico svg{width:38px;height:38px}
   .hub-card .nm{font-weight:700;font-size:13.5px;line-height:1.35;padding:0 12px}
   .hub-dica{margin-top:18px;color:var(--muted);font-size:12.5px;max-width:1000px}
@@ -46,9 +46,21 @@
   .dg-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
   .dg-bar select{border:1px solid var(--border);border-radius:8px;padding:8px 9px;background:var(--card);font-size:12.5px;color:var(--muted)}
   .dg-grupo{margin-bottom:20px}
-  .dg-grupo-h{display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;letter-spacing:.6px;padding:7px 13px;border-radius:7px;margin-bottom:9px;width:fit-content}
-  .dg-cont{background:rgba(255,255,255,.75);border-radius:11px;padding:1px 8px;font-size:11px}
-  .dg-item{background:var(--card);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden}
+  /* cabeçalho de grupo: fundo branco, cor no texto e no contorno (nada de bloco colorido) */
+  .dg-grupo-h{display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;letter-spacing:.6px;padding:6px 13px;border-radius:20px;margin-bottom:9px;width:fit-content;background:#fff;border:1.5px solid}
+  .dg-cont{background:#f1f1f3;color:var(--muted);border-radius:11px;padding:1px 8px;font-size:11px}
+  /* blocos: "só desta loja" em cima, "as duas lojas" embaixo */
+  .dg-bloco{margin-bottom:26px}
+  .dg-bloco-h{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;color:var(--text);padding:0 0 9px;margin-bottom:12px;border-bottom:2px solid var(--border)}
+  .dg-bloco-h.compart{color:var(--accent);border-bottom-color:var(--accent)}
+  .dg-item{background:var(--card);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden;transition:box-shadow .12s}
+  .dg-item:hover{box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .dg-item.arrastando{opacity:.45}
+  /* setas de ordem */
+  .dg-mover{display:flex;flex-direction:column;gap:1px;flex:none}
+  .dg-mover button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:8px;line-height:1;padding:1px 3px;border-radius:3px}
+  .dg-mover button:hover:not(:disabled){background:#f1f1f3;color:var(--text)}
+  .dg-mover button:disabled{opacity:.22;cursor:default}
   .dg-item.done .dg-tit{text-decoration:line-through;opacity:.6}
   .dg-item-top{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer}
   .dg-item-top:hover{background:#fafafa}
@@ -178,7 +190,7 @@
   .store-info{flex:1;min-width:160px}
   .store-title{font-size:16px;font-weight:700}
   .store-sub{color:var(--muted);font-size:12.5px;margin-top:3px}
-  .store-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#eef0ff;color:#4b53c7}
+  .store-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#fff;border:1px solid var(--border);color:var(--muted)}
   .store-toggle-wrap{display:flex;align-items:center;gap:8px;min-width:90px}
   .store-toggle-label{font-size:12px;font-weight:600}
   .store-toggle-label.on{color:var(--green)}
@@ -215,7 +227,7 @@
 .nc-item.done{opacity:.62}
 .nc-item-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
 .nc-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.3px}
-.nc-badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;background:#eef0ff;color:#4b53c7}
+.nc-badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;background:#fff;border:1px solid var(--border);color:var(--muted)}
 .nc-badge.reinc{background:#f3e8ff;color:#a23bb0}
 .nc-badge.warn{background:#fef3c7;color:#b45309}
 .nc-data{margin-left:auto;font-size:12px;color:var(--muted)}
