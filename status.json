@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.0",
-  "ondeParamos": "v6.0 — quatro recursos novos inspirados nos exemplos do Airtable: (1) FOLHA DO DIA, imprime a agenda com quadradinhos para riscar na unidade; (2) ACOES EM MASSA, marca varias demandas e muda prioridade/situacao de uma vez; (3) MODO FOCO, abre a demanda sozinha na tela (Esc fecha); (4) MAPA DO SITE na capa, explicando como tudo funciona por dentro — e atendendo a pendencia de autonomia.",
+  "versao": "6.1",
+  "ondeParamos": "v6.1: corrigido o ARRASTAR (a alca agora esta sempre visivel e o gesto nao trava mais no meio); o MODO FOCO passou a abrir em tela cheia de verdade, sem nada atras; e a listra colorida nas tarefas foi removida, voltando ao card limpo de antes.",
   "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }
