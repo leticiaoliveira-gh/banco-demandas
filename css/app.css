@@ -29,6 +29,14 @@
   .nav-item{background:none;border:0;padding:0;font:inherit}
   /* (o visual da rail colorida está definido lá em cima, junto de .rail) */
   /* trilha: Capa › Empresa › Quadro */
+  /* menu "⋯" com as ações que quase não se usa */
+  .menu-wrap{position:relative}
+  .menu-mais{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--border);
+    border-radius:11px;box-shadow:0 10px 34px rgba(15,91,82,.16);padding:6px;min-width:232px;z-index:60}
+  .menu-mais button{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:13px;
+    color:var(--text);padding:9px 11px;border-radius:8px;cursor:pointer}
+  .menu-mais button:hover{background:#f1f1f3}
+  .menu-sep{height:1px;background:var(--border);margin:5px 8px}
   .crumb{font-size:12.5px;color:var(--muted);margin:0 0 12px}
   .crumb b{color:var(--text)}
   .crumb span{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border)}

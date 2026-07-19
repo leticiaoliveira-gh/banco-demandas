@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=34">
+<link rel="stylesheet" href="css/app.css?v=35">
 </head>
 <body>
 <div class="app">
@@ -22,7 +22,7 @@
     <div class="ricon" title="Voltar à Capa (Central de Empresas)" onclick="goHome()">🏠</div>
     <div class="ricon" title="Início da empresa (todos os quadros)" onclick="showHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
     <div id="railTabs" class="rail-tabs" hidden></div>
-    <div class="rail-ver" title="Versão do site">v6.4</div>
+    <div class="rail-ver" title="Versão do site">v6.5</div>
   </div>
 
   <!-- CAPA -->
@@ -94,13 +94,19 @@
       </div>
       <div class="head-actions">
         <button class="btn ghost sm" id="syncPill" style="display:none" title="Status da sincronização — configuração fica na capa" onclick="openSyncModal()">⚙ Sincronização</button>
-        <button class="btn ghost sm" onclick="exportExcel()">⬇ Exportar Excel</button>
-        <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Importar</button>
+        <div class="menu-wrap">
+          <button class="btn ghost sm" title="Mais ações" onclick="toggleMenuMais(event)">⋯</button>
+          <div class="menu-mais" id="menuMais" hidden>
+            <button onclick="fecharMenuMais();exportExcel()">⬇ Exportar para Excel</button>
+            <button onclick="fecharMenuMais();document.getElementById('importFile').click()">⬆ Importar arquivo</button>
+            <button onclick="fecharMenuMais();showTab('add')">＋ Cadastrar item manualmente</button>
+            <div class="menu-sep"></div>
+            <button onclick="fecharMenuMais();mapaDoSite()">🗺 Mapa do site</button>
+          </div>
+        </div>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-        <button class="btn" onclick="showTab('add')">+ Nova</button>
       </div>
     </div>
-    <div class="crumb" id="crumb"></div>
 
     <!-- HUB: porta de entrada da empresa (cards gerados de TAB_ORDER) -->
     <div id="view-hub" style="display:none">
@@ -209,10 +215,10 @@
   </div>
 </div>
 
-<script src="js/app.js?v=34"></script>
-<script src="js/docxlite.js?v=34"></script>
-<script src="js/dg.js?v=34"></script>
-<script src="js/nc.js?v=34"></script>
-<script src="js/sync.js?v=34"></script>
+<script src="js/app.js?v=35"></script>
+<script src="js/docxlite.js?v=35"></script>
+<script src="js/dg.js?v=35"></script>
+<script src="js/nc.js?v=35"></script>
+<script src="js/sync.js?v=35"></script>
 </body>
 </html>

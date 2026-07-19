@@ -281,6 +281,16 @@ function syncNav(){
     if(on)el.setAttribute("aria-current","page");else el.removeAttribute("aria-current");
   });
 }
+/* menu "⋯" — guarda as ações raras (exportar, importar, cadastro manual, mapa) */
+function toggleMenuMais(ev){
+  ev.stopPropagation();
+  const m=document.getElementById("menuMais");if(!m)return;
+  m.hidden=!m.hidden;
+  if(!m.hidden)setTimeout(()=>document.addEventListener("click",fecharMenuMais,{once:true}),0);
+}
+function fecharMenuMais(){const m=document.getElementById("menuMais");if(m)m.hidden=true;}
+
+/* trilha removida a pedido de Lê (19/07) — o cabeçalho já diz o quadro e a loja */
 function renderBreadcrumb(){
   const c=document.getElementById("crumb");if(!c)return;
   const aba=currentTab&&TABS[currentTab]?` › <b>${esc(TABS[currentTab].label)}</b>`:" › <b>Início</b>";
