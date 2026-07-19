@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.4",
-  "ondeParamos": "v6.4: cabecalho novo em TODAS as abas (nome do quadro em cima, a loja numa pilula verde embaixo); a pergunta \"O que realmente merece sua atencao agora?\" no Painel; criar demanda FALANDO (botao Falar, no Chrome) ou escrevendo, onde cada linha vira um item; e o FLUXOGRAMA, que desenha a demanda como um mapa a partir da propria lista.",
-  "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
+  "versao": "6.5",
+  "ondeParamos": "v6.5: a trilha (Capa > Loja > Quadro) saiu de todas as abas, e os botoes Exportar Excel / Importar / + Nova sairam do topo — agora ficam guardados no menu tres pontinhos, junto com o Mapa do site. O cabecalho ficou so com o nome do quadro e a pilula da loja.",
+  "proximoPasso": "Le decidir onde ficam Exportar/Importar; depois, layout das abas de NC e Manutencoes"
 }
