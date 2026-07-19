@@ -115,7 +115,7 @@ function dgGruposHTML(lista,pref){
   /* cada grupo recolhe no ▸, igual ao Notion: fechado mostra só a etiqueta e a contagem */
   return grupos.filter(g=>g.itens.length).map(g=>{
     const ch=(pref||"")+"|"+g.chave, fechado=!!DG_FECHADOS[ch];
-    return `<div class="dg-grupo">
+    return `<div class="dg-grupo" data-chave="${esc(g.chave)}">
       <div class="dg-grupo-lin" onclick="dgToggleGrupo('${esc(ch)}')" title="${fechado?"Abrir":"Fechar"} este grupo">
         <span class="dg-caret${fechado?"":" open"}">▸</span>
         <span class="dg-grupo-h" style="color:${g.cor};background:${g.fundo}">${esc(g.rotulo)}</span>
@@ -214,42 +214,60 @@ async function dgDelLinha(uid,i){const d=dgAchar(uid);if(!d)return;
   if(!confirm("Excluir este item?\n\n"+(d.itens[i]?.texto||"")))return;
   d.itens.splice(i,1);await dgSalvar(d);renderDG();}
 /* ---- ARRASTAR para reordenar (alça ⠿), como no Notion ----
-   Funciona com mouse E com o dedo (pointer events). O item só se move DENTRO do
-   próprio grupo de prioridade — nunca pula para outro grupo ou para a outra coluna. */
+   Funciona com mouse E com o dedo (pointer events).
+   Dentro da COLUNA ela vai para onde quiser: se soltar em outro grupo de prioridade,
+   a PRIORIDADE muda sozinha (é o que o Notion faz). O que ela não faz é pular para a
+   outra coluna — isso mudaria a loja, e para isso existe o seletor dentro da demanda. */
 let DG_ARR=null;
 function dgArrastarIni(ev,alca){
   ev.preventDefault();ev.stopPropagation();
-  const item=alca.closest(".dg-item"),grupo=item.parentElement;
-  DG_ARR={item,grupo,y:ev.clientY,moveu:false};
+  const item=alca.closest(".dg-item");
+  DG_ARR={item,coluna:item.closest(".dg-bloco"),y:ev.clientY,moveu:false};
   item.classList.add("arrastando");
-  alca.setPointerCapture(ev.pointerId);
+  try{alca.setPointerCapture(ev.pointerId);}catch(e){}   /* não pode derrubar o arraste */
   alca.onpointermove=dgArrastarMove;
   alca.onpointerup=alca.onpointercancel=e=>dgArrastarFim(e,alca);
 }
 function dgArrastarMove(ev){
   if(!DG_ARR)return;
   ev.preventDefault();
-  const {item,grupo}=DG_ARR;
+  const {item,coluna}=DG_ARR;
   if(Math.abs(ev.clientY-DG_ARR.y)>3)DG_ARR.moveu=true;
-  /* acha o vizinho cujo meio está abaixo do cursor e se posiciona antes dele */
-  const irmaos=[...grupo.querySelectorAll(".dg-item")].filter(e=>e!==item);
-  let alvo=null;
-  for(const el of irmaos){
+  /* candidatos: todas as tarefas E todos os cabeçalhos de grupo desta coluna */
+  const alvos=[...coluna.querySelectorAll(".dg-item, .dg-grupo")].filter(e=>e!==item&&!item.contains(e));
+  let destino=null,antesDe=null;
+  for(const el of alvos){
     const r=el.getBoundingClientRect();
-    if(ev.clientY<r.top+r.height/2){alvo=el;break;}
+    if(ev.clientY<r.top+r.height/2){
+      if(el.classList.contains("dg-item")){destino=el.parentElement;antesDe=el;}
+      else{destino=el;antesDe=el.querySelector(".dg-item");}   /* topo daquele grupo */
+      break;
+    }
   }
-  if(alvo)grupo.insertBefore(item,alvo);
-  else grupo.appendChild(item);
+  if(!destino){                                   /* soltou embaixo de tudo: último grupo */
+    const gs=coluna.querySelectorAll(".dg-grupo");
+    destino=gs[gs.length-1];antesDe=null;
+  }
+  if(!destino)return;
+  if(antesDe)destino.insertBefore(item,antesDe);else destino.appendChild(item);
 }
 async function dgArrastarFim(ev,alca){
   if(!DG_ARR)return;
-  const {item,grupo,moveu}=DG_ARR;
+  const {item,moveu}=DG_ARR;
   item.classList.remove("arrastando");
   alca.onpointermove=alca.onpointerup=alca.onpointercancel=null;
   try{alca.releasePointerCapture(ev.pointerId);}catch(e){}
   DG_ARR=null;
-  if(!moveu)return;                                   /* clique simples: não mexe em nada */
-  const uids=[...grupo.querySelectorAll(".dg-item")].map(e=>e.dataset.uid);
+  if(!moveu)return;                               /* clique simples: não mexe em nada */
+  /* mudou de grupo? então a prioridade (ou a situação) passa a ser a do grupo de destino */
+  const grupo=item.closest(".dg-grupo"),chave=grupo&&grupo.dataset.chave;
+  const d=dgAchar(item.dataset.uid);
+  if(d&&chave!==undefined){
+    const campo=DG_GRUPO==="prioridade"?"prioridade":"situacao";
+    if((d[campo]||"")!==chave){d[campo]=chave;d.mod=nowISO();await putItem(d);
+      toast(DG_GRUPO==="prioridade"?("Prioridade: "+(DG_PRIOS[chave]?.rotulo||"sem prioridade")):"Situação atualizada");}
+  }
+  const uids=[...(grupo||item.parentElement).querySelectorAll(".dg-item")].map(e=>e.dataset.uid);
   await dgGravarOrdem(uids);
 }
 async function dgGravarOrdem(uids){

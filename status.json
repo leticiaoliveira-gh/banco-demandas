@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.4",
-  "ondeParamos": "v5.4: colunas renomeadas para \"Demandas e Prioridades\" (esquerda, vale para as duas lojas) e \"[Loja] (exclusivas)\" (direita). As setas de subir/descer sairam — agora se arrasta pela alca do lado esquerdo de cada tarefa, com o mouse ou com o dedo, igual ao Notion.",
-  "proximoPasso": "Ouvir o que Le achou e seguir para as abas de NC e Manutencoes"
+  "versao": "5.5",
+  "ondeParamos": "v5.5: o arraste agora e livre dentro da coluna, igual ao Notion — arrastando uma tarefa de MEDIA para URGENTE a prioridade muda sozinha. A tarefa nao pula para a outra coluna (isso mudaria a loja; para isso existe o seletor dentro da demanda).",
+  "proximoPasso": "Ouvir o que Le achou do arraste e seguir para as abas de NC e Manutencoes"
 }
