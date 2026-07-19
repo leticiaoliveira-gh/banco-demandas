@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=42">
+<link rel="stylesheet" href="css/app.css?v=43">
 </head>
 <body>
 <div class="app">
@@ -22,7 +22,7 @@
     <div class="ricon" title="Voltar à Capa (Central de Empresas)" onclick="goHome()">🏠</div>
     <div class="ricon" title="Início da empresa (todos os quadros)" onclick="showHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
     <div id="railTabs" class="rail-tabs" hidden></div>
-    <div class="rail-ver" title="Versão do site">v7.2</div>
+    <div class="rail-ver" title="Versão do site">v7.3</div>
   </div>
 
   <!-- CAPA -->
@@ -97,13 +97,13 @@
         <div class="menu-wrap">
           <button class="btn ghost sm" title="Mais ações" onclick="toggleMenuMais(event)">⋯</button>
           <div class="menu-mais" id="menuMais" hidden>
-            <button onclick="fecharMenuMais();exportExcel()">⬇ Exportar para Excel</button>
-            <button onclick="fecharMenuMais();abrirArquivo()" title="Excel, CSV, Word, PDF de texto, imagem">📎 Trazer arquivo (Excel, Word, PDF...)</button>
-            <button onclick="fecharMenuMais();document.getElementById('importFile').click()" title="Aceita só o arquivo .json de backup deste site">⬆ Restaurar backup (.json)</button>
-            <button onclick="fecharMenuMais();showTab('add')">＋ Cadastrar item manualmente</button>
+            <button onclick="fecharMenuMais();exportExcel()"><span data-txt="menu.exportar">⬇ Exportar para Excel</span></button>
+            <button onclick="fecharMenuMais();abrirArquivo()" title="Excel, CSV, Word, PDF de texto, imagem"><span data-txt="menu.trazer">📎 Trazer arquivo (Excel, Word, PDF...)</span></button>
+            <button onclick="fecharMenuMais();document.getElementById('importFile').click()" title="Aceita só o arquivo .json de backup deste site"><span data-txt="menu.restaurar">⬆ Restaurar backup (.json)</span></button>
+            <button onclick="fecharMenuMais();showTab('add')"><span data-txt="menu.cadastrar">＋ Cadastrar item manualmente</span></button>
             <div class="menu-sep"></div>
-            <button onclick="fecharMenuMais();mapaDoSite()">🗺 Mapa do site</button>
-            <button onclick="fecharMenuMais();toggleModoEdicao()">✏️ Editar os textos do site</button>
+            <button onclick="fecharMenuMais();mapaDoSite()"><span data-txt="menu.mapa">🗺 Mapa do site</span></button>
+            <button onclick="fecharMenuMais();toggleModoEdicao()"><span data-txt="menu.editar">✏️ Editar os textos do site</span></button>
           </div>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -127,14 +127,14 @@
       <div class="toolbar">
         <div class="search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="q" placeholder="Buscar por não conformidade, ação ou área..." oninput="render()">
+          <input type="text" id="q" data-txt-ph="mnt.busca" placeholder="Buscar por não conformidade, ação ou área..." oninput="render()">
         </div>
         <select id="fExec" onchange="render()"><option value="">Todos os responsáveis</option></select>
         <select id="fStatus" onchange="render()"><option value="">Todos os status</option><option value="Pendente">Pendentes</option><option value="Concluído">Concluídos</option></select>
         <select id="fArea" onchange="render()"><option value="">Todas as áreas</option></select>
-        <button class="btn ghost sm" onclick="gerirExecutores()">👷 Executores</button>
-        <button class="btn ghost sm" title="Imprimir a folha de servicos para entregar ao executor" onclick="ordemDeServico()">🖨 Ordem de serviço</button>
-        <button class="btn ghost sm" title="Move todos os itens do filtro atual para outra empresa" onclick="moverFiltrados()">⇄ Mover p/ empresa</button>
+        <button class="btn ghost sm" onclick="gerirExecutores()"><span data-txt="mnt.executores">👷 Executores</span></button>
+        <button class="btn ghost sm" title="Imprimir a folha de servicos para entregar ao executor" onclick="ordemDeServico()"><span data-txt="mnt.ordem">🖨 Ordem de serviço</span></button>
+        <button class="btn ghost sm" title="Move todos os itens do filtro atual para outra empresa" onclick="moverFiltrados()"><span data-txt="mnt.mover">⇄ Mover p/ empresa</span></button>
       </div>
       <div class="tablewrap">
         <table>
@@ -165,31 +165,31 @@
 
     <div id="tab-add" class="tab-panel" style="display:none">
       <div class="form-wrap">
-        <h2>Adicionar não conformidade</h2>
+        <h2 data-txt="form.titulo">Adicionar não conformidade</h2>
         <p class="desc">Preencha os campos para incluir manualmente um novo item no banco.</p>
         <form id="ncForm" onsubmit="addItem(event)">
-          <div class="field"><label>Aba *</label>
+          <div class="field"><label data-txt="form.aba">Aba *</label>
             <select id="fmTipo" onchange="document.getElementById('lbNc').textContent=this.value==='dg'?'Demanda *':'Não Conformidade *'"><option value="dg">Demandas Gerais</option><option value="mnt">Manutenções e Elétrica</option></select></div>
           <div class="grid2">
-            <div class="field"><label>Empresa *</label>
+            <div class="field"><label data-txt="form.empresa">Empresa *</label>
               <select id="fmLoja"></select></div>
-            <div class="field"><label>Área *</label>
+            <div class="field"><label data-txt="form.area">Área *</label>
               <input list="areas" id="fmArea" placeholder="Ex.: Padaria, Cozinha, Câmara Zero..." required>
               <datalist id="areas"></datalist></div>
           </div>
           <div class="field"><label id="lbNc">Não Conformidade *</label>
             <textarea id="fmNc" placeholder="Descreva o problema identificado..." required></textarea></div>
-          <div class="field"><label>Ação Corretiva</label>
+          <div class="field"><label data-txt="form.acao">Ação Corretiva</label>
             <textarea id="fmAcao" placeholder="O que deve ser feito para corrigir..."></textarea></div>
           <div class="grid2">
-            <div class="field"><label>Responsável Técnica</label>
+            <div class="field"><label data-txt="form.rt">Responsável Técnica</label>
               <input id="fmRt" value="Letícia Oliveira (Nutricionista de Produção – RT)"></div>
-            <div class="field"><label>Executor</label>
+            <div class="field"><label data-txt="form.exec">Executor</label>
               <select id="fmExec"><option value="Sr. João">Sr. João (Manutenção)</option><option value="Matheus">Matheus (Elétrica)</option><option value="Outro">Outro</option></select></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Data do Relato</label><input type="date" id="fmData"></div>
-            <div class="field"><label>Status</label>
+            <div class="field"><label data-txt="form.data">Data do Relato</label><input type="date" id="fmData"></div>
+            <div class="field"><label data-txt="form.status">Status</label>
               <select id="fmStatus"><option value="Pendente">Pendente</option><option value="Concluído">Concluído</option></select></div>
           </div>
           <div class="form-actions">
@@ -217,11 +217,11 @@
   </div>
 </div>
 
-<script src="js/app.js?v=42"></script>
-<script src="js/docxlite.js?v=42"></script>
-<script src="js/dg.js?v=42"></script>
-<script src="js/arquivos.js?v=42"></script>
-<script src="js/nc.js?v=42"></script>
-<script src="js/sync.js?v=42"></script>
+<script src="js/app.js?v=43"></script>
+<script src="js/docxlite.js?v=43"></script>
+<script src="js/dg.js?v=43"></script>
+<script src="js/arquivos.js?v=43"></script>
+<script src="js/nc.js?v=43"></script>
+<script src="js/sync.js?v=43"></script>
 </body>
 </html>

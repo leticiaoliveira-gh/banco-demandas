@@ -459,10 +459,10 @@ async function renderHome(){
  const vivos=DATA.filter(d=>!d.deleted);
  const lb=await metaGet("lastBackup");
  /* estado do backup automático em pasta */
- let autoOk=false,backupInfo="",backupBtns=`<button class="btn ghost sm" onclick="exportExcel()">⬇ Fazer backup</button>`;
+ let autoOk=false,backupInfo="",backupBtns=`<button class="btn ghost sm" onclick="exportExcel()"><span data-txt="capa.fazerBackup">⬇ Fazer backup</span></button>`;
  if(window.showDirectoryPicker){
    const dirH=await metaGet("backupDir");
-   if(!dirH)backupBtns+=` <button class="btn ghost sm" onclick="setupAutoBackup()">⚙ Ativar automático</button>`;
+   if(!dirH)backupBtns+=` <button class="btn ghost sm" onclick="setupAutoBackup()"><span data-txt="capa.autoBackup">⚙ Ativar automático</span></button>`;
    else{
      let perm="denied";try{perm=await dirH.queryPermission({mode:"readwrite"});}catch(e){}
      if(perm==="granted"){autoOk=true;backupInfo=" · automático ativo ✓";}
@@ -604,9 +604,9 @@ function renderCards(){
  const base=DATA.filter(d=>!d.deleted&&(d.tipo||"mnt")===currentTipo&&d.loja===currentStore);
  const total=base.length,pend=base.filter(isPendente).length,done=base.filter(isConcluido).length;
  document.getElementById("cards").innerHTML=`
-   <div class="card"><div class="lbl">Total de itens</div><div class="sub">nesta empresa</div><div class="val">${total}</div></div>
-   <div class="card"><div class="lbl">Pendentes</div><div class="sub">aguardando</div><div class="val accent">${pend}</div></div>
-   <div class="card"><div class="lbl">Concluídos</div><div class="sub">resolvidos</div><div class="val green">${done}</div></div>`;}
+   <div class="card"><div class="lbl" data-txt="cards.total">Total de itens</div><div class="sub">nesta empresa</div><div class="val">${total}</div></div>
+   <div class="card"><div class="lbl" data-txt="cards.pend">Pendentes</div><div class="sub">aguardando</div><div class="val accent">${pend}</div></div>
+   <div class="card"><div class="lbl" data-txt="cards.done">Concluídos</div><div class="sub">resolvidos</div><div class="val green">${done}</div></div>`;}
 
 function fillAreas(){const areas=[...new Set(DATA.filter(d=>!d.deleted&&d.tipo!=="nc"&&d.loja===currentStore).map(d=>d.area))].sort();
  const sel=document.getElementById("fArea"),cur=sel.value;
