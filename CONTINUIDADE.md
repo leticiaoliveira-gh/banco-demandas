@@ -192,6 +192,15 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
 - Referencias usadas: Eisenhower Matrix (Asana/Airtable/Monday) e a distincao
   "List view para ler, Board view para enxergar o todo".
 
+## v5.7 (19/07) — nome da aba e Capa verde
+- Aba "Demandas Gerais" foi RENOMEADA para "QUADRO GERAL" (so em TABS.dg.label —
+  o hub, a rail, a trilha e o Ctrl+K pegam sozinhos, prova de que a fonte unica funciona).
+- CAPA (#view-home) com o VERDE da marca (--accent) e letras brancas, no estilo da
+  referencia que ela escolheu (hero verde do Shopify): cards e lista de empresas ficam
+  BRANCOS por cima, com sombra; botoes ghost translucidos; busca/filtros translucidos.
+  DENTRO das abas (#view-app) continua tudo BRANCO — a Capa e vitrine, o trabalho e no branco.
+- As DUAS VISOES (Lista e Painel) ficam mantidas por decisao dela.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
