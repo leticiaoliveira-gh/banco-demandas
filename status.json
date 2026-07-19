@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.3",
-  "ondeParamos": "v5.3 (menos poluicao visual): saiu a barra de abas de texto — a navegacao fica na coluna lateral, no hub e no Ctrl+K. Cards das tarefas ficaram compactos e as demandas agora aparecem em DUAS COLUNAS lado a lado, cada uma com moldura propria: \"So [loja]\" e \"As duas lojas\".",
-  "proximoPasso": "Ouvir o que Le achou do layout enxuto e seguir para as abas de NC e Manutencoes"
+  "versao": "5.4",
+  "ondeParamos": "v5.4: colunas renomeadas para \"Demandas e Prioridades\" (esquerda, vale para as duas lojas) e \"[Loja] (exclusivas)\" (direita). As setas de subir/descer sairam — agora se arrasta pela alca do lado esquerdo de cada tarefa, com o mouse ou com o dedo, igual ao Notion.",
+  "proximoPasso": "Ouvir o que Le achou e seguir para as abas de NC e Manutencoes"
 }

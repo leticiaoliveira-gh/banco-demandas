@@ -69,9 +69,10 @@ function renderDG(){
         <span class="dg-caret${fechado?"":" open"}">▸</span>${titulo}<span class="dg-cont">${itens.length}</span></div>
       ${fechado?"":`<div class="dg-bloco-corpo">${dgGruposHTML(itens,id)}</div>`}</div>`;};
   if(temGrupo){
+    /* esquerda: o que vale para as duas lojas | direita: o que é só desta loja */
     corpo=`<div class="dg-colunas">
-      ${blocoHTML("loja","📍 Só "+esc(nomeLoja),soDaLoja,"so-loja")}
-      ${blocoHTML("grupo","🔗 As duas lojas",doGrupo,"compart")}
+      ${blocoHTML("grupo","Demandas e Prioridades",doGrupo,"compart")}
+      ${blocoHTML("loja",esc(nomeLoja)+" <span class='dg-excl'>(exclusivas)</span>",soDaLoja,"so-loja")}
     </div>`;
   }else{
     corpo=`<div class="dg-bloco"><div class="dg-bloco-corpo">${dgGruposHTML(doGrupo,"g")}</div></div>`;
@@ -129,15 +130,10 @@ function dgSalvarFechados(){try{localStorage.setItem("dg_fechados",JSON.stringif
 function dgLinhaHTML(d,irmaos,idx){
   const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
   const concl=(d.situacao==="concluido");
-  const irm=(irmaos||[]).map(x=>x.uid);
-  return `<div class="dg-item${concl?" done":""}" draggable="true"
-      ondragstart="dgDragIni(event,'${d.uid}')" ondragover="event.preventDefault()"
-      ondrop="dgDrop(event,'${d.uid}',${JSON.stringify(irm).replace(/"/g,"&quot;")})">
+  return `<div class="dg-item${concl?" done":""}" data-uid="${d.uid}">
     <div class="dg-item-top" onclick="dgToggleAberta('${d.uid}')">
-      <span class="dg-mover" onclick="event.stopPropagation()" title="Mudar a ordem">
-        <button ${idx===0?"disabled":""} onclick="dgMover('${d.uid}',-1,${JSON.stringify(irm).replace(/"/g,"&quot;")})" title="Subir">▲</button>
-        <button ${idx===(irmaos||[]).length-1?"disabled":""} onclick="dgMover('${d.uid}',1,${JSON.stringify(irm).replace(/"/g,"&quot;")})" title="Descer">▼</button>
-      </span>
+      <span class="dg-alca" title="Segure e arraste para mudar a ordem"
+        onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
       <span class="dg-caret${aberta?" open":""}">▸</span>
       <span class="dg-tit">${esc(d.titulo||"(sem título)")}</span>
       ${p.total?`<span class="dg-prog" title="itens concluídos">${p.feitos}/${p.total}</span>`:""}
@@ -217,20 +213,45 @@ async function dgAddLinha(uid){const d=dgAchar(uid);if(!d)return;
 async function dgDelLinha(uid,i){const d=dgAchar(uid);if(!d)return;
   if(!confirm("Excluir este item?\n\n"+(d.itens[i]?.texto||"")))return;
   d.itens.splice(i,1);await dgSalvar(d);renderDG();}
-/* ---- ordem manual (arrastar no computador, setas ▲▼ no celular) ---- */
-let DG_ARRASTANDO=null;
-function dgDragIni(ev,uid){DG_ARRASTANDO=uid;ev.dataTransfer.effectAllowed="move";}
-async function dgDrop(ev,alvoUid,irmaos){
+/* ---- ARRASTAR para reordenar (alça ⠿), como no Notion ----
+   Funciona com mouse E com o dedo (pointer events). O item só se move DENTRO do
+   próprio grupo de prioridade — nunca pula para outro grupo ou para a outra coluna. */
+let DG_ARR=null;
+function dgArrastarIni(ev,alca){
   ev.preventDefault();ev.stopPropagation();
-  if(!DG_ARRASTANDO||DG_ARRASTANDO===alvoUid)return;
-  const lista=irmaos.filter(u=>u!==DG_ARRASTANDO);
-  const pos=lista.indexOf(alvoUid);
-  lista.splice(pos<0?lista.length:pos,0,DG_ARRASTANDO);
-  DG_ARRASTANDO=null;await dgGravarOrdem(lista);}
-async function dgMover(uid,dir,irmaos){
-  const lista=irmaos.slice(),i=lista.indexOf(uid),j=i+dir;
-  if(i<0||j<0||j>=lista.length)return;
-  lista[i]=lista[j];lista[j]=uid;await dgGravarOrdem(lista);}
+  const item=alca.closest(".dg-item"),grupo=item.parentElement;
+  DG_ARR={item,grupo,y:ev.clientY,moveu:false};
+  item.classList.add("arrastando");
+  alca.setPointerCapture(ev.pointerId);
+  alca.onpointermove=dgArrastarMove;
+  alca.onpointerup=alca.onpointercancel=e=>dgArrastarFim(e,alca);
+}
+function dgArrastarMove(ev){
+  if(!DG_ARR)return;
+  ev.preventDefault();
+  const {item,grupo}=DG_ARR;
+  if(Math.abs(ev.clientY-DG_ARR.y)>3)DG_ARR.moveu=true;
+  /* acha o vizinho cujo meio está abaixo do cursor e se posiciona antes dele */
+  const irmaos=[...grupo.querySelectorAll(".dg-item")].filter(e=>e!==item);
+  let alvo=null;
+  for(const el of irmaos){
+    const r=el.getBoundingClientRect();
+    if(ev.clientY<r.top+r.height/2){alvo=el;break;}
+  }
+  if(alvo)grupo.insertBefore(item,alvo);
+  else grupo.appendChild(item);
+}
+async function dgArrastarFim(ev,alca){
+  if(!DG_ARR)return;
+  const {item,grupo,moveu}=DG_ARR;
+  item.classList.remove("arrastando");
+  alca.onpointermove=alca.onpointerup=alca.onpointercancel=null;
+  try{alca.releasePointerCapture(ev.pointerId);}catch(e){}
+  DG_ARR=null;
+  if(!moveu)return;                                   /* clique simples: não mexe em nada */
+  const uids=[...grupo.querySelectorAll(".dg-item")].map(e=>e.dataset.uid);
+  await dgGravarOrdem(uids);
+}
 async function dgGravarOrdem(uids){
   for(let i=0;i<uids.length;i++){const d=dgAchar(uids[i]);
     if(d&&d.ordem!==i){d.ordem=i;d.mod=nowISO();await putItem(d);}}

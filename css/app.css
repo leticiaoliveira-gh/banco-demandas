@@ -63,12 +63,15 @@
   /* card da tarefa: compacto */
   .dg-item{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;overflow:hidden;transition:box-shadow .12s}
   .dg-item:hover{box-shadow:0 1px 6px rgba(0,0,0,.07)}
-  .dg-item.arrastando{opacity:.45}
-  /* setas de ordem */
-  .dg-mover{display:flex;flex-direction:column;gap:1px;flex:none}
-  .dg-mover button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:8px;line-height:1;padding:1px 3px;border-radius:3px}
-  .dg-mover button:hover:not(:disabled){background:#f1f1f3;color:var(--text)}
-  .dg-mover button:disabled{opacity:.22;cursor:default}
+  .dg-item.arrastando{opacity:.55;box-shadow:0 6px 18px rgba(0,0,0,.16);border-color:var(--accent)}
+  /* alça de arrastar (⠿) — segure e mova, igual ao Notion; funciona com o dedo também */
+  .dg-alca{flex:none;color:#c4c5cc;cursor:grab;font-size:13px;line-height:1;padding:2px 1px;
+    touch-action:none;user-select:none;opacity:0;transition:opacity .12s}
+  .dg-item:hover .dg-alca{opacity:1}
+  .dg-alca:hover{color:var(--muted)}
+  .dg-alca:active{cursor:grabbing}
+  @media(hover:none){.dg-alca{opacity:.75}}   /* no celular fica sempre visível */
+  .dg-excl{font-weight:600;color:var(--muted);font-size:11px}
   .dg-item.done .dg-tit{text-decoration:line-through;opacity:.6}
   .dg-item-top{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer}
   .dg-item-top:hover{background:#fafafa}
