@@ -177,6 +177,21 @@ empresa (Cabo Frio/CF e Arraial do Cabo/AC · Super Fricarnes).
 - LIMITAÇÃO conhecida: só dá para arrastar para grupos que já têm alguma tarefa
   (grupos vazios não são desenhados). Ela foi avisada; se pedir, mostrar grupos vazios.
 
+## v5.6 (19/07) — DUAS VISOES da agenda (Le vai escolher uma)
+- Pedido dela: a aba Demandas Gerais tem de ser "o quadro geral, todo o pensamento,
+  da pequena a grande demanda" e deixar claro "o que eu quero, o que devo fazer,
+  o que e prioridade". Ela gostou da visao Lista mas quis uma SEGUNDA opcao, minha,
+  para comparar. MANTER AS DUAS ate ela decidir — nao apagar nenhuma sem pedido.
+- Alternador na barra: `dgSetVisao('lista'|'painel')`, preferencia em localStorage
+  (`dg_visao`), portanto e por aparelho.
+- VISAO PAINEL (`dgPainelHTML`, `dgCartaoHTML` em js/dg.js), baseada na Matriz de
+  Eisenhower + board view: (1) faixa de FOCO no topo com Atrasadas / Para hoje /
+  Urgentes / Em andamento, cada uma clicavel para filtrar (`DG_FOCO`); (2) quadro com
+  uma coluna por prioridade e cartoes compactos (progresso, situacao, prazo, 📍 quando
+  e exclusiva da loja; prazo vencido sai em vermelho com ⚠). Arraste continua valendo.
+- Referencias usadas: Eisenhower Matrix (Asana/Airtable/Monday) e a distincao
+  "List view para ler, Board view para enxergar o todo".
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
