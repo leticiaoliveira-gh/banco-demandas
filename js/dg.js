@@ -107,8 +107,10 @@ function renderDG(){
         <button class="${DG_VISAO==="lista"?"on":""}" onclick="dgSetVisao('lista')">☰ Lista</button>
         <button class="${DG_VISAO==="painel"?"on":""}" onclick="dgSetVisao('painel')">▦ Painel</button>
       </span>
+      <button class="btn ghost sm" onclick="dgImprimir()" title="Gerar a folha do dia para imprimir ou salvar em PDF">🖨 Folha do dia</button>
       <button class="btn sm" onclick="dgNova()">+ Nova demanda</button>
     </div>
+    ${dgBarraMassaHTML()}
     ${corpo||`<div class="empty">Nenhuma demanda aqui ainda. Use "+ Nova demanda" para criar a primeira.</div>`}`;
   requestAnimationFrame(()=>{const i=document.getElementById("dgQ");if(i&&q)  {i.focus();i.setSelectionRange(i.value.length,i.value.length);}});
 }
@@ -159,7 +161,10 @@ function dgCartaoHTML(d){
       style="${cp?`box-shadow:inset 3px 0 0 ${cp.cor}`:""}">
     <div class="dg-cartao-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste" onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
+      <input type="checkbox" class="dg-sel" ${DG_SEL.has(d.uid)?"checked":""}
+        title="Selecionar" onclick="dgToggleSel('${d.uid}',event)">
       <span class="dg-tit">${esc(d.titulo||"(sem título)")}</span>
+      <button class="dg-lupa" title="Modo foco" onclick="event.stopPropagation();dgFoco('${d.uid}')">⤢</button>
     </div>
     <div class="dg-cartao-pe" onclick="dgToggleAberta('${d.uid}')">
       ${d.escopo?`<span class="dg-mini" title="Só desta loja">📍</span>`:""}
@@ -207,8 +212,11 @@ function dgLinhaHTML(d,irmaos,idx){
     <div class="dg-item-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste para mudar a ordem"
         onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
+      <input type="checkbox" class="dg-sel" ${DG_SEL.has(d.uid)?"checked":""}
+        title="Selecionar para alterar várias de uma vez" onclick="dgToggleSel('${d.uid}',event)">
       <span class="dg-caret${aberta?" open":""}">▸</span>
       <span class="dg-tit">${esc(d.titulo||"(sem título)")}</span>
+      <button class="dg-lupa" title="Abrir sozinha na tela (modo foco)" onclick="event.stopPropagation();dgFoco('${d.uid}')">⤢</button>
       ${p.total?`<span class="dg-prog" title="itens concluídos">${p.feitos}/${p.total}</span>`:""}
       <span class="dg-badge" style="color:${sit.cor};background:${sit.fundo}">${sit.rotulo}</span>
       ${d.prazo?`<span class="dg-prazo" title="Prazo">${brDate(d.prazo)}</span>`:""}
@@ -265,6 +273,166 @@ function dgLink(t){
   return esc(t||"").replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,
     (m,txt,url)=>`<a href="${url}" target="_blank" rel="noopener">${txt}</a>`);
 }
+
+/* ===== 1) FOLHA DO DIA (imprimir/PDF) — ideia do exemplo "print records" do Airtable.
+   Gera uma folha com quadradinhos para riscar à mão enquanto anda pela unidade. ===== */
+function dgImprimir(){
+  const lista=dgOrdenar(dgVisiveis());
+  if(!lista.length){toast("Nada para imprimir com os filtros de agora");return;}
+  const loja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
+  const grupos=[...Object.keys(DG_PRIOS).map(k=>({ch:k,...DG_PRIOS[k]})),{ch:"",...DG_SEM}];
+  let corpo="";
+  for(const g of grupos){
+    const itens=lista.filter(d=>(d.prioridade||"")===g.ch);
+    if(!itens.length)continue;
+    corpo+=`<div class="g" style="border-color:${g.cor}"><span style="color:${g.cor}">${esc(g.rotulo)}</span> · ${itens.length}</div>`;
+    for(const d of itens){
+      const p=dgProgresso(d),sub=(d.itens||[]).filter(i=>i.tipoLinha==="check"&&!i.feito);
+      corpo+=`<div class="t">
+        <div class="th"><span class="bx"></span><b>${esc(d.titulo||"")}</b>
+          ${p.total?`<span class="pg">${p.feitos}/${p.total}</span>`:""}
+          ${d.prazo?`<span class="pz${d.prazo<today()?" atr":""}">${brDate(d.prazo)}</span>`:""}
+          ${d.escopo?`<span class="pz">só ${esc(nomeCurto((empresa(d.escopo)||{}).name||d.escopo))}</span>`:""}
+        </div>
+        ${sub.length?`<ul>${sub.slice(0,14).map(i=>`<li style="margin-left:${(i.nivel||0)*14}px"><span class="bx sm"></span>${esc(i.texto)}</li>`).join("")}
+          ${sub.length>14?`<li class="mais">… e mais ${sub.length-14} itens</li>`:""}</ul>`:""}
+      </div>`;
+    }
+  }
+  const w=window.open("");
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+  <title>Folha do dia — ${esc(loja)}</title><style>
+  @page{margin:14mm}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#2d2e3a;font-size:12px;margin:0}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:#8a8b96;font-size:11px;margin-bottom:16px}
+  .g{font-size:11px;font-weight:700;letter-spacing:.5px;border-left:4px solid;padding:2px 0 2px 8px;margin:16px 0 8px}
+  .t{padding:6px 0 6px 2px;border-bottom:1px solid #eee;break-inside:avoid}
+  .th{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .bx{display:inline-block;width:11px;height:11px;border:1.5px solid #555;border-radius:2px;flex:none}
+  .bx.sm{width:9px;height:9px;border-color:#999}
+  .pg{font-size:10px;color:#8a8b96}
+  .pz{font-size:10px;color:#8a8b96;border:1px solid #ddd;border-radius:8px;padding:0 6px}
+  .pz.atr{color:#e5484d;border-color:#e5484d}
+  ul{list-style:none;padding:4px 0 0 20px;margin:0}
+  li{padding:2px 0;display:flex;gap:6px;align-items:baseline;color:#444}
+  li.mais{color:#8a8b96;font-style:italic}
+  .noprint{margin-bottom:14px}
+  @media print{.noprint{display:none}}
+  </style></head><body>
+  <div class="noprint"><button onclick="print()" style="padding:8px 14px;cursor:pointer;font-size:13px">🖨 Imprimir / Salvar PDF</button></div>
+  <h1>Folha do dia — ${esc(loja)}</h1>
+  <div class="sub">${lista.length} demanda${lista.length===1?"":"s"} · gerado em ${brDate(today())}${DG_FOCO?" · filtro: "+esc(DG_FOCO):""}</div>
+  ${corpo}</body></html>`);
+  w.document.close();
+}
+/* o que está visível agora (respeita busca, filtros e a faixa de foco) */
+function dgVisiveis(){
+  const q=semAcento((document.getElementById("dgQ")?.value)||"");
+  const fSit=document.getElementById("dgSit")?.value||"";
+  const fEsc=document.getElementById("dgEscopo")?.value||"";
+  let l=dgVivos().filter(d=>{
+    if(fSit&&(d.situacao||"nao_iniciado")!==fSit)return false;
+    if(fEsc==="minha"&&d.escopo!==currentStore)return false;
+    if(fEsc==="compart"&&d.escopo)return false;
+    if(!q)return true;
+    return (semAcento(d.titulo||"")+" "+semAcento((d.itens||[]).map(i=>i.texto).join(" "))).includes(q);
+  });
+  if(DG_VISAO==="painel"&&DG_FOCO){
+    if(DG_FOCO==="atrasadas")l=l.filter(dgEhAtrasada);
+    else if(DG_FOCO==="hoje")l=l.filter(dgEhHoje);
+    else if(DG_FOCO==="andamento")l=l.filter(d=>d.situacao==="andamento");
+    else if(DG_FOCO==="urgentes")l=l.filter(d=>d.prioridade==="URGENTE"&&d.situacao!=="concluido");
+  }
+  return l;
+}
+
+/* ===== 2) AÇÕES EM MASSA — ideia do exemplo "update records" ===== */
+let DG_SEL=new Set();
+function dgModoSel(){return DG_SEL.size>0;}
+function dgToggleSel(uid,ev){if(ev)ev.stopPropagation();
+  DG_SEL.has(uid)?DG_SEL.delete(uid):DG_SEL.add(uid);renderDG();}
+function dgSelTodas(){const v=dgVisiveis();
+  if(DG_SEL.size>=v.length)DG_SEL.clear();else v.forEach(d=>DG_SEL.add(d.uid));renderDG();}
+function dgLimparSel(){DG_SEL.clear();renderDG();}
+/* trava do PC compartilhado: no modo temporário, confirmar antes de alterar em massa */
+function dgPodeGravarEmMassa(n){
+  const temp=(typeof syncTemporario==="function"&&syncTemporario())||sessionStorage.getItem("gh_token_tmp");
+  if(!temp)return true;
+  return confirm("Você está num dispositivo temporário (os dados não ficam salvos aqui).\n\n"
+    +"Alterar "+n+" demanda"+(n===1?"":"s")+" mesmo assim?");
+}
+async function dgMassa(campo,valor){
+  const n=DG_SEL.size;if(!n)return;
+  if(!dgPodeGravarEmMassa(n))return;
+  for(const uid of DG_SEL){const d=dgAchar(uid);
+    if(d&&d[campo]!==valor){d[campo]=valor;d.mod=nowISO();await putItem(d);}}
+  dataChanged();DG_SEL.clear();renderDG();toast(n+" demanda"+(n===1?"":"s")+" atualizada"+(n===1?"":"s")+" ✓");
+}
+async function dgMassaExcluir(){
+  const n=DG_SEL.size;if(!n)return;
+  if(!confirm("Excluir "+n+" demanda"+(n===1?"":"s")+"?\n\nOs itens das listas também serão apagados."))return;
+  if(!dgPodeGravarEmMassa(n))return;
+  for(const uid of DG_SEL){const d=dgAchar(uid);if(!d)continue;
+    if(window.syncEnabled&&syncEnabled()){d.deleted=true;d.mod=nowISO();await putItem(d);}
+    else{await delDB(d.id);DATA=DATA.filter(x=>x.id!==d.id);}}
+  dataChanged();DG_SEL.clear();renderDG();toast(n+" excluída"+(n===1?"":"s"));
+}
+function dgBarraMassaHTML(){
+  if(!dgModoSel())return "";
+  const n=DG_SEL.size;
+  return `<div class="dg-massa">
+    <b>${n}</b> selecionada${n===1?"":"s"}
+    <select onchange="dgMassa('prioridade',this.value);this.selectedIndex=0" title="Mudar a prioridade de todas">
+      <option value="">Prioridade…</option>
+      <option value="">Sem prioridade</option>
+      ${Object.keys(DG_PRIOS).map(k=>`<option value="${k}">${DG_PRIOS[k].rotulo}</option>`).join("")}
+    </select>
+    <select onchange="dgMassa('situacao',this.value);this.selectedIndex=0" title="Mudar a situação de todas">
+      <option value="">Situação…</option>
+      ${Object.keys(DG_SIT).map(k=>`<option value="${k}">${DG_SIT[k].rotulo}</option>`).join("")}
+    </select>
+    <button class="btn ghost sm" onclick="dgMassa('situacao','concluido')">✓ Concluir</button>
+    <button class="btn ghost sm" onclick="dgSelTodas()">Marcar todas</button>
+    <button class="btn ghost sm" onclick="dgMassaExcluir()">🗑</button>
+    <button class="btn ghost sm" onclick="dgLimparSel()">✕ Cancelar</button>
+  </div>`;
+}
+
+/* ===== 3) MODO FOCO — ideia do "expand record": a demanda sozinha na tela ===== */
+function dgFoco(uid){
+  const d=dgAchar(uid);if(!d)return;
+  const p=dgProgresso(d),sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
+  const cp=DG_PRIOS[d.prioridade];
+  let el=document.getElementById("dg-foco-tela");
+  if(!el){el=document.createElement("div");el.id="dg-foco-tela";el.className="dg-focotela";document.body.appendChild(el);}
+  el.innerHTML=`<div class="dg-foco-box">
+    <div class="dg-foco-h" style="${cp?`border-color:${cp.cor}`:""}">
+      <div>
+        <div class="dg-foco-tags">
+          ${cp?`<span class="dg-grupo-h" style="color:${cp.cor};background:${cp.fundo}">${cp.rotulo}</span>`:""}
+          <span class="dg-badge" style="color:${sit.cor};background:${sit.fundo}">${sit.rotulo}</span>
+          ${d.prazo?`<span class="dg-mini${dgEhAtrasada(d)?" atrasado":""}">${brDate(d.prazo)}</span>`:""}
+          ${p.total?`<span class="dg-mini">${p.feitos}/${p.total} concluídos</span>`:""}
+        </div>
+        <h2>${esc(d.titulo||"")}</h2>
+      </div>
+      <button class="btn ghost sm" onclick="dgFocoFechar()">✕ Fechar</button>
+    </div>
+    <div class="dg-foco-corpo">${dgItensHTML(d)}</div>
+    <div class="dg-foco-pe">
+      <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
+      ${d.notionUrl?`<a class="btn ghost sm" href="${esc(d.notionUrl)}" target="_blank" rel="noopener">↗ Notion</a>`:""}
+      <span class="dg-mini" style="margin-left:auto">Esc para fechar</span>
+    </div>
+  </div>`;
+  el.onclick=e=>{if(e.target===el)dgFocoFechar();};
+  document.body.style.overflow="hidden";
+  DG_FOCO_UID=uid;
+}
+let DG_FOCO_UID=null;
+function dgFocoFechar(){const el=document.getElementById("dg-foco-tela");if(el)el.remove();
+  document.body.style.overflow="";DG_FOCO_UID=null;renderDG();}
 
 /* ---- ações ---- */
 function dgAchar(uid){return DATA.find(d=>d.uid===uid&&!d.deleted);}

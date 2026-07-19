@@ -744,6 +744,8 @@ function paletteMove(d){if(!PAL_ITENS.length)return;PAL_SEL=(PAL_SEL+d+PAL_ITENS
 function paletteEnter(){const t=PAL_ITENS[PAL_SEL];if(t){showTab(t);closePalette();}}
 function initAtalhos(){
  document.addEventListener("keydown",e=>{
+   /* Esc fecha o modo foco da demanda antes de qualquer outra coisa */
+   if(e.key==="Escape"&&document.getElementById("dg-foco-tela")){e.preventDefault();dgFocoFechar();return;}
    const aberto=document.getElementById("palOverlay").style.display==="flex";
    if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){e.preventDefault();aberto?closePalette():openPalette();return;}
    if(!aberto)return;
@@ -752,6 +754,60 @@ function initAtalhos(){
    else if(e.key==="ArrowUp"){e.preventDefault();paletteMove(-1);}
    else if(e.key==="Enter"){e.preventDefault();paletteEnter();}
  });
+}
+
+/* ===== MAPA DO SITE — como tudo se liga, em português, para Lê poder mexer sozinha.
+   Ideia tirada do exemplo "base schema" do Airtable (diagrama da estrutura).
+   Isto atende a pendência de AUTONOMIA: entender o próprio site sem depender de ninguém. ===== */
+function mapaDoSite(){
+  const vivos=DATA.filter(d=>!d.deleted);
+  const cont=t=>vivos.filter(d=>d.tipo===t).length;
+  const emp=EMPRESAS.map(e=>`<li><b>${esc(e.name)}</b> (${esc(e.code)})${e.grupo?` · grupo <b>${esc(e.grupo)}</b>`:" · sem grupo (agenda própria)"}${e.ativa?"":" · inativa"}</li>`).join("");
+  const abas=TAB_ORDER.map(t=>`<li><b>${esc(TABS[t].label)}</b> — guarda itens do tipo <code>${esc(TABS[t].tipo||"—")}</code>, aparece no quadro de entrada: ${TABS[t].hub?"sim":"não"}</li>`).join("");
+  ncModal(`<h2 style="margin-bottom:4px">🗺 Mapa do site</h2>
+  <p class="desc">Como as peças se ligam. Serve para você mexer no site sozinha — e para explicar a quem for te ajudar.</p>
+
+  <div class="mapa-cx"><h3>1. Onde os dados moram</h3>
+    <ul>
+      <li><b>Neste navegador</b> — tudo fica gravado aqui dentro (IndexedDB <code>banco_nc_v3_base</code>). Funciona sem internet.</li>
+      <li><b>No repositório privado</b> <code>banco-demandas-dados</code> (arquivo <code>banco.json</code>) — é a cópia que viaja entre Lenovo, iPhone e Samsung.</li>
+      <li><b>No site público</b> <code>banco-demandas</code> — só o código (as telas). <b>Nenhum dado seu fica aqui.</b></li>
+    </ul></div>
+
+  <div class="mapa-cx"><h3>2. Suas empresas</h3><ul>${emp}</ul>
+    <p class="mapa-nota">Empresas do mesmo <b>grupo</b> dividem a agenda do Quadro Geral. Empresa nova nasce sem grupo, com agenda só dela.</p></div>
+
+  <div class="mapa-cx"><h3>3. As abas</h3><ul>${abas}</ul>
+    <p class="mapa-nota">Para criar uma aba nova, mexe-se em <code>js/app.js</code>: uma linha em <code>TABS</code>, uma em <code>TAB_ORDER</code> e um painel no <code>index.html</code>. O resto (quadro de entrada, barra lateral, Ctrl+K) se atualiza sozinho.</p></div>
+
+  <div class="mapa-cx"><h3>4. O que você tem hoje</h3>
+    <ul>
+      <li>Quadro Geral: <b>${cont("dg")}</b> demandas</li>
+      <li>Relatório de Não Conformidade: <b>${cont("nc")}</b> itens</li>
+      <li>Manutenções e Elétrica: <b>${cont("mnt")}</b> itens</li>
+      <li>Pendências de configuração: <b>${PENDENCIAS.filter(p=>!p.feita).length}</b> em aberto</li>
+    </ul></div>
+
+  <div class="mapa-cx"><h3>5. Os arquivos do site</h3>
+    <ul>
+      <li><code>index.html</code> — o esqueleto das telas</li>
+      <li><code>css/app.css</code> — todas as cores, tamanhos e espaçamentos</li>
+      <li><code>js/app.js</code> — o núcleo: empresas, abas, banco, backup</li>
+      <li><code>js/dg.js</code> — a aba Quadro Geral</li>
+      <li><code>js/nc.js</code> — a aba de Não Conformidade e o relatório</li>
+      <li><code>js/sync.js</code> — a sincronização entre aparelhos</li>
+      <li><code>status.json</code> — o texto "onde paramos" que aparece na capa</li>
+      <li><code>sw.js</code> — faz o site abrir sem internet</li>
+    </ul>
+    <p class="mapa-nota"><b>Regra de ouro ao publicar:</b> toda vez que se muda um arquivo, é preciso trocar o número de versão em duas partes — o <code>?v=</code> no <code>index.html</code> e o <code>CACHE</code> no <code>sw.js</code>. Sem isso, o site continua mostrando o formato antigo.</p></div>
+
+  <div class="mapa-cx"><h3>6. Se você quiser sair do site um dia</h3>
+    <ul>
+      <li><b>⬇ Exportar Excel</b> (dentro de uma empresa) tira tudo em planilha.</li>
+      <li><b>⬇ Fazer backup</b> (na capa) salva um arquivo com absolutamente tudo.</li>
+      <li>Esse arquivo abre em qualquer computador, sem depender deste site nem de nenhuma inteligência artificial.</li>
+    </ul></div>
+  <div class="form-actions"><button class="btn" onclick="ncFechar()">Fechar</button></div>`);
 }
 
 /* (avatar/foto removidos a pedido da usuária em 17/07 — era só estético) */
