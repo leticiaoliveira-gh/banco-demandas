@@ -107,6 +107,7 @@ function renderDG(){
         <button class="${DG_VISAO==="lista"?"on":""}" onclick="dgSetVisao('lista')">☰ Lista</button>
         <button class="${DG_VISAO==="painel"?"on":""}" onclick="dgSetVisao('painel')">▦ Painel</button>
       </span>
+      <button class="btn ghost sm" onclick="dgTriagem()" title="Classificar rapidinho, uma por vez, o que está sem prioridade">⚡ Triagem</button>
       <button class="btn ghost sm" onclick="dgImprimir()" title="Gerar a folha do dia para imprimir ou salvar em PDF">🖨 Folha do dia</button>
       <button class="btn sm" onclick="dgNova()">+ Nova demanda</button>
     </div>
@@ -395,6 +396,64 @@ function dgBarraMassaHTML(){
     <button class="btn ghost sm" onclick="dgLimparSel()">✕ Cancelar</button>
   </div>`;
 }
+
+/* ===== TRIAGEM (ideia do exemplo "flashcard" do Airtable) =====
+   Uma demanda por vez, grande na tela, para decidir a prioridade num clique.
+   Serve para dar conta rápido da pilha de "sem prioridade". ===== */
+let DG_TRI=[],DG_TRI_I=0;
+function dgTriagem(){
+  DG_TRI=dgOrdenar(dgVisiveis().filter(d=>!d.prioridade&&d.situacao!=="concluido")).map(d=>d.uid);
+  if(!DG_TRI.length){toast("Nada sem prioridade para triar 🎉");return;}
+  DG_TRI_I=0;dgTriDesenha();
+}
+function dgTriDesenha(){
+  let el=document.getElementById("dg-tri");
+  if(!el){el=document.createElement("div");el.id="dg-tri";el.className="dg-focotela";document.body.appendChild(el);}
+  if(DG_TRI_I>=DG_TRI.length){
+    el.innerHTML=`<div class="dg-tri-box"><div class="dg-tri-fim">
+      <div class="dg-tri-emoji">✓</div><h2>Triagem concluída</h2>
+      <p class="desc">Você classificou ${DG_TRI.length} demanda${DG_TRI.length===1?"":"s"}.</p>
+      <button class="btn" onclick="dgTriFechar()">Voltar para a agenda</button></div></div>`;
+    document.body.style.overflow="hidden";return;
+  }
+  const d=dgAchar(DG_TRI[DG_TRI_I]);
+  if(!d){DG_TRI_I++;return dgTriDesenha();}
+  const p=dgProgresso(d);
+  const amostra=(d.itens||[]).filter(i=>i.tipoLinha==="check"&&!i.feito).slice(0,5);
+  el.innerHTML=`<div class="dg-tri-box">
+    <div class="dg-tri-topo">
+      <span>${DG_TRI_I+1} de ${DG_TRI.length}</span>
+      <button class="btn ghost sm" onclick="dgTriFechar()">✕ Sair</button>
+    </div>
+    <div class="dg-tri-barra"><i style="width:${Math.round(DG_TRI_I/DG_TRI.length*100)}%"></i></div>
+    <div class="dg-tri-cartao">
+      <h2>${esc(d.titulo||"(sem título)")}</h2>
+      <div class="dg-tri-meta">
+        ${p.total?`<span class="dg-mini">${p.feitos}/${p.total} itens</span>`:""}
+        ${d.prazo?`<span class="dg-mini${dgEhAtrasada(d)?" atrasado":""}">${brDate(d.prazo)}</span>`:""}
+        ${d.escopo?`<span class="dg-mini">📍 só ${esc(nomeCurto((empresa(d.escopo)||{}).name||d.escopo))}</span>`:""}
+      </div>
+      ${amostra.length?`<ul class="dg-tri-lista">${amostra.map(i=>`<li>${dgLink(i.texto)}</li>`).join("")}
+        ${p.total-p.feitos>5?`<li class="mais">… e mais ${p.total-p.feitos-5} itens</li>`:""}</ul>`:`<p class="desc">Sem lista de itens.</p>`}
+    </div>
+    <div class="dg-tri-acoes">
+      <p>Qual a prioridade disto?</p>
+      <div class="dg-tri-bts">
+        ${Object.keys(DG_PRIOS).map(k=>`<button style="--c:${DG_PRIOS[k].cor};--f:${DG_PRIOS[k].fundo}"
+          onclick="dgTriDefine('${k}')">${DG_PRIOS[k].rotulo}</button>`).join("")}
+        <button class="pular" onclick="dgTriDefine(null)">Deixar assim →</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.style.overflow="hidden";
+}
+async function dgTriDefine(prio){
+  const d=dgAchar(DG_TRI[DG_TRI_I]);
+  if(d&&prio){d.prioridade=prio;d.mod=nowISO();await putItem(d);dataChanged();}
+  DG_TRI_I++;dgTriDesenha();
+}
+function dgTriFechar(){const el=document.getElementById("dg-tri");if(el)el.remove();
+  document.body.style.overflow="";renderDG();}
 
 /* ===== 3) MODO FOCO — ideia do "expand record": a demanda sozinha na tela ===== */
 function dgFoco(uid){
