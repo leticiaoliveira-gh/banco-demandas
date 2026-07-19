@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.8",
-  "ondeParamos": "v6.8: CORRIGIDO o erro de sincronizacao — seu banco passou de 1 MB e o site nao conseguia mais ler o arquivo; agora ele usa outra via, que aguenta arquivos grandes. E o cabecalho virou uma FAIXA VERDE com o nome do quadro em branco e a loja numa pilula clara, igual em todas as abas.",
-  "proximoPasso": "Testar a sincronizacao no celular e no Samsung; depois, layout das abas de NC e Manutencoes"
+  "versao": "6.9",
+  "ondeParamos": "v6.9: agora o NOME DO QUADRO e o NOME DA EMPRESA tambem sao editaveis — clique neles no cabecalho e escreva; o nome novo aparece em todo lugar (quadro de entrada, barra lateral, Ctrl+K) e viaja para os outros aparelhos. A faixa verde passou a cobrir o topo e as laterais, mais compacta e arredondada so embaixo.",
+  "proximoPasso": "Testar a sincronizacao e a importacao de arquivos; depois, layout das abas de NC e Manutencoes"
 }
