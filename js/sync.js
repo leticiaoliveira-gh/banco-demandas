@@ -110,6 +110,23 @@ async function syncMergeEnvelope(env){
    await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
    if(window.renderTabs)renderTabs();changed=true;
  }else if(env&&(ABA_NOMES_MOD||"")>(env.abaNomesMod||""))localAhead=true;
+ /* textos que ela reescreveu pelo modo edição */
+ if(env&&env.textos&&(env.textosMod||"")>(TEXTOS_MOD||"")){
+   TEXTOS=env.textos;TEXTOS_MOD=env.textosMod;
+   await metaSet("textos",TEXTOS);await metaSet("textosMod",TEXTOS_MOD);
+   if(window.aplicarTextos)aplicarTextos();changed=true;
+ }else if(env&&(TEXTOS_MOD||"")>(env.textosMod||""))localAhead=true;
+ /* opções de prioridade/situação que ela configurou */
+ if(env&&env.dgOpcoes&&(env.dgOpcoesMod||"")>(window.DG_OPC_MOD||"")){
+   if(env.dgOpcoes.prios)DG_PRIOS=env.dgOpcoes.prios;
+   if(env.dgOpcoes.sits)DG_SIT=env.dgOpcoes.sits;
+   if(env.dgOpcoes.papeis){DG_CHAVE_CONCLUIDO=env.dgOpcoes.papeis.concluido||DG_CHAVE_CONCLUIDO;
+     DG_CHAVE_ANDAMENTO=env.dgOpcoes.papeis.andamento||DG_CHAVE_ANDAMENTO;
+     DG_CHAVE_URGENTE=env.dgOpcoes.papeis.urgente||DG_CHAVE_URGENTE;}
+   DG_OPC_MOD=env.dgOpcoesMod;
+   await metaSet("dgOpcoes",env.dgOpcoes);await metaSet("dgOpcoesMod",DG_OPC_MOD);
+   if(window.renderDG)renderDG();changed=true;
+ }else if(env&&(window.DG_OPC_MOD||"")>(env.dgOpcoesMod||""))localAhead=true;
  return {changed,localAhead};
 }
 

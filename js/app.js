@@ -30,6 +30,13 @@ async function loadEmpresas(){
    if(mudou){EMPRESAS_MOD=nowISO();await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);}
    await metaSet("mig_nome_rede",true);
  }
+ /* faxina: o código do GRUPO chegou a virar "empresa" numa importação — não é loja,
+    não pode aparecer na capa. (achado em 19/07) */
+ const semGrupoFantasma=EMPRESAS.filter(e=>e.code!==GRUPO_SF);
+ if(semGrupoFantasma.length!==EMPRESAS.length){
+   EMPRESAS=semGrupoFantasma;EMPRESAS_MOD=nowISO();
+   await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);
+ }
  /* GRUPO (19/07): as lojas do [rede-removida] dividem a MESMA agenda de Demandas Gerais.
     Empresa criada depois nasce SEM grupo -> agenda própria (regra explícita de Lê). */
  if(!(await metaGet("mig_grupo_sf"))){
@@ -201,7 +208,8 @@ async function removeExecutor(i){
 }
 
 /* Tipos de item (rótulos usados no export e nos filtros) */
-const TIPOS={dg:"Demandas Gerais",nc:"Relatório de Não Conformidade - Gerência",mnt:"Manutenções e Elétrica"};
+/* rótulo do tipo no CSV: segue o nome que ela deu à aba */
+function rotuloTipo(t){const m={dg:"dg",nc:"nc",mnt:"list"};return rotuloAba(m[t]||t);}
 let currentTipo="dg";
 let currentTab="dg";
 let currentStore=null,currentStoreName="";
@@ -252,6 +260,74 @@ async function renomearAba(t,novo){
   await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
   renderTabs();updateSubtitle(currentTab);dataChanged();toast("Nome do quadro atualizado ✓");
 }
+/* ===== TEXTOS DO SITE EDITÁVEIS =====
+   Regra fixa de Lê: tudo tem de ser editável por ela, sem mexer em código.
+   Todo texto que ela pode trocar passa por txt("chave","texto de fábrica") e/ou
+   carrega data-txt="chave" no HTML. O MODO EDIÇÃO liga a caneta em todos de uma vez. */
+let TEXTOS={},TEXTOS_MOD="",MODO_EDICAO=false;
+async function loadTextos(){TEXTOS=await metaGet("textos")||{};TEXTOS_MOD=await metaGet("textosMod")||"";}
+function txt(chave,padrao){const v=TEXTOS&&TEXTOS[chave];return (v===undefined||v==="")?padrao:v;}
+async function setTexto(chave,valor,padrao){
+  valor=String(valor||"").trim();
+  if(!valor||valor===padrao){delete TEXTOS[chave];}else{TEXTOS[chave]=valor;}
+  TEXTOS_MOD=nowISO();
+  await metaSet("textos",TEXTOS);await metaSet("textosMod",TEXTOS_MOD);
+  dataChanged();
+}
+/* aplica os textos guardados em tudo que tem data-txt (chamado a cada render) */
+function aplicarTextos(raiz){
+  (raiz||document).querySelectorAll("[data-txt]").forEach(el=>{
+    if(el.dataset.padrao===undefined)el.dataset.padrao=el.textContent;
+    const v=TEXTOS[el.dataset.txt];
+    if(v!==undefined&&v!==""&&el.textContent!==v)el.textContent=v;
+    else if((v===undefined||v==="")&&el.textContent!==el.dataset.padrao)el.textContent=el.dataset.padrao;
+    if(MODO_EDICAO)ligarEdicao(el);
+  });
+  /* placeholders também são editáveis, pelo atributo */
+  (raiz||document).querySelectorAll("[data-txt-ph]").forEach(el=>{
+    const k=el.dataset.txtPh;
+    if(el.dataset.padraoPh===undefined)el.dataset.padraoPh=el.placeholder||"";
+    el.placeholder=txt(k,el.dataset.padraoPh);
+  });
+}
+function ligarEdicao(el){
+  el.contentEditable="plaintext-only";el.classList.add("editando");
+  el.title="Clique e escreva o texto que você quiser";
+  el.onblur=()=>setTexto(el.dataset.txt,el.textContent,el.dataset.padrao);
+  el.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();el.blur();}
+    if(e.key==="Escape"){el.textContent=txt(el.dataset.txt,el.dataset.padrao);el.blur();}};
+}
+function desligarEdicao(el){
+  el.contentEditable="false";el.classList.remove("editando");
+  el.onblur=el.onkeydown=null;el.title="";
+}
+function toggleModoEdicao(){
+  MODO_EDICAO=!MODO_EDICAO;
+  document.body.classList.toggle("modo-edicao",MODO_EDICAO);
+  document.querySelectorAll("[data-txt]").forEach(el=>MODO_EDICAO?ligarEdicao(el):desligarEdicao(el));
+  toast(MODO_EDICAO?"Modo edição LIGADO — clique em qualquer texto para trocar"
+                   :"Modo edição desligado");
+  if(MODO_EDICAO)barraModoEdicao();else{const b=document.getElementById("barraEdicao");if(b)b.remove();}
+}
+function barraModoEdicao(){
+  if(document.getElementById("barraEdicao"))return;
+  const b=document.createElement("div");b.id="barraEdicao";b.className="barra-edicao";
+  b.innerHTML=`<b>✏️ Modo edição ligado</b>
+    <span>Clique em qualquer texto marcado e escreva. Enter confirma, Esc cancela.</span>
+    <button class="btn ghost sm" onclick="restaurarTextos()">↺ Restaurar os originais</button>
+    <button class="btn sm" onclick="toggleModoEdicao()">✓ Concluir</button>`;
+  document.body.appendChild(b);
+}
+async function restaurarTextos(){
+  if(!Object.keys(TEXTOS).length){toast("Nenhum texto foi trocado ainda");return;}
+  if(!confirm("Restaurar TODOS os textos do site para o original?\n\n"
+    +Object.keys(TEXTOS).length+" texto(s) que você escreveu serão desfeitos."))return;
+  TEXTOS={};TEXTOS_MOD=nowISO();
+  await metaSet("textos",TEXTOS);await metaSet("textosMod",TEXTOS_MOD);
+  document.querySelectorAll("[data-txt]").forEach(el=>{if(el.dataset.padrao!==undefined)el.textContent=el.dataset.padrao;});
+  aplicarTextos();dataChanged();toast("Textos restaurados ✓");
+}
+
 /* nome da loja editável na pílula (mantém o sufixo da rede: "· [rede-removida]") */
 async function renomearLojaCurto(novo){
   const e=empresa(currentStore);if(!e)return;
@@ -378,6 +454,7 @@ async function seedIfEmpty(){}
 const brDateTime=iso=>iso?new Date(iso).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
 
 async function renderHome(){
+ setTimeout(aplicarTextos,0);
  renderRtInfo();
  const vivos=DATA.filter(d=>!d.deleted);
  const lb=await metaGet("lastBackup");
@@ -398,11 +475,11 @@ async function renderHome(){
  const dISO=/^\d{4}-\d{2}-\d{2}$/.test(st.atualizadoEm||"")?st.atualizadoEm.split("-").reverse().join("/"):(st.atualizadoEm||"");
  const quando=dISO?` <span style="opacity:.7">(${esc(dISO)})</span>`:"";
  document.getElementById("home-cards").innerHTML=`
-   <div class="card"><div class="lbl">PENDÊNCIAS DE CONFIGURAÇÃO</div>
+   <div class="card"><div class="lbl" data-txt="capa.pendTitulo">PENDÊNCIAS DE CONFIGURAÇÃO</div>
      <div class="val accent">${pendAbertas.length}</div>
      <div class="sub" style="margin-top:2px">${pendAbertas.length===1?"pendência em aberto":"pendências em aberto"}</div>
-     <div class="sub" style="margin-top:10px;line-height:1.5"><b>Onde paramos${quando}:</b><br>${ondeParamos}</div>
-     <div style="margin-top:10px"><button class="btn ghost sm" onclick="gerirPendencias()">📋 Ver lista completa</button></div></div>`;
+     <div class="sub" style="margin-top:10px;line-height:1.5"><b><span data-txt="capa.ondeParamos">Onde paramos</span>${quando}:</b><br>${ondeParamos}</div>
+     <div style="margin-top:10px"><button class="btn ghost sm" onclick="gerirPendencias()"><span data-txt="capa.verLista">📋 Ver lista completa</span></button></div></div>`;
  /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) */
  const topB=document.getElementById("backup-top");
  if(topB)topB.innerHTML=`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
@@ -436,7 +513,9 @@ async function renderHome(){
      </div>
      <button class="btn ghost sm" title="Renomear empresa" onclick="renameEmpresa('${emp.code}')">✎</button>
      <button class="btn ghost sm" title="Excluir empresa" onclick="removeEmpresa('${emp.code}')">🗑</button>
-     <button class="btn iniciar" ${emp.ativa?"":'disabled title="Ative a empresa para iniciar"'} onclick="enterStore('${emp.code}')">Iniciar →</button>
+     ${emp.ativa
+       ?`<button class="btn iniciar" onclick="enterStore('${emp.code}')">Iniciar →</button>`
+       :`<span class="iniciar-off" title="Ative a empresa no botão ao lado para poder entrar">🔒 Empresa inativa</span>`}
    </div>`;
  }
  document.getElementById("store-list").innerHTML=html;
@@ -668,6 +747,8 @@ async function addItem(e){e.preventDefault();
  toast((o.tipo==="dg"?"Demanda":"Não conformidade")+" adicionada ✓");showTab(o.tipo==="dg"?"dg":"list");}
 
 function showTab(t){
+ /* textos personalizados por ela valem em toda tela nova */
+ setTimeout(aplicarTextos,0);
  const tab=TABS[t]||TABS.dg;
  currentTab=t;
  if(tab.tipo)currentTipo=tab.tipo;
@@ -705,11 +786,11 @@ function renderNC(){}
 
 /* ===== export / import / backup automático ===== */
 /* Envelope versionado: leva itens E empresas; o import aceita também o formato antigo (array puro) */
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:(window.DG_PRIOS?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null),dgOpcoesMod:(window.DG_OPC_MOD||""),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
- const rows=DATA.filter(d=>!d.deleted&&d.tipo!=="nc").map(d=>[TIPOS[d.tipo||"mnt"],d.loja,d.area,d.nc,d.acao,d.rt,d.executor,brDate(d.relato),brDate(d.atualizacao),d.status]);
+ const rows=DATA.filter(d=>!d.deleted&&d.tipo!=="nc").map(d=>[rotuloTipo(d.tipo||"mnt"),d.loja,d.area,d.nc,d.acao,d.rt,d.executor,brDate(d.relato),brDate(d.atualizacao),d.status]);
  return [head,...rows].map(r=>r.map(c=>'"'+String(c==null?"":c).replace(/"/g,'""')+'"').join(";")).join("\r\n");
 }
 async function exportExcel(){
@@ -751,7 +832,8 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
   for(const o of arr){const {id,...rest}=o;
    if(!rest.tipo)rest.tipo="mnt";if(!rest.uid)rest.uid=newUid();if(!rest.mod)rest.mod=nowISO();
    if(jaTenho.has(rest.uid)){pulados++;continue;}          /* não duplica ao juntar */
-   if(rest.loja&&!empresa(rest.loja)){EMPRESAS.push({code:rest.loja,name:rest.loja,ativa:true});novaEmp=true;}
+   /* o código do GRUPO (ex.: SF) não é empresa — não pode virar uma linha na capa */
+   if(rest.loja&&rest.loja!==GRUPO_SF&&!empresa(rest.loja)){EMPRESAS.push({code:rest.loja,name:rest.loja,ativa:true});novaEmp=true;}
    const nid=await putItem(rest);rest.id=nid;DATA.push(rest);jaTenho.add(rest.uid);novos++;}
   if(novaEmp)await saveEmpresas();
   fillLojaSelects();
@@ -948,7 +1030,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();
  goHome();
