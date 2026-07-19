@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.1",
-  "ondeParamos": "v5.1: fundo quase branco (cor so nos detalhes), banner da RT so na Capa, nome curto dentro das abas. Demandas Gerais agora e UMA agenda para Cabo Frio + Arraial (grupo Super Fricarnes), com opcao de marcar demanda como exclusiva de uma loja (aparece num bloco separado em cima) e ordem manual por arrastar ou setas.",
+  "versao": "5.2",
+  "ondeParamos": "v5.2: fundo BRANCO puro (estilo Notion) e grupos recolhiveis — clicar no triangulo fecha URGENTE/ALTA/MEDIA/BAIXA e tambem os blocos \"As duas lojas\" / \"So [loja]\", deixando so o nome e a contagem. O que voce fecha continua fechado ao voltar.",
   "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }
