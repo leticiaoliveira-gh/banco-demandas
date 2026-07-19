@@ -233,6 +233,26 @@ Airtable); as IDEIAS viraram:
    o que cada arquivo faz (+ a regra de bumpar ?v= e CACHE) e como exportar tudo e sair.
    >>> E a resposta a pendencia de AUTONOMIA dela. Manter atualizado quando a estrutura mudar.
 
+## v6.1-v6.3 (19/07) — correcoes e EDICAO DIRETA
+- REGRA QUE EU QUEBREI E ELA COBROU EM CAIXA ALTA: "ABSOLUTAMENTE TUDO TEM QUE SER
+  EDITAVEL". Ao criar telas novas, sempre permitir editar o texto no lugar, nao so marcar.
+- Edicao inline com `contenteditable="plaintext-only"` (classe .dg-ed / .dg-ed-tit):
+  `dgTexto()` salva no blur (sem redesenhar, para nao perder o cursor) e `dgTecla()` trata
+  Enter (nova linha abaixo), Tab/Shift+Tab (nivel), Backspace em linha vazia (remove).
+  `dgRedesenhaFoco(uid,idx)` redesenha e devolve o cursor para a linha certa.
+- ARRASTE: os handlers ficam no DOCUMENT, nunca na alca. setPointerCapture + mover o nó
+  no DOM = o navegador cancela a captura e o gesto morre. Foi esse o bug de "nao consigo
+  arrastar". Alca sempre visivel (ela nao achava a alca invisivel).
+- MODO FOCO: tela cheia opaca (z-index 200), nao modal — pedido dela.
+- Listra colorida de prioridade nos cards: REMOVIDA, ela nao gostou.
+- Notion: botoes/links removidos (ela vai apagar as tarefas de la depois de conferir).
+- Migracao no boot limpa restos de HTML da importacao (linhas que sao so uma tag, ex "<tr>").
+- BUG ACHADO DE QUEBRA: remover o banner .rt-banner (v5.1) quebrou `ncRelatorioPrint`
+  e `ncRelatorioDocx`, que liam o nome da RT de `#rtName`. Agora usam RT_INFO||RT_DEFAULT.
+  LICAO: ao remover elemento do HTML, procurar quem le aquele id.
+- NOVOS: `ordemDeServico()` (js/app.js, aba Manutencoes) — folha por executor com espaco
+  de assinatura; `dgTriagem()` (js/dg.js) — uma demanda por vez para classificar prioridade.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
