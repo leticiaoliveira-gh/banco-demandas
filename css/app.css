@@ -5,17 +5,22 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
   .app{display:flex;min-height:100vh}
-  .rail{width:54px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:12px;position:sticky;top:0;height:100vh}
-  .rail .logo{width:32px;height:32px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
-  .rail .ricon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;font-size:17px}
-  .rail .ricon:hover{background:#f1f1f3;color:var(--text)}
+  /* barra lateral em degradê esmeralda→teal (referência escolhida por Lê) */
+  .rail{width:54px;background:linear-gradient(170deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
+    border-right:0;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:12px;position:sticky;top:0;height:100vh}
+  .rail .logo{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,.25)}
+  .rail .ricon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.72);cursor:pointer;font-size:17px}
+  .rail .ricon:hover{background:rgba(255,255,255,.16);color:#fff}
+  .rail-tabs{border-top-color:rgba(255,255,255,.22) !important}
+  .rail .nav-item{color:#fff !important;opacity:.6}
+  .rail .nav-item:hover{opacity:1;background:rgba(255,255,255,.16)}
+  .rail .nav-item.active{opacity:1;background:rgba(255,255,255,.22);box-shadow:inset 3px 0 0 #fff}
+  .rail-ver{color:rgba(255,255,255,.55) !important}
   .rail .ricon svg{width:20px;height:20px}
   /* navegação permanente das abas (barra lateral) */
   .rail-tabs{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:4px;padding-top:10px;border-top:1px solid var(--border);width:34px}
   .nav-item{background:none;border:0;padding:0;font:inherit}
-  .rail .nav-item{opacity:.55}
-  .rail .nav-item:hover{opacity:1;background:#f1f1f3}
-  .rail .nav-item.active{opacity:1;background:#f1f1f3;box-shadow:inset 3px 0 0 currentColor}
+  /* (o visual da rail colorida está definido lá em cima, junto de .rail) */
   /* trilha: Capa › Empresa › Quadro */
   .crumb{font-size:12.5px;color:var(--muted);margin:0 0 12px}
   .crumb b{color:var(--text)}
@@ -126,7 +131,11 @@
   .dg-txt{font-size:12.5px;color:var(--muted);padding:5px 8px;line-height:1.5;word-break:break-word}
   .dg-vazio{color:var(--muted);font-size:12.5px;padding:6px 2px}
   .dg-lista a{color:var(--blue)}
-  .main{flex:1;padding:24px 30px 70px;min-width:0}
+  /* ideia tirada da referência: o conteúdo vive num painel branco "flutuante",
+     com canto arredondado à esquerda encostando na barra colorida */
+  .app{background:#f2f4f4}
+  .main{flex:1;padding:24px 30px 70px;min-width:0;background:#fff;border-radius:18px 0 0 18px;margin:10px 0 10px -6px;box-shadow:0 2px 24px rgba(15,91,82,.10)}
+  #view-home{border-radius:18px 0 0 18px}
   .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:14px;flex-wrap:wrap}
   .head h1{font-size:25px;font-weight:700;letter-spacing:-.3px}
   .head p{color:var(--muted);margin-top:3px;font-size:13px}
@@ -197,8 +206,9 @@
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#2d2e3a;color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
   .toast.show{opacity:1}
   /* ===== CAPA no estilo da referência que Lê escolheu (19/07):
-     fundo verde da marca, textos em branco e os cards claros por cima ===== */
-  #view-home{background:var(--accent);color:#fff}
+     degradê esmeralda→teal (referência "Launch tracker"), textos brancos,
+     cards claros por cima ===== */
+  #view-home{background:linear-gradient(155deg,#0f5b52 0%,#17756a 45%,#2a9d8a 100%);color:#fff}
   #view-home h1{color:#fff}
   #view-home .section-title{color:rgba(255,255,255,.72)}
   #view-home .store-sub,#view-home #rt-linha{color:rgba(255,255,255,.8)}
@@ -263,7 +273,10 @@
   .btn.iniciar:disabled{background:#e5e6ea;color:#a6a7b0;cursor:not-allowed}
   .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:14px;font-weight:600}
   .back-link:hover{color:var(--text)}
-  @media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.rail{display:none}.main{padding:16px}.grid2{grid-template-columns:1fr}.placeholder-cards{grid-template-columns:1fr}.home-wrap{padding:18px}
+  @media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.rail{display:none}
+    /* no celular não há barra lateral: o painel volta a ocupar a tela inteira */
+    .main{padding:16px;margin:0;border-radius:0;box-shadow:none}
+    #view-home{border-radius:0}.grid2{grid-template-columns:1fr}.placeholder-cards{grid-template-columns:1fr}.home-wrap{padding:18px}
     /* a coluna lateral some no celular: os mesmos ícones viram barra fixa embaixo */
     .hub-grid{grid-template-columns:repeat(2,1fr)}
     .mnav[hidden],.rail-tabs[hidden]{display:none !important}   /* na Capa não há abas para navegar */

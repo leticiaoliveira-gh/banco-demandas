@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.7",
-  "ondeParamos": "v5.7: a aba Demandas Gerais virou QUADRO GERAL (com as duas visoes, Lista e Painel, mantidas). A Capa ganhou o fundo verde da marca com as letras brancas e os cards claros por cima, no estilo da referencia que voce escolheu. Dentro das abas continua tudo branco.",
-  "proximoPasso": "Le escolher entre Lista e Painel; depois, layout das abas de NC e Manutencoes"
+  "versao": "5.8",
+  "ondeParamos": "v5.8 (visual novo, referencia \"Launch tracker\"): a Capa e a barra lateral ganharam o degrade esmeralda->teal, e o conteudo passou a viver num painel branco flutuante de canto arredondado. Aba QUADRO GERAL segue com as duas visoes (Lista e Painel).",
+  "proximoPasso": "Le dizer se gostou do degrade teal; depois, layout das abas de NC e Manutencoes"
 }
