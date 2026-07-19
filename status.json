@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.5",
-  "ondeParamos": "v6.5: a trilha (Capa > Loja > Quadro) saiu de todas as abas, e os botoes Exportar Excel / Importar / + Nova sairam do topo — agora ficam guardados no menu tres pontinhos, junto com o Mapa do site. O cabecalho ficou so com o nome do quadro e a pilula da loja.",
+  "versao": "6.6",
+  "ondeParamos": "v6.6: o botao de importar agora se chama \"Restaurar backup (.json)\" e ficou SEGURO — antes ele apagava tudo sem alternativa. Agora o padrao e JUNTAR com o que voce ja tem (sem duplicar), e substituir tudo exige duas confirmacoes. Se o arquivo nao servir, ele explica qual arquivo usar.",
   "proximoPasso": "Le decidir onde ficam Exportar/Importar; depois, layout das abas de NC e Manutencoes"
 }

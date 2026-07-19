@@ -695,8 +695,18 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
   /* aceita: array puro (backups antigos) OU envelope {versao, empresas, itens} */
   const arr=Array.isArray(parsed)?parsed:(parsed&&Array.isArray(parsed.itens)?parsed.itens:null);
   if(!arr)throw 0;
-  if(!confirm("Importar "+arr.length+" itens? Isso substitui o banco atual."))return;
-  for(const d of DATA)await delDB(d.id);DATA=[];
+  /* SEGURANÇA (19/07): antes isto apagava tudo sem alternativa. Agora ela escolhe,
+     e JUNTAR é o padrão — importar por engano não pode custar os dados dela. */
+  const juntar=confirm(
+    "O arquivo tem "+arr.length+" itens. Você tem "+DATA.filter(d=>!d.deleted).length+" itens hoje.\n\n"+
+    "OK = JUNTAR os dois (o que já existe é mantido; itens repetidos não duplicam)\n"+
+    "Cancelar = escolher a outra opção");
+  if(!juntar){
+    if(!confirm("SUBSTITUIR TUDO?\n\nSeus "+DATA.filter(d=>!d.deleted).length+
+      " itens atuais serão APAGADOS e ficará só o conteúdo do arquivo.\n\nTem certeza?"))return;
+    if(!confirm("Última confirmação: isso não tem como desfazer.\n\nApagar tudo e usar só o arquivo?"))return;
+    for(const d of DATA)await delDB(d.id);DATA=[];
+  }
   if(!Array.isArray(parsed)&&Array.isArray(parsed.empresas)){
     for(const em of parsed.empresas){if(em&&em.code&&!empresa(em.code))EMPRESAS.push({code:em.code,name:em.name||em.code,ativa:em.ativa!==false});}
     await saveEmpresas();
@@ -704,15 +714,20 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
   if(!Array.isArray(parsed)&&Array.isArray(parsed.pendencias)){
     PENDENCIAS=parsed.pendencias;await savePendencias();
   }
-  let novaEmp=false;
+  let novaEmp=false,novos=0,pulados=0;
+  const jaTenho=new Set(DATA.map(d=>d.uid));
   for(const o of arr){const {id,...rest}=o;
    if(!rest.tipo)rest.tipo="mnt";if(!rest.uid)rest.uid=newUid();if(!rest.mod)rest.mod=nowISO();
+   if(jaTenho.has(rest.uid)){pulados++;continue;}          /* não duplica ao juntar */
    if(rest.loja&&!empresa(rest.loja)){EMPRESAS.push({code:rest.loja,name:rest.loja,ativa:true});novaEmp=true;}
-   const nid=await putItem(rest);rest.id=nid;DATA.push(rest);}
+   const nid=await putItem(rest);rest.id=nid;DATA.push(rest);jaTenho.add(rest.uid);novos++;}
   if(novaEmp)await saveEmpresas();
   fillLojaSelects();
-  toast("Importado com sucesso");render();dataChanged();
- }catch(err){alert("Arquivo inválido. Use o backup .json exportado por este app.");}e.target.value="";}
+  toast(novos+(novos===1?" item importado":" itens importados")+(pulados?" · "+pulados+" já estavam aqui":"")+" ✓");
+  render();if(typeof renderDG==="function")renderDG();dataChanged();
+ }catch(err){alert("Não consegui ler este arquivo.\n\nEste botão aceita apenas o arquivo .json de backup"
+   +" gerado por este próprio site (botão \"⬇ Fazer backup\" na capa).\n\n"
+   +"Planilhas (.xlsx/.csv), PDF e Word não entram por aqui.");}e.target.value="";}
 
 /* ---- backup automático em pasta (Chrome/Edge no computador) ---- */
 let backupT=null;
