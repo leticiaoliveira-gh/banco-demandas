@@ -184,6 +184,7 @@ let ncCapUrgManual=null;/* urgência escolhida manualmente no formulário */
 
 /* ---- render principal da aba ---- */
 async function renderNC(){
+ if(window.aplicarTextos)setTimeout(aplicarTextos,0);
  const wrap=document.getElementById("tab-nc");
  const areas=await ncAreas(currentStore);
  if(wrap.dataset.store!==currentStore){
@@ -213,35 +214,35 @@ function ncBuildCapture(areas){
  const pisos=ncPisos(areas);
  el.innerHTML=`<div class="form-wrap nc-cap">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-   <button class="btn" onclick="ncToggleCap()">➕ Registrar NC</button>
+   <button class="btn" onclick="ncToggleCap()"><span data-txt="nc.registrar">➕ Registrar NC</span></button>
    <span>
-    <button class="btn ghost sm" onclick="ncGerirAreas()">🗂 Áreas</button>
-    <button class="btn ghost sm" onclick="ncRelatorio()">📄 Relatório mensal</button>
+    <button class="btn ghost sm" onclick="ncGerirAreas()"><span data-txt="nc.areas">🗂 Áreas</span></button>
+    <button class="btn ghost sm" onclick="ncRelatorio()"><span data-txt="nc.relatorio">📄 Relatório mensal</span></button>
    </span>
   </div>
   <div id="nc-cap-body" style="display:none;margin-top:14px">
   <p class="desc">Escolha o local, descreva o problema e anexe fotos — a urgência é classificada sozinha.</p>
   <div class="grid2">
-   <div class="field"><label>Piso *</label>
+   <div class="field"><label data-txt="nc.piso">Piso *</label>
     <select id="nc-cap-piso" onchange="ncCapPiso()"><option value="">Selecione o piso...</option>${ncOptions(pisos,"")}</select></div>
-   <div class="field"><label>Área *</label>
+   <div class="field"><label data-txt="nc.area">Área *</label>
     <select id="nc-cap-area" disabled><option value="">Escolha o piso primeiro</option></select></div>
   </div>
-  <div class="field"><label>O que foi encontrado? *</label>
+  <div class="field"><label data-txt="nc.oque">O que foi encontrado? *</label>
    <textarea id="nc-cap-texto" placeholder="Ex.: Vazamento no cano da pia, água acumulando no piso..." oninput="ncCapSugerir()"></textarea></div>
   <div class="grid2">
-   <div class="field"><label>Ação corretiva (opcional)</label>
+   <div class="field"><label data-txt="nc.acao">Ação corretiva (opcional)</label>
     <textarea id="nc-cap-acao" placeholder="Ex.: Substituir a borracha de vedação com prioridade..."></textarea></div>
-   <div class="field"><label>Observação (opcional)</label>
+   <div class="field"><label data-txt="nc.obs">Observação (opcional)</label>
     <textarea id="nc-cap-obs" placeholder="Ex.: Setor já recebeu orientação verbal em junho..."></textarea></div>
   </div>
   <div class="field"><label>Urgência (sugerida automaticamente — toque para trocar)</label>
    <div class="nc-chips" id="nc-cap-chips"></div></div>
-  <div class="field"><label>Fotos (opcional)</label>
+  <div class="field"><label data-txt="nc.fotos">Fotos (opcional)</label>
    <input type="file" id="nc-cap-foto" accept="image/*" capture="environment" multiple onchange="ncCapFoto(event)">
    <div class="nc-thumbs" id="nc-cap-thumbs"></div></div>
   <div class="form-actions">
-   <button class="btn" onclick="ncCapSalvar()">Salvar NC</button>
+   <button class="btn" onclick="ncCapSalvar()"><span data-txt="nc.salvar">Salvar NC</span></button>
    <button class="btn ghost" onclick="ncToggleCap()">Fechar</button>
   </div></div></div>`;
  ncCapRenderChips("OBSERVACAO",false);
@@ -338,7 +339,7 @@ async function ncBuildToolbar(areas){
  const pisos=ncPisos(areas);
  document.getElementById("nc-toolbar").innerHTML=`
   <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-   <input type="text" id="nc-f-q" placeholder="Buscar nas NCs..." oninput="ncF.q=this.value;ncRenderList()"></div>
+   <input type="text" id="nc-f-q" data-txt-ph="nc.busca" placeholder="Buscar nas NCs..." oninput="ncF.q=this.value;ncRenderList()"></div>
   <select onchange="ncF.piso=this.value;ncF.area='';ncFillAreaFilter();ncRenderList()"><option value="">Todos os pisos</option>${ncOptions(pisos,ncF.piso)}</select>
   <select id="nc-f-area" onchange="ncF.area=this.value;ncRenderList()"><option value="">Todas as áreas</option>${areas.map(a=>`<option>${esc(a.nome)}</option>`).join("")}</select>
   <button class="filtro-cfg-bt" onclick="ncGerirUrgencias()" title="Configurar as urgências">⚙</button><select onchange="ncF.urg=this.value;ncRenderList()"><option value="">Todas as urgências</option>${ordenarOpc(NC_URG).map(u=>`<option value="${u}">${NC_URG[u].rotulo}</option>`).join("")}</select>
@@ -390,9 +391,9 @@ function ncRenderList(){
    ${pontos}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}
    <div class="nc-acts">
     <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar arquivo ou imagem nesta NC">📎</button>
-     <button class="btn ghost sm" onclick="ncEditar(${d.id})">✎ Editar</button>
-    ${resolvida?`<button class="btn ghost sm" onclick="ncReabrir(${d.id})">↩ Reabrir</button>`
-     :`<button class="btn sm" onclick="ncResolver(${d.id})">✓ Resolver</button>`}
+     <button class="btn ghost sm" onclick="ncEditar(${d.id})"><span data-txt="nc.editar">✎ Editar</span></button>
+    ${resolvida?`<button class="btn ghost sm" onclick="ncReabrir(${d.id})"><span data-txt="nc.reabrir">↩ Reabrir</span></button>`
+     :`<button class="btn sm" onclick="ncResolver(${d.id})"><span data-txt="nc.resolver">✓ Resolver</span></button>`}
     <button class="delbtn" title="Excluir" onclick="removeItem(${d.id})">🗑</button>
    </div></div>`;
  }
@@ -411,6 +412,7 @@ async function ncReabrir(id){const d=DATA.find(x=>x.id===id);if(!d)return;
 
 /* ---- modal genérico ---- */
 function ncModal(html){
+ if(window.aplicarTextos)setTimeout(()=>aplicarTextos(document.getElementById("nc-modal")),0);
  let m=document.getElementById("nc-modal");
  if(!m){m=document.createElement("div");m.id="nc-modal";m.className="nc-overlay";
   m.onclick=()=>ncFechar();document.body.appendChild(m);}

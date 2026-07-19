@@ -104,8 +104,8 @@ function renderDG(){
   }else if(temGrupo){
     /* esquerda: o que vale para as duas lojas | direita: o que é só desta loja */
     corpo=`<div class="dg-colunas">
-      ${blocoHTML("grupo","Demandas e Prioridades",doGrupo,"compart")}
-      ${blocoHTML("loja",esc(nomeLoja)+" <span class='dg-excl'>(exclusivas)</span>",soDaLoja,"so-loja")}
+      ${blocoHTML("grupo","<span data-txt='dg.blocoGrupo'>Demandas e Prioridades</span>",doGrupo,"compart")}
+      ${blocoHTML("loja",esc(nomeLoja)+" <span class='dg-excl' data-txt='dg.exclusivas'>(exclusivas)</span>",soDaLoja,"so-loja")}
     </div>`;
   }else{
     corpo=`<div class="dg-bloco"><div class="dg-bloco-corpo">${dgGruposHTML(doGrupo,"g")}</div></div>`;
@@ -114,11 +114,11 @@ function renderDG(){
     <div class="dg-bar">
       <div class="emp-search" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="dgQ" placeholder="Buscar na agenda (título ou item da lista)..." value="${esc((document.getElementById("dgQ")?.value)||"")}" oninput="renderDG()">
+        <input type="text" id="dgQ" data-txt-ph="dg.busca" placeholder="Buscar na agenda (título ou item da lista)..." value="${esc((document.getElementById("dgQ")?.value)||"")}" oninput="renderDG()">
       </div>
       <span class="filtro-cfg" title="Configurar as opções">
-        <button onclick="dgGerirOpcoes('prios')" title="Configurar as prioridades">⚙ Prioridades</button>
-        <button onclick="dgGerirOpcoes('sits')" title="Configurar as situações">⚙ Situações</button>
+        <button onclick="dgGerirOpcoes('prios')" title="Configurar as prioridades"><span data-txt="dg.cfgPrio">⚙ Prioridades</span></button>
+        <button onclick="dgGerirOpcoes('sits')" title="Configurar as situações"><span data-txt="dg.cfgSit">⚙ Situações</span></button>
       </span>
       <select id="dgGrupo" onchange="DG_GRUPO=this.value;renderDG()" title="Agrupar por">
         <option value="prioridade"${DG_GRUPO==="prioridade"?" selected":""}>Agrupar: Prioridade</option>
@@ -134,15 +134,16 @@ function renderDG(){
         <option value="minha"${fEsc==="minha"?" selected":""}>Só desta loja</option>
       </select>`:""}
       <span class="dg-visao" title="Trocar o jeito de ver a agenda">
-        <button class="${DG_VISAO==="lista"?"on":""}" onclick="dgSetVisao('lista')">☰ Lista</button>
-        <button class="${DG_VISAO==="painel"?"on":""}" onclick="dgSetVisao('painel')">▦ Painel</button>
+        <button class="${DG_VISAO==="lista"?"on":""}" onclick="dgSetVisao('lista')"><span data-txt="dg.lista">☰ Lista</span></button>
+        <button class="${DG_VISAO==="painel"?"on":""}" onclick="dgSetVisao('painel')"><span data-txt="dg.painel">▦ Painel</span></button>
       </span>
-      <button class="btn ghost sm" onclick="dgTriagem()" title="Classificar rapidinho, uma por vez, o que está sem prioridade">⚡ Triagem</button>
-      <button class="btn ghost sm" onclick="dgImprimir()" title="Gerar a folha do dia para imprimir ou salvar em PDF">🖨 Folha do dia</button>
-      <button class="btn sm" onclick="dgNovaPorTexto()" title="Escreva ou fale a demanda">+ Nova demanda</button>
+      <button class="btn ghost sm" onclick="dgTriagem()" title="Classificar rapidinho, uma por vez, o que está sem prioridade"><span data-txt="dg.triagem">⚡ Triagem</span></button>
+      <button class="btn ghost sm" onclick="dgImprimir()" title="Gerar a folha do dia para imprimir ou salvar em PDF"><span data-txt="dg.folha">🖨 Folha do dia</span></button>
+      <button class="btn sm" onclick="dgNovaPorTexto()" title="Escreva ou fale a demanda"><span data-txt="dg.nova">+ Nova demanda</span></button>
     </div>
     ${dgBarraMassaHTML()}
     ${corpo||`<div class="empty">Nenhuma demanda aqui ainda. Use "+ Nova demanda" para criar a primeira.</div>`}`;
+  if(window.aplicarTextos)setTimeout(()=>aplicarTextos(box),0);
   requestAnimationFrame(()=>{const i=document.getElementById("dgQ");if(i&&q)  {i.focus();i.setSelectionRange(i.value.length,i.value.length);}});
 }
 
@@ -157,12 +158,12 @@ function dgPainelHTML(lista){
   const andamento=lista.filter(d=>d.situacao===DG_CHAVE_ANDAMENTO);
   const urgentes=lista.filter(d=>d.prioridade===DG_CHAVE_URGENTE&&d.situacao!==DG_CHAVE_CONCLUIDO);
   const foco=[
-    {ch:"atrasadas",rot:"Atrasadas",n:atrasadas.length,cor:"#e5484d",fundo:"#ffecec",dica:"Passou do prazo"},
-    {ch:"hoje",rot:"Para hoje",n:hoje.length,cor:"#b3730a",fundo:"#fdf0e0",dica:"Vence hoje"},
-    {ch:"urgentes",rot:"Urgentes",n:urgentes.length,cor:"#a23bb0",fundo:"#f6ecf8",dica:"Marcadas como urgente"},
-    {ch:"andamento",rot:"Em andamento",n:andamento.length,cor:"#1668b8",fundo:"#e7f0f9",dica:"Já comecei"}
+    {ch:"atrasadas",rot:txt("dg.foco.atrasadas","Atrasadas"),n:atrasadas.length,cor:"#e5484d",fundo:"#ffecec",dica:"Passou do prazo"},
+    {ch:"hoje",rot:txt("dg.foco.hoje","Para hoje"),n:hoje.length,cor:"#b3730a",fundo:"#fdf0e0",dica:"Vence hoje"},
+    {ch:"urgentes",rot:txt("dg.foco.urgentes","Urgentes"),n:urgentes.length,cor:"#a23bb0",fundo:"#f6ecf8",dica:"Marcadas como urgente"},
+    {ch:"andamento",rot:txt("dg.foco.andamento","Em andamento"),n:andamento.length,cor:"#1668b8",fundo:"#e7f0f9",dica:"Já comecei"}
   ];
-  const faixa=`<p class="dg-pergunta">O que realmente merece sua atenção agora?</p>
+  const faixa=`<p class="dg-pergunta" data-txt="dg.pergunta">O que realmente merece sua atenção agora?</p>
   <div class="dg-foco">${foco.map(f=>
     `<button class="dg-foco-c${DG_FOCO===f.ch?" on":""}" style="--c:${f.cor};--f:${f.fundo}"
        onclick="dgSetFoco('${f.ch}')" title="${f.dica} — clique para ver só estas">
@@ -210,7 +211,7 @@ function dgSetVisao(v){DG_VISAO=v;localStorage.setItem("dg_visao",v);DG_FOCO="";
 
 /* dentro de cada bloco, os grupos por prioridade (ou situação) do jeito que ela já usa */
 function dgGruposHTML(lista,pref){
-  if(!lista.length)return `<div class="dg-vazio">Nada aqui por enquanto.</div>`;
+  if(!lista.length)return `<div class="dg-vazio" data-txt="dg.vazio">Nada aqui por enquanto.</div>`;
   const grupos=[];
   if(DG_GRUPO==="prioridade"){
     for(const k of ordenarOpc(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});
@@ -264,10 +265,10 @@ function dgLinhaHTML(d,irmaos,idx){
           <option value=""${!d.escopo?" selected":""}>Vale para: as duas lojas</option>
           ${lojasDoGrupo(grupoDe(currentStore)).map(l=>`<option value="${esc(l.code)}"${d.escopo===l.code?" selected":""}>Só ${esc(nomeCurto(l.name))}</option>`).join("")}
         </select>`:""}
-        <button class="btn ghost sm" onclick="dgEditarTitulo('${d.uid}')">✎ Renomear</button>
-        <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
-        <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')" title="Ver esta demanda como um mapa">🗺 Fluxograma</button>
-        <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar planilha, Word, PDF ou imagem nesta demanda">📎 Anexar</button>
+        <button class="btn ghost sm" onclick="dgEditarTitulo('${d.uid}')"><span data-txt="dg.renomear">✎ Renomear</span></button>
+        <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')"><span data-txt="dg.addItem">+ Item</span></button>
+        <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')" title="Ver esta demanda como um mapa"><span data-txt="dg.fluxo">🗺 Fluxograma</span></button>
+        <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar planilha, Word, PDF ou imagem nesta demanda"><span data-txt="dg.anexar">📎 Anexar</span></button>
         <button class="btn ghost sm" style="margin-left:auto" onclick="dgExcluir('${d.uid}')">🗑</button>
       </div>
       ${dgItensHTML(d)}
@@ -741,9 +742,9 @@ function dgFoco(uid){
     </div>
     <div class="dg-foco-corpo">${dgItensHTML(d)}${typeof anexosHTML==="function"?anexosHTML(d):""}</div>
     <div class="dg-foco-pe">
-      <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')">+ Item</button>
-      <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')">🗺 Fluxograma</button>
-      <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')">📎 Anexar</button>
+      <button class="btn ghost sm" onclick="dgAddLinha('${d.uid}')"><span data-txt="dg.addItem">+ Item</span></button>
+      <button class="btn ghost sm" onclick="dgFluxo('${d.uid}')"><span data-txt="dg.fluxo">🗺 Fluxograma</span></button>
+      <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')"><span data-txt="dg.anexar">📎 Anexar</span></button>
       <span class="dg-mini" style="margin-left:auto">Esc para fechar</span>
     </div>
   </div>`;
