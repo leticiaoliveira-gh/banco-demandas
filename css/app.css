@@ -134,6 +134,30 @@
   .dg-foco-corpo .dg-sec{font-size:13.5px}
   .dg-foco-pe{display:flex;gap:8px;align-items:center;padding:14px 30px;border-top:1px solid var(--border);background:#fbfbfc;max-width:900px;width:100%;margin:0 auto}
   .dg-foco-pe a.btn{text-decoration:none}
+  /* ===== triagem: uma demanda por vez, para decidir rápido ===== */
+  .dg-tri-box{background:#fff;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:22px 16px}
+  .dg-tri-topo{display:flex;justify-content:space-between;align-items:center;width:min(680px,100%);font-size:12.5px;color:var(--muted);margin-bottom:9px}
+  .dg-tri-barra{width:min(680px,100%);height:5px;background:#eef0f0;border-radius:4px;overflow:hidden;margin-bottom:26px}
+  .dg-tri-barra i{display:block;height:100%;background:var(--accent);transition:width .25s}
+  .dg-tri-cartao{width:min(680px,100%);border:1px solid var(--border);border-radius:16px;padding:26px 28px;box-shadow:0 6px 26px rgba(15,91,82,.09);flex:1;overflow:auto;max-height:52vh}
+  .dg-tri-cartao h2{font-size:24px;line-height:1.28;letter-spacing:-.4px;margin-bottom:12px}
+  .dg-tri-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .dg-tri-lista{list-style:none;padding:0;margin:0;border-top:1px solid var(--border);padding-top:14px}
+  .dg-tri-lista li{font-size:13px;color:#444;padding:5px 0 5px 18px;position:relative;line-height:1.5}
+  .dg-tri-lista li::before{content:"☐";position:absolute;left:0;color:var(--muted)}
+  .dg-tri-lista li.mais{color:var(--muted);font-style:italic}
+  .dg-tri-lista li.mais::before{content:""}
+  .dg-tri-acoes{width:min(680px,100%);margin-top:22px;text-align:center}
+  .dg-tri-acoes p{font-size:13px;color:var(--muted);margin-bottom:11px}
+  .dg-tri-bts{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+  .dg-tri-bts button{border:1.5px solid var(--c,#ddd);background:var(--f,#fff);color:var(--c,var(--text));
+    font:inherit;font-size:13px;font-weight:700;padding:11px 20px;border-radius:10px;cursor:pointer;transition:transform .1s}
+  .dg-tri-bts button:hover{transform:translateY(-2px)}
+  .dg-tri-bts button.pular{border-color:var(--border);background:#fff;color:var(--muted);font-weight:600}
+  .dg-tri-fim{text-align:center;margin:auto;max-width:420px}
+  .dg-tri-emoji{font-size:44px;color:var(--accent);margin-bottom:10px}
+  .dg-tri-fim h2{font-size:23px;margin-bottom:6px}
+  .dg-tri-fim .desc{margin-bottom:18px}
   /* ===== mapa do site ===== */
   .mapa-cx{border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:11px;background:#fff}
   .mapa-cx h3{font-size:13px;color:var(--accent);margin-bottom:7px}

@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.1",
-  "ondeParamos": "v6.1: corrigido o ARRASTAR (a alca agora esta sempre visivel e o gesto nao trava mais no meio); o MODO FOCO passou a abrir em tela cheia de verdade, sem nada atras; e a listra colorida nas tarefas foi removida, voltando ao card limpo de antes.",
+  "versao": "6.2",
+  "ondeParamos": "v6.2: nova ORDEM DE SERVICO imprimivel na aba Manutencoes (agrupada por executor, com espaco para assinatura) e o modo TRIAGEM no Quadro Geral, que mostra uma demanda por vez para voce classificar a prioridade num clique. Corrigido tambem um erro que quebrava o relatorio de NC.",
   "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
 }

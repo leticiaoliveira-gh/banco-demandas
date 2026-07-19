@@ -572,7 +572,7 @@ function ncTituloMes(ym){return NC_MESES_NOME[+ym.slice(5,7)-1]+" de "+ym.slice(
 async function ncRelatorioPrint(){
  const ym=document.getElementById("nc-r-mes").value||today().slice(0,7);
  const r=ncDadosRelatorio(ym);
- const rt=document.getElementById("rtName").textContent;
+ const rt=(typeof RT_INFO!=="undefined"&&RT_INFO)||RT_DEFAULT;   /* o banner da RT saiu do HTML em 19/07 */
  await ncRelOrdenar(r.abertas);
  let corpo="",piso=null,area=null;
  for(const d of r.abertas){
@@ -640,7 +640,7 @@ async function ncRelatorioPrint(){
 async function ncRelatorioDocx(){
  const ym=document.getElementById("nc-r-mes").value||today().slice(0,7);
  const r=ncDadosRelatorio(ym);
- const rt=document.getElementById("rtName").textContent;
+ const rt=(typeof RT_INFO!=="undefined"&&RT_INFO)||RT_DEFAULT;   /* o banner da RT saiu do HTML em 19/07 */
  const doc=new DocxLite();
  doc.p("Relatório de Não Conformidades — "+currentStoreName+" ("+currentStore+")",{bold:true,size:32});
  doc.p("Referência: "+ncTituloMes(ym)+" · Emitido em "+brDate(today())+" · "+rt,{color:"777777",size:20});

@@ -500,6 +500,60 @@ function linhasFiltradas(){
 }
 /* move de uma vez todos os itens do filtro atual para outra empresa
    (evita retrabalho: filtre por área/busca/status e mova em massa) */
+/* ===== ORDEM DE SERVIÇO (ideia do exemplo "print records" do Airtable) =====
+   Folha para entregar em mãos ao executor: o que fazer, onde, com espaço para
+   ele assinar quando terminar. Sai do filtro atual da tabela. */
+function ordemDeServico(){
+  const rows=linhasFiltradas().filter(d=>isPendente(d));
+  if(!rows.length){alert("Nenhum item pendente no filtro atual.");return;}
+  const loja=(empresa(currentStore)||{}).name||currentStore;
+  const porExec={};
+  for(const d of rows){const e=d.executor||"Sem responsável definido";(porExec[e]=porExec[e]||[]).push(d);}
+  let corpo="";
+  for(const exec of Object.keys(porExec).sort()){
+    const itens=porExec[exec];
+    corpo+=`<section><div class="cab"><h2>${esc(exec)}</h2><span>${itens.length} serviço${itens.length===1?"":"s"}</span></div>
+      <table><thead><tr><th class="c">Feito</th><th>Área</th><th>O que fazer</th><th class="d">Prazo/Obs.</th></tr></thead><tbody>
+      ${itens.map(d=>`<tr>
+        <td class="c"><span class="bx"></span></td>
+        <td>${esc(d.area||"—")}</td>
+        <td><b>${esc(d.nc||"")}</b>${d.acao?`<div class="ac">${esc(d.acao)}</div>`:""}</td>
+        <td class="d">${d.relato?brDate(d.relato):""}</td></tr>`).join("")}
+      </tbody></table>
+      <div class="ass"><div><span></span>Assinatura de ${esc(exec)}</div><div><span></span>Data de conclusão</div></div>
+      </section>`;
+  }
+  const w=window.open("");
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+  <title>Ordem de Serviço — ${esc(loja)}</title><style>
+  @page{margin:14mm}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#2d2e3a;font-size:12px;margin:0}
+  h1{font-size:21px;margin:0 0 2px}
+  .top{color:#8a8b96;font-size:11px;margin-bottom:20px}
+  section{break-inside:avoid;margin-bottom:26px}
+  .cab{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #1d6b57;padding-bottom:5px;margin-bottom:9px}
+  .cab h2{font-size:15px;color:#1d6b57;margin:0}
+  .cab span{font-size:11px;color:#8a8b96}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#8a8b96;border-bottom:1px solid #ddd;padding:5px 6px}
+  td{padding:8px 6px;border-bottom:1px solid #eee;vertical-align:top}
+  .c{width:44px;text-align:center}
+  .d{width:92px;color:#8a8b96;font-size:11px}
+  .bx{display:inline-block;width:13px;height:13px;border:1.5px solid #555;border-radius:2px}
+  .ac{color:#047857;font-size:11px;margin-top:3px}
+  .ass{display:flex;gap:34px;margin-top:16px}
+  .ass div{flex:1;font-size:10px;color:#8a8b96}
+  .ass span{display:block;border-bottom:1px solid #999;height:26px;margin-bottom:3px}
+  .noprint{margin-bottom:14px}
+  @media print{.noprint{display:none}}
+  </style></head><body>
+  <div class="noprint"><button onclick="print()" style="padding:8px 14px;cursor:pointer;font-size:13px">🖨 Imprimir / Salvar PDF</button></div>
+  <h1>Ordem de Serviço</h1>
+  <div class="top">${esc(loja)} · ${rows.length} serviço${rows.length===1?"":"s"} pendente${rows.length===1?"":"s"} · emitida em ${brDate(today())} · RT: ${esc(RT_INFO||RT_DEFAULT)}</div>
+  ${corpo}</body></html>`);
+  w.document.close();
+}
+
 async function moverFiltrados(){
  const rows=linhasFiltradas();
  if(!rows.length){alert("Nenhum item no filtro atual para mover.");return;}
