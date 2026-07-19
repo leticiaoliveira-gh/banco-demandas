@@ -45,19 +45,24 @@
   /* ===== Demandas Gerais: agenda com checklist ===== */
   .dg-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
   .dg-bar select{border:1px solid var(--border);border-radius:8px;padding:8px 9px;background:var(--card);font-size:12.5px;color:var(--muted)}
-  .dg-grupo{margin-bottom:20px}
+  .dg-grupo{margin-bottom:14px}
   /* grupo recolhível no estilo Notion: página branca, cor só na etiqueta */
   .dg-grupo-lin{display:flex;align-items:center;gap:8px;margin-bottom:9px;cursor:pointer;padding:3px 2px;border-radius:6px;width:fit-content;user-select:none}
   .dg-grupo-lin:hover{background:#f6f6f7}
   .dg-grupo-h{font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:3px 10px;border-radius:5px}
   .dg-cont{color:var(--muted);font-size:11.5px;font-weight:600;padding:0 3px}
-  /* blocos: "só desta loja" em cima, "as duas lojas" embaixo */
-  .dg-bloco{margin-bottom:26px}
-  .dg-bloco-h{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;color:var(--text);padding:0 0 9px;margin-bottom:12px;border-bottom:2px solid var(--border);cursor:pointer;user-select:none}
-  .dg-bloco-h:hover{border-bottom-color:var(--muted)}
-  .dg-bloco-h.compart{color:var(--accent);border-bottom-color:var(--accent)}
-  .dg-item{background:var(--card);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden;transition:box-shadow .12s}
-  .dg-item:hover{box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  /* DUAS COLUNAS lado a lado, cada uma com sua moldura fechando todo o conteúdo */
+  .dg-colunas{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;align-items:start}
+  .dg-bloco{border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:#fdfdfd}
+  .dg-bloco.so-loja{border-color:#d9dbe0}
+  .dg-bloco.compart{border-color:#bcd9cf}
+  .dg-bloco-corpo{padding:12px 12px 4px}
+  .dg-bloco-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text);padding:10px 13px;cursor:pointer;user-select:none;background:#f6f7f8;border-bottom:1px solid var(--border)}
+  .dg-bloco.compart .dg-bloco-h{background:#eef5f2;color:var(--accent);border-bottom-color:#cfe3db}
+  .dg-bloco-h:hover{filter:brightness(.975)}
+  /* card da tarefa: compacto */
+  .dg-item{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;overflow:hidden;transition:box-shadow .12s}
+  .dg-item:hover{box-shadow:0 1px 6px rgba(0,0,0,.07)}
   .dg-item.arrastando{opacity:.45}
   /* setas de ordem */
   .dg-mover{display:flex;flex-direction:column;gap:1px;flex:none}
@@ -65,14 +70,14 @@
   .dg-mover button:hover:not(:disabled){background:#f1f1f3;color:var(--text)}
   .dg-mover button:disabled{opacity:.22;cursor:default}
   .dg-item.done .dg-tit{text-decoration:line-through;opacity:.6}
-  .dg-item-top{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer}
+  .dg-item-top{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer}
   .dg-item-top:hover{background:#fafafa}
-  .dg-caret{color:var(--muted);font-size:11px;transition:transform .15s;display:inline-block;flex:none}
+  .dg-caret{color:var(--muted);font-size:10px;transition:transform .15s;display:inline-block;flex:none}
   .dg-caret.open{transform:rotate(90deg)}
-  .dg-tit{flex:1;font-weight:600;font-size:13.5px;line-height:1.4;min-width:0}
-  .dg-prog{font-size:11.5px;color:var(--muted);background:#f1f1f3;border-radius:11px;padding:2px 9px;font-weight:700;flex:none}
-  .dg-badge{font-size:11px;font-weight:700;border-radius:11px;padding:3px 10px;white-space:nowrap;flex:none}
-  .dg-prazo{font-size:11.5px;color:var(--muted);white-space:nowrap;flex:none}
+  .dg-tit{flex:1;font-weight:600;font-size:12.5px;line-height:1.35;min-width:0}
+  .dg-prog{font-size:10.5px;color:var(--muted);background:#f1f1f3;border-radius:10px;padding:1px 7px;font-weight:700;flex:none}
+  .dg-badge{font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;white-space:nowrap;flex:none}
+  .dg-prazo{font-size:10.5px;color:var(--muted);white-space:nowrap;flex:none}
   .dg-corpo{border-top:1px solid var(--border);padding:12px 15px 14px;background:#fcfcfc}
   .dg-acts{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
   .dg-acts select,.dg-acts input[type=date]{border:1px solid var(--border);border-radius:7px;padding:5px 8px;font-size:12px;background:#fff;color:var(--text);font-family:inherit}

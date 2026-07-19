@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.2",
-  "ondeParamos": "v5.2: fundo BRANCO puro (estilo Notion) e grupos recolhiveis — clicar no triangulo fecha URGENTE/ALTA/MEDIA/BAIXA e tambem os blocos \"As duas lojas\" / \"So [loja]\", deixando so o nome e a contagem. O que voce fecha continua fechado ao voltar.",
-  "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
+  "versao": "5.3",
+  "ondeParamos": "v5.3 (menos poluicao visual): saiu a barra de abas de texto — a navegacao fica na coluna lateral, no hub e no Ctrl+K. Cards das tarefas ficaram compactos e as demandas agora aparecem em DUAS COLUNAS lado a lado, cada uma com moldura propria: \"So [loja]\" e \"As duas lojas\".",
+  "proximoPasso": "Ouvir o que Le achou do layout enxuto e seguir para as abas de NC e Manutencoes"
 }
