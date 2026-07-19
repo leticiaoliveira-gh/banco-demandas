@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "7.5",
-  "ondeParamos": "v7.5: o nome do quadro e o da empresa so podem ser trocados dentro do modo edicao (... > Editar os textos do site). Antes bastava clicar em cima, e o \"Quadro Geral\" foi renomeado sem querer — ja restaurei o nome no seu banco.",
-  "proximoPasso": "Testar tudo no Chrome; depois, layout das abas de NC e Manutencoes"
+  "versao": "7.6",
+  "ondeParamos": "v7.6: CORRIGIDO um erro meu que quebrou a Triagem e a Folha do dia — ao fazer as concluidas sumirem da lista, escrevi a regra no lugar errado do codigo. As duas voltaram a funcionar.",
+  "proximoPasso": "Testar Triagem e Folha do dia no Chrome; depois, layout das abas de NC e Manutencoes"
 }

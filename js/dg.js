@@ -371,11 +371,11 @@ function dgImprimir(){
 function dgVisiveis(){
   const q=semAcento((document.getElementById("dgQ")?.value)||"");
   const fSit=document.getElementById("dgSit")?.value||"";
-  /* concluídas somem da vista — só aparecem se ela filtrar por elas (pedido de Lê) */
-  if(fSit!==DG_CHAVE_CONCLUIDO)lista=lista.filter(d=>d.situacao!==DG_CHAVE_CONCLUIDO);
   const fEsc=document.getElementById("dgEscopo")?.value||"";
   let l=dgVivos().filter(d=>{
     if(fSit&&(d.situacao||ordenarOpc(DG_SIT)[0])!==fSit)return false;
+    /* concluídas somem da vista — só aparecem quando ela filtra por elas */
+    if(fSit!==DG_CHAVE_CONCLUIDO&&d.situacao===DG_CHAVE_CONCLUIDO)return false;
     if(fEsc==="minha"&&d.escopo!==currentStore)return false;
     if(fEsc==="compart"&&d.escopo)return false;
     if(!q)return true;
