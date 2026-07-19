@@ -402,10 +402,9 @@
   .store-toggle-label.on{color:var(--green)}
   .store-toggle-label.off{color:var(--muted)}
   .btn.iniciar:disabled{background:#e5e6ea;color:#a6a7b0;cursor:not-allowed}
-  /* empresa inativa: NÃO é botão — é um aviso. Nada de parecer clicável (pedido de Lê) */
-  .iniciar-off{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
-    color:#a6a7b0;background:repeating-linear-gradient(135deg,#f4f4f6,#f4f4f6 6px,#eeeef1 6px,#eeeef1 12px);
-    border:1px dashed #d5d6dc;border-radius:8px;padding:8px 14px;cursor:not-allowed;user-select:none;white-space:nowrap}
+  /* empresa inativa: MESMO tamanho do botão Iniciar, só apagado e com cadeado */
+  #view-home .store-list .btn.iniciar.off{background:#eceef0 !important;color:#a6a7b0 !important;
+    cursor:not-allowed;user-select:none;box-shadow:none;display:inline-block}
   .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:14px;font-weight:600}
   .back-link:hover{color:var(--text)}
   @media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.rail{display:none}

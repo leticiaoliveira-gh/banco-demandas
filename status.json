@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "7.0",
-  "ondeParamos": "v7.0 — o site ficou EDITAVEL POR VOCE: (1) menu tres pontinhos > \"Editar os textos do site\" liga a caneta e voce troca qualquer texto marcado, com botao para restaurar os originais; (2) na barra do Quadro Geral, os botoes Prioridades e Situacoes deixam voce renomear, trocar cor, reordenar, criar e excluir opcoes — igual ao Notion, sem perder as demandas; (3) na capa, empresa inativa mostra \"Empresa inativa\" e nao pode mais ser clicada por engano.",
+  "versao": "7.1",
+  "ondeParamos": "v7.1: o aviso de empresa inativa ficou do mesmo tamanho do botao Iniciar, so apagado e com cadeado.",
   "proximoPasso": "Marcar mais textos das abas de NC e Manutencoes no modo edicao"
 }

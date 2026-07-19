@@ -515,7 +515,7 @@ async function renderHome(){
      <button class="btn ghost sm" title="Excluir empresa" onclick="removeEmpresa('${emp.code}')">🗑</button>
      ${emp.ativa
        ?`<button class="btn iniciar" onclick="enterStore('${emp.code}')">Iniciar →</button>`
-       :`<span class="iniciar-off" title="Ative a empresa no botão ao lado para poder entrar">🔒 Empresa inativa</span>`}
+       :`<span class="btn iniciar off" title="Ative a empresa no botão ao lado para poder entrar">🔒 Iniciar →</span>`}
    </div>`;
  }
  document.getElementById("store-list").innerHTML=html;
