@@ -215,6 +215,24 @@ em cartao branco). NAO mexer nisso sem pedido dela — foi o unico visual que a 
   (vermelho/roxo/ambar/verde). Menos texto na tela, prioridade lida pela cor.
 - Titulo da pagina 33px com ar em volta.
 
+## v6.0 (19/07) — 4 recursos vindos dos exemplos de apps do Airtable
+Le mandou 4 repos (apps-print-records, apps-update-records, apps-todo-list,
+apps-base-schema) e pediu "todas" as ideias. O CODIGO deles nao serve (rodam dentro do
+Airtable); as IDEIAS viraram:
+1. `dgImprimir()` (js/dg.js) — FOLHA DO DIA: imprime/PDF a agenda agrupada por prioridade,
+   com quadradinhos para riscar a mao na unidade. Respeita busca, filtros e a faixa de foco
+   (via `dgVisiveis()`), e lista os subitens pendentes (corta em 14 por tarefa).
+2. ACOES EM MASSA: `DG_SEL` (Set) + `dgMassa/dgMassaExcluir/dgBarraMassaHTML`. Checkbox que
+   aparece no hover de cada tarefa; barra verde com prioridade/situacao/concluir/excluir.
+   `dgPodeGravarEmMassa()` avisa antes de alterar em lote em DISPOSITIVO TEMPORARIO
+   (a trava do PC compartilhado do trabalho).
+3. MODO FOCO: `dgFoco(uid)` abre a demanda sozinha em tela cheia (botao ⤢); Esc fecha
+   (tratado no listener global de app.js, ANTES do Ctrl+K).
+4. `mapaDoSite()` (js/app.js) — MAPA DO SITE, link no rodape da Capa. 6 secoes em
+   portugues simples: onde os dados moram, empresas/grupos, abas, contagens ao vivo,
+   o que cada arquivo faz (+ a regra de bumpar ?v= e CACHE) e como exportar tudo e sair.
+   >>> E a resposta a pendencia de AUTONOMIA dela. Manter atualizado quando a estrutura mudar.
+
 ## Cuidados / armadilhas
 - Dados dela são locais por navegador (no Lenovo, o navegador com dados é o CHROME).
   NUNCA sugerir limpar navegador/dados sem backup exportado antes. Seeds/dados de
