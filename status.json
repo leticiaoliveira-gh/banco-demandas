@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.9",
-  "ondeParamos": "v6.9: agora o NOME DO QUADRO e o NOME DA EMPRESA tambem sao editaveis — clique neles no cabecalho e escreva; o nome novo aparece em todo lugar (quadro de entrada, barra lateral, Ctrl+K) e viaja para os outros aparelhos. A faixa verde passou a cobrir o topo e as laterais, mais compacta e arredondada so embaixo.",
-  "proximoPasso": "Testar a sincronizacao e a importacao de arquivos; depois, layout das abas de NC e Manutencoes"
+  "versao": "7.0",
+  "ondeParamos": "v7.0 — o site ficou EDITAVEL POR VOCE: (1) menu tres pontinhos > \"Editar os textos do site\" liga a caneta e voce troca qualquer texto marcado, com botao para restaurar os originais; (2) na barra do Quadro Geral, os botoes Prioridades e Situacoes deixam voce renomear, trocar cor, reordenar, criar e excluir opcoes — igual ao Notion, sem perder as demandas; (3) na capa, empresa inativa mostra \"Empresa inativa\" e nao pode mais ser clicada por engano.",
+  "proximoPasso": "Marcar mais textos das abas de NC e Manutencoes no modo edicao"
 }

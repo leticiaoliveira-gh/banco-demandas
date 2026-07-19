@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=39">
+<link rel="stylesheet" href="css/app.css?v=40">
 </head>
 <body>
 <div class="app">
@@ -22,7 +22,7 @@
     <div class="ricon" title="Voltar à Capa (Central de Empresas)" onclick="goHome()">🏠</div>
     <div class="ricon" title="Início da empresa (todos os quadros)" onclick="showHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
     <div id="railTabs" class="rail-tabs" hidden></div>
-    <div class="rail-ver" title="Versão do site">v6.9</div>
+    <div class="rail-ver" title="Versão do site">v7.0</div>
   </div>
 
   <!-- CAPA -->
@@ -30,10 +30,10 @@
     <div class="home-wrap">
       <div class="home-head">
         <div class="home-head-left">
-          <h1>Central de Empresas</h1>
+          <h1 data-txt="capa.titulo">Central de Empresas</h1>
           <p id="rt-linha" class="store-sub" style="margin-top:7px;cursor:pointer" title="Toque para editar" onclick="editarRtInfo()"></p>
           <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px">
-            <button class="btn ghost" id="syncPillHome" title="Configurar/ver o status da sincronização (vale para o site inteiro)" onclick="openSyncModal()">⚙ Sincronização</button>
+            <button class="btn ghost" id="syncPillHome" title="Configurar/ver o status da sincronização (vale para o site inteiro)" onclick="openSyncModal()"><span data-txt="capa.sync">⚙ Sincronização</span></button>
             <span id="backup-top" class="backup-top"></span>
           </div>
         </div>
@@ -44,12 +44,12 @@
 
       <div>
         <div>
-          <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">Empresas
-            <button class="btn sm" onclick="toggleEmpresaForm()">+ Nova empresa</button></div>
+          <div class="section-title" style="display:flex;justify-content:space-between;align-items:center"><span data-txt="capa.empresas">Empresas</span>
+            <button class="btn sm" onclick="toggleEmpresaForm()"><span data-txt="capa.novaEmpresa">+ Nova empresa</span></button></div>
           <div class="emp-toolbar">
             <div class="emp-search">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="empQ" placeholder="Pesquisar empresa..." oninput="renderHome()">
+              <input type="text" id="empQ" data-txt-ph="capa.buscaEmpresa" placeholder="Pesquisar empresa..." oninput="renderHome()">
             </div>
             <select id="empFiltro" onchange="renderHome()" title="Filtrar empresas">
               <option value="">Todas</option>
@@ -78,8 +78,8 @@
       </div>
 
       <div style="margin-top:28px;text-align:center">
-        <span class="back-link" style="margin:0 14px 0 0" title="Entenda como o site funciona por dentro — para você mexer sozinha" onclick="mapaDoSite()">🗺 Mapa do site</span>
-        <span class="back-link" style="margin:0" title="Use ao sair de um computador que não é seu" onclick="limparDispositivo()">🧹 Limpar dados deste dispositivo</span>
+        <span class="back-link" style="margin:0 14px 0 0" title="Entenda como o site funciona por dentro — para você mexer sozinha" onclick="mapaDoSite()"><span data-txt="capa.mapa">🗺 Mapa do site</span></span>
+        <span class="back-link" style="margin:0" title="Use ao sair de um computador que não é seu" onclick="limparDispositivo()"><span data-txt="capa.limpar">🧹 Limpar dados deste dispositivo</span></span>
       </div>
     </div>
   </div>
@@ -93,7 +93,7 @@
         <p id="appSubtitle"></p>
       </div>
       <div class="head-actions">
-        <button class="btn ghost sm" id="syncPill" style="display:none" title="Status da sincronização — configuração fica na capa" onclick="openSyncModal()">⚙ Sincronização</button>
+        <button class="btn ghost sm" id="syncPill" style="display:none" title="Status da sincronização — configuração fica na capa" onclick="openSyncModal()"><span data-txt="capa.sync">⚙ Sincronização</span></button>
         <div class="menu-wrap">
           <button class="btn ghost sm" title="Mais ações" onclick="toggleMenuMais(event)">⋯</button>
           <div class="menu-mais" id="menuMais" hidden>
@@ -103,6 +103,7 @@
             <button onclick="fecharMenuMais();showTab('add')">＋ Cadastrar item manualmente</button>
             <div class="menu-sep"></div>
             <button onclick="fecharMenuMais();mapaDoSite()">🗺 Mapa do site</button>
+            <button onclick="fecharMenuMais();toggleModoEdicao()">✏️ Editar os textos do site</button>
           </div>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -138,15 +139,15 @@
       <div class="tablewrap">
         <table>
           <thead><tr>
-            <th class="col-loja">Empresa</th>
-            <th class="col-area">Área</th>
+            <th class="col-loja" data-txt="tab.empresa">Empresa</th>
+            <th class="col-area" data-txt="tab.area">Área</th>
             <th class="col-nc" id="thNC">Não Conformidade</th>
-            <th class="col-acao">Ação Corretiva</th>
-            <th class="col-rt">Resp. Técnica</th>
-            <th class="col-exec">Executor</th>
-            <th class="col-data">Data do Relato</th>
-            <th class="col-atu">Atualização</th>
-            <th class="col-st">Status</th>
+            <th class="col-acao" data-txt="tab.acao">Ação Corretiva</th>
+            <th class="col-rt" data-txt="tab.rt">Resp. Técnica</th>
+            <th class="col-exec" data-txt="tab.exec">Executor</th>
+            <th class="col-data" data-txt="tab.data">Data do Relato</th>
+            <th class="col-atu" data-txt="tab.atu">Atualização</th>
+            <th class="col-st" data-txt="tab.status">Status</th>
             <th class="col-del"></th>
           </tr></thead>
           <tbody id="tbody"></tbody>
@@ -216,11 +217,11 @@
   </div>
 </div>
 
-<script src="js/app.js?v=39"></script>
-<script src="js/docxlite.js?v=39"></script>
-<script src="js/dg.js?v=39"></script>
-<script src="js/arquivos.js?v=39"></script>
-<script src="js/nc.js?v=39"></script>
-<script src="js/sync.js?v=39"></script>
+<script src="js/app.js?v=40"></script>
+<script src="js/docxlite.js?v=40"></script>
+<script src="js/dg.js?v=40"></script>
+<script src="js/arquivos.js?v=40"></script>
+<script src="js/nc.js?v=40"></script>
+<script src="js/sync.js?v=40"></script>
 </body>
 </html>

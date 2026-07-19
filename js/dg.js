@@ -8,17 +8,41 @@
    sobrescrever o outro. O uso é sequencial (um aparelho por vez), então tudo bem —
    mas não introduzir edição simultânea sem repensar isso. */
 
-const DG_PRIOS={
-  URGENTE:{rotulo:"URGENTE",cor:"#e5484d",fundo:"#ffecec"},
-  ALTA:{rotulo:"ALTA",cor:"#a23bb0",fundo:"#f6ecf8"},
-  MEDIA:{rotulo:"MÉDIA",cor:"#b3730a",fundo:"#fdf0e0"},
-  BAIXA:{rotulo:"BAIXA",cor:"#12b76a",fundo:"#e6f7ef"}
+/* ===== OPÇÕES EDITÁVEIS (prioridade e situação) =====
+   Ela cria, renomeia, recolore, reordena e apaga — como no Notion.
+   REGRA DE OURO: a CHAVE nunca muda (MEDIA continua MEDIA mesmo que o rótulo
+   vire "Moderada"). É o que protege os itens já gravados. */
+const DG_PRIOS_PADRAO={
+  URGENTE:{rotulo:"URGENTE",cor:"#e5484d",fundo:"#ffecec",ordem:0},
+  ALTA:{rotulo:"ALTA",cor:"#a23bb0",fundo:"#f6ecf8",ordem:1},
+  MEDIA:{rotulo:"MÉDIA",cor:"#b3730a",fundo:"#fdf0e0",ordem:2},
+  BAIXA:{rotulo:"BAIXA",cor:"#12b76a",fundo:"#e6f7ef",ordem:3}
 };
-const DG_SIT={
-  nao_iniciado:{rotulo:"Não iniciado",cor:"#8a8b96",fundo:"#f1f1f3"},
-  andamento:{rotulo:"Em andamento",cor:"#1668b8",fundo:"#e7f0f9"},
-  concluido:{rotulo:"Concluído",cor:"#047857",fundo:"#d1fae5"}
+const DG_SIT_PADRAO={
+  nao_iniciado:{rotulo:"Não iniciado",cor:"#8a8b96",fundo:"#f1f1f3",ordem:0},
+  andamento:{rotulo:"Em andamento",cor:"#1668b8",fundo:"#e7f0f9",ordem:1},
+  concluido:{rotulo:"Concluído",cor:"#047857",fundo:"#d1fae5",ordem:2}
 };
+/* estas duas passam a ser preenchidas do que ela configurou (ver dgLoadOpcoes) */
+let DG_PRIOS={...DG_PRIOS_PADRAO},DG_SIT={...DG_SIT_PADRAO},DG_OPC_MOD="";
+/* chaves com papel especial: o site precisa saber qual situação significa "pronto" */
+let DG_CHAVE_CONCLUIDO="concluido",DG_CHAVE_ANDAMENTO="andamento",DG_CHAVE_URGENTE="URGENTE";
+const ordenarOpc=o=>Object.keys(o).sort((a,b)=>(o[a].ordem??99)-(o[b].ordem??99));
+async function dgLoadOpcoes(){
+  const g=await metaGet("dgOpcoes");DG_OPC_MOD=await metaGet("dgOpcoesMod")||"";
+  if(g&&g.prios&&Object.keys(g.prios).length)DG_PRIOS=g.prios;
+  if(g&&g.sits&&Object.keys(g.sits).length)DG_SIT=g.sits;
+  if(g&&g.papeis){DG_CHAVE_CONCLUIDO=g.papeis.concluido||DG_CHAVE_CONCLUIDO;
+    DG_CHAVE_ANDAMENTO=g.papeis.andamento||DG_CHAVE_ANDAMENTO;
+    DG_CHAVE_URGENTE=g.papeis.urgente||DG_CHAVE_URGENTE;}
+}
+async function dgSalvarOpcoes(){
+  DG_OPC_MOD=nowISO();
+  await metaSet("dgOpcoes",{prios:DG_PRIOS,sits:DG_SIT,
+    papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}});
+  await metaSet("dgOpcoesMod",DG_OPC_MOD);
+  dataChanged();renderDG();
+}
 const DG_SEM={rotulo:"SEM PRIORIDADE",cor:"#8a8b96",fundo:"#f1f1f3"};
 let DG_ABERTAS={};        /* uid da demanda -> aberta? (só visual, não sincroniza) */
 let DG_GRUPO="prioridade";
@@ -51,7 +75,7 @@ function renderDG(){
   const q=semAcento((document.getElementById("dgQ")?.value)||"");
   const fSit=document.getElementById("dgSit")?.value||"";
   let lista=dgVivos().filter(d=>{
-    if(fSit&&(d.situacao||"nao_iniciado")!==fSit)return false;
+    if(fSit&&(d.situacao||ordenarOpc(DG_SIT)[0])!==fSit)return false;
     if(!q)return true;
     const alvo=semAcento(d.titulo||"")+" "+semAcento((d.itens||[]).map(i=>i.texto).join(" "));
     return alvo.includes(q);
@@ -90,13 +114,17 @@ function renderDG(){
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="dgQ" placeholder="Buscar na agenda (título ou item da lista)..." value="${esc((document.getElementById("dgQ")?.value)||"")}" oninput="renderDG()">
       </div>
+      <span class="filtro-cfg" title="Configurar as opções">
+        <button onclick="dgGerirOpcoes('prios')" title="Configurar as prioridades">⚙ Prioridades</button>
+        <button onclick="dgGerirOpcoes('sits')" title="Configurar as situações">⚙ Situações</button>
+      </span>
       <select id="dgGrupo" onchange="DG_GRUPO=this.value;renderDG()" title="Agrupar por">
         <option value="prioridade"${DG_GRUPO==="prioridade"?" selected":""}>Agrupar: Prioridade</option>
         <option value="situacao"${DG_GRUPO==="situacao"?" selected":""}>Agrupar: Situação</option>
       </select>
       <select id="dgSit" onchange="renderDG()" title="Filtrar por situação">
         <option value="">Todas as situações</option>
-        ${Object.keys(DG_SIT).map(k=>`<option value="${k}"${fSit===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
+        ${ordenarOpc(DG_SIT).map(k=>`<option value="${k}"${fSit===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
       </select>
       ${grupoDe(currentStore)?`<select id="dgEscopo" onchange="renderDG()" title="Filtrar por loja">
         <option value=""${fEsc===""?" selected":""}>Todas as demandas</option>
@@ -119,13 +147,13 @@ function renderDG(){
 /* ===== VISÃO 2: PAINEL =====
    Referência: Matriz de Eisenhower (urgente x importante) + "board view".
    A ideia é responder, nesta ordem: (1) o que eu faço AGORA, (2) como está o todo. */
-function dgEhAtrasada(d){return d.prazo&&d.prazo<today()&&d.situacao!=="concluido";}
-function dgEhHoje(d){return d.prazo===today()&&d.situacao!=="concluido";}
+function dgEhAtrasada(d){return d.prazo&&d.prazo<today()&&d.situacao!==DG_CHAVE_CONCLUIDO;}
+function dgEhHoje(d){return d.prazo===today()&&d.situacao!==DG_CHAVE_CONCLUIDO;}
 function dgPainelHTML(lista){
   const atrasadas=lista.filter(dgEhAtrasada);
   const hoje=lista.filter(dgEhHoje);
-  const andamento=lista.filter(d=>d.situacao==="andamento");
-  const urgentes=lista.filter(d=>d.prioridade==="URGENTE"&&d.situacao!=="concluido");
+  const andamento=lista.filter(d=>d.situacao===DG_CHAVE_ANDAMENTO);
+  const urgentes=lista.filter(d=>d.prioridade===DG_CHAVE_URGENTE&&d.situacao!==DG_CHAVE_CONCLUIDO);
   const foco=[
     {ch:"atrasadas",rot:"Atrasadas",n:atrasadas.length,cor:"#e5484d",fundo:"#ffecec",dica:"Passou do prazo"},
     {ch:"hoje",rot:"Para hoje",n:hoje.length,cor:"#b3730a",fundo:"#fdf0e0",dica:"Vence hoje"},
@@ -144,7 +172,7 @@ function dgPainelHTML(lista){
   if(DG_FOCO==="atrasadas")l=atrasadas; else if(DG_FOCO==="hoje")l=hoje;
   else if(DG_FOCO==="andamento")l=andamento; else if(DG_FOCO==="urgentes")l=urgentes;
   /* colunas por prioridade — o quadro geral */
-  const cols=[...Object.keys(DG_PRIOS).map(k=>({chave:k,...DG_PRIOS[k]})),{chave:"",...DG_SEM}];
+  const cols=[...ordenarOpc(DG_PRIOS).map(k=>({chave:k,...DG_PRIOS[k]})),{chave:"",...DG_SEM}];
   const quadro=`<div class="dg-quadro">${cols.map(c=>{
     const itens=dgOrdenar(l.filter(d=>(d.prioridade||"")===c.chave));
     return `<div class="dg-col" data-chave="${c.chave}">
@@ -155,10 +183,10 @@ function dgPainelHTML(lista){
   return faixa+quadro;
 }
 function dgCartaoHTML(d){
-  const p=dgProgresso(d),sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
+  const p=dgProgresso(d),sit=DG_SIT[d.situacao]||DG_SIT[ordenarOpc(DG_SIT)[0]];
   const atras=dgEhAtrasada(d),hoje=dgEhHoje(d);
   const aberta=!!DG_ABERTAS[d.uid];
-  return `<div class="dg-item dg-cartao${d.situacao==="concluido"?" done":""}" data-uid="${d.uid}">
+  return `<div class="dg-item dg-cartao${d.situacao===DG_CHAVE_CONCLUIDO?" done":""}" data-uid="${d.uid}">
     <div class="dg-cartao-top" onclick="dgToggleAberta('${d.uid}')">
       <span class="dg-alca" title="Segure e arraste" onpointerdown="dgArrastarIni(event,this)" onclick="event.stopPropagation()">⠿</span>
       <input type="checkbox" class="dg-sel" ${DG_SEL.has(d.uid)?"checked":""}
@@ -183,10 +211,10 @@ function dgGruposHTML(lista,pref){
   if(!lista.length)return `<div class="dg-vazio">Nada aqui por enquanto.</div>`;
   const grupos=[];
   if(DG_GRUPO==="prioridade"){
-    for(const k of Object.keys(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});
+    for(const k of ordenarOpc(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});
     grupos.push({chave:"",...DG_SEM,itens:lista.filter(d=>!d.prioridade)});
   }else{
-    for(const k of Object.keys(DG_SIT))grupos.push({chave:k,rotulo:DG_SIT[k].rotulo.toUpperCase(),cor:DG_SIT[k].cor,fundo:DG_SIT[k].fundo,itens:lista.filter(d=>(d.situacao||"nao_iniciado")===k)});
+    for(const k of ordenarOpc(DG_SIT))grupos.push({chave:k,rotulo:DG_SIT[k].rotulo.toUpperCase(),cor:DG_SIT[k].cor,fundo:DG_SIT[k].fundo,itens:lista.filter(d=>(d.situacao||ordenarOpc(DG_SIT)[0])===k)});
   }
   /* cada grupo recolhe no ▸, igual ao Notion: fechado mostra só a etiqueta e a contagem */
   return grupos.filter(g=>g.itens.length).map(g=>{
@@ -204,8 +232,8 @@ function dgToggleGrupo(ch){DG_FECHADOS[ch]=!DG_FECHADOS[ch];dgSalvarFechados();r
 function dgSalvarFechados(){try{localStorage.setItem("dg_fechados",JSON.stringify(DG_FECHADOS));}catch(e){}}
 
 function dgLinhaHTML(d,irmaos,idx){
-  const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
-  const concl=(d.situacao==="concluido");
+  const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao]||DG_SIT[ordenarOpc(DG_SIT)[0]];
+  const concl=(d.situacao===DG_CHAVE_CONCLUIDO);
   /* sem listra colorida: Lê não gostou do resultado (19/07) — card limpo como antes */
   return `<div class="dg-item${concl?" done":""}" data-uid="${d.uid}">
     <div class="dg-item-top" onclick="dgToggleAberta('${d.uid}')">
@@ -224,10 +252,10 @@ function dgLinhaHTML(d,irmaos,idx){
       <div class="dg-acts">
         <select onchange="dgSetCampo('${d.uid}','prioridade',this.value)" title="Prioridade">
           <option value="">Sem prioridade</option>
-          ${Object.keys(DG_PRIOS).map(k=>`<option value="${k}"${d.prioridade===k?" selected":""}>${DG_PRIOS[k].rotulo}</option>`).join("")}
+          ${ordenarOpc(DG_PRIOS).map(k=>`<option value="${k}"${d.prioridade===k?" selected":""}>${DG_PRIOS[k].rotulo}</option>`).join("")}
         </select>
         <select onchange="dgSetCampo('${d.uid}','situacao',this.value)" title="Situação">
-          ${Object.keys(DG_SIT).map(k=>`<option value="${k}"${(d.situacao||"nao_iniciado")===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
+          ${ordenarOpc(DG_SIT).map(k=>`<option value="${k}"${(d.situacao||ordenarOpc(DG_SIT)[0])===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
         </select>
         <input type="date" value="${esc(d.prazo||"")}" onchange="dgSetCampo('${d.uid}','prazo',this.value)" title="Prazo">
         ${grupoDe(currentStore)?`<select onchange="dgSetCampo('${d.uid}','escopo',this.value)" title="Esta demanda vale para quais lojas?">
@@ -289,7 +317,7 @@ function dgImprimir(){
   const lista=dgOrdenar(dgVisiveis());
   if(!lista.length){toast("Nada para imprimir com os filtros de agora");return;}
   const loja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
-  const grupos=[...Object.keys(DG_PRIOS).map(k=>({ch:k,...DG_PRIOS[k]})),{ch:"",...DG_SEM}];
+  const grupos=[...ordenarOpc(DG_PRIOS).map(k=>({ch:k,...DG_PRIOS[k]})),{ch:"",...DG_SEM}];
   let corpo="";
   for(const g of grupos){
     const itens=lista.filter(d=>(d.prioridade||"")===g.ch);
@@ -341,7 +369,7 @@ function dgVisiveis(){
   const fSit=document.getElementById("dgSit")?.value||"";
   const fEsc=document.getElementById("dgEscopo")?.value||"";
   let l=dgVivos().filter(d=>{
-    if(fSit&&(d.situacao||"nao_iniciado")!==fSit)return false;
+    if(fSit&&(d.situacao||ordenarOpc(DG_SIT)[0])!==fSit)return false;
     if(fEsc==="minha"&&d.escopo!==currentStore)return false;
     if(fEsc==="compart"&&d.escopo)return false;
     if(!q)return true;
@@ -350,8 +378,8 @@ function dgVisiveis(){
   if(DG_VISAO==="painel"&&DG_FOCO){
     if(DG_FOCO==="atrasadas")l=l.filter(dgEhAtrasada);
     else if(DG_FOCO==="hoje")l=l.filter(dgEhHoje);
-    else if(DG_FOCO==="andamento")l=l.filter(d=>d.situacao==="andamento");
-    else if(DG_FOCO==="urgentes")l=l.filter(d=>d.prioridade==="URGENTE"&&d.situacao!=="concluido");
+    else if(DG_FOCO==="andamento")l=l.filter(d=>d.situacao===DG_CHAVE_ANDAMENTO);
+    else if(DG_FOCO==="urgentes")l=l.filter(d=>d.prioridade===DG_CHAVE_URGENTE&&d.situacao!==DG_CHAVE_CONCLUIDO);
   }
   return l;
 }
@@ -395,17 +423,100 @@ function dgBarraMassaHTML(){
     <select onchange="dgMassa('prioridade',this.value);this.selectedIndex=0" title="Mudar a prioridade de todas">
       <option value="">Prioridade…</option>
       <option value="">Sem prioridade</option>
-      ${Object.keys(DG_PRIOS).map(k=>`<option value="${k}">${DG_PRIOS[k].rotulo}</option>`).join("")}
+      ${ordenarOpc(DG_PRIOS).map(k=>`<option value="${k}">${DG_PRIOS[k].rotulo}</option>`).join("")}
     </select>
     <select onchange="dgMassa('situacao',this.value);this.selectedIndex=0" title="Mudar a situação de todas">
       <option value="">Situação…</option>
-      ${Object.keys(DG_SIT).map(k=>`<option value="${k}">${DG_SIT[k].rotulo}</option>`).join("")}
+      ${ordenarOpc(DG_SIT).map(k=>`<option value="${k}">${DG_SIT[k].rotulo}</option>`).join("")}
     </select>
-    <button class="btn ghost sm" onclick="dgMassa('situacao','concluido')">✓ Concluir</button>
+    <button class="btn ghost sm" onclick="dgMassa('situacao',DG_CHAVE_CONCLUIDO)">✓ Concluir</button>
     <button class="btn ghost sm" onclick="dgSelTodas()">Marcar todas</button>
     <button class="btn ghost sm" onclick="dgMassaExcluir()">🗑</button>
     <button class="btn ghost sm" onclick="dgLimparSel()">✕ Cancelar</button>
   </div>`;
+}
+
+/* ===== GERENCIAR AS OPÇÕES DOS FILTROS (o que ela pediu "igual ao Notion") ===== */
+const CORES_PRONTAS=["#e5484d","#b3730a","#12b76a","#1668b8","#a23bb0","#0f766e","#8a8b96","#c2410c","#7c3aed","#be123c"];
+function clarear(hex){                       /* gera o fundo pastel a partir da cor forte */
+  const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,m=x=>Math.round(x+(255-x)*.88);
+  return "#"+[m(r),m(g),m(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+function dgGerirOpcoes(qual){                /* qual: "prios" | "sits" */
+  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const nome=qual==="prios"?"prioridades":"situações";
+  const campo=qual==="prios"?"prioridade":"situacao";
+  const linhas=ordenarOpc(mapa).map((k,i,arr)=>{
+    const o=mapa[k],uso=dgVivos().filter(d=>(d[campo]||"")===k).length;
+    return `<div class="opc-linha">
+      <span class="opc-cor" style="background:${o.cor}" title="Trocar a cor"
+        onclick="dgTrocarCor('${qual}','${k}')"></span>
+      <input class="opc-nome" value="${esc(o.rotulo)}" onchange="dgRenomearOpc('${qual}','${k}',this.value)">
+      <span class="opc-uso">${uso} em uso</span>
+      <button class="btn ghost sm" ${i===0?"disabled":""} onclick="dgMoverOpc('${qual}','${k}',-1)" title="Subir">▲</button>
+      <button class="btn ghost sm" ${i===arr.length-1?"disabled":""} onclick="dgMoverOpc('${qual}','${k}',1)" title="Descer">▼</button>
+      <button class="btn ghost sm" onclick="dgExcluirOpc('${qual}','${k}')" title="Excluir">🗑</button>
+    </div>`;}).join("");
+  ncModal(`<h2>Configurar ${nome}</h2>
+    <p class="desc">Renomeie, troque a cor, mude a ordem ou crie novas. As demandas que já
+    existem continuam nos seus lugares — o site guarda a ligação por dentro.</p>
+    <div class="opc-lista">${linhas}</div>
+    <div class="opc-nova">
+      <input id="opc-novo" placeholder="Nome da nova ${qual==="prios"?"prioridade":"situação"}"
+        onkeydown="if(event.key==='Enter')dgAddOpc('${qual}')">
+      <button class="btn sm" onclick="dgAddOpc('${qual}')">+ Criar</button>
+    </div>
+    ${qual==="sits"?`<p class="mapa-nota">A situação que significa "pronto" hoje é
+      <b>${esc((DG_SIT[DG_CHAVE_CONCLUIDO]||{}).rotulo||"—")}</b> — é ela que risca a demanda
+      e conta nos números.</p>`:""}
+    <div class="form-actions"><button class="btn" onclick="ncFechar()">Fechar</button></div>`);
+}
+async function dgRenomearOpc(qual,k,novo){
+  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  novo=String(novo||"").trim();if(!novo||!mapa[k])return;
+  mapa[k].rotulo=novo;await dgSalvarOpcoes();dgGerirOpcoes(qual);
+}
+async function dgTrocarCor(qual,k){
+  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;if(!mapa[k])return;
+  const atual=mapa[k].cor;
+  const i=CORES_PRONTAS.indexOf(atual);
+  mapa[k].cor=CORES_PRONTAS[(i+1)%CORES_PRONTAS.length];   /* clique passa para a próxima cor */
+  mapa[k].fundo=clarear(mapa[k].cor);
+  await dgSalvarOpcoes();dgGerirOpcoes(qual);
+}
+async function dgMoverOpc(qual,k,dir){
+  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const ks=ordenarOpc(mapa),i=ks.indexOf(k),j=i+dir;
+  if(i<0||j<0||j>=ks.length)return;
+  ks[i]=ks[j];ks[j]=k;ks.forEach((x,n)=>mapa[x].ordem=n);
+  await dgSalvarOpcoes();dgGerirOpcoes(qual);
+}
+async function dgAddOpc(qual){
+  const inp=document.getElementById("opc-novo"),nome=(inp.value||"").trim();
+  if(!nome)return;
+  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const chave="opc_"+newUid();                 /* chave própria: nunca colide com as antigas */
+  const cor=CORES_PRONTAS[Object.keys(mapa).length%CORES_PRONTAS.length];
+  mapa[chave]={rotulo:nome,cor,fundo:clarear(cor),ordem:Object.keys(mapa).length};
+  await dgSalvarOpcoes();dgGerirOpcoes(qual);
+}
+async function dgExcluirOpc(qual,k){
+  const mapa=qual==="prios"?DG_PRIOS:DG_SIT;
+  const campo=qual==="prios"?"prioridade":"situacao";
+  const emUso=dgVivos().filter(d=>(d[campo]||"")===k);
+  if(Object.keys(mapa).length<=1){alert("Precisa sobrar pelo menos uma opção.");return;}
+  if(qual==="sits"&&k===DG_CHAVE_CONCLUIDO){
+    alert("Esta é a situação que marca a demanda como pronta.\n\nAntes de excluir, escolha outra para esse papel.");return;}
+  if(emUso.length){
+    const outras=ordenarOpc(mapa).filter(x=>x!==k);
+    const ops=outras.map((x,i)=>(i+1)+" = "+mapa[x].rotulo).join("\n");
+    const r=prompt(emUso.length+" demanda(s) usam \""+mapa[k].rotulo+"\".\n\n"
+      +"Para onde levar essas demandas?\n\n"+ops+"\n\n(deixe vazio para cancelar)");
+    const idx=parseInt(r,10);if(!idx||!outras[idx-1])return;
+    const destino=qual==="prios"?outras[idx-1]:outras[idx-1];
+    for(const d of emUso){d[campo]=destino;d.mod=nowISO();await putItem(d);}
+  }else if(!confirm("Excluir \""+mapa[k].rotulo+"\"?"))return;
+  delete mapa[k];await dgSalvarOpcoes();dgGerirOpcoes(qual);
 }
 
 /* ===== FLUXOGRAMA (ideia do exemplo "Fluxograma" do Airtable) =====
@@ -521,7 +632,7 @@ async function dgCriarPorTexto(){
       nivel:Math.min(4,Math.floor(rec/2)),tipoLinha:"check"};
   });
   const o={uid:newUid(),mod:nowISO(),tipo:"dg",loja:dgLojaBase(),criado:"manual",escopo:"",ordem:0,
-    titulo:tit||linhas[0]||"Nova demanda",prioridade:"",situacao:"nao_iniciado",prazo:"",criadoEm:today(),
+    titulo:tit||linhas[0]||"Nova demanda",prioridade:"",situacao:ordenarOpc(DG_SIT)[0],prazo:"",criadoEm:today(),
     itens:tit?itens:itens.slice(1)};
   const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
   ncFechar();DG_ABERTAS[o.uid]=true;renderDG();
@@ -533,7 +644,7 @@ async function dgCriarPorTexto(){
    Serve para dar conta rápido da pilha de "sem prioridade". ===== */
 let DG_TRI=[],DG_TRI_I=0;
 function dgTriagem(){
-  DG_TRI=dgOrdenar(dgVisiveis().filter(d=>!d.prioridade&&d.situacao!=="concluido")).map(d=>d.uid);
+  DG_TRI=dgOrdenar(dgVisiveis().filter(d=>!d.prioridade&&d.situacao!==DG_CHAVE_CONCLUIDO)).map(d=>d.uid);
   if(!DG_TRI.length){toast("Nada sem prioridade para triar 🎉");return;}
   DG_TRI_I=0;dgTriDesenha();
 }
@@ -570,7 +681,7 @@ function dgTriDesenha(){
     <div class="dg-tri-acoes">
       <p>Qual a prioridade disto?</p>
       <div class="dg-tri-bts">
-        ${Object.keys(DG_PRIOS).map(k=>`<button style="--c:${DG_PRIOS[k].cor};--f:${DG_PRIOS[k].fundo}"
+        ${ordenarOpc(DG_PRIOS).map(k=>`<button style="--c:${DG_PRIOS[k].cor};--f:${DG_PRIOS[k].fundo}"
           onclick="dgTriDefine('${k}')">${DG_PRIOS[k].rotulo}</button>`).join("")}
         <button class="pular" onclick="dgTriDefine(null)">Deixar assim →</button>
       </div>
@@ -589,7 +700,7 @@ function dgTriFechar(){const el=document.getElementById("dg-tri");if(el)el.remov
 /* ===== 3) MODO FOCO — ideia do "expand record": a demanda sozinha na tela ===== */
 function dgFoco(uid){
   const d=dgAchar(uid);if(!d)return;
-  const p=dgProgresso(d),sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
+  const p=dgProgresso(d),sit=DG_SIT[d.situacao]||DG_SIT[ordenarOpc(DG_SIT)[0]];
   const cp=DG_PRIOS[d.prioridade];
   let el=document.getElementById("dg-foco-tela");
   if(!el){el=document.createElement("div");el.id="dg-foco-tela";el.className="dg-focotela";document.body.appendChild(el);}
@@ -599,10 +710,10 @@ function dgFoco(uid){
         <div class="dg-foco-tags">
           <select onchange="dgSetCampo('${d.uid}','prioridade',this.value)" title="Prioridade">
             <option value=""${!d.prioridade?" selected":""}>Sem prioridade</option>
-            ${Object.keys(DG_PRIOS).map(k=>`<option value="${k}"${d.prioridade===k?" selected":""}>${DG_PRIOS[k].rotulo}</option>`).join("")}
+            ${ordenarOpc(DG_PRIOS).map(k=>`<option value="${k}"${d.prioridade===k?" selected":""}>${DG_PRIOS[k].rotulo}</option>`).join("")}
           </select>
           <select onchange="dgSetCampo('${d.uid}','situacao',this.value)" title="Situação">
-            ${Object.keys(DG_SIT).map(k=>`<option value="${k}"${(d.situacao||"nao_iniciado")===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
+            ${ordenarOpc(DG_SIT).map(k=>`<option value="${k}"${(d.situacao||ordenarOpc(DG_SIT)[0])===k?" selected":""}>${DG_SIT[k].rotulo}</option>`).join("")}
           </select>
           <input type="date" value="${esc(d.prazo||"")}" onchange="dgSetCampo('${d.uid}','prazo',this.value)" title="Prazo">
           ${p.total?`<span class="dg-mini">${p.feitos}/${p.total} concluídos</span>`:""}
@@ -763,7 +874,7 @@ async function dgNova(){
   if(!currentStore){toast("Escolha uma empresa primeiro");return;}
   const t=prompt("Nova demanda:");if(!t||!t.trim())return;
   const o={uid:newUid(),mod:nowISO(),tipo:"dg",loja:dgLojaBase(),criado:"manual",escopo:"",ordem:0,
-    titulo:t.trim(),prioridade:"",situacao:"nao_iniciado",prazo:"",criadoEm:today(),itens:[]};
+    titulo:t.trim(),prioridade:"",situacao:ordenarOpc(DG_SIT)[0],prazo:"",criadoEm:today(),itens:[]};
   const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
   DG_ABERTAS[o.uid]=true;renderDG();}
 async function dgExcluir(uid){const d=dgAchar(uid);if(!d)return;
