@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "5.6",
-  "ondeParamos": "v5.6: a aba Demandas Gerais agora tem DUAS VISOES, para voce escolher qual prefere — o botao Lista/Painel fica na barra de cima. LISTA e a que ja existia. PAINEL e o quadro geral: em cima uma faixa de foco (Atrasadas, Para hoje, Urgentes, Em andamento) que responde \"o que eu faco agora\", e embaixo o quadro com uma coluna por prioridade.",
-  "proximoPasso": "Le escolher entre a visao Lista e a visao Painel"
+  "versao": "5.7",
+  "ondeParamos": "v5.7: a aba Demandas Gerais virou QUADRO GERAL (com as duas visoes, Lista e Painel, mantidas). A Capa ganhou o fundo verde da marca com as letras brancas e os cards claros por cima, no estilo da referencia que voce escolheu. Dentro das abas continua tudo branco.",
+  "proximoPasso": "Le escolher entre Lista e Painel; depois, layout das abas de NC e Manutencoes"
 }
