@@ -113,7 +113,19 @@ async function syncPull(){
  if(r.status===404){syncSha=null;return {changed:false,localAhead:DATA.length>0||EMPRESAS.length>0};}
  if(!r.ok)throw new Error("GET "+r.status);
  const j=await r.json();syncSha=j.sha;
- let env=null;try{env=JSON.parse(b64decUtf8(j.content));}catch(e){throw new Error("banco.json inválido");}
+ /* ARMADILHA (achada em 19/07, com o banco em 1,1 MB): acima de 1 MB o GitHub
+    devolve a ficha do arquivo SEM o conteúdo — e a sincronização quebrava com
+    "banco.json inválido". Nesse caso, buscar o conteúdo pela via dos blobs,
+    que aguenta arquivos grandes. */
+ let txt="";
+ if(j.content&&j.content.replace(/\s/g,""))txt=b64decUtf8(j.content);
+ else{
+   const rb=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo+"/git/blobs/"+j.sha,
+     {headers:{...syncHdrs(c),Accept:"application/vnd.github.raw"},cache:"no-store"});
+   if(!rb.ok)throw new Error("GET blob "+rb.status);
+   txt=await rb.text();
+ }
+ let env=null;try{env=JSON.parse(txt);}catch(e){throw new Error("banco.json inválido");}
  return await syncMergeEnvelope(env);
 }
 

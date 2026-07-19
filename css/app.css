@@ -223,13 +223,15 @@
   .app{background:#f2f4f4}
   .main{flex:1;padding:24px 30px 70px;min-width:0;background:#fff;border-radius:18px 0 0 18px;margin:10px 0 10px -6px;box-shadow:0 2px 24px rgba(15,91,82,.10)}
   #view-home{border-radius:18px 0 0 18px}
-  /* IDEIA 3: título grande e com ar em volta, como na referência */
-  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:14px;flex-wrap:wrap;padding-top:6px}
-  .head h1{font-size:33px;font-weight:700;letter-spacing:-.8px;line-height:1.15}
-  /* pílula com o nome da loja, no degradê da marca (referência escolhida por Lê) */
-  .loja-pill{display:inline-block;margin-top:9px;padding:6px 16px;border-radius:20px;
-    background:linear-gradient(135deg,#17756a,#2a9d8a);color:#fff;font-size:12.5px;font-weight:700;letter-spacing:.2px;
-    box-shadow:0 2px 8px rgba(23,117,106,.25)}
+  /* CABEÇALHO: faixa verde com o nome do quadro em branco e a loja numa pílula clara.
+     É fixo em TODAS as abas (pedido de Lê, 19/07). */
+  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:14px;flex-wrap:wrap;padding-top:2px}
+  .head-faixa{background:linear-gradient(135deg,#0f5b52,#17756a 55%,#2a9d8a);border-radius:16px;
+    padding:22px 28px;color:#fff;flex:1;min-width:260px;box-shadow:0 4px 18px rgba(15,91,82,.18)}
+  .head-faixa h1{font-size:29px;font-weight:700;letter-spacing:-.6px;line-height:1.15;color:#fff}
+  .loja-pill{display:inline-block;margin-top:11px;padding:6px 16px;border-radius:20px;
+    background:rgba(255,255,255,.94);color:#0f5b52;font-size:12.5px;font-weight:700;letter-spacing:.2px}
+  @media(max-width:1000px){.head-faixa{padding:18px 20px}.head-faixa h1{font-size:23px}}
   .crumb{margin-bottom:22px !important}
   .head p{color:var(--muted);margin-top:3px;font-size:13px}
   .rt-banner{font-size:12.5px;color:var(--muted);margin-bottom:20px}

@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-19",
-  "versao": "6.7",
-  "ondeParamos": "v6.7: agora da para TRAZER ARQUIVOS para o site (menu tres pontinhos > Trazer arquivo): Excel, CSV, Word e PDF de texto sao lidos, ele mostra o que encontrou e voce escolhe se aquilo vira uma demanda com lista, varias demandas ou itens de manutencao. Imagens viram anexo de uma demanda. Tudo e lido dentro do proprio navegador, nada e enviado para lugar nenhum.",
-  "proximoPasso": "Layout das abas Relatorio de NC e Manutencoes"
+  "versao": "6.8",
+  "ondeParamos": "v6.8: CORRIGIDO o erro de sincronizacao — seu banco passou de 1 MB e o site nao conseguia mais ler o arquivo; agora ele usa outra via, que aguenta arquivos grandes. E o cabecalho virou uma FAIXA VERDE com o nome do quadro em branco e a loja numa pilula clara, igual em todas as abas.",
+  "proximoPasso": "Testar a sincronizacao no celular e no Samsung; depois, layout das abas de NC e Manutencoes"
 }
