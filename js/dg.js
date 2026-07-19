@@ -22,6 +22,8 @@ const DG_SIT={
 const DG_SEM={rotulo:"SEM PRIORIDADE",cor:"#8a8b96",fundo:"#f1f1f3"};
 let DG_ABERTAS={};        /* uid da demanda -> aberta? (só visual, não sincroniza) */
 let DG_GRUPO="prioridade";
+/* grupos/blocos recolhidos — igual ao Notion. Fica no aparelho (não sincroniza) */
+let DG_FECHADOS=(()=>{try{return JSON.parse(localStorage.getItem("dg_fechados"))||{};}catch(e){return {};}})();
 
 /* Onde a demanda mora:
    - loja = código do GRUPO (ex.: "SF") quando vale para as lojas do grupo;
@@ -59,12 +61,15 @@ function renderDG(){
   const doGrupo=dgOrdenar(lista.filter(d=>!d.escopo));
   const nomeLoja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
   let corpo="";
-  if(temGrupo&&soDaLoja.length)
-    corpo+=`<div class="dg-bloco"><div class="dg-bloco-h">📍 Só ${esc(nomeLoja)}<span class="dg-cont">${soDaLoja.length}</span></div>
-      ${dgGruposHTML(soDaLoja)}</div>`;
-  if(doGrupo.length)
-    corpo+=`<div class="dg-bloco">${temGrupo?`<div class="dg-bloco-h compart">🔗 As duas lojas<span class="dg-cont">${doGrupo.length}</span></div>`:""}
-      ${dgGruposHTML(doGrupo)}</div>`;
+  const blocoHTML=(id,titulo,itens,cls)=>{
+    const fechado=!!DG_FECHADOS["bloco|"+id];
+    return `<div class="dg-bloco">
+      <div class="dg-bloco-h ${cls||""}" onclick="dgToggleGrupo('bloco|${id}')" title="${fechado?"Abrir":"Fechar"}">
+        <span class="dg-caret${fechado?"":" open"}">▸</span>${titulo}<span class="dg-cont">${itens.length}</span></div>
+      ${fechado?"":dgGruposHTML(itens,id)}</div>`;};
+  if(temGrupo&&soDaLoja.length)corpo+=blocoHTML("loja","📍 Só "+esc(nomeLoja),soDaLoja);
+  if(doGrupo.length)corpo+=temGrupo?blocoHTML("grupo","🔗 As duas lojas",doGrupo,"compart")
+    :`<div class="dg-bloco">${dgGruposHTML(doGrupo,"g")}</div>`;
   box.innerHTML=`
     <div class="dg-bar">
       <div class="emp-search" style="flex:1">
@@ -91,7 +96,7 @@ function renderDG(){
 }
 
 /* dentro de cada bloco, os grupos por prioridade (ou situação) do jeito que ela já usa */
-function dgGruposHTML(lista){
+function dgGruposHTML(lista,pref){
   const grupos=[];
   if(DG_GRUPO==="prioridade"){
     for(const k of Object.keys(DG_PRIOS))grupos.push({chave:k,...DG_PRIOS[k],itens:lista.filter(d=>d.prioridade===k)});
@@ -99,12 +104,20 @@ function dgGruposHTML(lista){
   }else{
     for(const k of Object.keys(DG_SIT))grupos.push({chave:k,rotulo:DG_SIT[k].rotulo.toUpperCase(),cor:DG_SIT[k].cor,fundo:DG_SIT[k].fundo,itens:lista.filter(d=>(d.situacao||"nao_iniciado")===k)});
   }
-  return grupos.filter(g=>g.itens.length).map(g=>`
-    <div class="dg-grupo">
-      <div class="dg-grupo-h" style="color:${g.cor};border-color:${g.cor}">${esc(g.rotulo)}<span class="dg-cont">${g.itens.length}</span></div>
-      ${g.itens.map((d,i)=>dgLinhaHTML(d,g.itens,i)).join("")}
-    </div>`).join("");
+  /* cada grupo recolhe no ▸, igual ao Notion: fechado mostra só a etiqueta e a contagem */
+  return grupos.filter(g=>g.itens.length).map(g=>{
+    const ch=(pref||"")+"|"+g.chave, fechado=!!DG_FECHADOS[ch];
+    return `<div class="dg-grupo">
+      <div class="dg-grupo-lin" onclick="dgToggleGrupo('${esc(ch)}')" title="${fechado?"Abrir":"Fechar"} este grupo">
+        <span class="dg-caret${fechado?"":" open"}">▸</span>
+        <span class="dg-grupo-h" style="color:${g.cor};background:${g.fundo}">${esc(g.rotulo)}</span>
+        <span class="dg-cont">${g.itens.length}</span>
+      </div>
+      ${fechado?"":g.itens.map((d,i)=>dgLinhaHTML(d,g.itens,i)).join("")}
+    </div>`;}).join("");
 }
+function dgToggleGrupo(ch){DG_FECHADOS[ch]=!DG_FECHADOS[ch];dgSalvarFechados();renderDG();}
+function dgSalvarFechados(){try{localStorage.setItem("dg_fechados",JSON.stringify(DG_FECHADOS));}catch(e){}}
 
 function dgLinhaHTML(d,irmaos,idx){
   const p=dgProgresso(d),aberta=!!DG_ABERTAS[d.uid],sit=DG_SIT[d.situacao||"nao_iniciado"]||DG_SIT.nao_iniciado;
