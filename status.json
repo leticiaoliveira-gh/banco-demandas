@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
   "versao": "9.3",
-  "ondeParamos": "Manutencao interna: o codigo publico deixou de trazer dados de amostra. As informacoes reais continuam nos aparelhos e na sincronizacao privada.",
-  "proximoPasso": "Publicacao regular; ajustes de fluxo pelas configuracoes."
+  "ondeParamos": "Faxina de privacidade concluida: codigo publico sem dados de amostra, historico do repositorio reescrito, token rotacionado nos tres aparelhos.",
+  "proximoPasso": "Dois consertos internos de sincronizacao antes de qualquer aba nova."
 }
