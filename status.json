@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "9.4",
-  "ondeParamos": "Dois consertos internos: apagar pergunta que ja tem resposta vira arquivar; assinatura, executores e tipos de ambiente passam a viajar entre aparelhos.",
-  "proximoPasso": "Novo checklist BPF quando voce disser."
+  "versao": "9.5",
+  "ondeParamos": "Nova aba Qualidade / BPF com 9 modelos prontos (rondas rapidas por setor, BPF semanal, Equipamentos e Estrutura). Perguntas com escopo por area fisica e por setor comercial. Cada 'nao' vira tratativa 5W2H que registra manutencao ou NC.",
+  "proximoPasso": "Consertos de uso restantes (Fase 3.3) e manual mais facil (Fase 5)."
 }

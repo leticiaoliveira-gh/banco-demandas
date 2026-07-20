@@ -190,6 +190,7 @@ const ICO={
   nc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v4M12 18h.01"/></svg>',
   mnt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5 5L4 17v3h3l5.7-5.7a4 4 0 0 1 5-5l-2.5 2.5 1.8 1.8L19.5 11a4 4 0 0 0-4.8-4.7z"/></svg>',
   ck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8.5 12.5l2 2 4.5-4.5"/></svg>',
+  ckq:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 .9-4.5 4.2 1.2 6.4L12 16.8 6.3 19.5l1.2-6.4L3 8.9 9 8z"/></svg>',
   add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   hub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'
 };
@@ -199,7 +200,7 @@ const ICO={
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","ck","nc","list","add"];
+const TAB_ORDER=["dg","ck","ckq","nc","list","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
@@ -213,6 +214,13 @@ const TABS={
       onShow(){currentTipo="ckm";
         /* o que é cada área (câmara, banheiro, produção) mora no meta e é por empresa */
         if(typeof ckAmbCarregar==="function")ckAmbCarregar().then(renderCk);else renderCk();}},
+  ckq:{label:"Qualidade / BPF",tipo:"ckqm",panel:"tab-ckq",
+      icone:ICO.ckq,cor:"#0f5b52",corFundo:"#e0efec",hub:true,
+      subtitle:n=>"",
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="ckqm";
+        const passo=()=>{if(typeof ckAmbCarregar==="function")ckAmbCarregar().then(renderCkq);else renderCkq();};
+        if(typeof ckqCarregarSetores==="function")ckqCarregarSetores().then(passo);else passo();}},
   nc:{label:"Relatório de Não Conformidade - Gerência",tipo:"nc",panel:"tab-nc",
       icone:ICO.nc,cor:"#1668b8",corFundo:"#e7f0f9",hub:true,
       subtitle:n=>"Relatório de Não Conformidade — Gerência — "+n,
@@ -639,6 +647,7 @@ async function recarregarConfig(){
   if(window.ckLoadOpcoes)await ckLoadOpcoes();
   if(window.ncLoadUrgencias)await ncLoadUrgencias();
   if(window.ckAmbCarregarTodas)await ckAmbCarregarTodas();
+  if(window.ckqCarregarSetores)await ckqCarregarSetores();
   if(window.fillExecSelects)fillExecSelects();
   renderTabs();aplicarTextos();
   if(currentStore&&currentTab)updateSubtitle(currentTab);
@@ -1180,7 +1189,7 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:5,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",itens:DATA};}
+function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];

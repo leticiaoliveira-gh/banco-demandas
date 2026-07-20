@@ -169,6 +169,19 @@ async function syncMergeEnvelope(env){
    await metaSet("assinaturaRT",env.assinaturaRT);await metaSet("assinaturaRTMod",env.assinaturaRTMod);
    changed=true;
  }else if(env&&typeof CK_ASSIN_MOD!=="undefined"&&(CK_ASSIN_MOD||"")>(env.assinaturaRTMod||""))localAhead=true;
+ /* setores comerciais da aba Qualidade/BPF (por GRUPO de lojas) */
+ if(env&&env.ckqSetores&&typeof env.ckqSetores==="object"&&(env.ckqSetoresMod||"")>((typeof CKQ_SETORES_MOD!=="undefined"?CKQ_SETORES_MOD:"")||"")){
+   for(const g of Object.keys(env.ckqSetores)){
+     const lista=env.ckqSetores[g];
+     if(Array.isArray(lista)){
+       if(typeof CKQ_SETORES_ALL!=="undefined")CKQ_SETORES_ALL[g]=lista;
+       await metaSet("ckqSetores_"+g,lista);
+     }
+   }
+   if(typeof CKQ_SETORES_MOD!=="undefined")CKQ_SETORES_MOD=env.ckqSetoresMod;
+   await metaSet("ckqSetoresMod",env.ckqSetoresMod);
+   if(window.renderCkq)renderCkq();changed=true;
+ }else if(env&&typeof CKQ_SETORES_MOD!=="undefined"&&(CKQ_SETORES_MOD||"")>(env.ckqSetoresMod||""))localAhead=true;
  /* mapa {empresa:{area:tipo}} do checklist Infra2 */
  if(env&&env.ambTipos&&typeof env.ambTipos==="object"&&(env.ambTiposMod||"")>((typeof CK_AMB_MOD!=="undefined"?CK_AMB_MOD:"")||"")){
    for(const code of Object.keys(env.ambTipos)){
