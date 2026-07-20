@@ -440,10 +440,32 @@
   .card-ph{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:18px 17px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:76px}
   .card-ph .ph-tag{color:#e5484d;font-weight:700;font-size:12px;letter-spacing:.3px}
   .section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-  .store-list{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  .store-row{display:flex;align-items:center;gap:16px;padding:20px 22px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .store-row:last-child{border-bottom:none}
+  /* CADA EMPRESA É UM CARTÃO (20/07). Tirar a linha "N pendentes · N concluídos"
+     deixou as linhas coladas e ela disse: "não é uma empresa grudada na outra". */
+  .store-list{display:flex;flex-direction:column;gap:11px;background:none;border:0;border-radius:0;overflow:visible}
+  .store-row{display:flex;align-items:center;gap:16px;padding:18px 22px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--border);border-radius:12px}
   .store-row:hover{background:#fafafb}
+  /* ===== ORGANIZAR A CAPA — "igual ao meu iPhone": os cartões balançam ===== */
+  .capa-org{background:#fff;color:var(--text);border-radius:13px;padding:15px 17px;margin-bottom:22px;
+    box-shadow:0 6px 24px rgba(0,0,0,.16)}
+  .capa-org .org-tit{font-weight:700;font-size:14px}
+  .capa-org .org-txt{color:var(--muted);font-size:12.5px;margin:5px 0 11px;line-height:1.5}
+  .capa-org .org-op{display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer}
+  .capa-org .org-op input{width:auto}
+  body.organizando-capa #view-home .store-row{animation:balanca .35s infinite;transform-origin:50% 50%}
+  body.organizando-capa #view-home .store-row:nth-child(even){animation-delay:.17s}
+  body.organizando-capa #view-home .store-row.arrastando{animation:none;opacity:.95;z-index:60;
+    position:relative;box-shadow:0 14px 32px rgba(0,0,0,.28);border-color:var(--accent)}
+  @keyframes balanca{0%{transform:rotate(-.5deg)}50%{transform:rotate(.5deg)}100%{transform:rotate(-.5deg)}}
+  @media(prefers-reduced-motion:reduce){body.organizando-capa #view-home .store-row{animation:none}}
+  .capa-alca{flex:none;cursor:grab;font-size:19px;color:var(--muted);padding:4px 6px;border-radius:6px;
+    touch-action:none;user-select:none}
+  .capa-alca:hover{color:var(--accent);background:#eef5f2}
+  .capa-alca:active{cursor:grabbing}
+  /* lápis do título da capa: renomear sem ligar modo nenhum */
+  .tit-lapis{font-size:15px;margin-left:10px;opacity:.55;cursor:pointer;vertical-align:middle}
+  .tit-lapis:hover{opacity:1}
   .store-info{flex:1;min-width:160px}
   .store-title{font-size:16px;font-weight:700}
   .store-sub{color:var(--muted);font-size:12.5px;margin-top:3px}

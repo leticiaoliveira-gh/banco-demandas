@@ -62,15 +62,25 @@ function renderRtInfo(){
  const el=document.getElementById("rt-linha");
  if(el)el.textContent="👩‍⚕️ "+(RT_INFO||"[nome-removido] (Nutricionista de Produção – RT) · CRN: toque p/ preencher")+"  ✎";
 }
+/* Renomear a tela inicial. Ela cobriu em 20/07 ("NÃO CONSIGO EDITARRRR / dica: troca
+   nome"): o modo edição existia, mas exigia ligar um botão antes — e nada na tela
+   dizia isso. Renomear virou uma ação direta, igual à do CRN, que ela já usa. */
+async function renomearCapa(){
+  const atual=txt("capa.titulo","Central de Empresas");
+  const v=prompt("Como você quer chamar esta tela?\n\n(Ex.: Central de Empresas, CENTRAL, Overview, Início)",atual);
+  if(v===null)return;
+  await setTexto("capa.titulo",v,"Central de Empresas");
+  aplicarTextos();toast("Nome trocado ✓ — pode voltar atrás na seta ← ou no Ctrl+Z");
+}
 async function editarRtInfo(){
  const v=prompt("Informações da Responsável Técnica (aparecem na capa):",RT_INFO||"[nome-removido] (Nutricionista de Produção – RT) · CRN: ");
  if(v===null)return;
  RT_INFO=v.trim();RT_INFO_MOD=nowISO();
- await metaSet("rtInfo",RT_INFO);await metaSet("rtInfoMod",RT_INFO_MOD);
+ await metaSetU("rtInfo",RT_INFO);await metaSetU("rtInfoMod",RT_INFO_MOD);
  dataChanged();renderRtInfo();toast("Atualizado ✓");
 }
 function empresa(code){return EMPRESAS.find(e=>e.code===code);}
-async function saveEmpresas(){EMPRESAS_MOD=nowISO();await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);dataChanged();}
+async function saveEmpresas(){EMPRESAS_MOD=nowISO();await metaSetU("empresas",EMPRESAS);await metaSetU("empresasMod",EMPRESAS_MOD);dataChanged();}
 
 /* ===== Áreas por empresa na SINCRONIZAÇÃO (espelho do meta areas_<code>) ===== */
 let AREAS_ALL={},AREAS_MOD="";
@@ -112,7 +122,7 @@ async function loadPendencias(){
  }
  PENDENCIAS=v;
 }
-async function savePendencias(){PENDENCIAS_MOD=nowISO();await metaSet("pendencias",PENDENCIAS);await metaSet("pendenciasMod",PENDENCIAS_MOD);dataChanged();}
+async function savePendencias(){PENDENCIAS_MOD=nowISO();await metaSetU("pendencias",PENDENCIAS);await metaSetU("pendenciasMod",PENDENCIAS_MOD);dataChanged();}
 function gerirPendencias(){
  const linhas=PENDENCIAS.map((p,i)=>
   `<div class="nc-area-row"><label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer;font-weight:400;flex:1">
@@ -265,7 +275,7 @@ function rotuloAba(t){return (ABA_NOMES&&ABA_NOMES[t])||(TABS[t]&&TABS[t].label)
 async function renomearAba(t,novo){
   novo=String(novo||"").trim();if(!novo||novo===rotuloAba(t))return;
   ABA_NOMES[t]=novo;ABA_NOMES_MOD=nowISO();
-  await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
+  await metaSetU("abaNomes",ABA_NOMES);await metaSetU("abaNomesMod",ABA_NOMES_MOD);
   renderTabs();updateSubtitle(currentTab);dataChanged();toast("Nome do quadro atualizado ✓");
 }
 /* ===== LINHA LIVRE DE CADA QUADRO (regra de Lê, 20/07: "títulos independentes") =====
@@ -280,7 +290,7 @@ async function setAbaSub(chave,valor){
   if(valor===(ABA_SUB[chave]||""))return;
   if(valor)ABA_SUB[chave]=valor;else delete ABA_SUB[chave];
   ABA_SUB_MOD=nowISO();
-  await metaSet("abaSub",ABA_SUB);await metaSet("abaSubMod",ABA_SUB_MOD);
+  await metaSetU("abaSub",ABA_SUB);await metaSetU("abaSubMod",ABA_SUB_MOD);
   dataChanged();toast("Salvo ✓");
 }
 
@@ -295,7 +305,7 @@ async function setTexto(chave,valor,padrao){
   valor=String(valor||"").trim();
   if(!valor||valor===padrao){delete TEXTOS[chave];}else{TEXTOS[chave]=valor;}
   TEXTOS_MOD=nowISO();
-  await metaSet("textos",TEXTOS);await metaSet("textosMod",TEXTOS_MOD);
+  await metaSetU("textos",TEXTOS);await metaSetU("textosMod",TEXTOS_MOD);
   dataChanged();
 }
 /* aplica os textos guardados em tudo que tem data-txt (chamado a cada render) */
@@ -350,7 +360,7 @@ async function restaurarTextos(){
   if(!confirm("Restaurar TODOS os textos do site para o original?\n\n"
     +Object.keys(TEXTOS).length+" texto(s) que você escreveu serão desfeitos."))return;
   TEXTOS={};TEXTOS_MOD=nowISO();
-  await metaSet("textos",TEXTOS);await metaSet("textosMod",TEXTOS_MOD);
+  await metaSetU("textos",TEXTOS);await metaSetU("textosMod",TEXTOS_MOD);
   document.querySelectorAll("[data-txt]").forEach(el=>{if(el.dataset.padrao!==undefined)el.textContent=el.dataset.padrao;});
   aplicarTextos();dataChanged();toast("Textos restaurados ✓");
 }
@@ -575,8 +585,19 @@ function histFechar(){
   HIST_POS=HIST.length-1;HIST_ATUAL=null;
   atualizarBotoesHist();
 }
+/* nome do passo em português — é o que aparece no toast e na dica das setas */
+const META_NOME={textos:"o texto",abaNomes:"o nome do quadro",abaSub:"a linha do título",
+  empresas:"as empresas",pendencias:"as pendências",rtInfo:"os seus dados",
+  dgOpcoes:"as prioridades",ncUrgencias:"as urgências",ckOpcoes:"o checklist"};
 function histRotulo(p){
   const n=p.mudancas.length;
+  /* passo só de configuração: dizer O QUE mudou, não "1 alteração" */
+  const metas=p.mudancas.filter(m=>m.tipo==="meta");
+  if(metas.length===p.mudancas.length&&metas.length){
+    const nomes=[...new Set(metas.map(m=>META_NOME[String(m.chave).replace(/Mod$/,"")]).filter(Boolean))];
+    if(nomes.length)return nomes.join(" e ");
+    return "a configuração";
+  }
   const criou=p.mudancas.filter(m=>!m.antes).length,apagou=p.mudancas.filter(m=>!m.depois).length;
   if(criou===n)return n===1?"criação":n+" criações";
   if(apagou===n)return n===1?"exclusão":n+" exclusões";
@@ -586,12 +607,15 @@ async function histAplicar(passo,voltando){
   HIST_LIGADO=false;
   try{
     const mudancas=voltando?[...passo.mudancas].reverse():passo.mudancas;
+    let mexeuConfig=false;
     for(const m of mudancas){
       const alvo=voltando?m.antes:m.depois;
+      if(m.tipo==="meta"){await metaSet(m.chave,alvo);mexeuConfig=true;continue;}
       if(alvo){await new Promise(r=>{const q=tx(STORE,"readwrite").put(alvo);q.onsuccess=()=>r();});}
       else{await new Promise(r=>{const q=tx(STORE,"readwrite").delete(m.id);q.onsuccess=()=>r();});}
     }
     DATA=await getAll();
+    if(mexeuConfig)await recarregarConfig();
     if(typeof renderDG==="function"&&currentTab==="dg")renderDG();
     if(typeof renderCk==="function"&&currentTab==="ck")renderCk();
     /* telas em tela cheia da aba Checklists: repintar, senão o desfazer muda o
@@ -633,6 +657,29 @@ function atualizarBotoesHist(){
 }
 function metaGet(k){return new Promise(r=>{const q=tx("meta","readonly").get(k);q.onsuccess=()=>r(q.result?q.result.v:null);q.onerror=()=>r(null);});}
 function metaSet(k,v){return new Promise(r=>{const q=tx("meta","readwrite").put({k,v});q.onsuccess=()=>r();});}
+/* ===== metaSetU — GRAVAÇÃO DE CONFIGURAÇÃO QUE DÁ PARA DESFAZER (20/07) =====
+   BURACO QUE ELA ACHOU: o Ctrl+Z e as setas só conheciam itens (putItem/delDB).
+   Tudo que é TEXTO e CONFIGURAÇÃO — título do site, nome de quadro, a linha livre,
+   nome de empresa, pendências, cor de prioridade — passava por metaSet, que não
+   registrava nada. Ela editou o título e não tinha como voltar em lugar nenhum.
+   Agora essas gravações passam por aqui e entram no mesmo histórico dos itens. */
+async function metaSetU(k,v){
+  if(HIST_LIGADO)await histRegistrar({tipo:"meta",chave:k,
+    antes:await metaGet(k),depois:v===undefined?null:JSON.parse(JSON.stringify(v))});
+  return metaSet(k,v);
+}
+/* depois de desfazer/refazer uma configuração, o valor tem de voltar também para a
+   memória — senão o banco volta e a tela continua mostrando o texto antigo */
+async function recarregarConfig(){
+  await loadEmpresas();await loadPendencias();await loadRtInfo();
+  await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
+  if(window.dgLoadOpcoes)await dgLoadOpcoes();
+  if(window.ckLoadOpcoes)await ckLoadOpcoes();
+  if(window.ncLoadUrgencias)await ncLoadUrgencias();
+  renderTabs();aplicarTextos();
+  if(currentStore&&currentTab)updateSubtitle(currentTab);
+  else if(currentStore)showHub();
+}
 
 /* O banco inicial (SEED) foi removido do código público por privacidade:
    dados reais ficam apenas no navegador dos dispositivos da usuária, nos
@@ -671,6 +718,23 @@ async function renderHome(){
      <div class="sub" style="margin-top:10px;line-height:1.5"><b><span data-txt="capa.ondeParamos">Onde paramos</span>${quando}:</b><br>${ondeParamos}</div>
      <div style="margin-top:10px"><button class="btn ghost sm" onclick="gerirPendencias()"><span data-txt="capa.verLista">📋 Ver lista completa</span></button></div></div>`;
  renderHomeStats(vivos);
+ /* painel do modo organizar: o que ela quer ver na capa */
+ const po=document.getElementById("capa-organizar");
+ if(po){
+  po.hidden=!CAPA_ORGANIZANDO;
+  po.innerHTML=!CAPA_ORGANIZANDO?"":`
+    <div class="org-tit">↕ Organizando a capa</div>
+    <p class="org-txt">Segure a alça <b>⠿</b> de cada empresa e arraste para a ordem que você quiser.
+      Marque abaixo o que deve aparecer nesta tela.</p>
+    <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarPendencias?"checked":""}
+      onchange="capaMostrar('mostrarPendencias',this.checked)"> Card de <b>Pendências de configuração</b></label>
+    <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarNumeros?"checked":""}
+      onchange="capaMostrar('mostrarNumeros',this.checked)"> Faixa com os <b>números</b> (Quadro Geral, Urgentes, Manutenções, Inspeções)</label>
+    <button class="btn sm" style="margin-top:12px" onclick="toggleOrganizarCapa()">✓ Concluir</button>`;
+ }
+ /* o card de pendências também é opcional agora */
+ const pc=document.getElementById("home-cards");
+ if(pc)pc.hidden=!CAPA_CFG.mostrarPendencias;
  /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) */
  const topB=document.getElementById("backup-top");
  if(topB)topB.innerHTML=`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
@@ -688,12 +752,19 @@ async function renderHome(){
  let lista=EMPRESAS.filter(e=>
    (!_q||(e.name+" "+e.code).toLowerCase().includes(_q))&&
    (_f===""||(_f==="ativas"?e.ativa:!e.ativa)));
- lista=lista.slice().sort((a,b)=>_o==="pend"?_pendDe(b)-_pendDe(a):a.name.localeCompare(b.name,"pt-BR"));
+ /* a ORDEM QUE ELA ARRASTOU manda, quando existe; A–Z é só o padrão de fábrica */
+ const temOrdem=EMPRESAS.some(e=>typeof e.ordem==="number");
+ lista=lista.slice().sort((a,b)=>
+   _o==="pend"?_pendDe(b)-_pendDe(a)
+   :(temOrdem?((a.ordem??999)-(b.ordem??999)):a.name.localeCompare(b.name,"pt-BR")));
  if(!lista.length)html=`<div class="store-row"><div class="store-info"><div class="store-sub">Nenhuma empresa encontrada.</div></div></div>`;
  for(const emp of lista){
-   /* subtítulo "N pendentes · N concluídos" REMOVIDO a pedido dela (20/07):
-      a contagem já está nos cards do topo; embaixo do nome só poluía. */
-   html+=`<div class="store-row">
+   /* subtítulo "N pendentes · N concluídos" REMOVIDO a pedido dela (20/07).
+      Mas tirar a linha deixou os cartões colados ("uma empresa grudada na outra"):
+      por isso cada empresa virou um CARTÃO PRÓPRIO, com respiro entre eles. */
+   html+=`<div class="store-row" data-code="${esc(emp.code)}">
+     ${CAPA_ORGANIZANDO?`<span class="capa-alca" title="Segure e arraste para mudar a ordem"
+        onpointerdown="capaArrIni(event,'${emp.code}')">⠿</span>`:""}
      <div class="store-info">
        <div class="store-title">${esc(emp.name)} (${esc(emp.code)})</div>
      </div>
@@ -728,13 +799,81 @@ async function renderHome(){
    Pedido dela: "cards só com coisas úteis e funcionais" no topo, e aproveitar o
    lado direito vazio. Cada card RESPONDE UMA PERGUNTA e é um atalho: clicou, entra
    na empresa ativa já no quadro certo. Sem empresa ativa, avisa em vez de não fazer nada. */
+/* ===== ORGANIZAR A CAPA (pedido dela, 20/07: "igual ao meu iPhone — pressiona,
+   fica balançando e deixa editar") =====
+   Liga o modo, os cartões das empresas balançam, ela arrasta pela alça para
+   colocar na ordem que quiser, e escolhe o que aparece na capa.
+   A ORDEM é dela e viaja entre os aparelhos (campo `ordem` na empresa). */
+let CAPA_CFG={mostrarNumeros:false,mostrarPendencias:true},CAPA_CFG_MOD="";
+let CAPA_ORGANIZANDO=false;
+async function loadCapaCfg(){
+  const v=await metaGet("capaCfg");
+  if(v&&typeof v==="object")CAPA_CFG={...CAPA_CFG,...v};
+  CAPA_CFG_MOD=await metaGet("capaCfgMod")||"";
+}
+async function salvarCapaCfg(){
+  CAPA_CFG_MOD=nowISO();
+  await metaSetU("capaCfg",CAPA_CFG);await metaSetU("capaCfgMod",CAPA_CFG_MOD);
+  dataChanged();await renderHome();
+}
+async function capaMostrar(qual,val){CAPA_CFG[qual]=!!val;await salvarCapaCfg();
+  toast(val?"Passou a aparecer na capa ✓":"Saiu da capa ✓");}
+function toggleOrganizarCapa(){
+  CAPA_ORGANIZANDO=!CAPA_ORGANIZANDO;
+  document.body.classList.toggle("organizando-capa",CAPA_ORGANIZANDO);
+  renderHome();
+  toast(CAPA_ORGANIZANDO?"Arraste pela alça ⠿ para colocar na ordem que você quiser"
+                        :"Capa organizada ✓");
+}
+/* arraste das empresas — mesma ideia da alça do Quadro Geral: os handlers ficam no
+   DOCUMENT (na alça, mover o nó no DOM cancela a captura e o gesto morre) */
+let CAPA_ARR=null;
+function capaArrIni(ev,code){
+  if(!CAPA_ORGANIZANDO)return;
+  ev.preventDefault();
+  const linha=ev.currentTarget.closest(".store-row");if(!linha)return;
+  CAPA_ARR={code,linha,y0:ev.clientY};
+  linha.classList.add("arrastando");
+  document.addEventListener("pointermove",capaArrMove);
+  document.addEventListener("pointerup",capaArrFim,{once:true});
+}
+function capaArrMove(ev){
+  if(!CAPA_ARR)return;
+  CAPA_ARR.linha.style.transform="translateY("+(ev.clientY-CAPA_ARR.y0)+"px)";
+  const linhas=[...document.querySelectorAll("#store-list .store-row")].filter(l=>l!==CAPA_ARR.linha);
+  for(const l of linhas){
+    const r=l.getBoundingClientRect();
+    if(ev.clientY>r.top&&ev.clientY<r.bottom){
+      const meio=r.top+r.height/2;
+      l.parentNode.insertBefore(CAPA_ARR.linha,ev.clientY<meio?l:l.nextSibling);
+      CAPA_ARR.y0=ev.clientY;CAPA_ARR.linha.style.transform="";
+      break;
+    }
+  }
+}
+async function capaArrFim(){
+  document.removeEventListener("pointermove",capaArrMove);
+  if(!CAPA_ARR)return;
+  CAPA_ARR.linha.classList.remove("arrastando");CAPA_ARR.linha.style.transform="";
+  CAPA_ARR=null;
+  /* grava a ordem que ficou na tela */
+  const codes=[...document.querySelectorAll("#store-list .store-row")].map(l=>l.dataset.code);
+  codes.forEach((c,i)=>{const e=empresa(c);if(e)e.ordem=i;});
+  await saveEmpresas();await renderHome();toast("Ordem salva ✓");
+}
 function abrirQuadro(tab){
  const ativas=EMPRESAS.filter(e=>e.ativa);
  if(ativas.length!==1){toast("Deixe ativa a empresa em que você está para entrar direto");return;}
  enterStore(ativas[0].code);showTab(tab);
 }
+/* ERRO MEU (20/07): ela tinha ANOTADO "colocar um card de Quadro Geral na capa?" com
+   interrogação — era PERGUNTA, e eu tratei como pedido e enchi a capa de cards.
+   Resposta dela: "por que inseriu cards ali sem eu pedir? retorna sem".
+   Agora vêm DESLIGADOS; ela liga em Organizar a capa se um dia quiser. */
 function renderHomeStats(vivos){
  const box=document.getElementById("home-stats");if(!box)return;
+ if(!CAPA_CFG.mostrarNumeros){box.innerHTML="";box.hidden=true;return;}
+ box.hidden=false;
  const cod=EMPRESAS.map(e=>e.code);
  const dgs=vivos.filter(d=>d.tipo==="dg");
  const feito=(typeof DG_CHAVE_CONCLUIDO!=="undefined")?DG_CHAVE_CONCLUIDO:"concluido";
@@ -1024,7 +1163,7 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -1280,7 +1419,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();
  goHome();

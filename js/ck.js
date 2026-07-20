@@ -49,8 +49,8 @@ async function ckLoadOpcoes(){
 }
 async function ckSalvarOpcoes(){
   CK_OPC_MOD=nowISO();
-  await metaSet("ckOpcoes",{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS});
-  await metaSet("ckOpcoesMod",CK_OPC_MOD);
+  await metaSetU("ckOpcoes",{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS});
+  await metaSetU("ckOpcoesMod",CK_OPC_MOD);
   dataChanged();renderCk();
 }
 /* rótulo de uma opção, caindo no padrão se ela apagou/renomeou */
@@ -291,8 +291,8 @@ async function ckModeloPronto(){
       {chave:"o_media",rotulo:"Média",cor:"#b3730a",fundo:clarear("#b3730a"),ruim:false},
       {chave:"o_alta",rotulo:"Alta",cor:"#e5484d",fundo:clarear("#e5484d"),ruim:true}]};
     CK_OPC_MOD=nowISO();
-    await metaSet("ckOpcoes",{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS});
-    await metaSet("ckOpcoesMod",CK_OPC_MOD);
+    await metaSetU("ckOpcoes",{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS});
+    await metaSetU("ckOpcoesMod",CK_OPC_MOD);
   }
   const o={uid:newUid(),mod:nowISO(),tipo:"ckm",loja:ckLojaBase(),escopo:"",
     criado:"modelo",criadoEm:today(),ordem:ckModelos().length,ativo:true,

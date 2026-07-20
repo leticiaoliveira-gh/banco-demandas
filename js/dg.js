@@ -38,9 +38,9 @@ async function dgLoadOpcoes(){
 }
 async function dgSalvarOpcoes(){
   DG_OPC_MOD=nowISO();
-  await metaSet("dgOpcoes",{prios:DG_PRIOS,sits:DG_SIT,
+  await metaSetU("dgOpcoes",{prios:DG_PRIOS,sits:DG_SIT,
     papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}});
-  await metaSet("dgOpcoesMod",DG_OPC_MOD);
+  await metaSetU("dgOpcoesMod",DG_OPC_MOD);
   dataChanged();renderDG();
 }
 const DG_SEM={rotulo:"SEM PRIORIDADE",cor:"#8a8b96",fundo:"#f1f1f3"};

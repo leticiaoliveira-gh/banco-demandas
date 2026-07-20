@@ -80,7 +80,7 @@ async function ncLoadUrgencias(){
 async function ncSalvarUrgencias(){
   NC_URG_MOD=nowISO();
   const puro={};for(const k of ordenarOpc(NC_URG))puro[k]=NC_URG[k];
-  await metaSet("ncUrgencias",puro);await metaSet("ncUrgenciasMod",NC_URG_MOD);
+  await metaSetU("ncUrgencias",puro);await metaSetU("ncUrgenciasMod",NC_URG_MOD);
   dataChanged();if(window.renderNC)renderNC();
 }
 /* usa o MESMO gerenciador do Quadro Geral, para a experiência ser igual em todas as abas */
