@@ -212,6 +212,7 @@ function ckListaModelosHTML(){
       <div class="ck-card-pe">
         <button class="btn sm" ${n?"":"disabled title='Adicione perguntas antes de preencher'"} onclick="ckIniciar('${m.uid}')">▶ <span data-txt="ck.preencher">Preencher</span></button>
         ${porArea&&typeof ckTriagem==="function"?`<button class="btn ghost sm" onclick="ckTriagem('${m.uid}')" title="Ligar as manutenções que você já tem às perguntas">🔗 <span data-txt="ck.tri.bt">Ligar minhas manutenções</span></button>`:""}
+        ${porArea&&typeof ckHistorico==="function"?`<button class="btn ghost sm" onclick="ckHistorico('${m.uid}')" title="Monta um relatório já concluído com tudo que você já relatou">📅 <span data-txt="ck.hist.bt">Montar o relatório do mês</span></button>`:""}
         <button class="btn ghost sm" onclick="ckAbrirConstrutor('${m.uid}')" title="Editar as perguntas">✎ <span data-txt="ck.editar">Editar perguntas</span></button>
         <button class="btn ghost sm" onclick="ckRenomear('${m.uid}')" title="Renomear o checklist">✏️</button>
         <button class="btn ghost sm" onclick="ckDuplicarModelo('${m.uid}')" title="Duplicar o checklist inteiro">🗐</button>
@@ -247,7 +248,8 @@ function ckListaPreenchHTML(status){
           ${status==="concluido"
             ?`<button class="btn ghost sm" onclick="ckVer('${p.uid}')" title="Abrir a inspeção">🔍</button>
               <button class="btn ghost sm" onclick="ckPDF('${p.uid}')" title="Relatório para a gerência: resumo e o que precisa ser corrigido">🖨</button>
-              <button class="btn ghost sm" onclick="ckPDF('${p.uid}',true)" title="Documento completo, item por item (para a Vigilância Sanitária)">📄</button>`
+              <button class="btn ghost sm" onclick="ckPDF('${p.uid}',true)" title="Documento completo, item por item (para a Vigilância Sanitária)">📄</button>
+              ${typeof ckMudarData==="function"?`<button class="btn ghost sm" onclick="ckMudarData('${p.uid}')" title="Mudar a data deste relatório">📅</button>`:""}`
             :`<button class="btn sm" onclick="ckRetomar('${p.uid}')" title="Continuar de onde parou">▶ <span data-txt="ck.retomar">Retomar</span></button>`}
           <button class="btn ghost sm" onclick="ckExcluirPreench('${p.uid}')" title="Excluir esta inspeção">🗑</button>
         </td></tr>`;}).join("")}</tbody></table></div>`;
@@ -1348,6 +1350,7 @@ function ckDesenhaResumo(soLeitura){
   const nota=p.status==="concluido"&&p.nota?p.nota:ckNota(p);
   const inc=ckInconformes(p);
   const cls=(typeof ckClassifica==="function")?ckClassifica(nota.pct):{rot:"",cor:""};
+  const prog=(typeof ckProgressoPontos==="function")?ckProgressoPontos(p):null;
   let el=document.getElementById("ck-preench");
   if(!el){el=document.createElement("div");el.id="ck-preench";el.className="ck-preench";document.body.appendChild(el);}
   document.body.style.overflow="hidden";
@@ -1356,16 +1359,34 @@ function ckDesenhaResumo(soLeitura){
       <span class="ck-pr-nome">${esc(p.modeloTitulo||"")}</span>
     </div>
     <div class="ck-pr-box larga">
-      <div class="ck-pr-h"><h2 data-txt="ck.fim.titulo">Responsável pela inspeção</h2>
-        <span class="ck-pr-cont">${perg.length}/${perg.length}</span></div>
+      <div class="ck-pr-h">
+        ${p.origem==="historico"
+          ?`<h2>${esc(p.modeloTitulo||"Relatório do mês")}</h2>
+            <span class="ck-pr-cont">${esc(brDate(p.concluidoEm||p.criadoEm||""))}
+              <button class="ck-mini" onclick="ckMudarData('${p.uid}')" title="Mudar a data">📅</button></span>`
+          :`<h2 data-txt="ck.fim.titulo">Responsável pela inspeção</h2>
+            <span class="ck-pr-cont">${perg.length}/${perg.length}</span>`}
+      </div>
 
       <div class="ck-kpis">
-        <div class="ck-kpi"><b class="${nota.pct!=null&&nota.pct<70?"ruim":""}">${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b>
-          <span data-txt="ck.kpi.nota">Nota</span>
-          ${cls.rot?`<i class="ck-cls" style="color:${cls.cor}">${esc(cls.rot)}</i>`:""}</div>
-        <div class="ck-kpi"><b class="${inc.length?"ruim":""}">${inc.length}</b><span data-txt="ck.kpi.inc">Inconformes</span></div>
-        <div class="ck-kpi"><b>${Object.keys(p.respostas||{}).length}/${perg.length}</b><span data-txt="ck.kpi.resp">Respondidas</span></div>
+        ${p.origem==="historico"
+          /* consolidação de ocorrências não tem percentual de conformidade — ver ckPDF */
+          ?`<div class="ck-kpi"><b>${prog?prog.total:inc.length}</b><span>Pontos levantados</span></div>
+            <div class="ck-kpi"><b class="ok">${prog?prog.feitos:0}</b><span>Resolvidos</span></div>
+            <div class="ck-kpi"><b class="${prog&&prog.total-prog.feitos?"ruim":""}">${prog?prog.total-prog.feitos:0}</b><span>Em aberto</span></div>`
+          :`<div class="ck-kpi"><b class="${nota.pct!=null&&nota.pct<70?"ruim":""}">${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b>
+              <span data-txt="ck.kpi.nota">Nota</span>
+              ${cls.rot?`<i class="ck-cls" style="color:${cls.cor}">${esc(cls.rot)}</i>`:""}</div>
+            <div class="ck-kpi"><b class="${inc.length?"ruim":""}">${inc.length}</b><span data-txt="ck.kpi.inc">Inconformes</span></div>
+            <div class="ck-kpi"><b>${Object.keys(p.respostas||{}).length}/${perg.length}</b><span data-txt="ck.kpi.resp">Respondidas</span></div>`}
       </div>
+
+      ${prog&&prog.total?`<div class="ck-prog">
+        <div class="bar"><span style="width:${Math.round(prog.feitos/prog.total*100)}%"></span></div>
+        <b>${prog.feitos} de ${prog.total}</b> já resolvidos
+        ${prog.feitos===prog.total?`<i class="ok">tudo resolvido ✓</i>`
+          :`<i>${prog.total-prog.feitos} em aberto</i>`}
+      </div>`:""}
 
       ${inc.length?`<div class="ck-pend">
         <b>${inc.length} ponto${inc.length===1?"":"s"} a corrigir.</b>
@@ -1374,15 +1395,25 @@ function ckDesenhaResumo(soLeitura){
           :`<span>Todos já com plano de ação ✓</span>`}
       </div>`:""}
 
-      <details class="ck-resumo"${inc.length?" open":""}><summary data-txt="ck.resumo">Resumo das respostas</summary>
-        ${perg.map((c,i)=>{
+      <details class="ck-resumo"${inc.length?" open":""}><summary data-txt="ck.resumo">${
+        prog&&prog.total?"O que precisa ser corrigido":txt("ck.resumo","Resumo das respostas")}</summary>
+        ${(prog&&prog.total?inc:perg).map((c,i)=>{
           const q=c.q,r=(p.respostas||{})[c.chave]||{},ruim=ckRuim(q,r);
+          /* pontos que vieram das manutenções dela: cada um com o seu "concluído" */
+          const meus=(typeof ckItensDaResposta==="function")?ckItensDaResposta(r):[];
           return `<div class="ck-res-lin${ruim?" ruim":""}">
             <span class="n">${i+1}</span>
             <div class="tx"><b>${esc(q.titulo||"")}</b>
               ${c.area?`<span class="a">${ckIcoArea(c.area)} ${esc(c.area)}</span>`:""}
               <span class="v">${esc(ckValorTexto(q,r))}</span>
-              ${r.comentario?`<span class="c">${esc(r.comentario)}</span>`:""}
+              ${meus.length?`<div class="ck-pontos">${meus.map(d=>{
+                 const ok=d.status==="Concluído";
+                 return `<label class="ck-ponto${ok?" ok":""}">
+                   <input type="checkbox" ${ok?"checked":""}
+                     onchange="ckPontoConcluir('${c.chave}','${d.uid}',this.checked)">
+                   <span class="t">${esc(d.nc||"")}</span>
+                   <em>${ok?"concluído":"pendente"}</em></label>`;}).join("")}</div>`
+               :(r.comentario?`<span class="c">${esc(r.comentario)}</span>`:"")}
               ${(r.fotos||[]).length?`<span class="f">${r.fotos.length} foto(s)</span>`:""}
               ${ruim?`<button class="btn ghost sm" onclick="ckTratativa('${c.chave}')">${r.tratativa?"✎ Ver plano de ação":"⚠ Abrir plano de ação"}</button>`:""}
             </div></div>`;}).join("")}
@@ -1591,6 +1622,8 @@ function ckPDF(uid,completo){
   const nota=p.nota||ckNota(p);
   const inc=ckInconformes(p);
   const cls=(typeof ckClassifica==="function")?ckClassifica(nota.pct):{rot:"",cor:"#1d6b57",grupo:""};
+  const prog=(typeof ckProgressoPontos==="function")?ckProgressoPontos(p):null;
+  const hist=p.origem==="historico";
   const loja=nomeCurto((empresa(p.loja)||{}).name||p.loja||"");
   const quem=p.respondente||RT_INFO||RT_DEFAULT;
   /* o nome dela vem antes do "·" do CRN — o documento é assinado por ela */
@@ -1635,10 +1668,15 @@ function ckPDF(uid,completo){
       ${porArea[a].map(c=>{
         const q=c.q,r=(p.respostas||{})[c.chave]||{},t=r.tratativa||{};
         const acao=t.oque||q.acaoPadrao||"";
+        const meus=(typeof ckItensDaResposta==="function")?ckItensDaResposta(r):[];
+        const todosOk=meus.length&&meus.every(d=>d.status==="Concluído");
         nProb++;
-        return `<div class="p">
-          <div class="ph"><span class="n">${nProb}</span><b>${esc(q.titulo||"")}</b></div>
-          ${r.comentario?`<p class="obs"><i>Observado:</i> ${esc(r.comentario)}</p>`:""}
+        return `<div class="p${todosOk?" ok":""}">
+          <div class="ph"><span class="n">${nProb}</span><b>${esc(q.titulo||"")}</b>
+            ${todosOk?`<span class="sel">RESOLVIDO</span>`:""}</div>
+          ${meus.length?`<ul class="pts">${meus.map(d=>
+             `<li class="${d.status==="Concluído"?"ok":""}">${d.status==="Concluído"?"☑":"☐"} ${esc(d.nc||"")}</li>`).join("")}</ul>`
+           :(r.comentario?`<p class="obs"><i>Observado:</i> ${esc(r.comentario)}</p>`:"")}
           ${(r.fotos||[]).length?`<div class="fotos">${r.fotos.map(f=>`<img src="${f}">`).join("")}</div>`:""}
           ${acao?`<p class="ac"><i>Ação corretiva:</i> ${esc(acao)}</p>`:""}
           ${(t.quem||t.prazo)?`<p class="resp">${t.quem?`<b>Responsável:</b> ${esc(t.quem)}`:""}${t.prazo?`   <b>Prazo:</b> ${brDate(t.prazo)}`:""}${t.custo?`   <b>Custo estimado:</b> ${esc(t.custo)}`:""}</p>`:""}
@@ -1660,18 +1698,23 @@ function ckPDF(uid,completo){
   /* resumo em TEXTO — é o que vai no WhatsApp e no corpo do e-mail */
   const dataBR=brDate(p.concluidoEm||p.criadoEm||today());
   const resumoTxt=[
-    "*Relatório de Infraestrutura e Manutenção*",
+    "*"+(hist?(p.modeloTitulo||"Relatório do mês"):"Relatório de Infraestrutura e Manutenção")+"*",
     loja+" — "+dataBR,
-    "",
-    "Conformidade: *"+(nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—")+"* ("+cls.rot+")",
-    "Pontos a corrigir: *"+inc.length+"*",
-    "Itens avaliados: "+nota.total+(p.areas&&p.areas.length?"  |  Áreas visitadas: "+p.areas.length:""),
     ""
-  ].concat(inc.length?["*O que precisa ser corrigido:*"].concat(
+  ].concat(hist
+    ?["Pontos levantados: *"+(prog?prog.total:inc.length)+"*",
+      "Já resolvidos: *"+(prog?prog.feitos:0)+"*   |   Em aberto: *"+(prog?prog.total-prog.feitos:0)+"*",
+      (p.areas&&p.areas.length?"Áreas: "+p.areas.length:""),""].filter(x=>x!==null)
+    :["Conformidade: *"+(nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—")+"* ("+cls.rot+")",
+      "Pontos a corrigir: *"+inc.length+"*",
+      "Itens avaliados: "+nota.total+(p.areas&&p.areas.length?"  |  Áreas visitadas: "+p.areas.length:""),""])
+  .concat(inc.length?["*"+(hist?"Não conformidades levantadas:":"O que precisa ser corrigido:")+"*"].concat(
     inc.slice(0,15).map((c,i)=>{
       const r=(p.respostas||{})[c.chave]||{},t=r.tratativa||{};
+      const meus=(typeof ckItensDaResposta==="function")?ckItensDaResposta(r):[];
       return (i+1)+". "+(c.area?"["+c.area+"] ":"")+(c.q.titulo||"")
-        +(r.comentario?"\n   → "+r.comentario:"")
+        +(meus.length?meus.map(d=>"\n   "+(d.status==="Concluído"?"[OK]":"[  ]")+" "+(d.nc||"")).join("")
+                     :(r.comentario?"\n   → "+r.comentario:""))
         +(t.prazo?"\n   Prazo: "+brDate(t.prazo):"");}),
     inc.length>15?["… e mais "+(inc.length-15)+" ponto(s). O detalhe completo está no PDF."]:[])
    :["Nenhuma não conformidade encontrada nesta inspeção."])
@@ -1711,6 +1754,18 @@ function ckPDF(uid,completo){
   .m b{display:block;font-size:21px;font-weight:650;line-height:1.1}
   .m span{font-size:9px;color:#8a8b96;text-transform:uppercase;letter-spacing:.6px}
   .m.al b{color:#c0212a}
+  .m b.vd{color:#12b76a}
+  .progr{margin:-6px 0 16px;font-size:10.5px;color:#6b7280}
+  .progr .bb{background:#eceef0;border-radius:4px;height:7px;overflow:hidden;margin-bottom:5px}
+  .progr .bb span{display:block;height:7px;background:#12b76a;border-radius:4px}
+  .progr b{color:#22242e}
+  .nota-hist{font-size:9.5px;color:#8a8b96;font-style:italic;margin:-8px 0 16px;line-height:1.5}
+  .p.ok{border-left-color:#12b76a;background:#f6fdf9}
+  .p .sel{font-size:8.5px;font-weight:700;color:#0d8a52;background:#d1fae5;
+    border-radius:4px;padding:2px 7px;letter-spacing:.5px}
+  ul.pts{margin:6px 0 0 23px;padding:0;list-style:none}
+  ul.pts li{font-size:10.8px;color:#3f4149;margin-bottom:2px}
+  ul.pts li.ok{color:#0d8a52;text-decoration:line-through;opacity:.75}
 
   h2.tit{font-size:12px;text-transform:uppercase;letter-spacing:1.3px;color:#17756a;
          margin:22px 0 9px;padding-bottom:5px;border-bottom:1.5px solid #d9e2df}
@@ -1728,6 +1783,10 @@ function ckPDF(uid,completo){
   .ars{display:flex;flex-wrap:wrap;gap:6px}
   .ar{border:1px solid #dfe2e6;border-left-width:3px;border-radius:7px;padding:4px 10px;font-size:10.5px}
   .ar b{margin-left:7px;font-size:11px}
+  .nota.lev{border-color:#17756a}
+  .nota.lev b{color:#17756a;font-size:36px}
+  .nota.lev .cl{color:#17756a}
+  .legenda{font-size:9px;color:#9aa0a8;margin-top:5px;font-style:italic}
 
   /* ---- os problemas ---- */
   .area{margin-bottom:14px;page-break-inside:avoid}
@@ -1822,38 +1881,77 @@ function ckPDF(uid,completo){
   <\/script>
 
   <div class="cap">
-    <div class="et">Relatório de Inspeção</div>
+    <div class="et">${hist?"Relatório mensal":"Relatório de inspeção"}</div>
     <h1>Infraestrutura e Manutenção</h1>
     <div class="loja">${esc(loja)}</div>
     <div class="rt">
       <div><div class="nm">${esc(nome)}</div>
         <div class="cg">${esc(cargo)}${cred?" · "+esc(cred):""}</div></div>
-      <div class="dt">Inspeção realizada em<br><b>${esc(brDate(p.concluidoEm||p.criadoEm||today()))}</b></div>
+      <div class="dt">${hist?"Levantamento consolidado em":"Inspeção realizada em"}<br><b>${esc(dataBR)}</b></div>
     </div>
   </div>
 
   <div class="placar">
-    <div class="nota"><b>${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b>
-      <div class="cl">${esc(cls.rot)}</div>${cls.grupo?`<div class="gr">${esc(cls.grupo)}</div>`:""}</div>
-    <div class="mini">
-      <div class="m${inc.length?" al":""}"><b>${inc.length}</b><span>A corrigir</span></div>
-      <div class="m"><b>${nota.total}</b><span>Itens avaliados</span></div>
-      <div class="m"><b>${(p.areas||[]).length||"—"}</b><span>Áreas visitadas</span></div>
-    </div>
+    ${hist
+      /* CONSOLIDAÇÃO DE OCORRÊNCIAS: aqui NÃO existe percentual de conformidade.
+         A nota pressupõe ter avaliado tudo; como só entraram as ocorrências, ela daria
+         perto de 0% e faria a loja parecer péssima. Seria enganoso CONTRA ela. */
+      ?`<div class="nota lev"><b>${prog?prog.total:inc.length}</b>
+          <div class="cl">pontos levantados</div><div class="gr">no período</div></div>
+        <div class="mini">
+          <div class="m"><b class="vd">${prog?prog.feitos:0}</b><span>Já resolvidos</span></div>
+          <div class="m${prog&&prog.total-prog.feitos?" al":""}"><b>${prog?prog.total-prog.feitos:0}</b><span>Em aberto</span></div>
+          <div class="m"><b>${(p.areas||[]).length||"—"}</b><span>Áreas</span></div>
+        </div>`
+      :`<div class="nota"><b>${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b>
+          <div class="cl">${esc(cls.rot)}</div>${cls.grupo?`<div class="gr">${esc(cls.grupo)}</div>`:""}</div>
+        <div class="mini">
+          <div class="m${inc.length?" al":""}"><b>${inc.length}</b><span>A corrigir</span></div>
+          <div class="m"><b>${nota.total}</b><span>Itens avaliados</span></div>
+          <div class="m"><b>${(p.areas||[]).length||"—"}</b><span>Áreas visitadas</span></div>
+        </div>`}
   </div>
+  ${prog&&prog.total?`<div class="progr"><div class="bb"><span style="width:${Math.round(prog.feitos/prog.total*100)}%"></span></div>
+    <b>${prog.feitos} de ${prog.total} pontos já resolvidos</b> · ${prog.total-prog.feitos} em aberto</div>`:""}
+  ${hist?`<p class="nota-hist">Este documento consolida as não conformidades de infraestrutura
+    levantadas no período, classificadas segundo a lista de verificação das boas práticas.
+    Por reunir as ocorrências registradas, e não uma avaliação item a item de toda a unidade,
+    <b>não se aplica percentual de conformidade</b> a esta consolidação.</p>`:""}
 
-  ${barras?`<h2 class="tit">Conformidade por assunto</h2>
-    <table class="sec"><tbody>${barras}</tbody></table>`:""}
-  ${(p.areas||[]).length?`<h2 class="tit">Áreas visitadas</h2>
+  ${hist
+    /* na consolidação, o que interessa é ONDE se concentram os pontos, não a nota */
+    ?(()=>{const porSec={};
+       for(const c of inc){const s=c.q.secao||"Geral";
+         const n=((p.respostas||{})[c.chave]||{}).itens;
+         porSec[s]=(porSec[s]||0)+((n&&n.length)||1);}
+       const ord=Object.keys(porSec).sort((a,b)=>porSec[b]-porSec[a]);
+       const max=Math.max(...Object.values(porSec),1);
+       return ord.length?`<h2 class="tit">Onde estão os pontos</h2>
+         <table class="sec"><tbody>${ord.map(s=>
+           `<tr><td class="s">${esc(s)}</td>
+             <td class="bar"><span style="width:${Math.round(porSec[s]/max*100)}%;background:#17756a"></span></td>
+             <td class="pc" style="color:#17756a">${porSec[s]}</td><td class="nn"></td></tr>`).join("")}
+         </tbody></table>`:"";})()
+    :(barras?`<h2 class="tit">Conformidade por assunto</h2>
+      <table class="sec"><tbody>${barras}</tbody></table>`:"")}
+  ${(p.areas||[]).length?`<h2 class="tit">${hist?"Áreas com ocorrência":"Áreas visitadas"}</h2>
     <div class="ars">${(p.areas||[]).map(a=>{
-      const n=ckNotaDe(p,cel.filter(c=>c.area===a));
-      const r=cel.filter(c=>c.area===a&&ckRuim(c.q,(p.respostas||{})[c.chave])).length;
-      const cl=ckClassifica(n.pct);
-      return `<span class="ar"${r?` style="border-color:${cl.cor}"`:""}>${esc(a)}
-        <b style="color:${r?cl.cor:"#12b76a"}">${n.pct!=null?String(n.pct).replace(".",",")+"%":"—"}</b></span>`;}).join("")}
-    </div>`:""}
+      const naArea=cel.filter(c=>c.area===a&&ckRuim(c.q,(p.respostas||{})[c.chave]));
+      if(hist){
+        let n=0,ok=0;
+        for(const c of naArea)for(const d of ckItensDaResposta((p.respostas||{})[c.chave])){
+          n++;if(d.status==="Concluído")ok++;}
+        if(!n)return "";
+        const tudo=ok===n;
+        return `<span class="ar" style="border-color:${tudo?"#12b76a":"#c0212a"}">${esc(a)}
+          <b style="color:${tudo?"#12b76a":"#c0212a"}">${ok}/${n}</b></span>`;
+      }
+      const nt=ckNotaDe(p,cel.filter(c=>c.area===a)),cl=ckClassifica(nt.pct);
+      return `<span class="ar"${naArea.length?` style="border-color:${cl.cor}"`:""}>${esc(a)}
+        <b style="color:${naArea.length?cl.cor:"#12b76a"}">${nt.pct!=null?String(nt.pct).replace(".",",")+"%":"—"}</b></span>`;}).join("")}
+    </div>${hist?`<p class="legenda">resolvidos / total de pontos por área</p>`:""}`:""}
 
-  <h2 class="tit">${inc.length?"Pontos a corrigir":"Resultado"}</h2>
+  <h2 class="tit">${inc.length?(hist?"Não conformidades levantadas":"Pontos a corrigir"):"Resultado"}</h2>
   ${inc.length?problemas:`<div class="limpo"><b>Nenhuma não conformidade encontrada nesta inspeção.</b><br>
     Todos os itens avaliados estão de acordo com os requisitos verificados.</div>`}
 
@@ -1870,7 +1968,7 @@ function ckPDF(uid,completo){
     Documento gerado a partir da lista de verificação de boas práticas · Base normativa:
     RDC ANVISA nº 216/2004 (Boas Práticas para Serviços de Alimentação) e RDC ANVISA nº 275/2002,
     Anexo II (Lista de Verificação das Boas Práticas de Fabricação).
-    Classificação percentual conforme Saccol <i>et al.</i> (2006).
+    ${hist?"":"Classificação percentual conforme Saccol <i>et al.</i> (2006)."}
     ${esc(loja)} · ${esc(brDate(p.concluidoEm||p.criadoEm||today()))}
   </div>
   </body></html>`);

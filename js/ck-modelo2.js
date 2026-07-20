@@ -722,6 +722,138 @@ async function ckTriAceitarTudo(){
   dataChanged();ckTriDesenha();toast(alvo.length+" ligadas ✓ Confira as que ficaram estranhas");
 }
 
+/* =======================================================================
+   GERAR O RELATÓRIO DO MÊS a partir do que ela JÁ relatou.
+   Ela não vai refazer na mão um levantamento que ja fez na loja.
+
+   ⚠️ REGRA QUE ELA DECIDIU (20/07) e que NÃO se muda sem ela mandar:
+   pergunta SEM manutenção relatada fica EM BRANCO — "não avaliada".
+   NUNCA marcar 👍 automático: o documento leva a assinatura e o CRN dela, e marcar
+   conforme sozinho faria o papel AFIRMAR que ela conferiu coisa que ela não olhou.
+   A nota sai só sobre o que foi realmente avaliado.
+   ======================================================================= */
+function ckHistorico(modeloUid){
+  if(!currentStore){toast("Escolha uma empresa primeiro");return;}
+  const m=modeloUid?ckAchar(modeloUid):ckModelos().find(x=>(x.titulo||"").trim()===CK_INFRA2_NOME);
+  if(!m){toast("Crie o checklist \""+CK_INFRA2_NOME+"\" primeiro");return;}
+  const itens=ckItensMnt().filter(d=>d.perguntaRef&&d.perguntaRef!==CK_FORA);
+  const soltos=ckItensMnt().filter(d=>!d.perguntaRef).length;
+  const areas=[...new Set(itens.map(d=>String(d.area||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  const loja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
+  ncModal(`<h2>Montar o relatório do mês com o que você já relatou</h2>
+    <p class="desc">Isto pega as manutenções que você já tem em <b>${esc(loja)}</b> e monta uma
+    inspeção <b>já concluída</b>, com cada uma no lugar certo do checklist. Você não preenche nada.</p>
+
+    ${soltos?`<div class="ck-av">⚠ <b>${soltos} manutenç${soltos===1?"ão ainda não está ligada":"ões ainda não estão ligadas"}</b>
+      a nenhuma pergunta e <b>ficariam de fora</b>. Feche aqui e use
+      <b>🔗 Ligar minhas manutenções</b> primeiro.</div>`:""}
+
+    <div class="ck-h-num">
+      <div><b>${itens.length}</b><span>pontos entram</span></div>
+      <div><b>${areas.length}</b><span>áreas</span></div>
+      <div><b>${itens.filter(d=>d.status==="Concluído").length}</b><span>já resolvidos</span></div>
+    </div>
+
+    <label class="ck-h-lb">Data do relatório</label>
+    <input class="ck-in" type="date" id="ck-h-data" value="${esc(ckMesPadrao())}">
+    <p class="ck-h-dica">Dá para mudar esta data depois, quando quiser, no botão 📅 da lista.</p>
+
+    <label class="ck-h-lb">Nome deste relatório</label>
+    <input class="ck-in" id="ck-h-nome" value="${esc(CK_INFRA2_NOME)} — Junho/2026">
+
+    <div class="ck-av ok">As perguntas <b>sem nada relatado ficam em branco</b>, como "não avaliadas".
+    Não marco 👍 no seu lugar: o documento vai assinado por você.</div>
+
+    <div class="form-actions">
+      <button class="btn ghost" onclick="ncFechar()">Cancelar</button>
+      <button class="btn" onclick="ckHistoricoGerar('${m.uid}')">Montar o relatório</button>
+    </div>`);
+}
+/* 30 do mês passado — o "fechamento" natural de um levantamento mensal */
+function ckMesPadrao(){
+  const h=new Date(today()+"T12:00:00");
+  h.setDate(0);                       /* último dia do mês anterior */
+  return h.toISOString().slice(0,10);
+}
+async function ckHistoricoGerar(modeloUid){
+  const m=ckAchar(modeloUid);if(!m)return;
+  const data=(document.getElementById("ck-h-data")?.value||"")||ckMesPadrao();
+  const nome=(document.getElementById("ck-h-nome")?.value||"").trim()||m.titulo;
+  const itens=ckItensMnt().filter(d=>d.perguntaRef&&d.perguntaRef!==CK_FORA);
+  if(!itens.length){toast("Nenhuma manutenção ligada às perguntas ainda");return;}
+  const perg=ckPerguntas(m);
+  const areas=[...new Set(itens.map(d=>String(d.area||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+
+  const p={uid:newUid(),mod:nowISO(),tipo:"ckp",loja:currentStore,
+    modeloUid:m.uid,modeloTitulo:nome,
+    status:"concluido",posicao:0,areas,
+    criadoEm:data,iniciadoEm:data+"T12:00:00",atualizacao:nowISO(),concluidoEm:data,
+    origem:"historico",
+    respondente:RT_INFO||RT_DEFAULT,assinatura:CK_ASSINATURA||"",nota:null,respostas:{}};
+
+  /* cada manutenção vira um 👎 na sua pergunta, dentro da sua área */
+  let fora=0;
+  for(const d of itens){
+    const q=perg.find(x=>x.uid===d.perguntaRef);
+    if(!q){fora++;continue;}
+    const area=String(d.area||"").trim();
+    /* pergunta de escopo loja mora fora da área; as outras, dentro da área do item */
+    const chave=(!q.escopoP||q.escopoP==="loja")?q.uid:q.uid+"@"+area;
+    const r=p.respostas[chave]=p.respostas[chave]||{fotos:[],comentario:"",em:nowISO()};
+    r.valor="nao";
+    r.comentario=[r.comentario,d.nc].filter(Boolean).join(" · ");
+    (r.itens=r.itens||[]).push(d.uid);          /* de onde vieram — é o que liga o botão de concluir */
+  }
+  p.nota=ckNota(p);
+  p.id=await putItem(p);DATA.push(p);dataChanged();
+  ncFechar();
+  CK_SEC="enviados";localStorage.setItem("ck_sec",CK_SEC);renderCk();
+  CK_PREENCH=p.uid;ckDesenhaResumo(true);
+  toast("Relatório de "+brDate(data)+" montado ✓ "+itens.length+" pontos"
+    +(fora?" ("+fora+" sem pergunta, ficaram de fora)":""));
+}
+
+/* ---- data editável a qualquer momento (pedido dela: "sempre editável") ---- */
+async function ckMudarData(uid){
+  const p=ckAchar(uid);if(!p)return;
+  const nova=prompt("Data deste relatório (dia/mês/ano):",brDate(p.concluidoEm||p.criadoEm||today()));
+  if(nova===null)return;
+  const iso=ckDataISO(nova);
+  if(!iso){alert("Não entendi a data.\n\nEscreva assim: 30/06/2026");return;}
+  p.concluidoEm=iso;p.criadoEm=iso;p.atualizacao=nowISO();
+  await ckSalvar(p);renderCk();toast("Data alterada para "+brDate(iso)+" ✓");
+}
+function ckDataISO(s){
+  s=String(s||"").trim();
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  return "";
+}
+
+/* ---- MARCAR CONCLUÍDO: o ponto do relatório e a manutenção andam juntos ---- */
+function ckItensDaResposta(r){
+  return ((r&&r.itens)||[]).map(u=>ckAchar(u)).filter(Boolean);
+}
+async function ckPontoConcluir(chave,itemUid,on){
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  const d=ckAchar(itemUid);if(!d)return;
+  d.status=on?"Concluído":"Pendente";
+  d.atualizacao=today();d.mod=nowISO();
+  await putItem(d);dataChanged();
+  ckDesenhaResumo(p.status==="concluido");
+}
+/* quantos pontos do relatório já foram resolvidos */
+function ckProgressoPontos(p){
+  let total=0,feitos=0;
+  for(const k in (p.respostas||{})){
+    for(const d of ckItensDaResposta(p.respostas[k])){
+      total++;if(d.status==="Concluído")feitos++;
+    }
+  }
+  return {total,feitos};
+}
+
 /* ---- transferir para a aba de Não Conformidades (o que é de manipulação) ---- */
 async function ckTransferirNC(){
   const alvo=ckItensMnt().filter(d=>d.perguntaRef===CK_FORA);

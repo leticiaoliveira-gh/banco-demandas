@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "8.2",
-  "ondeParamos": "v8.2: o relatorio agora abre com uma barra de opcoes em cima — Salvar em PDF, Baixar arquivo, WhatsApp, E-mail e Copiar resumo. O WhatsApp e o e-mail ja vao com o resumo escrito (nota, pontos a corrigir e prazos). A gaveta que se chamava Enviados virou CONCLUIDAS, porque o nome antigo dava a entender que o site mandava algo para alguem — ele nao manda, quem envia e voce. Antes disso, na v8.1, nasceu o checklist Infraestrutura e Manutencao 2 com as 91 perguntas da RDC 216/2004 e da RDC 275/2002 (Anexo II), com acao corretiva ja escrita e perguntando area por area.",
-  "proximoPasso": "Em [loja-A]: conferir em Checklists > Areas o que e cada area, clicar em Ligar minhas manutencoes e fazer a primeira inspecao de verdade"
+  "versao": "8.3",
+  "ondeParamos": "v8.3: agora da para MONTAR O RELATORIO DO MES sem preencher nada. O botao 📅 pega tudo que voce ja relatou na aba Manutencoes e monta uma inspecao ja concluida, com cada manutencao na pergunta certa e na area certa. A data ja vem 30/06/2026 e da para trocar quando quiser no 📅 da lista. Dentro do relatorio cada ponto tem uma caixinha de CONCLUIDO: marcou ali, a manutencao fica Concluida na outra aba tambem, e a barra em cima mostra quantos de quantos ja foram resolvidos.",
+  "proximoPasso": "Em [loja-A]: conferir em Checklists > Areas, clicar em Ligar minhas manutencoes, depois em Montar o relatorio do mes"
 }
