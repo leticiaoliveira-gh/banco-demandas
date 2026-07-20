@@ -475,15 +475,26 @@ function renderEyebrow(){
     ?`<span class="sep">·</span><span class="loja-tag" title="Para renomear a empresa: volte à Capa e use o ✎">${esc(nomeCurto(currentStoreName||""))}</span>`
     :"";
 }
-/* a linha livre: clicou, escreveu, saiu — salvou. Enter confirma, Esc cancela. */
+/* a linha livre: clicou, escreveu, saiu — salvou. Enter confirma, Esc cancela.
+   Formato de PÍLULA com "›", igual ao desenho que ela mandou em 20/07.
+   Vazia, oferece as duas frases que ela mesma sugeriu, para não começar do branco. */
+const FRASES_PRONTAS=["O que preciso resolver hoje?","O que realmente merece a minha atenção agora?"];
 function subLivreHTML(chave){
   const v=ABA_SUB[chave]||"";
+  const sugestoes=v?"":`<span class="head-sug">${FRASES_PRONTAS.map(f=>
+    `<button onclick="usarFrase('${esc(chave)}',this.textContent)">${esc(f)}</button>`).join("")}</span>`;
   return `<span class="head-sub${v?"":" vazio"}" contenteditable="plaintext-only"
     data-sub="${esc(chave)}" title="Escreva aqui o que quiser — some quando você apagar"
     onblur="setAbaSub(this.dataset.sub,this.textContent);this.classList.toggle('vazio',!this.textContent.trim())"
     onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}
                if(event.key==='Escape'){this.textContent=(ABA_SUB[this.dataset.sub]||'');this.blur();}"
-    >${esc(v)}</span>`;
+    >${esc(v)}</span>${sugestoes}`;
+}
+async function usarFrase(chave,frase){
+  await setAbaSub(chave,frase);
+  const alvo=(chave==="hub")?null:chave;
+  if(alvo)updateSubtitle(alvo);
+  else document.getElementById("appSubtitle").innerHTML=subLivreHTML("hub");
 }
 function updateSubtitle(t){
   const h1=document.getElementById("appTitle"),sub=document.getElementById("appSubtitle");

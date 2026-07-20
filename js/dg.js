@@ -444,6 +444,40 @@ function dgBarraMassaHTML(){
 
 /* ===== GERENCIAR AS OPÇÕES DOS FILTROS (o que ela pediu "igual ao Notion") ===== */
 const CORES_PRONTAS=["#e5484d","#b3730a","#12b76a","#1668b8","#a23bb0","#0f766e","#8a8b96","#c2410c","#7c3aed","#be123c"];
+/* Paleta COM NOME, no estilo do Notion (referência que ela mandou em 20/07).
+   Antes o clique só avançava para a próxima cor da lista e ela precisava clicar
+   várias vezes até cair na que queria — a queixa foi literal: "não ficar clicando
+   até achar". Agora vê todas de uma vez e ainda pode escolher qualquer outra. */
+const CORES_NOMEADAS=[
+  ["Cinza","#8a8b96"],["Vermelho","#e5484d"],["Rosa","#be123c"],["Laranja","#c2410c"],
+  ["Âmbar","#b3730a"],["Verde","#12b76a"],["Verde-escuro","#0f766e"],["Azul","#1668b8"],
+  ["Roxo","#7c3aed"],["Violeta","#a23bb0"],["Marrom","#7c5e3b"],["Chumbo","#3f4451"]
+];
+/* onde guardar a cor escolhida: cada tela passa a sua função de aplicar */
+let COR_ALVO=null;
+function abrirSeletorCor(titulo,corAtual,aoEscolher){
+  COR_ALVO=aoEscolher;
+  const grade=CORES_NOMEADAS.map(([nome,hex])=>
+    `<button class="cor-op${hex.toLowerCase()===String(corAtual).toLowerCase()?" on":""}"
+      title="${nome}" onclick="aplicarCorEscolhida('${hex}')">
+      <span class="bola" style="background:${hex}"></span><span class="nm">${nome}</span></button>`).join("");
+  ncModal(`<h2>${esc(titulo)}</h2>
+    <p class="desc">Escolha uma cor da paleta — ou use a última opção para pegar qualquer cor que você quiser.</p>
+    <div class="cor-grade">${grade}</div>
+    <div class="cor-livre">
+      <label for="cor-qualquer">Qualquer outra cor:</label>
+      <input type="color" id="cor-qualquer" value="${esc(corAtual||"#1d6b57")}"
+        oninput="document.getElementById('cor-previa').style.background=this.value">
+      <span id="cor-previa" class="previa" style="background:${esc(corAtual||"#1d6b57")}"></span>
+      <button class="btn sm" onclick="aplicarCorEscolhida(document.getElementById('cor-qualquer').value)">Usar esta</button>
+    </div>
+    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Cancelar</button></div>`);
+}
+async function aplicarCorEscolhida(hex){
+  if(!COR_ALVO)return;
+  const f=COR_ALVO;COR_ALVO=null;
+  await f(hex);
+}
 function clarear(hex){                       /* gera o fundo pastel a partir da cor forte */
   const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,m=x=>Math.round(x+(255-x)*.88);
   return "#"+[m(r),m(g),m(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
@@ -519,13 +553,12 @@ async function dgRenomearOpc(qual,k,novo){
   novo=String(novo||"").trim();if(!novo||!mapa[k])return;
   mapa[k].rotulo=novo;await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
-async function dgTrocarCor(qual,k){
+function dgTrocarCor(qual,k){
   const mapa=dgOpcMapa(qual);if(!mapa[k])return;
-  const atual=mapa[k].cor;
-  const i=CORES_PRONTAS.indexOf(atual);
-  mapa[k].cor=CORES_PRONTAS[(i+1)%CORES_PRONTAS.length];   /* clique passa para a próxima cor */
-  mapa[k].fundo=clarear(mapa[k].cor);
-  await dgOpcSalvar(qual);dgGerirOpcoes(qual);
+  abrirSeletorCor("Cor de “"+mapa[k].rotulo+"”",mapa[k].cor,async hex=>{
+    mapa[k].cor=hex;mapa[k].fundo=clarear(hex);
+    await dgOpcSalvar(qual);dgGerirOpcoes(qual);toast("Cor trocada ✓");
+  });
 }
 async function dgMoverOpc(qual,k,dir){
   const mapa=dgOpcMapa(qual);

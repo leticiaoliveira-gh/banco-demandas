@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "8.5",
-  "ondeParamos": "v8.5: primeira rodada das SUAS ANOTACOES. Sumiu a faixa branca em cima do cabecalho verde; o cabecalho ficou mais enxuto e agora tem a LOJA em cima, o titulo no meio e uma LINHA LIVRE embaixo, que voce clica e escreve o que quiser em cada quadro. As setas de voltar/avancar subiram para o topo da barra lateral e nunca mais ficam mortas. Na Capa entrou o botao Editar textos (era por isso que editar o titulo nao funcionava) e uma faixa de 4 numeros clicaveis. O cadeado ficou do mesmo tamanho do Iniciar e os arquivos de backup passaram a ter o nome certo.",
-  "proximoPasso": "Voce conferir esta rodada no site e me dizer o que ajustar; depois as anotacoes que dependem de decisao sua"
+  "versao": "8.6",
+  "ondeParamos": "v8.6: acabou o clicar-ate-achar a cor. Agora abre uma paleta com 12 cores com nome, marcando qual esta em uso, e um seletor para qualquer outra cor que voce quiser — vale no Quadro Geral, na aba de NC e nos Checklists. A linha livre embaixo do titulo virou a pilula com a setinha, igual ao seu desenho, e quando esta vazia ela ja oferece as duas frases que voce escreveu.",
+  "proximoPasso": "Voce conferir a paleta de cores e a pilula do titulo; depois as duvidas que separei para o final"
 }

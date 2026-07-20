@@ -786,10 +786,14 @@ async function ckOpcAdd(k){
 }
 async function ckOpcRenomear(k,i,v){v=String(v||"").trim();
   if(!v)return;CK_LISTAS[k].opcoes[i].rotulo=v;await ckSalvarOpcoes();ckGerirListas();}
-async function ckOpcCor(k,i){
-  const o=CK_LISTAS[k].opcoes[i],j=CORES_PRONTAS.indexOf(o.cor);
-  o.cor=CORES_PRONTAS[(j+1)%CORES_PRONTAS.length];o.fundo=clarear(o.cor);
-  await ckSalvarOpcoes();ckGerirListas();
+/* mesmo seletor de cores do resto do site (regra dela: o que vale para uma aba vale
+   para todas). Antes aqui também era "clique até achar". */
+function ckOpcCor(k,i){
+  const o=CK_LISTAS[k].opcoes[i];if(!o)return;
+  abrirSeletorCor("Cor de “"+o.rotulo+"”",o.cor,async hex=>{
+    o.cor=hex;o.fundo=clarear(hex);
+    await ckSalvarOpcoes();ckGerirListas();toast("Cor trocada ✓");
+  });
 }
 async function ckOpcRuim(k,i,v){CK_LISTAS[k].opcoes[i].ruim=!!v;await ckSalvarOpcoes();ckGerirListas();}
 async function ckOpcExcluir(k,i){
