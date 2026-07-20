@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "7.8",
-  "ondeParamos": "v7.8: nasceu a aba CHECKLISTS, no modelo do Checkbits que voce me mostrou. Por enquanto ela cria, renomeia, duplica e exclui checklists, e ja tem as tres secoes: Formularios, Enviados e Parciais. Nenhuma aba antiga foi mexida. Descobri e corrigi de quebra um defeito antigo: as opcoes que voce configurou (nomes e cores das prioridades, situacoes e urgencias) nunca entravam no backup nem na sincronizacao — ficavam so no aparelho. Agora entram.",
-  "proximoPasso": "Etapa 2: o construtor de perguntas do checklist (a tabela com Titulo, Descricao, Tipo, Nao Aplicavel, Comentarios e Foto)"
+  "versao": "7.9",
+  "ondeParamos": "v7.9: a aba CHECKLISTS ficou PRONTA, no modelo do Checkbits. Da para montar o formulario (titulo, descricao, tipo de resposta, nao aplicavel, comentario, foto e peso), arrastar para ordenar, duplicar e apagar; preencher a inspecao no celular uma pergunta por vez, com foto e assinatura; sair no meio e retomar depois (fica em Parciais); e no fim sai a nota em porcentagem e o PDF com linha para o gerente assinar. Quando algo da inconforme, a tratativa 5W2H vira sozinha uma demanda na aba Manutencoes e Eletrica. A barra lateral agora abre e fecha no botao de tres linhas. Nenhuma aba antiga foi mexida.",
+  "proximoPasso": "Voce montar o seu primeiro checklist de verdade e me dizer o que ajustar"
 }

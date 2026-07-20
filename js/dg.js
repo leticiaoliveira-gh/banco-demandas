@@ -448,19 +448,44 @@ function clarear(hex){                       /* gera o fundo pastel a partir da 
   const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,m=x=>Math.round(x+(255-x)*.88);
   return "#"+[m(r),m(g),m(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
 }
-/* qual: "prios" | "sits" | "urg" (urgências da aba de Não Conformidade).
-   A mesma tela serve TODAS as abas — regra de Lê: o que vale para uma, vale para todas. */
-function dgOpcMapa(qual){return qual==="prios"?DG_PRIOS:qual==="sits"?DG_SIT:NC_URG;}
-function dgOpcCampo(qual){return qual==="prios"?"prioridade":qual==="sits"?"situacao":"urgencia";}
-async function dgOpcSalvar(qual){return qual==="urg"?ncSalvarUrgencias():dgSalvarOpcoes();}
+/* qual: "prios" | "sits" | "urg" (urgências da NC)
+        | "cktipos" | "ckcoment" | "ckfoto" (colunas da aba Checklists).
+   A mesma tela serve TODAS as abas — regra de Lê: o que vale para uma, vale para todas.
+
+   ⚠️ CUIDADO QUE VALE OURO: o último ramo destas funções é o FALLBACK. Um `qual` novo
+   que não seja tratado explicitamente cai nele e vai mexer no Quadro Geral (dgVivos) —
+   a tela contaria e MIGRARIA demandas dela sem ninguém pedir. Todo ramo novo entra
+   ANTES do fallback e é explícito. Nada de `else` novo. */
+const CK_QUAIS={cktipos:"tipoResp",ckcoment:"coment",ckfoto:"foto"};
+function dgOpcMapa(qual){
+  if(qual==="cktipos")return CK_TIPOS;
+  if(qual==="ckcoment")return CK_COMENT;
+  if(qual==="ckfoto")return CK_FOTO;
+  return qual==="prios"?DG_PRIOS:qual==="sits"?DG_SIT:NC_URG;}
+function dgOpcCampo(qual){
+  if(CK_QUAIS[qual])return CK_QUAIS[qual];
+  return qual==="prios"?"prioridade":qual==="sits"?"situacao":"urgencia";}
+async function dgOpcSalvar(qual){
+  if(CK_QUAIS[qual])return ckSalvarOpcoes();
+  return qual==="urg"?ncSalvarUrgencias():dgSalvarOpcoes();}
 function dgOpcUso(qual,k){
   const campo=dgOpcCampo(qual);
+  if(CK_QUAIS[qual])   /* conta PERGUNTAS dentro dos modelos de checklist */
+    return ckModelos().reduce((n,m)=>n+ckPerguntas(m).filter(p=>(p[campo]||"")===k).length,0);
   if(qual==="urg")return DATA.filter(d=>!d.deleted&&d.tipo==="nc"&&d.loja===currentStore&&(d[campo]||"")===k).length;
   return dgVivos().filter(d=>(d[campo]||"")===k).length;
 }
+/* Os tipos de resposta do checklist são ESTRUTURA (cada um tem uma tela própria de
+   preenchimento): dá para renomear e recolorir, mas criar um novo não teria como ser
+   desenhado. Por isso estes três não deixam criar nem excluir. */
+const dgPodeCriarOpc=qual=>!CK_QUAIS[qual];
 function dgGerirOpcoes(qual){
   const mapa=dgOpcMapa(qual);
-  const nome=qual==="prios"?"prioridades":qual==="sits"?"situações":"urgências";
+  const nome=qual==="prios"?"prioridades":qual==="sits"?"situações"
+            :qual==="cktipos"?"tipos de resposta":qual==="ckcoment"?"regras de comentário"
+            :qual==="ckfoto"?"regras de foto":"urgências";
+  const usoRot=CK_QUAIS[qual]?"em perguntas":"em uso";
+  const podeCriar=dgPodeCriarOpc(qual);
   const campo=dgOpcCampo(qual);
   const linhas=ordenarOpc(mapa).map((k,i,arr)=>{
     const o=mapa[k],uso=dgOpcUso(qual,k);
@@ -468,20 +493,22 @@ function dgGerirOpcoes(qual){
       <span class="opc-cor" style="background:${o.cor}" title="Trocar a cor"
         onclick="dgTrocarCor('${qual}','${k}')"></span>
       <input class="opc-nome" value="${esc(o.rotulo)}" onchange="dgRenomearOpc('${qual}','${k}',this.value)">
-      <span class="opc-uso">${uso} em uso</span>
+      <span class="opc-uso">${uso} ${usoRot}</span>
       <button class="btn ghost sm" ${i===0?"disabled":""} onclick="dgMoverOpc('${qual}','${k}',-1)" title="Subir">▲</button>
       <button class="btn ghost sm" ${i===arr.length-1?"disabled":""} onclick="dgMoverOpc('${qual}','${k}',1)" title="Descer">▼</button>
-      <button class="btn ghost sm" onclick="dgExcluirOpc('${qual}','${k}')" title="Excluir">🗑</button>
+      ${podeCriar?`<button class="btn ghost sm" onclick="dgExcluirOpc('${qual}','${k}')" title="Excluir">🗑</button>`:""}
     </div>`;}).join("");
   ncModal(`<h2>Configurar ${nome}</h2>
-    <p class="desc">Renomeie, troque a cor, mude a ordem ou crie novas. As demandas que já
-    existem continuam nos seus lugares — o site guarda a ligação por dentro.</p>
+    <p class="desc">Renomeie, troque a cor ou mude a ordem${podeCriar?", ou crie novas":""}.
+    O que já existe continua no lugar — o site guarda a ligação por dentro.</p>
     <div class="opc-lista">${linhas}</div>
-    <div class="opc-nova">
+    ${podeCriar?`<div class="opc-nova">
       <input id="opc-novo" placeholder="Nome ${qual==="prios"?"da nova prioridade":qual==="sits"?"da nova situação":"da nova urgência"}"
         onkeydown="if(event.key==='Enter')dgAddOpc('${qual}')">
       <button class="btn sm" onclick="dgAddOpc('${qual}')">+ Criar</button>
-    </div>
+    </div>`:`<p class="mapa-nota">Estes são os tipos que o site sabe desenhar na hora de
+      preencher, então não dá para criar nem apagar — mas você pode chamá-los do
+      jeito que preferir.</p>`}
     ${qual==="sits"?`<p class="mapa-nota">A situação que significa "pronto" hoje é
       <b>${esc((DG_SIT[DG_CHAVE_CONCLUIDO]||{}).rotulo||"—")}</b> — é ela que risca a demanda
       e conta nos números.</p>`:""}
@@ -517,6 +544,10 @@ async function dgAddOpc(qual){
   await dgOpcSalvar(qual);dgGerirOpcoes(qual);
 }
 async function dgExcluirOpc(qual,k){
+  /* trava de segurança: sem isto, um `qual` do checklist cairia no dgVivos() lá embaixo
+     e a migração mexeria nas DEMANDAS do Quadro Geral. O botão nem aparece para eles,
+     mas a trava fica aqui porque é aqui que o estrago aconteceria. */
+  if(CK_QUAIS[qual]){alert("Estes tipos são fixos: dá para renomear e recolorir, mas não excluir.");return;}
   const mapa=dgOpcMapa(qual);
   const campo=dgOpcCampo(qual);
   const emUso=(qual==="urg"?DATA.filter(d=>!d.deleted&&d.tipo==="nc"&&(d[campo]||"")===k):dgVivos().filter(d=>(d[campo]||"")===k));

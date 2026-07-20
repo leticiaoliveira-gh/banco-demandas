@@ -373,8 +373,37 @@ function showHub(){
 }
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
 function navItemHTML(t){const a=TABS[t];
-  return `<button class="ricon nav-item" data-tab="${t}" style="color:${a.cor}" title="${esc(rotuloAba(t))}" aria-label="${esc(rotuloAba(t))}" onclick="showTab('${t}')">${a.icone}</button>`;}
-function renderRailTabs(){const b=document.getElementById("railTabs");if(b)b.innerHTML=TAB_ORDER.map(navItemHTML).join("");}
+  return `<button class="ricon nav-item" data-tab="${t}" style="color:${a.cor}" title="${esc(rotuloAba(t))}" aria-label="${esc(rotuloAba(t))}" onclick="showTab('${t}')">${a.icone}<span class="rlabel">${esc(rotuloAba(t))}</span></button>`;}
+/* ===== BARRA LATERAL QUE ABRE E FECHA (pedido de Lê, 20/07, vendo o Checkbits) =====
+   Fechada = só ícones (como sempre foi). Aberta = ícone + nome por extenso, e as
+   seções da aba atual aparecem recuadas embaixo dela. Fica no aparelho. */
+let RAIL_ABERTA=localStorage.getItem("rail_aberta")==="1";
+function toggleRail(){
+  RAIL_ABERTA=!RAIL_ABERTA;localStorage.setItem("rail_aberta",RAIL_ABERTA?"1":"0");
+  aplicarRail();renderRailTabs();syncNav();
+}
+function aplicarRail(){
+  const r=document.getElementById("rail");if(r)r.classList.toggle("aberta",RAIL_ABERTA);
+  const b=document.getElementById("btRail");
+  if(b)b.title=RAIL_ABERTA?"Fechar o menu":"Abrir o menu";
+}
+/* seções de dentro de uma aba (hoje só a de Checklists tem) — só aparecem
+   com a barra aberta e na aba em que se está */
+function railSubHTML(t){
+  if(!RAIL_ABERTA||t!==currentTab)return "";
+  if(t==="ck"&&typeof CK_SEC!=="undefined"){
+    const secs=[["formularios","📋",txt("ck.sec.formularios","Formulários")],
+                ["enviados","✅",txt("ck.sec.enviados","Enviados")],
+                ["parciais","⏸",txt("ck.sec.parciais","Parciais")]];
+    return `<div class="rail-sub">${secs.map(([k,ic,nm])=>
+      `<button class="rail-subit${CK_SEC===k?" on":""}" onclick="showTab('ck');ckSetSec('${k}')"
+        title="${esc(nm)}"><span>${ic}</span>${esc(nm)}</button>`).join("")}</div>`;
+  }
+  return "";
+}
+function renderRailTabs(){const b=document.getElementById("railTabs");
+  if(b)b.innerHTML=TAB_ORDER.map(t=>navItemHTML(t)+railSubHTML(t)).join("");
+  aplicarRail();}
 function renderMobileNav(){const b=document.getElementById("mobileNav");
   /* no celular a barra lateral some, então o DESFAZER também mora aqui */
   if(b)b.innerHTML=`<button class="ricon nav-item" title="Hub da empresa" aria-label="Hub da empresa" onclick="showHub()">${ICO.hub}</button>`
@@ -507,6 +536,10 @@ async function histAplicar(passo,voltando){
     DATA=await getAll();
     if(typeof renderDG==="function"&&currentTab==="dg")renderDG();
     if(typeof renderCk==="function"&&currentTab==="ck")renderCk();
+    /* telas em tela cheia da aba Checklists: repintar, senão o desfazer muda o
+       banco e a tela continua mostrando o valor velho */
+    if(typeof ckRedesenhaPasso==="function")ckRedesenhaPasso();
+    if(typeof ckRedesenhaLista==="function"&&document.getElementById("ck-constr"))ckRedesenhaLista();
     if(typeof renderNC==="function"&&currentTab==="nc")renderNC();
     if(typeof render==="function"&&(currentTab==="list"||currentTab==="add"))render();
     if(document.getElementById("view-home").style.display!=="none")await renderHome();
@@ -850,6 +883,7 @@ function showTab(t){
  document.getElementById("cards").style.display="";
  document.getElementById("tabs").style.display="";
  document.getElementById(tab.panel).style.display="block";
+ renderRailTabs();   /* redesenha para as seções da aba atual aparecerem recuadas */
  syncNav();
  updateSubtitle(t);
  renderBreadcrumb();
