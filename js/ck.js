@@ -163,7 +163,7 @@ function renderCk(){
     <div class="ck-barra">
       <div class="ck-secs">
         ${ckSecBotao("formularios","📋",txt("ck.sec.formularios","Formulários"),ckModelos().length)}
-        ${ckSecBotao("enviados","✅",txt("ck.sec.enviados","Enviados"),ckPreenchimentos("concluido").length)}
+        ${ckSecBotao("enviados","✅",txt("ck.sec.enviados","Concluídas"),ckPreenchimentos("concluido").length)}
         ${ckSecBotao("parciais","⏸",txt("ck.sec.parciais","Parciais"),ckPreenchimentos("andamento").length)}
       </div>
       <div class="ck-acoes">
@@ -323,7 +323,7 @@ async function ckDuplicarModelo(uid){
 async function ckExcluirModelo(uid){
   const m=ckAchar(uid);if(!m)return;
   const usos=DATA.filter(d=>!d.deleted&&d.tipo==="ckp"&&d.modeloUid===uid).length;
-  const aviso=usos?"\n\nATENÇÃO: "+usos+" inspeção(ões) já foram feitas com ele.\nElas CONTINUAM guardadas em Enviados/Parciais.":"";
+  const aviso=usos?"\n\nATENÇÃO: "+usos+" inspeção(ões) já foram feitas com ele.\nElas CONTINUAM guardadas em Concluídas/Parciais.":"";
   if(!confirm("Excluir o checklist?\n\n"+(m.titulo||"")+aviso))return;
   await ckApagar(m);renderCk();toast("Checklist excluído");
 }
@@ -1657,9 +1657,32 @@ function ckPDF(uid,completo){
         <td class="rs">${esc(ckValorTexto(c.q,r))}</td></tr>`;}).join("")}
     </tbody></table>`;
 
+  /* resumo em TEXTO — é o que vai no WhatsApp e no corpo do e-mail */
+  const dataBR=brDate(p.concluidoEm||p.criadoEm||today());
+  const resumoTxt=[
+    "*Relatório de Infraestrutura e Manutenção*",
+    loja+" — "+dataBR,
+    "",
+    "Conformidade: *"+(nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—")+"* ("+cls.rot+")",
+    "Pontos a corrigir: *"+inc.length+"*",
+    "Itens avaliados: "+nota.total+(p.areas&&p.areas.length?"  |  Áreas visitadas: "+p.areas.length:""),
+    ""
+  ].concat(inc.length?["*O que precisa ser corrigido:*"].concat(
+    inc.slice(0,15).map((c,i)=>{
+      const r=(p.respostas||{})[c.chave]||{},t=r.tratativa||{};
+      return (i+1)+". "+(c.area?"["+c.area+"] ":"")+(c.q.titulo||"")
+        +(r.comentario?"\n   → "+r.comentario:"")
+        +(t.prazo?"\n   Prazo: "+brDate(t.prazo):"");}),
+    inc.length>15?["… e mais "+(inc.length-15)+" ponto(s). O detalhe completo está no PDF."]:[])
+   :["Nenhuma não conformidade encontrada nesta inspeção."])
+   .concat(["","Base: RDC 216/2004 e RDC 275/2002 (Anexo II)",nome+(cred?" — "+cred:"")])
+   .join("\n");
+  const nomeArq="Relatorio-Infraestrutura_"+String(loja).replace(/[^\wÀ-ÿ]+/g,"-")
+    +"_"+String(p.concluidoEm||p.criadoEm||today())+".html";
+
   const w=window.open("");
   w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-  <title>Relatório de Infraestrutura — ${esc(loja)} — ${esc(brDate(p.concluidoEm||p.criadoEm||today()))}</title><style>
+  <title>Relatório de Infraestrutura — ${esc(loja)} — ${esc(dataBR)}</title><style>
   @page{margin:15mm 14mm 18mm}
   *{box-sizing:border-box}
   body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#22242e;font-size:11.5px;
@@ -1745,16 +1768,58 @@ function ckPDF(uid,completo){
   .rot b{color:#22242e;font-weight:600}
   .pe{margin-top:22px;padding-top:9px;border-top:1px solid #eceef0;
       font-size:8.8px;color:#9aa0a8;line-height:1.6}
-  .noprint{position:fixed;top:10px;right:10px;display:flex;gap:6px}
-  .noprint button{font:inherit;padding:7px 13px;border-radius:8px;border:1px solid #17756a;
-    background:#17756a;color:#fff;cursor:pointer}
-  .noprint button.g{background:#fff;color:#17756a}
-  @media print{.noprint{display:none}}
+  /* barra de opções — some na impressão */
+  .barra{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e4e6ea;
+    padding:10px 0 11px;margin-bottom:14px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .barra b.tt{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8a8b96;margin-right:4px}
+  .barra button{font:inherit;font-size:12px;padding:9px 14px;border-radius:9px;cursor:pointer;
+    border:1px solid #d6dbd9;background:#fff;color:#22242e;display:inline-flex;align-items:center;gap:6px}
+  .barra button.pri{background:#17756a;border-color:#17756a;color:#fff;font-weight:600}
+  .barra button:hover{border-color:#17756a}
+  .barra .dica{font-size:10.5px;color:#8a8b96;flex-basis:100%;margin-top:-2px}
+  @media print{.barra{display:none}}
+  @media(max-width:640px){.barra button{flex:1 1 42%;justify-content:center}}
   </style></head><body>
 
-  <div class="noprint">
-    <button onclick="window.print()">🖨 Imprimir / PDF</button>
+  <div class="barra">
+    <b class="tt">Este relatório</b>
+    <button class="pri" onclick="window.print()">🖨 Salvar em PDF / Imprimir</button>
+    <button onclick="baixar()">⬇ Baixar arquivo</button>
+    <button onclick="zap()">📱 WhatsApp</button>
+    <button onclick="email()">✉️ E-mail</button>
+    <button onclick="copiar()">📋 Copiar resumo</button>
+    <span class="dica">Para o PDF sair com o cabeçalho verde, ligue <b>Gráficos de plano de fundo</b> nas opções de impressão.</span>
   </div>
+
+  <script>
+  var RESUMO=${JSON.stringify(resumoTxt)};
+  var ARQ=${JSON.stringify(nomeArq)};
+  var ASSUNTO=${JSON.stringify("Relatório de Infraestrutura e Manutenção — "+loja+" — "+dataBR)};
+  function baixar(){
+    /* baixa o relatório inteiro como arquivo: abre em qualquer aparelho e dá para anexar */
+    var html="<!doctype html>"+document.documentElement.outerHTML;
+    var b=new Blob([html],{type:"text/html;charset=utf-8"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(b);a.download=ARQ;a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  }
+  function zap(){
+    /* no celular abre a folha de compartilhar (WhatsApp incluso); no PC, o WhatsApp Web */
+    if(navigator.share){navigator.share({title:ASSUNTO,text:RESUMO}).catch(function(){});return;}
+    window.open("https://wa.me/?text="+encodeURIComponent(RESUMO),"_blank");
+  }
+  function email(){
+    location.href="mailto:?subject="+encodeURIComponent(ASSUNTO)+"&body="+encodeURIComponent(RESUMO);
+  }
+  function copiar(){
+    navigator.clipboard.writeText(RESUMO).then(function(){
+      alert("Resumo copiado.\\n\\nAgora é só colar onde você quiser.");
+    },function(){
+      var t=document.createElement("textarea");t.value=RESUMO;document.body.appendChild(t);
+      t.select();document.execCommand("copy");t.remove();alert("Resumo copiado.");
+    });
+  }
+  <\/script>
 
   <div class="cap">
     <div class="et">Relatório de Inspeção</div>
@@ -1810,5 +1875,6 @@ function ckPDF(uid,completo){
   </div>
   </body></html>`);
   w.document.close();
-  setTimeout(()=>{try{w.print();}catch(e){}},450);
+  /* NÃO chama print() sozinho: agora a barra tem Baixar / WhatsApp / E-mail, e abrir a
+     janela de impressão por cima esconde essas opções antes dela ver que existem. */
 }
