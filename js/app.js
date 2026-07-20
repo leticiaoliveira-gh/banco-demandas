@@ -759,14 +759,17 @@ async function renderHome(){
    :(temOrdem?((a.ordem??999)-(b.ordem??999)):a.name.localeCompare(b.name,"pt-BR")));
  if(!lista.length)html=`<div class="store-row"><div class="store-info"><div class="store-sub">Nenhuma empresa encontrada.</div></div></div>`;
  for(const emp of lista){
-   /* subtítulo "N pendentes · N concluídos" REMOVIDO a pedido dela (20/07).
-      Mas tirar a linha deixou os cartões colados ("uma empresa grudada na outra"):
-      por isso cada empresa virou um CARTÃO PRÓPRIO, com respiro entre eles. */
+   /* A LINHA DE CONTAGEM VOLTOU (20/07). Ela pediu para tirar, eu tirei, e o
+      resultado foi pior: as empresas ficaram coladas. Ela mandou reverter tudo ao
+      original — "eu odiei o que você fez". Manter assim até ela pedir outra coisa. */
+   const pend=vivos.filter(d=>d.loja===emp.code&&isPendente(d)).length;
+   const done=vivos.filter(d=>d.loja===emp.code&&isConcluido(d)).length;
    html+=`<div class="store-row" data-code="${esc(emp.code)}">
      ${CAPA_ORGANIZANDO?`<span class="capa-alca" title="Segure e arraste para mudar a ordem"
         onpointerdown="capaArrIni(event,'${emp.code}')">⠿</span>`:""}
      <div class="store-info">
        <div class="store-title">${esc(emp.name)} (${esc(emp.code)})</div>
+       <div class="store-sub">${pend} pendente${pend===1?"":"s"} · ${done} concluído${done===1?"":"s"}</div>
      </div>
      <div class="store-toggle-wrap">
        <label class="switch" title="Ativar/desativar empresa"><input type="checkbox" aria-label="Ativar ou desativar empresa" ${emp.ativa?"checked":""} onchange="onToggleEmpresa('${emp.code}',this.checked)"><span class="slider"></span></label>
@@ -1076,7 +1079,11 @@ function render(){
    <td><input type="date" class="cell" value="${d.relato||""}" onchange="setField(${d.id},'relato',this.value)"></td>
    <td><div class="atu">${brDate(d.atualizacao)}</div></td>
    <td><div class="stwrap"><label class="switch" title="Marcar resolvido"><input type="checkbox" aria-label="Marcar como concluído" ${done?"checked":""} onchange="setField(${d.id},'status',this.checked?'Concluído':'Pendente')"><span class="slider"></span></label><span class="stlabel ${done?"done":"pend"}">${d.status}</span></div></td>
-   <td><button class="delbtn" title="Excluir" onclick="removeItem(${d.id})">🗑</button></td>
+   <td class="td-acts">
+     <button class="delbtn" title="Anexar foto ou arquivo nesta manutenção" onclick="anexarNoItem('${d.uid}')">📎</button>
+     <button class="delbtn" title="Excluir" onclick="removeItem(${d.id})">🗑</button>
+     ${(d.fotos&&d.fotos.length)?`<span class="tem-anexo" title="${d.fotos.length} anexo(s)">${d.fotos.length}📷</span>`:""}
+   </td>
  </tr>`;}).join("");
  requestAnimationFrame(()=>document.querySelectorAll("textarea.cell").forEach(grow));}
 

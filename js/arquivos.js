@@ -297,6 +297,8 @@ async function anexoSelecionado(e){
       item.mod=nowISO();await putItem(item);dataChanged();
       if(typeof renderDG==="function")renderDG();
       if(typeof renderNC==="function"&&item.tipo==="nc")renderNC();
+      /* a aba Manutenções também mostra anexo agora (20/07) */
+      if(typeof render==="function"&&item.tipo==="mnt")render();
       toast("Imagem anexada ✓");return;
     }
     const linhas=a.tipo==="tabela"?a.linhas.map(l=>l.filter(c=>String(c).trim()).join(" · "))

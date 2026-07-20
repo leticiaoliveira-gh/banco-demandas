@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=58">
+<link rel="stylesheet" href="css/app.css?v=59">
 </head>
 <body>
 <div class="app">
@@ -31,7 +31,9 @@
     <div class="ricon" title="Voltar à Capa (Central de Empresas)" onclick="goHome()">🏠</div>
     <div class="ricon" title="Início da empresa (todos os quadros)" onclick="showHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
     <div id="railTabs" class="rail-tabs" hidden></div>
-    <div class="rail-ver" title="Versão do site">v8.8</div>
+    <!-- cronômetro: fica na barra, alcançável de qualquer aba -->
+    <button class="ricon" id="btCrono" onclick="toggleCronometro()" title="Cronômetro (vários tempos)" aria-label="Cronômetro">⏱<span class="crono-bolha" id="crono-bolha" hidden></span></button>
+    <div class="rail-ver" title="Versão do site">v8.9</div>
   </div>
 
   <!-- CAPA -->
@@ -248,14 +250,15 @@
   </div>
 </div>
 
-<script src="js/app.js?v=58"></script>
-<script src="js/docxlite.js?v=58"></script>
-<script src="js/dg.js?v=58"></script>
-<script src="js/pdflite.js?v=58"></script>
-<script src="js/ck.js?v=58"></script>
-<script src="js/ck-modelo2.js?v=58"></script>
-<script src="js/arquivos.js?v=58"></script>
-<script src="js/nc.js?v=58"></script>
-<script src="js/sync.js?v=58"></script>
+<script src="js/app.js?v=59"></script>
+<script src="js/docxlite.js?v=59"></script>
+<script src="js/dg.js?v=59"></script>
+<script src="js/pdflite.js?v=59"></script>
+<script src="js/ck.js?v=59"></script>
+<script src="js/ck-modelo2.js?v=59"></script>
+<script src="js/arquivos.js?v=59"></script>
+<script src="js/cronometro.js?v=59"></script>
+<script src="js/nc.js?v=59"></script>
+<script src="js/sync.js?v=59"></script>
 </body>
 </html>

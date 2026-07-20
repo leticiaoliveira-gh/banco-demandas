@@ -68,15 +68,36 @@ function ckSetSec(s){CK_SEC=s;localStorage.setItem("ck_sec",s);renderCk();
    O MODELO acompanha o grupo (um formulário serve as duas lojas, como a agenda).
    O PREENCHIMENTO é sempre da EMPRESA — quem foi inspecionada foi a loja. */
 function ckLojaBase(){const g=grupoDe(currentStore);return g||currentStore;}
+/* busca da tela principal (20/07) — fica no aparelho, não sincroniza */
+let CK_Q="";
+function ckBuscar(v){CK_Q=String(v||"");renderCk();
+  const c=document.getElementById("ckQ");
+  if(c){c.focus();c.setSelectionRange(c.value.length,c.value.length);}}
+function ckCasa(txtAlvo){
+  if(!CK_Q.trim())return true;
+  return semAcento(String(txtAlvo||"")).includes(semAcento(CK_Q.trim()));
+}
+/* ⚠️ ckModelos() é a lista COMPLETA e não pode ser filtrada pela busca: outras telas
+   contam perguntas em cima dela (dgOpcUso), e a contagem sairia errada.
+   Quem filtra é ckModelosVisiveis(), usada só para desenhar a lista. */
 function ckModelos(){
   const base=ckLojaBase();
   return DATA.filter(d=>!d.deleted&&d.tipo==="ckm"&&d.loja===base&&(!d.escopo||d.escopo===currentStore))
              .sort((a,b)=>(a.ordem??1e9)-(b.ordem??1e9)||String(a.titulo||"").localeCompare(String(b.titulo||"")));
 }
+function ckModelosVisiveis(){
+  return ckModelos().filter(d=>ckCasa((d.titulo||"")+" "+(d.descricao||"")));
+}
 function ckPreenchimentos(status){
-  return DATA.filter(d=>!d.deleted&&d.tipo==="ckp"&&d.loja===currentStore
-                     &&(!status||d.status===status))
-             .sort((a,b)=>String(b.atualizacao||b.criadoEm||"").localeCompare(String(a.atualizacao||a.criadoEm||"")));
+  return DATA.filter(d=>{
+      if(d.deleted||d.tipo!=="ckp"||d.loja!==currentStore)return false;
+      if(status&&d.status!==status)return false;
+      if(!CK_Q.trim())return true;
+      const m=ckAchar(d.modelo);
+      return ckCasa((m&&m.titulo||"")+" "+(d.loja||"")+" "+(d.data||"")+" "
+                    +brDate(d.data||"")+" "+(d.atualizacao||""));
+    })
+    .sort((a,b)=>String(b.atualizacao||b.criadoEm||"").localeCompare(String(a.atualizacao||a.criadoEm||"")));
 }
 function ckAchar(uid){return DATA.find(d=>d.uid===uid&&!d.deleted);}
 function ckPerguntas(m){return (m.perguntas||[]).filter(p=>!p.removida)
@@ -162,7 +183,7 @@ function renderCk(){
   box.innerHTML=`
     <div class="ck-barra">
       <div class="ck-secs">
-        ${ckSecBotao("formularios","📋",txt("ck.sec.formularios","Formulários"),ckModelos().length)}
+        ${ckSecBotao("formularios","📋",txt("ck.sec.formularios","Formulários"),ckModelosVisiveis().length)}
         ${ckSecBotao("enviados","✅",txt("ck.sec.enviados","Concluídas"),ckPreenchimentos("concluido").length)}
         ${ckSecBotao("parciais","⏸",txt("ck.sec.parciais","Parciais"),ckPreenchimentos("andamento").length)}
       </div>
@@ -174,6 +195,16 @@ function renderCk(){
           <button class="filtro-cfg-bt" onclick="dgGerirOpcoes('cktipos')" title="Renomear ou recolorir os tipos de resposta">⚙ <span data-txt="ck.cfg.tipos">Tipos</span></button>
           <button class="filtro-cfg-bt" onclick="ckGerirListas()" title="Criar e editar as listas de opções">⚙ <span data-txt="ck.cfg.listas">Listas</span></button>`:""}
       </div>
+    </div>
+    <!-- BUSCA NA TELA PRINCIPAL (20/07): as outras abas tinham, esta não —
+         com muitas inspeções, achar uma virava rolagem. -->
+    <div class="toolbar" style="margin-bottom:14px">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="ckQ" value="${esc(CK_Q)}" oninput="ckBuscar(this.value)"
+          placeholder="${CK_SEC==="formularios"?"Buscar checklist pelo nome...":"Buscar por loja, data ou checklist..."}">
+      </div>
+      ${CK_Q?`<button class="btn ghost sm" onclick="ckBuscar('')">✕ Limpar busca</button>`:""}
     </div>
     <div class="ck-corpo">${
       CK_SEC==="formularios"?ckListaModelosHTML():
@@ -190,7 +221,10 @@ function ckVazio(titulo,dica){
 }
 
 function ckListaModelosHTML(){
-  const l=ckModelos();
+  const l=ckModelosVisiveis();
+  /* buscou e não achou: dizer isso, em vez de mostrar a tela de "nenhum criado ainda" */
+  if(!l.length&&CK_Q.trim())return ckVazio("Nenhum checklist com “"+CK_Q+"”.",
+    "Confira a escrita ou limpe a busca para ver todos.");
   if(!l.length)return `<div class="ck-vazio">
     <p class="t" data-txt="ck.vazio.form">Nenhum checklist criado ainda.</p>
     <p class="d" data-txt="ck.vazio.formd">Um checklist é a lista de perguntas da inspeção.
