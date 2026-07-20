@@ -229,6 +229,45 @@ const CKQ_PACOTES=[
     ["Ralos com sistema de fechamento",null,"Estrutura","ambiente","loja","simnao","inconforme","opcional",2,"mnt","Instalar tampa","RDC 275/2002 1.6"],
     ["Data da inspeção",null,"Encerramento","loja","loja","data","nao","nao",0,"","",""],
     ["Assinatura da RT",null,"Encerramento","loja","loja","assinatura","nao","nao",0,"","",""]
+  ]},
+  /* RHS Mensal (SEGA): escala B/R/I/NV, uma nota por area avaliada.
+     Perguntas gerais que servem para qualquer area — quem varia e a AREA. */
+  {chave:"rhs", titulo:"RHS Mensal (SEGA) — Higiênico-Sanitário", descricao:"Auto-inspeção mensal por área com escala B/R/I/NV.", cor:"#8a6d3b",
+   perguntas:[
+    ["Estado geral de higiene da área","Piso, paredes, teto e superfícies visíveis.","Higiene","ambiente","loja","nota4","inconforme","opcional",3,"nc","Higienizar; se comprometido, chamar manutenção","RDC 275/2002 1.1"],
+    ["Estado de conservação estrutural","Sem rachaduras, sem descascamento, sem infiltração.","Estrutura","ambiente","loja","nota4","inconforme","opcional",3,"mnt","Reparar","RDC 275/2002 1.2"],
+    ["Iluminação e ventilação da área",null,"Estrutura","ambiente","loja","nota4","inconforme","nao",2,"mnt","Ajustar","RDC 275/2002 1.9"],
+    ["Equipamentos e utensílios em bom estado",null,"Equipamentos","ambiente","loja","nota4","inconforme","opcional",3,"mnt","Reparar/substituir","RDC 275/2002 2.1"],
+    ["Higienização dos equipamentos","Bancada, utensílios, freezers, câmaras.","Higiene","ambiente","loja","nota4","inconforme","opcional",3,"nc","Higienizar; treinar equipe","RDC 216/2004 4.3"],
+    ["Organização e ordem da área","Sem excesso; nada no piso; FIFO respeitado.","Organização","ambiente","loja","nota4","inconforme","opcional",2,"nc","Reorganizar",""],
+    ["Descarte de resíduos correto",null,"Resíduos","ambiente","loja","nota4","inconforme","opcional",3,"mnt","Adequar coletores/rotina","RDC 216/2004 4.5"],
+    ["Sinalização e identificação","Placas de setor, produtos identificados.","Identificação","ambiente","loja","nota4","inconforme","nao",1,"nc","Repor sinalização",""],
+    ["Data da inspeção",null,"Encerramento","loja","loja","data","nao","nao",0,"","",""],
+    ["Assinatura da RT",null,"Encerramento","loja","loja","assinatura","nao","nao",0,"","",""]
+  ]},
+  /* CIP / Visita Técnica: mensal, foco em equipamentos de refrigeração. */
+  {chave:"cip", titulo:"CIP / Visita Técnica (mensal)", descricao:"Registro da visita da manutenção refrigeração.", cor:"#1668b8",
+   perguntas:[
+    ["Empresa responsável pela visita",null,"Registro","loja","loja","texto","opcional","nao",0,"","",""],
+    ["Data da visita",null,"Registro","loja","loja","data","opcional","nao",0,"","",""],
+    ["Câmara em temperatura correta na visita",null,"Temperaturas","tipo:camara","loja","simnao","inconforme","opcional",3,"mnt","Ajustar antes de sair","RDC 216/2004 4.8"],
+    ["Sistema de refrigeração sem vazamentos aparentes",null,"Manutenção","tipo:camara","loja","simnao","inconforme","opcional",3,"mnt","Reparar imediatamente",""],
+    ["Termômetros calibrados e funcionando",null,"Equipamentos","tipo:camara","loja","simnao","inconforme","opcional",2,"mnt","Substituir",""],
+    ["Vedações e borrachas em bom estado",null,"Estrutura","tipo:camara","loja","simnao","inconforme","opcional",2,"mnt","Substituir",""],
+    ["Filtros e drenos limpos",null,"Manutenção","tipo:camara","loja","simnao","inconforme","opcional",2,"mnt","Limpar",""],
+    ["Recomendações/observações da empresa","Anotar o que a manutenção disse.","Registro","loja","loja","texto","opcional","nao",0,"","",""],
+    ["Assinatura da RT",null,"Encerramento","loja","loja","assinatura","nao","nao",0,"","",""]
+  ]},
+  /* Prevencao de Perdas: ronda especifica focada em vencimento, avaria, quebra. */
+  {chave:"perdas", titulo:"Prevenção de Perdas (semanal)", descricao:"Vencimentos, quebras e avarias por setor.", cor:"#e5484d",
+   perguntas:[
+    ["Produtos próximos ao vencimento identificados e em giro","Etiquetas de prazo curto, promoção.","Vencimentos","loja",CKQ_TODOS_SETORES,"simnao","inconforme","opcional",3,"nc","Etiquetar; girar; retirar",""],
+    ["Sem produtos vencidos expostos",null,"Vencimentos","loja",CKQ_TODOS_SETORES,"simnao","inconforme","obrigatoria",3,"nc","Recolher; retirar da venda","RDC 216/2004 4.9"],
+    ["Registro de perdas do dia atualizado",null,"Registro","loja",CKQ_TODOS_SETORES,"simnao","inconforme","opcional",2,"nc","Atualizar planilha de perdas",""],
+    ["Sem embalagens amassadas/violadas na exposição",null,"Avarias","loja",CKQ_TODOS_SETORES,"simnao","inconforme","opcional",2,"nc","Retirar; conferir com fornecedor",""],
+    ["Produtos quebrados/vazados isolados corretamente",null,"Quebras","loja",CKQ_TODOS_SETORES,"simnao","inconforme","opcional",2,"nc","Segregar; registrar; higienizar area",""],
+    ["Coletores de descarte com registro de tipo de perda",null,"Registro","loja",CKQ_TODOS_SETORES,"simnao","inconforme","nao",1,"nc","Padronizar coletores",""],
+    ["Data da ronda",null,"Encerramento","loja","loja","data","nao","nao",0,"","",""]
   ]}
 ];
 
@@ -356,7 +395,7 @@ async function ckqConcluir(){
   const faltando=[];
   for(const cel of ckqExpandir(m,p)){
     const r=(p.respostas||{})[cel.chave];
-    if(r&&r.valor==="nao"&&cel.q.coment==="inconforme"&&!(r.comentario||"").trim()){
+    if(r&&(r.valor==="nao"||r.valor==="I")&&cel.q.coment==="inconforme"&&!(r.comentario||"").trim()){
       faltando.push(cel.q.titulo);if(faltando.length>=3)break;
     }
   }
@@ -370,10 +409,13 @@ async function ckqConcluir(){
 function ckqNota(p,m){
   if(p&&p.origem==="historico")return null;
   const cels=ckqExpandir(m,p);let peso=0,ok=0;
+  /* B=100% R=66% I=0% para a escala B/R/I/NV (SEGA); NV nao entra na conta,
+     do mesmo jeito que N/A no simnao. */
+  const val={sim:1,B:1,R:0.66,nao:0,I:0};
   for(const cel of cels){
     const pe=Number(cel.q.peso)||0;if(!pe)continue;
-    const r=(p.respostas||{})[cel.chave];if(!r||!r.valor||r.valor==="na")continue;
-    peso+=pe;if(r.valor==="sim")ok+=pe;
+    const r=(p.respostas||{})[cel.chave];if(!r||!r.valor||r.valor==="na"||r.valor==="NV")continue;
+    peso+=pe;if(val[r.valor]!=null)ok+=pe*val[r.valor];
   }
   return peso?Math.round((ok/peso)*100):null;
 }
@@ -492,6 +534,15 @@ function ckqCelulaHTML(p,chave){
       <button class="ckq-bt nao${sel("nao")}"onclick="ckqResponder('${chave}','valor','nao')">👎</button>
       <button class="ckq-bt na${sel("na")}" onclick="ckqResponder('${chave}','valor','na')">N/A</button>
     </div>`;
+  }else if(q.tipoResp==="nota4"){
+    /* B/R/I/NV — Bom / Regular / Insuficiente / Nao Verificado (RHS Mensal SEGA).
+       ckqNota mapeia B=100% R=66% I=0% e NV nao entra na conta. */
+    corpo=`<div class="ckq-btns">
+      <button class="ckq-bt sim${sel("B")}"onclick="ckqResponder('${chave}','valor','B')" title="Bom">B</button>
+      <button class="ckq-bt na${sel("R")}" onclick="ckqResponder('${chave}','valor','R')" title="Regular">R</button>
+      <button class="ckq-bt nao${sel("I")}"onclick="ckqResponder('${chave}','valor','I')" title="Insuficiente">I</button>
+      <button class="ckq-bt na${sel("NV")}" onclick="ckqResponder('${chave}','valor','NV')" title="Não verificado">NV</button>
+    </div>`;
   }else if(q.tipoResp==="texto"){
     corpo=`<input class="ckq-texto" placeholder="Escreva a resposta" value="${esc(r.valor||"")}" onblur="ckqResponder('${chave}','valor',this.value)">`;
   }else if(q.tipoResp==="data"){
@@ -504,9 +555,10 @@ function ckqCelulaHTML(p,chave){
     corpo=`<button class="btn ghost sm" onclick="ckqResponder('${chave}','valor',CK_ASSINATURA||'')">✍ Usar minha assinatura</button>
       ${ok?`<img src="${ok}" style="max-height:44px;vertical-align:middle;margin-left:8px;border:1px solid #ddd;border-radius:4px">`:""}`;
   }
-  const precisaComentar=r.valor==="nao"&&q.coment==="inconforme";
+  const inconforme=(r.valor==="nao"||r.valor==="I");
+  const precisaComentar=inconforme&&q.coment==="inconforme";
   const comentario=(q.coment!=="nao")?`<textarea class="ckq-com" placeholder="${precisaComentar?"Comentário obrigatório...":"Comentário (opcional)"}" onblur="ckqResponder('${chave}','comentario',this.value)">${esc(r.comentario||"")}</textarea>`:"";
-  const acao=r.valor==="nao"?`<button class="btn sm" onclick="ckqTratativa('${chave}')">📌 Abrir tratativa (5W2H)</button>`:"";
+  const acao=inconforme?`<button class="btn sm" onclick="ckqTratativa('${chave}')">📌 Abrir tratativa (5W2H)</button>`:"";
   const base=q.baseLegal?`<div class="ckq-legal">${esc(q.baseLegal)}</div>`:"";
   return `<div class="ckq-cel" data-ckq-cel="${esc(chave)}">
     <div class="ckq-cel-tit"><b>${esc(q.titulo||"")}</b>${q.descricao?`<div class="ckq-desc">${esc(q.descricao)}</div>`:""}${base}</div>
@@ -537,7 +589,7 @@ function ckqEtapaHTML(){
     </div>
     <div class="ckq-trilha">${trilha}</div>
     <h3 style="margin:14px 0 8px">${esc(e.rot)}</h3>
-    ${cels.filter(c=>c.q.tipoResp==="simnao").length?`<div style="margin-bottom:10px"><button class="btn ghost sm" onclick="ckqTudoSim()">👍 Tudo certo nesta etapa</button></div>`:""}
+    ${cels.filter(c=>c.q.tipoResp==="simnao"||c.q.tipoResp==="nota4").length?`<div style="margin-bottom:10px"><button class="btn ghost sm" onclick="ckqTudoSim()">👍 Tudo certo nesta etapa</button></div>`:""}
     <div class="ckq-lista">${cont}</div>
     <div class="ckq-nav">${antP}${proxP}</div>
   </div>`;
@@ -547,10 +599,10 @@ async function ckqTudoSim(){
   const m=ckqAchar(p.modeloUid);if(!m)return;
   const e=ckqEtapas(m,p)[CKQ_ETAPA];
   for(const c of ckqCelulasDaEtapa(m,p,e)){
-    if(c.q.tipoResp==="simnao"){
+    if(c.q.tipoResp==="simnao"||c.q.tipoResp==="nota4"){
       p.respostas=p.respostas||{};
       const r=p.respostas[c.chave]=p.respostas[c.chave]||{fotos:[],comentario:"",em:nowISO()};
-      if(!r.valor)r.valor="sim";
+      if(!r.valor)r.valor=(c.q.tipoResp==="nota4"?"B":"sim");
     }
   }
   await ckqSalvar(p);renderCkq();
@@ -576,7 +628,7 @@ function ckqConstrutorHTML(){
         <option value="setor" ${p.escopoS==="setor"?"selected":""}>Cada setor</option>
       </select></td>
       <td><select onchange="ckqEditarPergunta('${p.uid}','tipoResp',this.value)">
-        ${["simnao","selecao","texto","data","assinatura"].map(k=>`<option value="${k}" ${p.tipoResp===k?"selected":""}>${k}</option>`).join("")}
+        ${["simnao","nota4","selecao","texto","data","assinatura"].map(k=>`<option value="${k}" ${p.tipoResp===k?"selected":""}>${k==="nota4"?"B/R/I/NV":k}</option>`).join("")}
       </select></td>
       <td><input type="number" min="0" max="10" value="${Number(p.peso)||0}" style="width:60px" onblur="ckqEditarPergunta('${p.uid}','peso',this.value)"></td>
       <td><select onchange="ckqEditarPergunta('${p.uid}','escopoDest',this.value)">
@@ -704,7 +756,7 @@ function ckqRelatorioHTML(p,m){
     <div style="margin-top:8px;opacity:.9">${esc(p.respondente||"")}</div></div>`;
   /* problemas por área/setor */
   const cels=ckqExpandir(m,p);
-  const problemas=cels.filter(c=>((p.respostas||{})[c.chave]||{}).valor==="nao");
+  const problemas=cels.filter(c=>{const v=((p.respostas||{})[c.chave]||{}).valor;return v==="nao"||v==="I";});
   const grupos={};
   for(const c of problemas){
     const k=[c.setor?ckqSetorRot(c.setor):"",c.area].filter(Boolean).join(" · ")||"Loja — geral";
@@ -746,7 +798,7 @@ function ckqRelPDF(p,m){
   }
   doc.texto("Pontos de atencao",{x:30,y,tam:13,negrito:true});y+=18;
   const cels=ckqExpandir(m,p);
-  const problemas=cels.filter(c=>((p.respostas||{})[c.chave]||{}).valor==="nao");
+  const problemas=cels.filter(c=>{const v=((p.respostas||{})[c.chave]||{}).valor;return v==="nao"||v==="I";});
   if(!problemas.length){doc.texto("Nenhuma inconformidade registrada.",{x:30,y,tam:11,cor:"#666"});y+=16;}
   for(const c of problemas){
     if(y>760){doc.novaPagina();y=40;}

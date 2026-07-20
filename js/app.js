@@ -1393,7 +1393,105 @@ function initAtalhos(){
  });
 }
 
-/* ===== MAPA DO SITE — como tudo se liga, em português, para Lê poder mexer sozinha.
+/* ===== COMO FAÇO PARA... — manual navegável em português, sem código.
+   Cada item tem passo a passo curto (o que clicar). O acesso é pela Capa,
+   pelo mapa do site e pelo menu ⋯. Escrito com base no fluxo real do dia. */
+const COMO_FACO=[
+  {k:"criar-empresa",titulo:"Criar uma empresa nova",passos:[
+    "Na Capa, aperte o botão + Nova empresa (ao lado do título Empresas).",
+    "Escreva o nome e um código curto de 2 a 4 letras (ex.: BZ).",
+    "Aperte Adicionar empresa. A empresa nova já entra ativa e as outras ficam inativas."
+  ]},
+  {k:"trocar-empresa",titulo:"Trocar a empresa em que você está",passos:[
+    "Volte à Capa (ícone da casa 🏠 na barra lateral).",
+    "Clique no cadeado 🔒 da empresa que estava desligada — ela vira ativa e as outras ficam inativas.",
+    "Clique na linha da empresa para entrar."
+  ]},
+  {k:"editar-nome",titulo:"Mudar o nome de um quadro (aba)",passos:[
+    "Dentro da empresa, entre no quadro que quer renomear.",
+    "Aperte o ⋯ no topo → ✏️ Editar os textos do site.",
+    "Clique em cima do título e escreva o novo nome. Clique fora para salvar."
+  ]},
+  {k:"filtros-cores",titulo:"Trocar as cores e nomes das prioridades/urgências",passos:[
+    "Entre no quadro (Quadro Geral, NC ou Checklists).",
+    "Aperte ⚙ Configurações no topo.",
+    "Na linha Cores, aperte Trocar. Escolha a nova cor ou renomeie. Salva sozinho."
+  ]},
+  {k:"nova-inspecao",titulo:"Fazer uma inspeção de Qualidade / BPF",passos:[
+    "Entre na aba Qualidade / BPF (rail lateral ou hub).",
+    "Se for a primeira vez, aperte 🍞 Criar os modelos prontos.",
+    "Escolha o modelo (ex.: BPF Semanal) e aperte ▶ Iniciar.",
+    "Responda 👍 / 👎 / N-A em cada pergunta. Ao marcar 👎, aparece caixa de comentário e o botão 📌 Abrir tratativa.",
+    "Ao terminar todas as etapas, aperte ✓ Concluir inspeção.",
+    "Na aba Concluídas, aperte 📄 Relatório para gerar o PDF."
+  ]},
+  {k:"tratativa",titulo:"Registrar uma tratativa que vira demanda",passos:[
+    "Numa inspeção, marque 👎 na pergunta com problema.",
+    "Aperte 📌 Abrir tratativa (5W2H).",
+    "Preencha o que fazer, onde, quem, prazo. O campo Registrar como já vem sugerido (Manutenção ou NC).",
+    "Aperte Registrar. O item aparece na aba correspondente automaticamente."
+  ]},
+  {k:"backup",titulo:"Fazer um backup agora",passos:[
+    "Na Capa, aperte ⬇ Fazer backup (ao lado do ⚙ Sincronização).",
+    "O site baixa os arquivos direto para a pasta de downloads.",
+    "Se o backup automático está ativo, esta pasta também é atualizada sozinha."
+  ]},
+  {k:"backup-auto",titulo:"Ativar o backup automático no computador",passos:[
+    "Só funciona no Chrome/Edge do computador (não vai no celular).",
+    "Na Capa, aperte ⚙ Ativar automático.",
+    "Escolha a pasta onde os backups devem ficar (ex.: Backups - Relatório Não Conformidades).",
+    "Pronto. A partir de agora, cada mudança grava sozinha em uma subpasta com a data."
+  ]},
+  {k:"celular-novo",titulo:"Instalar em um aparelho novo (iPhone/Android)",passos:[
+    "Abra o site https://leticiaoliveira-gh.github.io/banco-demandas/",
+    "iPhone: Compartilhar → Adicionar à Tela de Início. Android: menu ⋯ do Chrome → Instalar.",
+    "Abra pelo ícone novo. Aperte ⚙ Sincronização na capa.",
+    "Preencha Dono, Repositório e cole o token do GitHub. Aperte Salvar.",
+    "Os dados descem sozinhos em alguns segundos."
+  ]},
+  {k:"pc-terceiros",titulo:"Usar em um computador que não é seu",passos:[
+    "Abra o site normalmente e aperte ⚙ Sincronização.",
+    "Marque a opção NÃO SALVAR NESTE APARELHO (o token some quando fechar a aba).",
+    "Ao terminar o expediente, aperte na Capa 🚪 Sair e apagar deste PC — envia o que você fez e apaga o rastro."
+  ]},
+  {k:"desfazer",titulo:"Desfazer algo que fiz sem querer",passos:[
+    "Aperte Ctrl+Z (ou o botão ← no topo da rail lateral).",
+    "Serve para tudo: texto, cor, exclusão, mover item, renomear. 40 passos guardados.",
+    "Para refazer, Ctrl+Shift+Z ou botão →."
+  ]},
+  {k:"foto-iphone",titulo:"Foto do iPhone não abre",passos:[
+    "Se a mensagem \"salve como JPEG\" aparecer, é o formato HEIC do iPhone (o navegador não lê).",
+    "iPhone: Ajustes → Câmera → Formatos → Mais compatível. As próximas fotos já saem em JPEG.",
+    "As fotos antigas em HEIC: abra na galeria, aperte Compartilhar → Salvar como arquivo (JPEG)."
+  ]},
+  {k:"perder-token",titulo:"Perdi o token do GitHub — e agora?",passos:[
+    "Abra github.com, entre com sua conta.",
+    "Menu do seu avatar → Settings → Developer settings → Personal access tokens (classic).",
+    "Aperte Generate new token (classic). Nome: banco-demandas sync, escopo REPO, sem expiração.",
+    "Copie o token novo. Cole em cada aparelho pelo ⚙ Sincronização.",
+    "Só depois de todos os aparelhos estarem sincronizando, apague o antigo (se ainda existir)."
+  ]}
+];
+
+function comoFacoLista(){
+  const linhas=COMO_FACO.map(x=>`<li><a onclick="comoFaco('${x.k}')" style="cursor:pointer;color:#0f5b52;text-decoration:underline">${esc(x.titulo)}</a></li>`).join("");
+  ncModal(`<h2 style="margin-bottom:4px">❓ Como faço para...</h2>
+    <p class="desc">Passo a passo curto para as coisas mais comuns do dia.</p>
+    <ul style="line-height:1.9;padding-left:20px">${linhas}</ul>
+    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
+}
+function comoFaco(k){
+  const it=COMO_FACO.find(x=>x.k===k);if(!it)return;
+  const passos=it.passos.map((p,i)=>`<li style="margin-bottom:6px">${esc(p)}</li>`).join("");
+  ncModal(`<h2 style="margin-bottom:4px">${esc(it.titulo)}</h2>
+    <ol style="line-height:1.6;padding-left:22px">${passos}</ol>
+    <div class="form-actions">
+      <button class="btn ghost" onclick="comoFacoLista()">← Voltar à lista</button>
+      <button class="btn" onclick="ncFechar()">Entendi</button>
+    </div>`);
+}
+
+/* ===== MAPA DO SITE — como tudo se liga, em português, para poder mexer sozinha.
    Ideia tirada do exemplo "base schema" do Airtable (diagrama da estrutura).
    Isto atende a pendência de AUTONOMIA: entender o próprio site sem depender de ninguém. ===== */
 function mapaDoSite(){

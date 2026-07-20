@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "9.6",
-  "ondeParamos": "Aba Qualidade / BPF no ar e bugs de uso corrigidos: foto do iPhone (HEIC) mostra aviso em vez de travar, arraste no celular libera se o gesto for interrompido, Ctrl+Z nao desfaz o que o sistema fez sozinho, excluir item sem sync propaga se um dia a sync for ligada, PDF centralizado sai certo.",
-  "proximoPasso": "Manual mais facil de entender e segunda leva de checklists (RHS Mensal, Prevencao de Perdas, Recebimento)."
+  "versao": "9.7",
+  "ondeParamos": "Manual 'Como faço para...' na capa com 13 topicos. RHS Mensal (SEGA) com escala B/R/I/NV, CIP mensal e Prevencao de Perdas somaram aos 9 modelos prontos anteriores.",
+  "proximoPasso": "Uso no dia-a-dia. Ajustes finos vem por pedido explicito."
 }
