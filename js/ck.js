@@ -152,9 +152,15 @@ function ckVazio(titulo,dica){
 
 function ckListaModelosHTML(){
   const l=ckModelos();
-  if(!l.length)return ckVazio(
-    txt("ck.vazio.form","Nenhum checklist criado ainda."),
-    txt("ck.vazio.formd","Um checklist é a lista de perguntas da inspeção — por exemplo \"Manutenção e Infraestrutura (Semanal)\". Clique em ＋ Novo checklist para montar o primeiro."));
+  if(!l.length)return `<div class="ck-vazio">
+    <p class="t" data-txt="ck.vazio.form">Nenhum checklist criado ainda.</p>
+    <p class="d" data-txt="ck.vazio.formd">Um checklist é a lista de perguntas da inspeção.
+      Você pode começar do zero, ou já sair com o de Manutenção e Infraestrutura montado —
+      e depois mudar o que quiser nele.</p>
+    <div class="ck-vazio-bts">
+      <button class="btn" onclick="ckModeloPronto()">✨ <span data-txt="ck.pronto.bt">Criar o checklist de Manutenção e Infraestrutura</span></button>
+      <button class="btn ghost" onclick="ckNovo()"><span data-txt="ck.novo2">＋ Criar um vazio</span></button>
+    </div></div>`;
   return `<div class="ck-cards">${l.map(m=>{
     const n=ckPerguntas(m).length;
     return `<div class="ck-card">
@@ -216,6 +222,45 @@ async function ckNovo(){
   o.id=await putItem(o);DATA.push(o);dataChanged();
   CK_SEC="formularios";ckAbrirConstrutor(o.uid);
   toast("Checklist criado ✓");
+}
+/* MODELO PRONTO — as 8 perguntas do formulário que Lê usou de referência.
+   Ela pediu "faça igual": a aba nascer vazia deixava o trabalho todo com ela.
+   É um PONTO DE PARTIDA: depois de criado, tudo é editável como qualquer outro. */
+const CK_MODELO_SMK=[
+  ["Vedação/porta de freezers e geladeiras está íntegra?","Comentário obrigatório se NÃO.","simnao",false,"inconforme","opcional",1],
+  ["Iluminação de loja está 100% operante?","Comentário obrigatório se NÃO.","simnao",false,"inconforme","opcional",1],
+  ["Ar-condicionado/ventilação (se houver) funcionando?","Marque N/A se não aplicável.","simnao",true,"inconforme","opcional",1],
+  ["Balanças (setores e checkout) estão funcionando corretamente?","Comentário obrigatório se NÃO.","simnao",false,"inconforme","nao",1],
+  ["Há demanda de manutenção aberta esta semana?","Se SIM, descrever no comentário e abrir o plano de ação.","simnao",false,"inconforme","opcional",1],
+  ["Prioridade da manutenção (se houver)","Selecione a prioridade.","selecao",true,"inconforme","nao",0],
+  ["Data da inspeção semanal","Informe a data.","data",false,"opcional","nao",0],
+  ["Responsável pela inspeção","Assinatura legível.","assinatura",false,"opcional","nao",0]
+];
+async function ckModeloPronto(){
+  if(!currentStore){toast("Escolha uma empresa primeiro");return;}
+  /* a lista de prioridades que a pergunta 6 usa; "Alta" conta como inconforme */
+  let chaveLista=Object.keys(CK_LISTAS).find(k=>CK_LISTAS[k].nome==="Prioridade da manutenção");
+  if(!chaveLista){
+    chaveLista="lst_"+newUid();
+    CK_LISTAS[chaveLista]={nome:"Prioridade da manutenção",opcoes:[
+      {chave:"o_baixa",rotulo:"Baixa",cor:"#12b76a",fundo:clarear("#12b76a"),ruim:false},
+      {chave:"o_media",rotulo:"Média",cor:"#b3730a",fundo:clarear("#b3730a"),ruim:false},
+      {chave:"o_alta",rotulo:"Alta",cor:"#e5484d",fundo:clarear("#e5484d"),ruim:true}]};
+    CK_OPC_MOD=nowISO();
+    await metaSet("ckOpcoes",{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS});
+    await metaSet("ckOpcoesMod",CK_OPC_MOD);
+  }
+  const o={uid:newUid(),mod:nowISO(),tipo:"ckm",loja:ckLojaBase(),escopo:"",
+    criado:"modelo",criadoEm:today(),ordem:ckModelos().length,ativo:true,
+    titulo:"Manutenção e Infraestrutura (Semanal)",
+    descricao:"Inspeção semanal da loja. Marque 👎 no que estiver fora do padrão.",
+    perguntas:CK_MODELO_SMK.map(([t,d,tp,na,co,fo,peso],i)=>({
+      uid:newUid(),titulo:t,descricao:d,tipoResp:tp,
+      opcoesLista:tp==="selecao"?chaveLista:"",
+      na,coment:co,foto:fo,peso,ordem:i,removida:false}))};
+  o.id=await putItem(o);DATA.push(o);dataChanged();
+  CK_SEC="formularios";renderCk();ckAbrirConstrutor(o.uid);
+  toast("Checklist pronto ✓ Mude o que quiser nele");
 }
 async function ckRenomear(uid){
   const m=ckAchar(uid);if(!m)return;

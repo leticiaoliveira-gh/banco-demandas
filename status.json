@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "7.9",
-  "ondeParamos": "v7.9: a aba CHECKLISTS ficou PRONTA, no modelo do Checkbits. Da para montar o formulario (titulo, descricao, tipo de resposta, nao aplicavel, comentario, foto e peso), arrastar para ordenar, duplicar e apagar; preencher a inspecao no celular uma pergunta por vez, com foto e assinatura; sair no meio e retomar depois (fica em Parciais); e no fim sai a nota em porcentagem e o PDF com linha para o gerente assinar. Quando algo da inconforme, a tratativa 5W2H vira sozinha uma demanda na aba Manutencoes e Eletrica. A barra lateral agora abre e fecha no botao de tres linhas. Nenhuma aba antiga foi mexida.",
-  "proximoPasso": "Voce montar o seu primeiro checklist de verdade e me dizer o que ajustar"
+  "versao": "8.0",
+  "ondeParamos": "v8.0: a aba CHECKLISTS agora ja te oferece o formulario de Manutencao e Infraestrutura MONTADO, com as 8 perguntas prontas — antes ela nascia vazia e o trabalho de montar ficava todo com voce. E so entrar na aba e clicar em Criar o checklist de Manutencao e Infraestrutura. Depois disso, tudo nele e editavel: mudar pergunta, tipo, ordem, apagar, acrescentar.",
+  "proximoPasso": "Voce abrir o checklist pronto, ajustar as perguntas ao seu jeito e fazer a primeira inspecao de verdade"
 }
