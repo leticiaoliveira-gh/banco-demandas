@@ -496,6 +496,36 @@
   .crono-som.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   .crono-nota{color:var(--muted);font-size:11px;margin-top:10px;line-height:1.45}
   @media(max-width:1000px){.crono-painel{right:8px;left:8px;bottom:72px;width:auto}}
+  /* ===== VER CONFIGURAÇÕES (js/configs.js) — modelo do Notion ===== */
+  .cfg-painel{position:fixed;inset:0;background:rgba(20,20,30,.35);z-index:75;
+    display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 16px}
+  .cfg-cx{background:#fff;color:var(--text);border-radius:13px;width:min(390px,94vw);
+    max-height:80vh;overflow:auto;box-shadow:0 18px 50px rgba(0,0,0,.28);padding:12px}
+  .cfg-topo{display:flex;align-items:center;justify-content:space-between;font-size:14px;padding:2px 4px 8px}
+  .cfg-aba{font-size:11.5px;color:var(--muted);padding:0 6px 10px;border-bottom:1px solid var(--border);margin-bottom:8px}
+  .cfg-grupo{margin-bottom:10px}
+  .cfg-grupo-t{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.5px;padding:8px 6px 5px;display:flex;flex-direction:column;gap:1px}
+  .cfg-grupo-t span{font-size:10.5px;font-weight:400;text-transform:none;letter-spacing:0;opacity:.8}
+  .cfg-linha{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;
+    font:inherit;text-align:left;padding:9px 8px;border-radius:8px;cursor:pointer}
+  .cfg-linha:hover{background:#f4f4f6}
+  .cfg-rot{flex:1;min-width:0;font-size:13px;display:flex;flex-direction:column;gap:1px}
+  .cfg-dica{font-size:11px;color:var(--muted)}
+  .cfg-val{font-size:11.5px;color:var(--accent);font-weight:600;white-space:nowrap;
+    background:#eef5f2;border-radius:20px;padding:2px 9px}
+  .cfg-seta{color:var(--muted);font-size:15px}
+  .cfg-rodape{border-top:1px solid var(--border);margin-top:6px;padding-top:6px}
+  /* alças de arrastar nas abas que ganharam o recurso em 20/07 */
+  .col-alca{width:26px}
+  .td-alca{width:26px;padding-right:0 !important}
+  .mnt-alca,.nc-alca{display:inline-block;color:#b9bac2;cursor:grab;font-size:15px;line-height:1;
+    padding:3px 4px;border-radius:5px;touch-action:none;user-select:none}
+  .mnt-alca:hover,.nc-alca:hover{color:var(--accent);background:#eef5f2}
+  .mnt-alca:active,.nc-alca:active{cursor:grabbing}
+  .nc-alca{margin-right:6px;vertical-align:middle}
+  #tbody tr.arrastando{opacity:.92;outline:2px solid var(--accent);background:#f4faf8}
+  .nc-item.arrastando{opacity:.92;border-color:var(--accent);box-shadow:0 10px 26px rgba(15,91,82,.22)}
   /* anexo na tabela de Manutenções */
   .td-acts{white-space:nowrap}
   .tem-anexo{font-size:11px;color:var(--muted);margin-left:2px}

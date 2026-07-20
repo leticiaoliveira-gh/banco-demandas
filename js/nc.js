@@ -372,7 +372,11 @@ function ncRenderList(){
  const areas=NC_AREAS[currentStore]||[];
  const ordPiso=ncPisos(areas);
  const ordArea=a=>{const i=areas.findIndex(x=>x.nome===a);return i<0?999:i;};
- rows.sort((a,b)=>ordPiso.indexOf(a.piso)-ordPiso.indexOf(b.piso)||ordArea(a.area)-ordArea(b.area)||(a.relato||"").localeCompare(b.relato||""));
+ /* dentro da área, a ordem que ELA arrastou vence a data (20/07 — esta aba não
+    tinha arraste nenhum). O agrupamento por piso → área continua mandando: arrastar
+    para outra área mudaria a área da NC, o que não é o que ela quer aqui. */
+ rows.sort((a,b)=>ordPiso.indexOf(a.piso)-ordPiso.indexOf(b.piso)||ordArea(a.area)-ordArea(b.area)
+   ||((a.ordem??1e9)-(b.ordem??1e9))||(a.relato||"").localeCompare(b.relato||""));
  const nPiso={},nArea={};
  for(const d of rows){nPiso[d.piso]=(nPiso[d.piso]||0)+1;const k=d.piso+"|"+d.area;nArea[k]=(nArea[k]||0)+1;}
  let html="",piso=null,area=null;
@@ -385,8 +389,8 @@ function ncRenderList(){
    +((d.reaberturas||0)>0?`<span class="nc-badge">reaberta ${d.reaberturas}x</span>`:"");
   const pontos=(d.pontos||[]).map(p=>`<div class="nc-ponto">• ${esc(p)}</div>`).join("");
   const fotos=(d.fotos||[]).map((f,i)=>`<img class="nc-mini" src="${f}" onclick="ncVerFoto(${d.id},${i})">`).join("");
-  html+=`<div class="nc-item ${resolvida?"done":""}">
-   <div class="nc-item-top">${ncTag(d.urgencia)}${badges}<span class="nc-data">${brDate(d.relato)}${resolvida?" · resolvida em "+brDate(d.resolvida_em):""}</span></div>
+  html+=`<div class="nc-item ${resolvida?"done":""}" data-id="${d.id}" data-area="${esc(d.area||"")}">
+   <div class="nc-item-top"><span class="nc-alca" title="Segure e arraste para mudar a ordem dentro desta área" onpointerdown="ncArrIni(event,${d.id})">⠿</span>${ncTag(d.urgencia)}${badges}<span class="nc-data">${brDate(d.relato)}${resolvida?" · resolvida em "+brDate(d.resolvida_em):""}</span></div>
    <div class="nc-texto">${esc(d.texto_tecnico||d.texto_bruto||"(sem descrição — ver fotos)")}</div>
    ${pontos}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}
    <div class="nc-acts">
@@ -398,6 +402,46 @@ function ncRenderList(){
    </div></div>`;
  }
  el.innerHTML=html;
+}
+
+/* ===== ARRASTE DA ABA DE NC (20/07) — só DENTRO da mesma área =====
+   Arrastar para outra área mudaria a área da NC sem ela pedir; para isso existe
+   o ✎ Editar. Handlers no DOCUMENT, como no resto do site. */
+let NC_ARR=null;
+function ncArrIni(ev,id){
+  ev.preventDefault();
+  const cx=ev.currentTarget.closest(".nc-item");if(!cx)return;
+  NC_ARR={id,cx,area:cx.dataset.area};
+  cx.classList.add("arrastando");
+  document.addEventListener("pointermove",ncArrMove);
+  document.addEventListener("pointerup",ncArrFim,{once:true});
+}
+function ncArrMove(ev){
+  if(!NC_ARR)return;
+  /* só troca de lugar com NCs da MESMA área */
+  const irmaos=[...document.querySelectorAll('.nc-item[data-area="'+CSS.escape(NC_ARR.area)+'"]')]
+    .filter(l=>l!==NC_ARR.cx);
+  for(const l of irmaos){
+    const r=l.getBoundingClientRect();
+    if(ev.clientY>r.top&&ev.clientY<r.bottom){
+      const meio=r.top+r.height/2;
+      l.parentNode.insertBefore(NC_ARR.cx,ev.clientY<meio?l:l.nextSibling);
+      break;
+    }
+  }
+}
+async function ncArrFim(){
+  document.removeEventListener("pointermove",ncArrMove);
+  if(!NC_ARR)return;
+  NC_ARR.cx.classList.remove("arrastando");
+  const area=NC_ARR.area;NC_ARR=null;
+  const ids=[...document.querySelectorAll('.nc-item[data-area="'+CSS.escape(area)+'"]')]
+    .map(l=>Number(l.dataset.id)).filter(n=>!isNaN(n));
+  const itens=ids.map(i=>DATA.find(d=>d.id===i)).filter(Boolean);
+  for(let i=0;i<itens.length;i++){
+    if(itens[i].ordem!==i){itens[i].ordem=i;itens[i].mod=nowISO();await putItem(itens[i]);}
+  }
+  dataChanged();renderNC();toast("Ordem salva ✓");
 }
 
 function ncVerFoto(id,i){const d=DATA.find(x=>x.id===id);if(!d)return;

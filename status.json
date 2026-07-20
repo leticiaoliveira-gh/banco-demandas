@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "8.9",
-  "ondeParamos": "v8.9: a lista de empresas VOLTOU ao original, como voce pediu (do que eu tinha mexido ficou so o tamanho dos botoes, que voce aprovou). Entrou o CRONOMETRO no icone ⏱ da barra: varios tempos ao mesmo tempo, cada um com nome, tres sons para escolher, e eles continuam correndo mesmo se voce trocar de aba ou fechar o site. A aba Manutencoes ganhou o botao de anexar foto/arquivo, que so existia no Quadro Geral e no Relatorio. E a aba Checklists ganhou busca na tela principal, que nao tinha.",
-  "proximoPasso": "Falta: arraste na aba de NC e em Manutencoes, a tela de configuracoes no modelo do Notion, e o PDF com uma pagina por aba"
+  "versao": "9.0",
+  "ondeParamos": "v9.0: fechou a lista. Toda aba agora tem o botao ⚙ Configuracoes, no modelo do Notion (Layout, Filtrar, Ordenar, Agrupar, Cores) — uma porta so, igual em todas. Entrou arraste na aba de Manutencoes e na de Nao Conformidade, que eram as duas que nao tinham. E no menu ⋯ tem 📄 PDF de todos os quadros: um arquivo com uma pagina para cada quadro, com o nome da aba no topo.",
+  "proximoPasso": "Voce usar no trabalho e me dizer o que atrapalha; e o manual facil, que continua devendo"
 }

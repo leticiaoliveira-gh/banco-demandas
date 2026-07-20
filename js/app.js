@@ -1063,13 +1063,59 @@ async function moverFiltrados(){
  dataChanged();render();toast(rows.length+" itens movidos para "+alvo.code+" ✓");
 }
 
+/* ===== ARRASTE NA TABELA DE MANUTENÇÕES (20/07) =====
+   Era a única aba de lista sem arraste. Mesma regra do resto do site: handlers no
+   DOCUMENT (na alça, mover a linha no DOM cancela a captura e o gesto morre).
+   Reordena por "vagas": as linhas VISÍVEIS trocam entre si as posições que já
+   ocupavam — assim filtrar e arrastar não bagunça o que está fora do filtro. */
+let MNT_ARR=null;
+function mntArrIni(ev,id){
+  ev.preventDefault();
+  const tr=ev.currentTarget.closest("tr");if(!tr)return;
+  MNT_ARR={id,tr,y0:ev.clientY};
+  tr.classList.add("arrastando");
+  document.addEventListener("pointermove",mntArrMove);
+  document.addEventListener("pointerup",mntArrFim,{once:true});
+}
+function mntArrMove(ev){
+  if(!MNT_ARR)return;
+  const linhas=[...document.querySelectorAll("#tbody tr")].filter(l=>l!==MNT_ARR.tr);
+  for(const l of linhas){
+    const r=l.getBoundingClientRect();
+    if(ev.clientY>r.top&&ev.clientY<r.bottom){
+      const meio=r.top+r.height/2;
+      l.parentNode.insertBefore(MNT_ARR.tr,ev.clientY<meio?l:l.nextSibling);
+      break;
+    }
+  }
+}
+async function mntArrFim(){
+  document.removeEventListener("pointermove",mntArrMove);
+  if(!MNT_ARR)return;
+  MNT_ARR.tr.classList.remove("arrastando");MNT_ARR=null;
+  const ids=[...document.querySelectorAll("#tbody tr")].map(l=>Number(l.dataset.id)).filter(n=>!isNaN(n));
+  const itens=ids.map(i=>DATA.find(d=>d.id===i)).filter(Boolean);
+  /* as VAGAS que essas linhas já ocupavam, redistribuídas na nova sequência */
+  const vagas=itens.map(x=>x.ordem).filter(v=>typeof v==="number").sort((a,b)=>a-b);
+  for(let i=0;i<itens.length;i++){
+    const nova=(vagas.length===itens.length)?vagas[i]:i;
+    if(itens[i].ordem!==nova){itens[i].ordem=nova;itens[i].mod=nowISO();await putItem(itens[i]);}
+  }
+  dataChanged();render();toast("Ordem salva ✓");
+}
+
 function render(){
  renderCards();fillAreas();
  let rows=linhasFiltradas();
- rows.sort((a,b)=>(isPendente(a)?0:1)-(isPendente(b)?0:1));
+ /* a ordem que ELA arrastou manda; pendente/concluído continua sendo o desempate */
+ const temOrdem=rows.some(d=>typeof d.ordem==="number");
+ rows.sort((a,b)=>(isPendente(a)?0:1)-(isPendente(b)?0:1)
+   ||(temOrdem?((a.ordem??1e9)-(b.ordem??1e9)):0));
  const tb=document.getElementById("tbody");
- if(!rows.length){tb.innerHTML='<tr><td colspan="10"><div class="empty">'+(currentTipo==="dg"?"Nenhuma demanda geral cadastrada ainda. Use “+ Nova” para adicionar.":"Nenhum item encontrado.")+'</div></td></tr>';return;}
- tb.innerHTML=rows.map(d=>{const done=d.status==="Concluído";return `<tr>
+ /* colspan acompanha a coluna da alça — senão a mensagem de "vazio" desalinha */
+ if(!rows.length){tb.innerHTML='<tr><td colspan="11"><div class="empty">'+(currentTipo==="dg"?"Nenhuma demanda geral cadastrada ainda. Use “+ Nova” para adicionar.":"Nenhum item encontrado.")+'</div></td></tr>';return;}
+ tb.innerHTML=rows.map(d=>{const done=d.status==="Concluído";return `<tr data-id="${d.id}">
+   <td class="td-alca"><span class="mnt-alca" title="Segure e arraste para mudar a ordem" onpointerdown="mntArrIni(event,${d.id})">⠿</span></td>
    <td><select class="cell" onchange="setField(${d.id},'loja',this.value)">${lojaOptionsHTML(d.loja)}</select></td>
    <td><textarea class="cell" rows="1" onchange="setField(${d.id},'area',this.value)" oninput="grow(this)">${esc(d.area)}</textarea></td>
    <td><textarea class="cell" rows="1" onchange="setField(${d.id},'nc',this.value)" oninput="grow(this)">${esc(d.nc)}</textarea></td>
