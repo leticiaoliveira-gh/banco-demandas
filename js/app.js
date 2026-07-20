@@ -240,7 +240,9 @@ const TABS={
       icone:ICO.ck,cor:"#7c3aed",corFundo:"#f1ebfd",hub:true,
       subtitle:n=>"",
       renderCards(){document.getElementById("cards").innerHTML="";},
-      onShow(){currentTipo="ckm";renderCk();}},
+      onShow(){currentTipo="ckm";
+        /* o que é cada área (câmara, banheiro, produção) mora no meta e é por empresa */
+        if(typeof ckAmbCarregar==="function")ckAmbCarregar().then(renderCk);else renderCk();}},
   nc:{label:"Relatório de Não Conformidade - Gerência",tipo:"nc",panel:"tab-nc",
       icone:ICO.nc,cor:"#1668b8",corFundo:"#e7f0f9",hub:true,
       subtitle:n=>"Relatório de Não Conformidade — Gerência — "+n,

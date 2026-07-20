@@ -83,9 +83,32 @@ function ckPerguntas(m){return (m.perguntas||[]).filter(p=>!p.removida)
                                 .sort((a,b)=>(a.ordem??1e9)-(b.ordem??1e9));}
 async function ckSalvar(d){d.mod=nowISO();await putItem(d);dataChanged();}
 
+/* ===== PERGUNTA × ÁREA =====
+   Um checklist pode ter perguntas que se repetem em cada área visitada (`escopoP`).
+   ckExpandir devolve a lista real de coisas a responder: {q, area, chave}.
+   A CHAVE da resposta é "uid" quando a pergunta é da loja e "uid@Área" quando é por área.
+   Checklist SEM escopo (o Semanal) cai no caminho de sempre: chave = uid. */
+function ckTemAreas(m){return ckPerguntas(m).some(q=>q.escopoP&&q.escopoP!=="loja");}
+function ckChave(q,area){
+  return (area&&q.escopoP&&q.escopoP!=="loja")?q.uid+"@"+area:q.uid;
+}
+function ckExpandir(m,p){
+  const perg=ckPerguntas(m);
+  if(!ckTemAreas(m))return perg.map(q=>({q,area:"",chave:q.uid}));
+  const out=[];
+  for(const q of perg)if(!q.escopoP||q.escopoP==="loja")out.push({q,area:"",chave:q.uid});
+  for(const a of (p&&p.areas)||[]){
+    const t=(typeof ckTipoDaArea==="function")?ckTipoDaArea(a):"apoio";
+    for(const q of perg){
+      if(!q.escopoP||q.escopoP==="loja")continue;
+      if(q.escopoP==="ambiente"||q.escopoP==="tipo:"+t)out.push({q,area:a,chave:ckChave(q,a)});
+    }
+  }
+  return out;
+}
 function ckAndamento(p){
   const m=ckAchar(p.modeloUid);
-  const total=m?ckPerguntas(m).length:Object.keys(p.respostas||{}).length;
+  const total=m?ckExpandir(m,p).length:Object.keys(p.respostas||{}).length;
   return {feitas:Object.keys(p.respostas||{}).length,total};
 }
 /* uma resposta é "ruim" (inconforme)? sim/não => "nao"; seleção => opção marcada ruim */
@@ -103,20 +126,34 @@ function ckRuim(perg,resp){
 function ckNota(p){
   const m=ckAchar(p.modeloUid);if(!m)return {pontos:0,total:0,pct:null};
   let pontos=0,total=0;
-  for(const perg of ckPerguntas(m)){
+  for(const {q:perg,chave} of ckExpandir(m,p)){
     if(perg.tipoResp==="data"||perg.tipoResp==="texto"||perg.tipoResp==="assinatura")continue;
     const peso=perg.peso==null?1:Number(perg.peso)||0;
     if(!peso)continue;
-    const r=(p.respostas||{})[perg.uid];
+    const r=(p.respostas||{})[chave];
     if(!r||r.na||r.valor===undefined||r.valor==="")continue;   /* não respondida/N-A: fora */
     total+=peso;
     if(!ckRuim(perg,r))pontos+=peso;
   }
   return {pontos,total,pct:total?Math.round(pontos/total*1000)/10:null};
 }
+/* nota de um recorte (uma seção, uma área) — usada no relatório */
+function ckNotaDe(p,celulas){
+  let pontos=0,total=0;
+  for(const {q,chave} of celulas){
+    if(q.tipoResp==="data"||q.tipoResp==="texto"||q.tipoResp==="assinatura")continue;
+    const peso=q.peso==null?1:Number(q.peso)||0;
+    if(!peso)continue;
+    const r=(p.respostas||{})[chave];
+    if(!r||r.na||r.valor===undefined||r.valor==="")continue;
+    total+=peso;if(!ckRuim(q,r))pontos+=peso;
+  }
+  return {pontos,total,pct:total?Math.round(pontos/total*1000)/10:null};
+}
+/* devolve as CÉLULAS inconformes ({q,area,chave}), não só as perguntas */
 function ckInconformes(p){
   const m=ckAchar(p.modeloUid);if(!m)return [];
-  return ckPerguntas(m).filter(perg=>ckRuim(perg,(p.respostas||{})[perg.uid]));
+  return ckExpandir(m,p).filter(c=>ckRuim(c.q,(p.respostas||{})[c.chave]));
 }
 
 /* ===== Tela principal da aba ===== */
@@ -132,6 +169,8 @@ function renderCk(){
       <div class="ck-acoes">
         ${CK_SEC==="formularios"?`
           <button class="btn sm" onclick="ckNovo()"><span data-txt="ck.novo">＋ Novo checklist</span></button>
+          ${typeof ckModeloInfra2==="function"?`<button class="btn sm alt" onclick="ckModeloInfra2()" title="Cria o checklist completo com as perguntas da legislação">✨ <span data-txt="ck.infra2.bt">Infraestrutura e Manutenção 2</span></button>`:""}
+          ${typeof ckAmbientes==="function"?`<button class="filtro-cfg-bt" onclick="ckAmbientes()" title="Dizer o que é cada área: câmara, banheiro, produção...">⚙ <span data-txt="ck.cfg.amb">Áreas</span></button>`:""}
           <button class="filtro-cfg-bt" onclick="dgGerirOpcoes('cktipos')" title="Renomear ou recolorir os tipos de resposta">⚙ <span data-txt="ck.cfg.tipos">Tipos</span></button>
           <button class="filtro-cfg-bt" onclick="ckGerirListas()" title="Criar e editar as listas de opções">⚙ <span data-txt="ck.cfg.listas">Listas</span></button>`:""}
       </div>
@@ -162,15 +201,17 @@ function ckListaModelosHTML(){
       <button class="btn ghost" onclick="ckNovo()"><span data-txt="ck.novo2">＋ Criar um vazio</span></button>
     </div></div>`;
   return `<div class="ck-cards">${l.map(m=>{
-    const n=ckPerguntas(m).length;
+    const n=ckPerguntas(m).length,porArea=ckTemAreas(m);
     return `<div class="ck-card">
       <div class="ck-card-top">
         <b class="ck-card-tit">${esc(m.titulo||"(sem nome)")}</b>
         <span class="ck-qtd">${n} ${n===1?"pergunta":"perguntas"}</span>
       </div>
       ${m.descricao?`<p class="ck-card-desc">${esc(m.descricao)}</p>`:""}
+      ${porArea?`<p class="ck-card-tag">📍 Este checklist pergunta área por área</p>`:""}
       <div class="ck-card-pe">
         <button class="btn sm" ${n?"":"disabled title='Adicione perguntas antes de preencher'"} onclick="ckIniciar('${m.uid}')">▶ <span data-txt="ck.preencher">Preencher</span></button>
+        ${porArea&&typeof ckTriagem==="function"?`<button class="btn ghost sm" onclick="ckTriagem('${m.uid}')" title="Ligar as manutenções que você já tem às perguntas">🔗 <span data-txt="ck.tri.bt">Ligar minhas manutenções</span></button>`:""}
         <button class="btn ghost sm" onclick="ckAbrirConstrutor('${m.uid}')" title="Editar as perguntas">✎ <span data-txt="ck.editar">Editar perguntas</span></button>
         <button class="btn ghost sm" onclick="ckRenomear('${m.uid}')" title="Renomear o checklist">✏️</button>
         <button class="btn ghost sm" onclick="ckDuplicarModelo('${m.uid}')" title="Duplicar o checklist inteiro">🗐</button>
@@ -205,7 +246,8 @@ function ckListaPreenchHTML(status){
         <td class="ck-td-ac">
           ${status==="concluido"
             ?`<button class="btn ghost sm" onclick="ckVer('${p.uid}')" title="Abrir a inspeção">🔍</button>
-              <button class="btn ghost sm" onclick="ckPDF('${p.uid}')" title="Imprimir / salvar em PDF">🖨</button>`
+              <button class="btn ghost sm" onclick="ckPDF('${p.uid}')" title="Relatório para a gerência: resumo e o que precisa ser corrigido">🖨</button>
+              <button class="btn ghost sm" onclick="ckPDF('${p.uid}',true)" title="Documento completo, item por item (para a Vigilância Sanitária)">📄</button>`
             :`<button class="btn sm" onclick="ckRetomar('${p.uid}')" title="Continuar de onde parou">▶ <span data-txt="ck.retomar">Retomar</span></button>`}
           <button class="btn ghost sm" onclick="ckExcluirPreench('${p.uid}')" title="Excluir esta inspeção">🗑</button>
         </td></tr>`;}).join("")}</tbody></table></div>`;
@@ -302,6 +344,9 @@ async function ckApagar(d){
    CONSTRUTOR DE PERGUNTAS — a tela dos prints do Checkbits
    =================================================================== */
 let CK_MODELO_ABERTO="",CK_BUSCA="",CK_SEL=new Set();
+/* nº de colunas da tabela do construtor — usado no colspan do cabeçalho de seção e da
+   linha-guia do arraste. Passar do total é inofensivo; ficar abaixo QUEBRA o arraste. */
+const CK_COLS=14;
 
 function ckAbrirConstrutor(uid){
   CK_MODELO_ABERTO=uid;CK_BUSCA="";CK_SEL.clear();ckDesenhaConstrutor();
@@ -364,11 +409,18 @@ function ckTabelaHTML(m,vis){
   if(!vis.length)return ckVazio(txt("ck.vazio.busca","Nenhuma pergunta encontrada."),
     txt("ck.vazio.buscad","Tente outras palavras, ou limpe a busca."));
   const todas=ckPerguntas(m);
-  return `<table class="ck-perg">
+  /* o checklist tem seções? se NENHUMA pergunta tem, não desenha cabeçalho nenhum —
+     é o que mantém o checklist 1 (Semanal) exatamente como sempre foi. */
+  const temSecao=todas.some(p=>(p.secao||"").trim());
+  let secAtual=null;
+  return `<table class="ck-perg${temSecao?" com-sec":""}">
     <thead><tr>
       <th class="c-arr"></th><th class="c-n">#</th>
       <th data-txt="ck.h.titulo">Título</th>
       <th data-txt="ck.h.desc">Descrição</th>
+      ${temSecao?`<th data-txt="ck.h.secao">Seção</th><th data-txt="ck.h.onde">Onde pergunta</th>`:""}
+      <th data-txt="ck.h.acao">Ação corretiva</th>
+      <th data-txt="ck.h.legal">Base legal</th>
       <th data-txt="ck.h.tipo">Tipo</th>
       <th data-txt="ck.h.na">Não Aplicável</th>
       <th data-txt="ck.h.coment">Comentários</th>
@@ -378,7 +430,15 @@ function ckTabelaHTML(m,vis){
     </tr></thead>
     <tbody>${vis.map(p=>{
       const n=todas.indexOf(p)+1;
-      return `<tr class="ck-lin${CK_SEL.has(p.uid)?" sel":""}" data-uid="${p.uid}">
+      let cab="";
+      if(temSecao){
+        const s=(p.secao||"").trim()||"— sem seção —";
+        if(s!==secAtual){secAtual=s;
+          const qt=todas.filter(x=>((x.secao||"").trim()||"— sem seção —")===s).length;
+          cab=`<tr class="ck-secao-h"><td colspan="${CK_COLS}"><b>${esc(s)}</b>
+                 <span>${qt} ${qt===1?"pergunta":"perguntas"}</span></td></tr>`;}
+      }
+      return cab+`<tr class="ck-lin${CK_SEL.has(p.uid)?" sel":""}" data-uid="${p.uid}">
         <td class="c-arr"><span class="ck-alca" title="Arraste para mudar a ordem"
           onpointerdown="ckArrIni(event,this)">⠿</span>
           <input type="checkbox" class="ck-chk" ${CK_SEL.has(p.uid)?"checked":""}
@@ -391,6 +451,17 @@ function ckTabelaHTML(m,vis){
         <td><div class="ck-ed sub" contenteditable="plaintext-only" spellcheck="false"
               data-ph="Instrução para quem preenche"
               onblur="ckSetPergunta('${p.uid}','descricao',this.innerText.trim())">${esc(p.descricao||"")}</div></td>
+        ${temSecao?`
+        <td><input class="ck-sec-in" value="${esc(p.secao||"")}" placeholder="Seção"
+              title="Agrupa as perguntas no preenchimento e no relatório"
+              onchange="ckSetPergunta('${p.uid}','secao',this.value.trim())"></td>
+        <td>${ckSelectEscopoHTML(p)}</td>`:""}
+        <td><div class="ck-ed sub acao" contenteditable="plaintext-only" spellcheck="false"
+              data-ph="O que fazer se estiver irregular"
+              onblur="ckSetPergunta('${p.uid}','acaoPadrao',this.innerText.trim())">${esc(p.acaoPadrao||"")}</div></td>
+        <td><div class="ck-ed sub legal" contenteditable="plaintext-only" spellcheck="false"
+              data-ph="RDC / item"
+              onblur="ckSetPergunta('${p.uid}','baseLegal',this.innerText.trim())">${esc(p.baseLegal||"")}</div></td>
         <td>${ckSelectHTML(p,"tipoResp",CK_TIPOS)}
             ${p.tipoResp==="selecao"?ckSelectListaHTML(p):""}</td>
         <td>${ckPilulaSimNao(p,"na")}</td>
@@ -404,6 +475,22 @@ function ckTabelaHTML(m,vis){
           <button class="ck-mini" onclick="ckAddPergunta('${p.uid}')" title="Criar uma pergunta logo abaixo">＋</button>
           <button class="ck-mini del" onclick="ckExcluirPergunta('${p.uid}')" title="Excluir esta pergunta">🗑</button>
         </td></tr>`;}).join("")}</tbody></table>`;
+}
+/* ONDE a pergunta é feita. Vazio = como sempre foi (uma vez, na inspeção inteira). */
+const CK_ESCOPOS={
+  "":"Uma vez só",
+  loja:"Uma vez na loja",
+  ambiente:"Em toda área visitada",
+  "tipo:camara":"Só nas câmaras e expositores",
+  "tipo:sanitario":"Só em banheiros e vestiários",
+  "tipo:producao":"Só nas áreas de manipulação",
+  "tipo:residuo":"Só na área de lixo"
+};
+function ckSelectEscopoHTML(p){
+  return `<select class="ck-sel" title="Em quais áreas esta pergunta aparece"
+    onchange="ckSetPergunta('${p.uid}','escopoP',this.value)">
+    ${Object.keys(CK_ESCOPOS).map(k=>`<option value="${k}"${(p.escopoP||"")===k?" selected":""}>${esc(CK_ESCOPOS[k])}</option>`).join("")}
+  </select>`;
 }
 function ckSelectHTML(p,campo,mapa){
   return `<select class="ck-sel" onchange="ckSetPergunta('${p.uid}','${campo}',this.value)">
@@ -423,6 +510,9 @@ function ckPilulaSimNao(p,campo){
     title="${on?"Permite marcar Não Aplicável":"Não permite marcar Não Aplicável"}">${on?"Sim":"Não"}</button>`;
 }
 
+/* campos digitados à mão: redesenhar enquanto ela digita faria o cursor pular */
+const CK_TXT_LIVRE=["titulo","descricao","acaoPadrao","baseLegal"];
+
 async function ckSetModelo(campo,val){
   const m=ckAchar(CK_MODELO_ABERTO);if(!m)return;
   if(campo==="titulo"&&!val)return;                 /* não deixa ficar sem nome */
@@ -435,14 +525,16 @@ async function ckSetPergunta(uid,campo,val){
   if(campo==="peso")val=Math.max(0,Math.min(9,parseInt(val,10)||0));
   if(p[campo]===val)return;
   p[campo]=val;await ckSalvar(m);
-  /* campos de texto não redesenham (perderia o cursor); os outros sim */
-  if(campo!=="titulo"&&campo!=="descricao")ckRedesenhaLista();
+  /* campos de texto não redesenham (perderia o cursor); os outros sim.
+     secao redesenha SIM: os cabeçalhos de seção precisam se reagrupar. */
+  if(!CK_TXT_LIVRE.includes(campo))ckRedesenhaLista();
 }
 async function ckAddPergunta(depoisDe){
   const m=ckAchar(CK_MODELO_ABERTO);if(!m)return;
   const lista=ckPerguntas(m);
   const nova={uid:newUid(),titulo:"",descricao:"",tipoResp:"simnao",opcoesLista:"",
-    na:false,coment:"inconforme",foto:"opcional",peso:1,ordem:0,removida:false};
+    na:false,coment:"inconforme",foto:"opcional",peso:1,ordem:0,removida:false,
+    secao:"",escopoP:"",acaoPadrao:"",baseLegal:""};
   const pos=depoisDe?lista.findIndex(p=>p.uid===depoisDe)+1:lista.length;
   lista.splice(pos,0,nova);
   lista.forEach((p,i)=>p.ordem=i);
@@ -509,13 +601,32 @@ function ckBarraMassaHTML(){
       <option value="">Foto…</option>
       ${ordenarOpc(CK_FOTO).map(k=>`<option value="${k}">${esc(CK_FOTO[k].rotulo)}</option>`).join("")}
     </select>
+    ${ckTemSecoes()?`<select onchange="ckMassa('escopoP',this.value===' '?'':this.value);this.selectedIndex=0" title="Mudar onde estas perguntas aparecem">
+      <option value="">Onde pergunta…</option>
+      ${Object.keys(CK_ESCOPOS).map(k=>`<option value="${k||" "}">${esc(CK_ESCOPOS[k])}</option>`).join("")}
+    </select>
+    <button class="btn ghost sm" onclick="ckMassaSecao()" title="Pôr todas na mesma seção">Seção…</button>`:""}
     <button class="btn ghost sm" onclick="ckSelTodas()">Marcar todas</button>
     <button class="btn ghost sm" onclick="ckMassaExcluir()">🗑</button>
     <button class="btn ghost sm" onclick="CK_SEL.clear();ckRedesenhaLista()">✕ Cancelar</button>
   </div></div>`;
 }
+function ckTemSecoes(){
+  const m=ckAchar(CK_MODELO_ABERTO);
+  return !!(m&&ckPerguntas(m).some(p=>(p.secao||"").trim()));
+}
+async function ckMassaSecao(){
+  const m=ckAchar(CK_MODELO_ABERTO);if(!m||!CK_SEL.size)return;
+  const nomes=[...new Set(ckPerguntas(m).map(p=>(p.secao||"").trim()).filter(Boolean))];
+  const s=prompt("Pôr as "+CK_SEL.size+" perguntas selecionadas em qual seção?\n\n"
+    +"Seções que já existem:\n"+nomes.map(n=>"· "+n).join("\n"));
+  if(s===null)return;
+  await ckMassa("secao",s.trim()||" ");
+}
 async function ckMassa(campo,valor){
-  if(!valor||!CK_SEL.size)return;
+  const podeVazio=campo==="secao"||campo==="escopoP";
+  if(valor===" ")valor="";                       /* " " = a opção "vazio" do seletor */
+  if((!valor&&!podeVazio)||!CK_SEL.size)return;
   const m=ckAchar(CK_MODELO_ABERTO);if(!m)return;
   const n=CK_SEL.size;
   if(typeof dgPodeGravarEmMassa==="function"&&!dgPodeGravarEmMassa(n))return;
@@ -549,7 +660,7 @@ function ckArrIni(ev,alca){
   const lin=alca.closest(".ck-lin");if(!lin)return;
   const corpo=lin.closest("tbody");if(!corpo)return;
   const marca=document.createElement("tr");marca.className="ck-marca";
-  marca.innerHTML=`<td colspan="10"></td>`;
+  marca.innerHTML=`<td colspan="${CK_COLS}"></td>`;
   CK_ARR={lin,corpo,marca,y:ev.clientY,moveu:false};
   lin.classList.add("arrastando");
   document.addEventListener("pointermove",ckArrMove,{passive:false});
@@ -596,6 +707,22 @@ async function ckArrFim(){
   const doDom=uids.map(u=>lista.find(x=>x.uid===u)).filter(Boolean);
   const vagas=doDom.map(p=>p.ordem).sort((a,b)=>a-b);    /* posições disponíveis */
   doDom.forEach((p,i)=>p.ordem=vagas[i]);
+  /* Caiu no meio de outra seção? Adota a seção da vizinha — mesmo comportamento do
+     Quadro Geral, onde arrastar para outro grupo muda a prioridade. Sem isso a tabela
+     redesenharia com o mesmo cabeçalho de seção repetido em dois lugares. */
+  if(ckTemSecoes()){
+    const arrastada=lista.find(x=>x.uid===lin.dataset.uid);
+    if(arrastada){
+      const orden=[...lista].sort((a,b)=>(a.ordem??0)-(b.ordem??0));
+      const j=orden.indexOf(arrastada);
+      const viz=orden[j-1]||orden[j+1];
+      const nova=viz?(viz.secao||""):arrastada.secao;
+      if(nova!==arrastada.secao){
+        arrastada.secao=nova;
+        toast("Pergunta movida para a seção “"+(nova||"sem seção")+"”");
+      }
+    }
+  }
   await ckSalvar(m);ckRedesenhaLista();
 }
 
@@ -671,18 +798,103 @@ async function ckOpcExcluir(k,i){
    =================================================================== */
 let CK_PREENCH="";        /* uid do ckp aberto */
 
+/* modo de resposta: "passo" (uma pergunta por tela) ou "lista" (a área inteira numa tela) */
+let CK_MODO=localStorage.getItem("ck_modo")||"lista";
+function ckSetModo(m){CK_MODO=m;localStorage.setItem("ck_modo",m);ckRedesenhaPreench();}
+function ckRedesenhaPreench(){
+  if(!document.getElementById("ck-preench")||!CK_PREENCH)return;
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  if(p.status==="concluido")return ckDesenhaResumo(true);
+  const m=ckAchar(p.modeloUid);
+  if(CK_MODO==="lista"&&m&&ckTemAreas(m))ckDesenhaLista();else ckDesenhaPasso();
+}
+
 async function ckIniciar(modeloUid){
   const m=ckAchar(modeloUid);if(!m)return;
   if(!ckPerguntas(m).length){toast("Adicione perguntas antes de preencher");return;}
+  /* checklist por área: ela escolhe primeiro ONDE vai passar hoje */
+  if(ckTemAreas(m))return ckEscolherAreas(m.uid);
+  await ckCriarPreench(m,[]);
+}
+async function ckCriarPreench(m,areas){
   const o={uid:newUid(),mod:nowISO(),tipo:"ckp",loja:currentStore,
     modeloUid:m.uid,modeloTitulo:m.titulo||"",
-    status:"andamento",posicao:0,
+    status:"andamento",posicao:0,areas:areas||[],
     criadoEm:today(),iniciadoEm:nowISO(),atualizacao:nowISO(),
     respondente:"",assinatura:"",nota:null,respostas:{}};
   o.id=await putItem(o);DATA.push(o);dataChanged();
-  CK_PREENCH=o.uid;ckDesenhaPasso();
+  CK_PREENCH=o.uid;CK_ETAPA=0;
+  if(CK_MODO==="lista"&&ckTemAreas(m))ckDesenhaLista();else ckDesenhaPasso();
 }
-function ckRetomar(uid){const p=ckAchar(uid);if(!p)return;CK_PREENCH=uid;ckDesenhaPasso();}
+function ckRetomar(uid){const p=ckAchar(uid);if(!p)return;CK_PREENCH=uid;
+  const m=ckAchar(p.modeloUid);
+  if(CK_MODO==="lista"&&m&&ckTemAreas(m))ckDesenhaLista();else ckDesenhaPasso();}
+
+/* ---- escolher as áreas da inspeção de hoje ---- */
+let CK_AREAS_SEL=new Set(),CK_AREAS_MOD="";
+function ckEscolherAreas(modeloUid){
+  const m=ckAchar(modeloUid);if(!m)return;
+  CK_AREAS_MOD=modeloUid;CK_AREAS_SEL=new Set();
+  if(typeof ckAmbCarregar==="function")ckAmbCarregar().then(()=>ckEscolherAreasDesenha(modeloUid));
+  else ckEscolherAreasDesenha(modeloUid);
+}
+function ckEscolherAreasDesenha(modeloUid){
+  const areas=(typeof ckAreasDaLoja==="function")?ckAreasDaLoja():[];
+  if(!areas.length){
+    alert("Esta empresa ainda não tem áreas cadastradas.\n\n"
+      +"Cadastre as áreas na aba Manutenções e Elétrica e volte aqui.");return;
+  }
+  const porTipo={};
+  for(const a of areas){const t=ckTipoDaArea(a);(porTipo[t]=porTipo[t]||[]).push(a);}
+  ncModal(`<h2>Onde você vai passar hoje?</h2>
+    <p class="desc">Marque as áreas que vai inspecionar. Em cada uma o site pergunta
+    <b>só o que faz sentido ali</b> — numa câmara ele pergunta do termômetro, num banheiro
+    do papel toalha. As perguntas gerais da loja (água, esgoto, dedetização) aparecem
+    uma vez só.</p>
+    <div class="ck-ar-barra">
+      <button class="btn ghost sm" onclick="ckAreasTodas(true)">Marcar todas</button>
+      <button class="btn ghost sm" onclick="ckAreasTodas(false)">Limpar</button>
+      <button class="btn ghost sm" onclick="ncFechar();ckAmbientes()">⚙ Corrigir o que é cada área</button>
+      <span class="ck-ar-cont" id="ck-ar-cont">${CK_AREAS_SEL.size} marcadas</span>
+    </div>
+    <div class="ck-ar-grupos">
+      ${Object.keys(CK_TIPOS_AMB).filter(t=>porTipo[t]).map(t=>`
+        <div class="ck-ar-grupo">
+          <div class="ck-ar-h" style="border-color:${CK_TIPOS_AMB[t].cor}">
+            ${CK_TIPOS_AMB[t].ico} <b>${esc(CK_TIPOS_AMB[t].rotulo)}</b>
+            <button class="btn ghost sm" onclick="ckAreasGrupo('${t}')">todas</button>
+          </div>
+          ${porTipo[t].map(a=>`<label class="ck-ar-item">
+            <input type="checkbox" ${CK_AREAS_SEL.has(a)?"checked":""}
+              onchange="ckAreaToggle('${esc(a).replace(/'/g,"&#39;")}',this.checked)">
+            <span>${esc(a)}</span></label>`).join("")}
+        </div>`).join("")}
+    </div>
+    <div class="form-actions">
+      <button class="btn ghost" onclick="ncFechar()">Cancelar</button>
+      <button class="btn" onclick="ckAreasConfirmar('${modeloUid}')">Começar a inspeção ›</button>
+    </div>`);
+}
+function ckAreaToggle(a,on){
+  on?CK_AREAS_SEL.add(a):CK_AREAS_SEL.delete(a);
+  const c=document.getElementById("ck-ar-cont");
+  if(c)c.textContent=CK_AREAS_SEL.size+" marcadas";
+}
+function ckAreasTodas(on){
+  CK_AREAS_SEL=on?new Set(ckAreasDaLoja()):new Set();
+  ckEscolherAreasDesenha(CK_AREAS_MOD);
+}
+function ckAreasGrupo(t){
+  for(const a of ckAreasDaLoja())if(ckTipoDaArea(a)===t)CK_AREAS_SEL.add(a);
+  ckEscolherAreasDesenha(CK_AREAS_MOD);
+}
+async function ckAreasConfirmar(modeloUid){
+  const m=ckAchar(modeloUid);if(!m)return;
+  if(!CK_AREAS_SEL.size&&!confirm("Você não marcou nenhuma área.\n\n"
+    +"A inspeção vai ter só as perguntas gerais da loja. Continuar?"))return;
+  const areas=[...CK_AREAS_SEL].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  ncFechar();await ckCriarPreench(m,areas);
+}
 function ckVer(uid){const p=ckAchar(uid);if(!p)return;CK_PREENCH=uid;ckDesenhaResumo(true);}
 
 function ckFecharPreench(){
@@ -690,88 +902,291 @@ function ckFecharPreench(){
   document.body.style.overflow="";CK_PREENCH="";renderCk();
 }
 /* chamado pelo desfazer (js/app.js histAplicar) para a tela não ficar desatualizada */
-function ckRedesenhaPasso(){if(document.getElementById("ck-preench")&&CK_PREENCH)ckDesenhaPasso();}
+function ckRedesenhaPasso(){if(document.getElementById("ck-preench")&&CK_PREENCH)ckRedesenhaPreench();}
 
 function ckDesenhaPasso(){
   const p=ckAchar(CK_PREENCH);if(!p)return ckFecharPreench();
   const m=ckAchar(p.modeloUid);
   if(!m){alert("O checklist deste preenchimento foi excluído.");return ckFecharPreench();}
-  const perg=ckPerguntas(m);
-  if(p.posicao>=perg.length)return ckDesenhaResumo(false);
-  const i=Math.max(0,Math.min(p.posicao||0,perg.length-1));
-  const q=perg[i],r=(p.respostas||{})[q.uid]||{};
+  if(CK_MODO==="lista"&&ckTemAreas(m))return ckDesenhaLista();
+  const cel=ckExpandir(m,p);
+  if(p.posicao>=cel.length)return ckDesenhaResumo(false);
+  const i=Math.max(0,Math.min(p.posicao||0,cel.length-1));
+  const {q,area,chave}=cel[i],r=(p.respostas||{})[chave]||{};
   let el=document.getElementById("ck-preench");
   if(!el){el=document.createElement("div");el.id="ck-preench";el.className="ck-preench";document.body.appendChild(el);}
   document.body.style.overflow="hidden";
   el.innerHTML=`<div class="ck-pr-topo">
       <button class="ck-pr-x" onclick="ckSairPreench()" title="Sair e guardar em Parciais">✕</button>
       <span class="ck-pr-nome">${esc(m.titulo||"")}</span>
+      ${ckTemAreas(m)?`<button class="ck-pr-modo" onclick="ckSetModo('lista')" title="Ver tudo em lista">☰ Lista</button>`:""}
     </div>
     <div class="ck-pr-box">
+      ${area?`<div class="ck-pr-area">${ckIcoArea(area)} ${esc(area)}</div>`:""}
+      ${q.secao?`<div class="ck-pr-secao">${esc(q.secao)}</div>`:""}
       <div class="ck-pr-h">
         <h2>${esc(q.titulo||"(pergunta sem texto)")}</h2>
-        <span class="ck-pr-cont">${i+1}/${perg.length}</span>
+        <span class="ck-pr-cont">${i+1}/${cel.length}</span>
       </div>
       ${q.descricao?`<p class="ck-pr-desc">${esc(q.descricao)}</p>`:""}
-      <div class="ck-pr-resp">${ckRespostaHTML(q,r)}</div>
+      ${q.baseLegal?`<p class="ck-legal">§ ${esc(q.baseLegal)}</p>`:""}
+      ${ckAvisoNCsHTML(q,area)}
+      <div class="ck-pr-resp">${ckRespostaHTML(q,r,chave)}</div>
       ${q.na?`<label class="ck-pr-na"><input type="checkbox" ${r.na?"checked":""}
-        onchange="ckResponder('${q.uid}','na',this.checked)"> <span data-txt="ck.na">Não se aplica</span></label>`:""}
+        onchange="ckResponder('${chave}','na',this.checked)"> <span data-txt="ck.na">Não se aplica</span></label>`:""}
       ${q.coment!=="nao"?`<div class="ck-pr-com">
         <label>${esc(ckRot(CK_COMENT,q.coment,"Comentário"))==="Inconforme"?txt("ck.com.obrig","Comentário (obrigatório se estiver inconforme)"):txt("ck.com.opc","Comentário")}</label>
         <textarea rows="2" data-txt-ph="ck.com.ph" placeholder="Descreva o ocorrido"
-          onchange="ckResponder('${q.uid}','comentario',this.value)">${esc(r.comentario||"")}</textarea>
+          onchange="ckResponder('${chave}','comentario',this.value)">${esc(r.comentario||"")}</textarea>
       </div>`:""}
-      ${q.foto!=="nao"?ckFotoHTML(q,r):""}
+      ${q.foto!=="nao"?ckFotoHTML(q,r,chave):""}
       <div class="ck-pr-pe">
         <button class="btn ghost" ${i===0?"disabled":""} onclick="ckPasso(-1)">‹ <span data-txt="ck.voltar">Voltar</span></button>
         <button class="btn" onclick="ckPasso(1)"><span data-txt="ck.avancar">Avançar</span> ›</button>
       </div>
     </div>`;
   aplicarTextos(el);
-  if(q.tipoResp==="assinatura")ckCanvasLigar("ck-cv-"+q.uid,q.uid);
+  if(q.tipoResp==="assinatura")ckCanvasLigar("ck-cv-"+chave,chave);
 }
-function ckRespostaHTML(q,r){
+/* ===================================================================
+   MODO LISTA — uma ETAPA por tela (as perguntas da loja, depois cada área).
+   É o que torna 91 perguntas × várias áreas viável numa inspeção de verdade.
+   =================================================================== */
+let CK_ETAPA=0;
+function ckEtapas(m,p){
+  const et=[{area:"",rot:"Geral da loja",ico:"🏬"}];
+  for(const a of (p.areas||[]))et.push({area:a,rot:a,ico:ckIcoArea(a)});
+  return et.filter(e=>ckExpandir(m,p).some(c=>c.area===e.area));
+}
+function ckDesenhaLista(){
+  const p=ckAchar(CK_PREENCH);if(!p)return ckFecharPreench();
+  const m=ckAchar(p.modeloUid);
+  if(!m){alert("O checklist deste preenchimento foi excluído.");return ckFecharPreench();}
+  const cel=ckExpandir(m,p),etapas=ckEtapas(m,p);
+  if(!etapas.length)return ckDesenhaResumo(false);
+  CK_ETAPA=Math.max(0,Math.min(CK_ETAPA,etapas.length-1));
+  const et=etapas[CK_ETAPA];
+  const desta=cel.filter(c=>c.area===et.area);
+  const feitas=desta.filter(c=>{const r=(p.respostas||{})[c.chave]||{};return r.na||(r.valor!==undefined&&r.valor!=="");}).length;
+  let el=document.getElementById("ck-preench");
+  if(!el){el=document.createElement("div");el.id="ck-preench";el.className="ck-preench";document.body.appendChild(el);}
+  document.body.style.overflow="hidden";
+
+  /* agrupa por seção dentro da etapa */
+  const secs=[];
+  for(const c of desta){
+    const s=c.q.secao||"";
+    let g=secs.find(x=>x.s===s);
+    if(!g){g={s,itens:[]};secs.push(g);}
+    g.itens.push(c);
+  }
+  el.innerHTML=`<div class="ck-pr-topo">
+      <button class="ck-pr-x" onclick="ckSairPreench()" title="Sair e guardar em Parciais">✕</button>
+      <span class="ck-pr-nome">${esc(m.titulo||"")}</span>
+      <button class="ck-pr-modo" onclick="ckSetModo('passo')" title="Uma pergunta por vez">◻ Uma por vez</button>
+    </div>
+    <div class="ck-et-trilha">${etapas.map((e,i)=>{
+      const c2=cel.filter(c=>c.area===e.area);
+      const ok=c2.filter(c=>{const r=(p.respostas||{})[c.chave]||{};return r.na||(r.valor!==undefined&&r.valor!=="");}).length;
+      return `<button class="ck-et${i===CK_ETAPA?" on":""}${ok===c2.length?" full":""}"
+        onclick="CK_ETAPA=${i};ckDesenhaLista()" title="${esc(e.rot)}">
+        <span class="ic">${e.ico}</span><span class="nm">${esc(e.rot)}</span>
+        <span class="qt">${ok}/${c2.length}</span></button>`;}).join("")}
+    </div>
+    <div class="ck-pr-box larga">
+      <div class="ck-lst-h">
+        <h2>${et.ico} ${esc(et.rot)}</h2>
+        <div class="ck-lst-info">
+          <span>${feitas}/${desta.length} respondidas</span>
+          ${et.area?`<button class="btn ghost sm" onclick="ckRepetirUltima()" title="Copiar as respostas da última inspeção desta área">↻ Repetir da última vez</button>`:""}
+          <button class="btn ghost sm" onclick="ckMarcarTudoOk()" title="Marcar 👍 em tudo que ainda não foi respondido">👍 Tudo certo aqui</button>
+        </div>
+      </div>
+      ${ckAvisoNCsArea(et.area)}
+      <div class="ck-lst">
+        ${secs.map(g=>`
+          ${g.s?`<div class="ck-lst-sec">${esc(g.s)}</div>`:""}
+          ${g.itens.map(c=>ckLinhaHTML(c,(p.respostas||{})[c.chave]||{})).join("")}
+        `).join("")}
+      </div>
+      <div class="ck-pr-pe">
+        <button class="btn ghost" ${CK_ETAPA===0?"disabled":""} onclick="CK_ETAPA--;ckDesenhaLista()">‹ Anterior</button>
+        ${CK_ETAPA<etapas.length-1
+          ?`<button class="btn" onclick="CK_ETAPA++;ckDesenhaLista()">Próxima área ›</button>`
+          :`<button class="btn" onclick="ckIrResumo()">✔ Revisar e concluir</button>`}
+      </div>
+    </div>`;
+  aplicarTextos(el);
+}
+/* uma linha da lista. É esta a unidade que ckRepintaLinha troca sozinha. */
+function ckLinhaHTML(c,r){
+  const {q,chave}=c,ruim=ckRuim(q,r);
+  const resp=r.na?"na":(r.valor||"");
+  const nEmAberto=(typeof ckNCsDaPergunta==="function")
+    ?ckNCsDaPergunta(q.uid,c.area).filter(d=>d.status!=="Concluído").length:0;
+  const simples=q.tipoResp==="simnao";
+  return `<div class="ck-lin-r${ruim?" ruim":""}${resp?" feita":""}" data-k="${esc(chave)}">
+    <div class="tx">
+      <b>${esc(q.titulo||"")}</b>
+      ${q.descricao?`<span class="d">${esc(q.descricao)}</span>`:""}
+      ${q.baseLegal?`<span class="lg">§ ${esc(q.baseLegal)}</span>`:""}
+      ${nEmAberto?`<button class="ck-nc-tag" onclick="ckVerNCs('${q.uid}','${esc(c.area).replace(/'/g,"&#39;")}')">⚠ ${nEmAberto} em aberto</button>`:""}
+      ${r.comentario?`<span class="cm">💬 ${esc(r.comentario)}</span>`:""}
+      ${(r.fotos||[]).length?`<span class="cm">📷 ${r.fotos.length}</span>`:""}
+    </div>
+    <div class="bt">
+      ${simples?`
+        <button class="ck-b sim${resp==="sim"?" on":""}" onclick="ckResponder('${chave}','valor','sim')" title="Conforme">👍</button>
+        <button class="ck-b nao${resp==="nao"?" on":""}" onclick="ckResponder('${chave}','valor','nao')" title="Inconforme">👎</button>
+        ${q.na?`<button class="ck-b na${resp==="na"?" on":""}" onclick="ckResponder('${chave}','na',${r.na?"false":"true"})" title="Não se aplica">N/A</button>`:""}`
+      :`<button class="ck-b abrir" onclick="ckAbrirUma('${chave}')">Responder ›</button>`}
+      <button class="ck-b det" onclick="ckAbrirUma('${chave}')" title="Comentário, foto e plano de ação">⋯</button>
+    </div>
+  </div>`;
+}
+/* repinta SÓ a linha tocada — redesenhar 40 linhas a cada toque trava o celular */
+function ckRepintaLinha(chave){
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  const m=ckAchar(p.modeloUid);if(!m)return;
+  const c=ckExpandir(m,p).find(x=>x.chave===chave);if(!c)return;
+  const el=document.querySelector(`.ck-lin-r[data-k="${CSS.escape(chave)}"]`);
+  if(!el)return ckDesenhaLista();
+  el.outerHTML=ckLinhaHTML(c,(p.respostas||{})[chave]||{});
+  /* atualiza os contadores da trilha sem redesenhar a lista inteira */
+  const cel=ckExpandir(m,p),etapas=ckEtapas(m,p);
+  document.querySelectorAll(".ck-et").forEach((b,i)=>{
+    const e=etapas[i];if(!e)return;
+    const c2=cel.filter(x=>x.area===e.area);
+    const ok=c2.filter(x=>{const r=(p.respostas||{})[x.chave]||{};return r.na||(r.valor!==undefined&&r.valor!=="");}).length;
+    const qt=b.querySelector(".qt");if(qt)qt.textContent=ok+"/"+c2.length;
+    b.classList.toggle("full",ok===c2.length);
+  });
+}
+/* abre UMA célula na tela cheia de sempre (para comentário, foto e plano de ação) */
+async function ckAbrirUma(chave){
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  const m=ckAchar(p.modeloUid);if(!m)return;
+  const i=ckExpandir(m,p).findIndex(c=>c.chave===chave);if(i<0)return;
+  p.posicao=i;await ckSalvar(p);
+  CK_MODO="passo";ckDesenhaPasso();
+}
+function ckIrResumo(){
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  ckDesenhaResumo(false);
+}
+/* 👍 em tudo que ficou em branco nesta etapa — o caminho normal de uma área sem problema */
+async function ckMarcarTudoOk(){
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  const m=ckAchar(p.modeloUid);if(!m)return;
+  const et=ckEtapas(m,p)[CK_ETAPA];if(!et)return;
+  const alvo=ckExpandir(m,p).filter(c=>c.area===et.area&&c.q.tipoResp==="simnao")
+    .filter(c=>{const r=(p.respostas||{})[c.chave]||{};return !r.na&&(r.valor===undefined||r.valor==="");});
+  if(!alvo.length){toast("Nada em branco aqui");return;}
+  if(!confirm("Marcar 👍 em "+alvo.length+" pergunta(s) que ainda estão em branco?\n\n"
+    +"Só confirme se você olhou de verdade — este documento é assinado por você."))return;
+  p.respostas=p.respostas||{};
+  for(const c of alvo){
+    const r=p.respostas[c.chave]=p.respostas[c.chave]||{fotos:[]};
+    r.valor="sim";r.em=nowISO();
+  }
+  await ckGravaResposta(p);ckDesenhaLista();toast(alvo.length+" marcadas ✓");
+}
+/* copia as respostas da última inspeção CONCLUÍDA desta mesma área */
+async function ckRepetirUltima(){
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  const m=ckAchar(p.modeloUid);if(!m)return;
+  const et=ckEtapas(m,p)[CK_ETAPA];if(!et||!et.area)return;
+  const ant=DATA.filter(d=>!d.deleted&&d.tipo==="ckp"&&d.loja===p.loja&&d.modeloUid===p.modeloUid
+      &&d.status==="concluido"&&d.uid!==p.uid&&(d.areas||[]).includes(et.area))
+    .sort((a,b)=>String(b.concluidoEm||"").localeCompare(String(a.concluidoEm||"")))[0];
+  if(!ant){toast("Não há inspeção anterior concluída nesta área");return;}
+  const cel=ckExpandir(m,p).filter(c=>c.area===et.area);
+  let n=0;
+  p.respostas=p.respostas||{};
+  for(const c of cel){
+    const velha=(ant.respostas||{})[c.chave];
+    if(!velha||(velha.valor===undefined&&!velha.na))continue;
+    p.respostas[c.chave]={fotos:[],valor:velha.valor,na:velha.na,
+      comentario:velha.comentario||"",em:nowISO()};   /* fotos e plano NÃO vêm junto */
+    n++;
+  }
+  if(!n){toast("A inspeção anterior não tem respostas nesta área");return;}
+  await ckGravaResposta(p);ckDesenhaLista();
+  toast(n+" respostas copiadas de "+brDate(ant.concluidoEm||"")+" — confira uma a uma");
+}
+function ckAvisoNCsArea(area){
+  if(!area||typeof ckItensMnt!=="function")return "";
+  const l=ckItensMnt().filter(d=>String(d.area||"").trim()===area&&d.status!=="Concluído");
+  if(!l.length)return "";
+  return `<div class="ck-ncs area"><b>⚠ ${l.length} manutenção${l.length===1?"":"ões"} em aberto nesta área</b>
+    <ul>${l.slice(0,5).map(d=>`<li>${esc(d.nc||"")}</li>`).join("")}</ul>
+    ${l.length>5?`<span class="mais">+ ${l.length-5}</span>`:""}</div>`;
+}
+function ckVerNCs(qUid,area){
+  const l=ckNCsDaPergunta(qUid,area);
+  if(!l.length)return;
+  alert("Manutenções ligadas a esta pergunta:\n\n"
+    +l.map(d=>"· "+(d.nc||"")+"  ["+(d.status||"")+"]").join("\n"));
+}
+function ckIcoArea(a){
+  const t=(typeof ckTipoDaArea==="function")?ckTipoDaArea(a):"";
+  return (typeof CK_TIPOS_AMB!=="undefined"&&CK_TIPOS_AMB[t])?CK_TIPOS_AMB[t].ico:"📍";
+}
+/* as não conformidades que ela JÁ tem ligadas a esta pergunta — a prova na mão */
+function ckAvisoNCsHTML(q,area){
+  if(typeof ckNCsDaPergunta!=="function")return "";
+  const l=ckNCsDaPergunta(q.uid,area).filter(d=>d.status!=="Concluído");
+  if(!l.length)return "";
+  return `<div class="ck-ncs">
+    <b>⚠ ${l.length} manutenção${l.length===1?"":"ões"} em aberto aqui:</b>
+    <ul>${l.slice(0,6).map(d=>`<li>${esc(d.nc||"")}${d.area&&!area?` <i>(${esc(d.area)})</i>`:""}</li>`).join("")}</ul>
+    ${l.length>6?`<span class="mais">+ ${l.length-6}</span>`:""}
+  </div>`;
+}
+function ckRespostaHTML(q,r,chave){
+  const k=chave||q.uid;
   if(q.tipoResp==="simnao")return `<div class="ck-simnao">
-    <button class="ck-nao${r.valor==="nao"?" on":""}" onclick="ckResponder('${q.uid}','valor','nao')">👎</button>
-    <button class="ck-sim${r.valor==="sim"?" on":""}" onclick="ckResponder('${q.uid}','valor','sim')">👍</button></div>`;
+    <button class="ck-nao${r.valor==="nao"?" on":""}" onclick="ckResponder('${k}','valor','nao')">👎</button>
+    <button class="ck-sim${r.valor==="sim"?" on":""}" onclick="ckResponder('${k}','valor','sim')">👍</button></div>`;
   if(q.tipoResp==="selecao"){
     const L=CK_LISTAS[q.opcoesLista];
     if(!L||!(L.opcoes||[]).length)return `<p class="ck-pr-aviso">Esta pergunta é de escolha, mas não tem lista de opções. Configure em ⚙ Listas.</p>`;
     return `<div class="ck-radios">${L.opcoes.map(o=>`
       <label class="ck-radio${r.valor===o.chave?" on":""}">
-        <input type="radio" name="r-${q.uid}" ${r.valor===o.chave?"checked":""}
-          onchange="ckResponder('${q.uid}','valor','${o.chave}')">
+        <input type="radio" name="r-${k}" ${r.valor===o.chave?"checked":""}
+          onchange="ckResponder('${k}','valor','${o.chave}')">
         <span>${esc(o.rotulo)}</span>${o.ruim?`<em class="ck-tag-ruim">inconforme</em>`:""}
       </label>`).join("")}</div>`;
   }
   if(q.tipoResp==="data")return `<input class="ck-in" type="date" value="${esc(r.valor||today())}"
-    onchange="ckResponder('${q.uid}','valor',this.value)">`;
+    onchange="ckResponder('${k}','valor',this.value)">`;
   if(q.tipoResp==="texto")return `<textarea class="ck-in" rows="3" placeholder="Escreva aqui"
-    onchange="ckResponder('${q.uid}','valor',this.value)">${esc(r.valor||"")}</textarea>`;
+    onchange="ckResponder('${k}','valor',this.value)">${esc(r.valor||"")}</textarea>`;
   if(q.tipoResp==="assinatura")return `<div class="ck-assin">
     ${r.valor?`<img class="ck-assin-img" src="${r.valor}" alt="assinatura">`
-             :`<canvas id="ck-cv-${q.uid}" class="ck-cv" width="600" height="200"></canvas>`}
+             :`<canvas id="ck-cv-${k}" class="ck-cv" width="600" height="200"></canvas>`}
     <div class="ck-assin-pe">
-      ${CK_ASSINATURA&&!r.valor?`<button class="btn ghost sm" onclick="ckUsarMinhaAssinatura('${q.uid}')">✍ <span data-txt="ck.usarassin">Usar a minha assinatura</span></button>`:""}
-      <button class="btn ghost sm" onclick="ckLimparAssin('${q.uid}')"><span data-txt="ck.limpar">Limpar</span></button>
+      ${CK_ASSINATURA&&!r.valor?`<button class="btn ghost sm" onclick="ckUsarMinhaAssinatura('${k}')">✍ <span data-txt="ck.usarassin">Usar a minha assinatura</span></button>`:""}
+      <button class="btn ghost sm" onclick="ckLimparAssin('${k}')"><span data-txt="ck.limpar">Limpar</span></button>
     </div></div>`;
   return "";
 }
-function ckFotoHTML(q,r){
-  const fotos=r.fotos||[];
+function ckFotoHTML(q,r,chave){
+  const fotos=r.fotos||[],k=chave||q.uid;
+  const id="ck-file-"+k.replace(/[^a-zA-Z0-9_-]/g,"_");
   return `<div class="ck-pr-foto">
     <div class="ck-origem"><span data-txt="ck.origem">Origem da foto:</span>
-      <label><input type="radio" name="og-${q.uid}" checked onchange="ckOrigem('${q.uid}',true)"> <span data-txt="ck.camera">Câmera</span></label>
-      <label><input type="radio" name="og-${q.uid}" onchange="ckOrigem('${q.uid}',false)"> <span data-txt="ck.galeria">Galeria</span></label>
+      <label><input type="radio" name="og-${k}" checked onchange="ckOrigem('${id}',true)"> <span data-txt="ck.camera">Câmera</span></label>
+      <label><input type="radio" name="og-${k}" onchange="ckOrigem('${id}',false)"> <span data-txt="ck.galeria">Galeria</span></label>
     </div>
-    <input type="file" id="ck-file-${q.uid}" accept="image/*" capture="environment" style="display:none"
-      onchange="ckAddFoto(event,'${q.uid}')">
+    <input type="file" id="${id}" accept="image/*" capture="environment" style="display:none"
+      onchange="ckAddFoto(event,'${k}')">
     <button class="btn ghost sm" ${fotos.length>=CK_MAX_FOTOS?"disabled":""}
-      onclick="document.getElementById('ck-file-${q.uid}').click()">📷
+      onclick="document.getElementById('${id}').click()">📷
       ${fotos.length>=CK_MAX_FOTOS?txt("ck.fotomax","Limite de fotos atingido"):txt("ck.tirarfoto","Tirar / escolher foto")}</button>
     ${q.foto==="obrigatoria"&&!fotos.length?`<span class="ck-obrig" data-txt="ck.fotoobrig">Foto obrigatória</span>`:""}
     <div class="ck-thumbs">${fotos.map((f,i)=>`<span class="ck-thumb">
-      <img src="${f}"><button onclick="ckDelFoto('${q.uid}',${i})" title="Remover">×</button></span>`).join("")}</div>
+      <img src="${f}"><button onclick="ckDelFoto('${k}',${i})" title="Remover">×</button></span>`).join("")}</div>
   </div>`;
 }
 /* LIMITE DE PESO: o banco inteiro vai num arquivo só para o GitHub, que trava perto
@@ -784,8 +1199,8 @@ function ckComprimirCk(file){return new Promise(res=>{
     cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
     URL.revokeObjectURL(img.src);res(cv.toDataURL("image/jpeg",0.6));};
   img.src=URL.createObjectURL(file);});}
-function ckOrigem(uid,camera){
-  const inp=document.getElementById("ck-file-"+uid);if(!inp)return;
+function ckOrigem(id,camera){
+  const inp=document.getElementById(id);if(!inp)return;
   if(camera)inp.setAttribute("capture","environment");else inp.removeAttribute("capture");
 }
 async function ckAddFoto(ev,qUid){
@@ -796,22 +1211,27 @@ async function ckAddFoto(ev,qUid){
   r.fotos=r.fotos||[];
   if(r.fotos.length>=CK_MAX_FOTOS){toast("Máximo de "+CK_MAX_FOTOS+" fotos por pergunta");return;}
   r.fotos.push(await ckComprimirCk(f));r.em=nowISO();
-  await ckGravaResposta(p);ckDesenhaPasso();
+  await ckGravaResposta(p);ckRedesenhaPreench();
 }
 async function ckDelFoto(qUid,i){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   const r=(p.respostas||{})[qUid];if(!r||!r.fotos)return;
   r.fotos.splice(i,1);await ckGravaResposta(p);ckDesenhaPasso();
 }
-async function ckResponder(qUid,campo,valor){
+async function ckResponder(chave,campo,valor){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   p.respostas=p.respostas||{};
-  const r=p.respostas[qUid]=p.respostas[qUid]||{fotos:[]};
+  const r=p.respostas[chave]=p.respostas[chave]||{fotos:[]};
   r[campo]=valor;r.em=nowISO();
   if(campo==="na"&&valor)r.valor="";           /* N/A limpa a resposta */
   await ckGravaResposta(p);
   /* botão e rádio redesenham para marcar a escolha; texto/comentário não (perderia o cursor) */
-  if(campo==="valor"||campo==="na")ckDesenhaPasso();
+  if(campo==="valor"||campo==="na"){
+    /* no modo lista são até 40 linhas na tela: redesenhar tudo trava o iPhone.
+       Repinta SÓ a linha tocada. */
+    if(CK_MODO==="lista"){ckRepintaLinha(chave);return;}
+    ckDesenhaPasso();
+  }
 }
 async function ckGravaResposta(p){
   p.atualizacao=nowISO();
@@ -833,15 +1253,14 @@ function ckAvisarPeso(){
 async function ckPasso(dir){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   const m=ckAchar(p.modeloUid);if(!m)return;
-  const perg=ckPerguntas(m),i=p.posicao||0;
-  if(dir>0){
-    const q=perg[i],r=(p.respostas||{})[q.uid]||{};
-    const erro=ckValidar(q,r);
+  const cel=ckExpandir(m,p),i=p.posicao||0;
+  if(dir>0&&cel[i]){
+    const erro=ckValidar(cel[i].q,(p.respostas||{})[cel[i].chave]||{});
     if(erro){alert(erro);return;}
   }
-  p.posicao=Math.max(0,Math.min(i+dir,perg.length));
+  p.posicao=Math.max(0,Math.min(i+dir,cel.length));
   await ckSalvar(p);
-  if(p.posicao>=perg.length)ckDesenhaResumo(false);else ckDesenhaPasso();
+  if(p.posicao>=cel.length)ckDesenhaResumo(false);else ckDesenhaPasso();
 }
 /* as regras que ela configurou na coluna Comentários/Foto valem aqui */
 function ckValidar(q,r){
@@ -925,9 +1344,10 @@ async function ckAssinSalvarRT(){
 function ckDesenhaResumo(soLeitura){
   const p=ckAchar(CK_PREENCH);if(!p)return ckFecharPreench();
   const m=ckAchar(p.modeloUid);
-  const perg=m?ckPerguntas(m):[];
+  const perg=m?ckExpandir(m,p):[];
   const nota=p.status==="concluido"&&p.nota?p.nota:ckNota(p);
   const inc=ckInconformes(p);
+  const cls=(typeof ckClassifica==="function")?ckClassifica(nota.pct):{rot:"",cor:""};
   let el=document.getElementById("ck-preench");
   if(!el){el=document.createElement("div");el.id="ck-preench";el.className="ck-preench";document.body.appendChild(el);}
   document.body.style.overflow="hidden";
@@ -940,21 +1360,31 @@ function ckDesenhaResumo(soLeitura){
         <span class="ck-pr-cont">${perg.length}/${perg.length}</span></div>
 
       <div class="ck-kpis">
-        <div class="ck-kpi"><b class="${nota.pct!=null&&nota.pct<70?"ruim":""}">${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b><span data-txt="ck.kpi.nota">Nota</span></div>
+        <div class="ck-kpi"><b class="${nota.pct!=null&&nota.pct<70?"ruim":""}">${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b>
+          <span data-txt="ck.kpi.nota">Nota</span>
+          ${cls.rot?`<i class="ck-cls" style="color:${cls.cor}">${esc(cls.rot)}</i>`:""}</div>
         <div class="ck-kpi"><b class="${inc.length?"ruim":""}">${inc.length}</b><span data-txt="ck.kpi.inc">Inconformes</span></div>
         <div class="ck-kpi"><b>${Object.keys(p.respostas||{}).length}/${perg.length}</b><span data-txt="ck.kpi.resp">Respondidas</span></div>
       </div>
 
-      <details class="ck-resumo"><summary data-txt="ck.resumo">Resumo das respostas</summary>
-        ${perg.map((q,i)=>{
-          const r=(p.respostas||{})[q.uid]||{},ruim=ckRuim(q,r);
+      ${inc.length?`<div class="ck-pend">
+        <b>${inc.length} ponto${inc.length===1?"":"s"} a corrigir.</b>
+        ${inc.filter(c=>!((p.respostas||{})[c.chave]||{}).tratativa).length
+          ?`<span>${inc.filter(c=>!((p.respostas||{})[c.chave]||{}).tratativa).length} ainda sem plano de ação — abra abaixo.</span>`
+          :`<span>Todos já com plano de ação ✓</span>`}
+      </div>`:""}
+
+      <details class="ck-resumo"${inc.length?" open":""}><summary data-txt="ck.resumo">Resumo das respostas</summary>
+        ${perg.map((c,i)=>{
+          const q=c.q,r=(p.respostas||{})[c.chave]||{},ruim=ckRuim(q,r);
           return `<div class="ck-res-lin${ruim?" ruim":""}">
             <span class="n">${i+1}</span>
             <div class="tx"><b>${esc(q.titulo||"")}</b>
+              ${c.area?`<span class="a">${ckIcoArea(c.area)} ${esc(c.area)}</span>`:""}
               <span class="v">${esc(ckValorTexto(q,r))}</span>
               ${r.comentario?`<span class="c">${esc(r.comentario)}</span>`:""}
               ${(r.fotos||[]).length?`<span class="f">${r.fotos.length} foto(s)</span>`:""}
-              ${ruim?`<button class="btn ghost sm" onclick="ckTratativa('${q.uid}')">${r.tratativa?"✎ Ver tratativa":"⚠ Abrir tratativa"}</button>`:""}
+              ${ruim?`<button class="btn ghost sm" onclick="ckTratativa('${c.chave}')">${r.tratativa?"✎ Ver plano de ação":"⚠ Abrir plano de ação"}</button>`:""}
             </div></div>`;}).join("")}
       </details>
 
@@ -965,7 +1395,8 @@ function ckDesenhaResumo(soLeitura){
         </div>
         <div class="ck-pr-pe">
           <button class="btn ghost" onclick="ckSairPreench()"><span data-txt="ck.fechar2">Fechar</span></button>
-          <button class="btn" onclick="ckPDF('${p.uid}')">🖨 <span data-txt="ck.pdf">Imprimir / PDF</span></button>
+          <button class="btn ghost" onclick="ckPDF('${p.uid}',true)" title="Item por item">📄 <span data-txt="ck.pdf2">Completo</span></button>
+          <button class="btn" onclick="ckPDF('${p.uid}')">🖨 <span data-txt="ck.pdf">Relatório para a gerência</span></button>
         </div>`
       :`
         <div class="ck-pr-com">
@@ -1000,16 +1431,34 @@ function ckValorTexto(q,r){
 }
 async function ckVoltarUltima(){
   const p=ckAchar(CK_PREENCH);if(!p)return;
-  const m=ckAchar(p.modeloUid);const n=m?ckPerguntas(m).length:1;
+  const m=ckAchar(p.modeloUid);
+  if(CK_MODO==="lista"&&m&&ckTemAreas(m))return ckDesenhaLista();
+  const n=m?ckExpandir(m,p).length:1;
   p.posicao=Math.max(0,n-1);await ckSalvar(p);ckDesenhaPasso();
 }
 async function ckConcluir(){
   const p=ckAchar(CK_PREENCH);if(!p)return;
-  const m=ckAchar(p.modeloUid);const perg=m?ckPerguntas(m):[];
-  const faltam=perg.filter(q=>{const r=(p.respostas||{})[q.uid]||{};
-    return !r.na&&(r.valor===undefined||r.valor==="")&&q.tipoResp!=="texto";});
+  const m=ckAchar(p.modeloUid);const perg=m?ckExpandir(m,p):[];
+  /* No modo lista a validação de comentário/foto obrigatórios NÃO passou pelo wizard.
+     Varre tudo aqui — senão dá para concluir com inconformidade sem explicação. */
+  const erros=[];
+  for(const c of perg){
+    const r=(p.respostas||{})[c.chave]||{};
+    if(r.valor===undefined&&!r.na)continue;      /* em branco é tratado logo abaixo */
+    const e=ckValidar(c.q,r);
+    if(e&&!/Responda a pergunta/.test(e))
+      erros.push("· "+(c.q.titulo||"")+(c.area?" ["+c.area+"]":""));
+  }
+  if(erros.length){
+    alert("Faltam informações obrigatórias em "+erros.length+" resposta(s):\n\n"
+      +erros.slice(0,8).join("\n")+(erros.length>8?"\n…":"")
+      +"\n\nAbra cada uma e escreva o comentário (ou anexe a foto) antes de concluir.");
+    return;
+  }
+  const faltam=perg.filter(c=>{const r=(p.respostas||{})[c.chave]||{};
+    return !r.na&&(r.valor===undefined||r.valor==="")&&c.q.tipoResp!=="texto";});
   if(faltam.length&&!confirm(faltam.length+" pergunta(s) ficaram sem resposta.\n\nConcluir mesmo assim?\n\n"
-    +faltam.slice(0,5).map(q=>"· "+(q.titulo||"")).join("\n")))return;
+    +faltam.slice(0,5).map(c=>"· "+(c.q.titulo||"")+(c.area?" ["+c.area+"]":"")).join("\n")))return;
   p.respondente=(document.getElementById("ck-quem")?.value||"").trim()||RT_INFO||RT_DEFAULT;
   p.assinatura=CK_ASSINATURA||"";
   p.nota=ckNota(p);
@@ -1023,20 +1472,32 @@ async function ckConcluir(){
 /* ===================================================================
    TRATATIVAS (5W2H) — e a demanda que nasce daqui
    =================================================================== */
-function ckTratativa(qUid){
+/* a chave é "uid" ou "uid@Área" — devolve a célula correspondente */
+function ckCelula(p,chave){
+  const m=ckAchar(p.modeloUid);if(!m)return null;
+  return ckExpandir(m,p).find(c=>c.chave===chave)||null;
+}
+function ckTratativa(chave){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   const m=ckAchar(p.modeloUid);if(!m)return;
-  const q=ckPerguntas(m).find(x=>x.uid===qUid);if(!q)return;
-  const r=(p.respostas||{})[qUid]||{},t=r.tratativa||{};
+  const cel=ckCelula(p,chave);
+  const q=cel?cel.q:ckPerguntas(m).find(x=>x.uid===chave);if(!q)return;
+  const area=cel?cel.area:"";
+  const qUid=chave;
+  const r=(p.respostas||{})[chave]||{},t=r.tratativa||{};
+  /* "Onde será feito?" já vem com a área da inspeção — ela não redigita */
+  if(!t.onde&&area)t.onde=area;
   ncModal(`<h2 data-txt="ck.trat.titulo">Tratativas</h2>
-    <p class="ck-trat-perg"><b>${esc(q.titulo||"")}</b>${q.descricao?`<br><span class="desc">${esc(q.descricao)}</span>`:""}</p>
+    <p class="ck-trat-perg"><b>${esc(q.titulo||"")}</b>${q.descricao?`<br><span class="desc">${esc(q.descricao)}</span>`:""}
+      ${q.baseLegal?`<br><span class="ck-legal">§ ${esc(q.baseLegal)}</span>`:""}</p>
     <div class="ck-trat">
       <label data-txt="ck.trat.com">Comentários</label>
       <textarea id="tr-com" rows="2" data-txt-ph="ck.trat.comph" placeholder="Descreva o ocorrido">${esc(t.comentario||r.comentario||"")}</textarea>
 
       <p class="ck-trat-sub" data-txt="ck.trat.plano">Plano de ação:</p>
       <label class="obg" data-txt="ck.trat.oque">O que deve ser feito? *</label>
-      <textarea id="tr-oque" rows="2" data-txt-ph="ck.trat.oqueph" placeholder="O que deve ser feito?">${esc(t.oque||"")}</textarea>
+      <textarea id="tr-oque" rows="2" data-txt-ph="ck.trat.oqueph" placeholder="O que deve ser feito?">${esc(t.oque||q.acaoPadrao||"")}</textarea>
+      ${!t.oque&&q.acaoPadrao?`<p class="ck-trat-dica" data-txt="ck.trat.sugerida">A ação corretiva acima já veio preenchida pela exigência legal. Mude à vontade.</p>`:""}
 
       <label class="obg" data-txt="ck.trat.quem">Quem poderia resolver? *</label>
       <select id="tr-quem">
@@ -1066,8 +1527,10 @@ function ckTratativa(qUid){
       <button class="btn" onclick="ckTratativaSalvar('${qUid}')" data-txt="ck.trat.salvar">Salvar</button>
     </div>`);
 }
-async function ckTratativaSalvar(qUid){
+async function ckTratativaSalvar(chave){
+  const qUid=chave;
   const p=ckAchar(CK_PREENCH);if(!p)return;
+  const cel=ckCelula(p,chave);
   const v=id=>(document.getElementById(id)?.value||"").trim();
   const t={comentario:v("tr-com"),oque:v("tr-oque"),quem:v("tr-quem"),prazo:v("tr-prazo"),
            porque:v("tr-porque"),onde:v("tr-onde"),como:v("tr-como"),custo:v("tr-custo")};
@@ -1077,11 +1540,12 @@ async function ckTratativaSalvar(qUid){
   if(t.comentario)r.comentario=t.comentario;
 
   const m=ckAchar(p.modeloUid);
-  const q=m?ckPerguntas(m).find(x=>x.uid===qUid):null;
+  const q=cel?cel.q:(m?ckPerguntas(m).find(x=>x.uid===qUid):null);
   const extras=[t.porque?"Por quê: "+t.porque:"",t.custo?"Custo estimado: "+t.custo:"",
     t.comentario?"Ocorrido: "+t.comentario:"",
     "Origem: checklist \""+(p.modeloTitulo||"")+"\" de "+brDate(p.criadoEm||today()),
-    q?"Pergunta: "+(q.titulo||""):""].filter(Boolean).join(" · ");
+    q?"Pergunta: "+(q.titulo||""):"",
+    q&&q.baseLegal?"Base legal: "+q.baseLegal:""].filter(Boolean).join(" · ");
 
   /* CRIA (ou atualiza) a demanda na aba Manutenções e Elétrica.
      loja = a EMPRESA: renderCards filtra por d.loja===currentStore (js/app.js). */
@@ -1101,6 +1565,8 @@ async function ckTratativaSalvar(qUid){
   dem.prazo=t.prazo||"";
   dem.obs=extras;
   dem.origemCkp=p.uid;dem.origemPergunta=qUid;
+  /* já nasce ligada à pergunta: da próxima inspeção ela aparece como prova ali */
+  if(q)dem.perguntaRef=q.uid;
   if((r.fotos||[]).length)dem.fotos=[...r.fotos];
   const id=await putItem(dem);
   if(novo){dem.id=id;DATA.push(dem);}
@@ -1115,70 +1581,234 @@ async function ckTratativaSalvar(qUid){
 /* ===================================================================
    PDF / impressão da inspeção
    =================================================================== */
-function ckPDF(uid){
+/* O DOCUMENTO. É o que ela entrega ao gerente — tem o nome dela em cima.
+   Regra que ela deu: RESUMO + SÓ OS PROBLEMAS. Sem poluição.
+   Quem quiser o checklist item a item usa o botão "completo" (ckPDF(uid,true)). */
+function ckPDF(uid,completo){
   const p=ckAchar(uid)||ckAchar(CK_PREENCH);if(!p)return;
   const m=ckAchar(p.modeloUid);
-  const perg=m?ckPerguntas(m):[];
+  const cel=m?ckExpandir(m,p):[];
   const nota=p.nota||ckNota(p);
   const inc=ckInconformes(p);
+  const cls=(typeof ckClassifica==="function")?ckClassifica(nota.pct):{rot:"",cor:"#1d6b57",grupo:""};
   const loja=nomeCurto((empresa(p.loja)||{}).name||p.loja||"");
-  const linhas=perg.map((q,i)=>{
-    const r=(p.respostas||{})[q.uid]||{},ruim=ckRuim(q,r);
-    const t=r.tratativa;
-    return `<div class="q ${ruim?"ruim":""}">
-      <div class="qh"><span class="n">${i+1}</span><b>${esc(q.titulo||"")}</b>
-        <span class="v ${ruim?"vr":""}">${esc(ckValorTexto(q,r))}</span></div>
-      ${r.comentario?`<div class="c">${esc(r.comentario)}</div>`:""}
-      ${(r.fotos||[]).length?`<div class="fotos">${r.fotos.map(f=>`<img src="${f}">`).join("")}</div>`:""}
-      ${t?`<div class="pa"><b>Plano de ação:</b> ${esc(t.oque||"")}
-          ${t.quem?` · <b>Quem:</b> ${esc(t.quem)}`:""}${t.prazo?` · <b>Prazo:</b> ${brDate(t.prazo)}`:""}
-          ${t.como?`<br><b>Como:</b> ${esc(t.como)}`:""}${t.onde?` · <b>Onde:</b> ${esc(t.onde)}`:""}
-          ${t.custo?` · <b>Custo:</b> ${esc(t.custo)}`:""}</div>`:""}
-    </div>`;}).join("");
+  const quem=p.respondente||RT_INFO||RT_DEFAULT;
+  /* o nome dela vem antes do "·" do CRN — o documento é assinado por ela */
+  const nome=String(quem).split("·")[0].replace(/\(.*?\)/,"").trim()||quem;
+  const cred=String(quem).includes("·")?String(quem).split("·").slice(1).join("·").trim():"";
+  const cargo=(String(quem).match(/\(([^)]+)\)/)||[])[1]||"Responsável Técnica";
+
+  /* ---- conformidade por seção ---- */
+  const secs=[];
+  for(const c of cel){
+    if(c.q.peso===0)continue;
+    const s=c.q.secao||"Geral";
+    let g=secs.find(x=>x.s===s);
+    if(!g){g={s,itens:[]};secs.push(g);}
+    g.itens.push(c);
+  }
+  /* SÓ os assuntos com ocorrência, do pior para o melhor. Os limpos viram UMA linha —
+     listar 13 seções "100%" é exatamente a poluição que ela não quer no documento. */
+  const avaliadas=secs.map(g=>({...g,n:ckNotaDe(p,g.itens),
+      ruins:g.itens.filter(c=>ckRuim(c.q,(p.respostas||{})[c.chave])).length}))
+    .filter(g=>g.n.total>0);
+  const comProblema=avaliadas.filter(g=>g.ruins).sort((a,b)=>a.n.pct-b.n.pct);
+  const limpas=avaliadas.filter(g=>!g.ruins);
+  const barras=comProblema.map(g=>{
+    const cl=ckClassifica(g.n.pct);
+    return `<tr><td class="s">${esc(g.s)}</td>
+      <td class="bar"><span style="width:${g.n.pct}%;background:${cl.cor}"></span></td>
+      <td class="pc" style="color:${cl.cor}">${String(g.n.pct).replace(".",",")}%</td>
+      <td class="nn"><b>${g.ruins}</b></td></tr>`;}).join("")
+   +(limpas.length?`<tr class="ok"><td class="s">${limpas.length} assunto${limpas.length===1?"":"s"} sem nenhuma ocorrência</td>
+      <td class="bar"><span style="width:100%;background:#12b76a"></span></td>
+      <td class="pc" style="color:#12b76a">100%</td><td class="nn">—</td></tr>`:"");
+
+  /* ---- os problemas, agrupados por área ---- */
+  const porArea={};
+  for(const c of inc)(porArea[c.area||""]=porArea[c.area||""]||[]).push(c);
+  const areasOrd=Object.keys(porArea).sort((a,b)=>(a?1:-1)-(b?1:-1)||a.localeCompare(b,"pt-BR"));
+  let nProb=0;
+  const problemas=areasOrd.map(a=>`
+    <div class="area">
+      <h3>${a?esc(a):"Geral da loja"}<span>${porArea[a].length} ponto${porArea[a].length===1?"":"s"}</span></h3>
+      ${porArea[a].map(c=>{
+        const q=c.q,r=(p.respostas||{})[c.chave]||{},t=r.tratativa||{};
+        const acao=t.oque||q.acaoPadrao||"";
+        nProb++;
+        return `<div class="p">
+          <div class="ph"><span class="n">${nProb}</span><b>${esc(q.titulo||"")}</b></div>
+          ${r.comentario?`<p class="obs"><i>Observado:</i> ${esc(r.comentario)}</p>`:""}
+          ${(r.fotos||[]).length?`<div class="fotos">${r.fotos.map(f=>`<img src="${f}">`).join("")}</div>`:""}
+          ${acao?`<p class="ac"><i>Ação corretiva:</i> ${esc(acao)}</p>`:""}
+          ${(t.quem||t.prazo)?`<p class="resp">${t.quem?`<b>Responsável:</b> ${esc(t.quem)}`:""}${t.prazo?`   <b>Prazo:</b> ${brDate(t.prazo)}`:""}${t.custo?`   <b>Custo estimado:</b> ${esc(t.custo)}`:""}</p>`:""}
+          ${q.baseLegal?`<p class="lg">${esc(q.baseLegal)}</p>`:""}
+        </div>`;}).join("")}
+    </div>`).join("");
+
+  /* ---- apêndice: o checklist inteiro (só no modo completo) ---- */
+  const apendice=!completo?"":`
+    <h2 class="tit">Checklist completo</h2>
+    <table class="full"><thead><tr><th>Item</th><th>Área</th><th>Resposta</th></tr></thead><tbody>
+    ${cel.filter(c=>c.q.peso!==0).map(c=>{
+      const r=(p.respostas||{})[c.chave]||{},ruim=ckRuim(c.q,r);
+      return `<tr class="${ruim?"r":""}"><td>${esc(c.q.titulo||"")}</td>
+        <td class="ar">${esc(c.area||"—")}</td>
+        <td class="rs">${esc(ckValorTexto(c.q,r))}</td></tr>`;}).join("")}
+    </tbody></table>`;
+
   const w=window.open("");
   w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-  <title>${esc(p.modeloTitulo||"Inspeção")} — ${esc(loja)}</title><style>
-  @page{margin:14mm}
-  body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#2d2e3a;font-size:12px;margin:0}
-  h1{font-size:19px;margin:0 0 3px}
-  .sub{color:#8a8b96;font-size:11px;margin-bottom:14px}
-  .kpis{display:flex;gap:10px;margin:0 0 16px}
-  .k{border:1px solid #e6e7eb;border-radius:9px;padding:8px 14px;text-align:center;min-width:92px}
-  .k b{display:block;font-size:19px}.k span{font-size:10px;color:#8a8b96;text-transform:uppercase;letter-spacing:.4px}
-  .k .ruim{color:#c0212a}
-  .q{border:1px solid #e6e7eb;border-radius:9px;padding:9px 11px;margin-bottom:7px;page-break-inside:avoid}
-  .q.ruim{border-left:4px solid #c0212a;background:#fff7f7}
-  .qh{display:flex;gap:8px;align-items:baseline}
-  .qh .n{color:#8a8b96;font-size:10px;min-width:16px}
-  .qh b{flex:1;font-weight:600}
-  .v{font-weight:700;white-space:nowrap}.vr{color:#c0212a}
-  .c{color:#4b4c57;font-size:11px;margin:5px 0 0 24px;font-style:italic}
-  .fotos{margin:6px 0 0 24px;display:flex;gap:6px;flex-wrap:wrap}
-  .fotos img{max-width:150px;max-height:110px;border-radius:5px;border:1px solid #e6e7eb}
-  .pa{margin:6px 0 0 24px;background:#f4f7f6;border-left:3px solid #1d6b57;padding:6px 9px;
-      border-radius:0 6px 6px 0;font-size:11px}
-  .ass{display:flex;gap:34px;margin-top:26px;page-break-inside:avoid}
+  <title>Relatório de Infraestrutura — ${esc(loja)} — ${esc(brDate(p.concluidoEm||p.criadoEm||today()))}</title><style>
+  @page{margin:15mm 14mm 18mm}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#22242e;font-size:11.5px;
+       margin:0;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ---- cabeçalho: a marca dela ---- */
+  .cap{background:linear-gradient(135deg,#0f5b52,#17756a 55%,#2a9d8a);color:#fff;
+       border-radius:12px;padding:20px 22px;margin-bottom:16px}
+  .cap .et{font-size:9.5px;letter-spacing:2.2px;text-transform:uppercase;opacity:.72}
+  .cap h1{font-size:22px;margin:5px 0 2px;font-weight:650;letter-spacing:-.2px}
+  .cap .loja{font-size:13.5px;opacity:.92}
+  .cap .rt{margin-top:14px;padding-top:11px;border-top:1px solid rgba(255,255,255,.24);
+           display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .cap .rt .nm{font-size:13px;font-weight:650}
+  .cap .rt .cg{font-size:10px;opacity:.78;margin-top:1px}
+  .cap .rt .dt{font-size:10px;opacity:.85;text-align:right;white-space:nowrap}
+
+  /* ---- placar ---- */
+  .placar{display:flex;gap:11px;margin-bottom:18px;page-break-inside:avoid}
+  .nota{flex:0 0 auto;border:2px solid ${cls.cor};border-radius:12px;padding:12px 20px;text-align:center;min-width:132px}
+  .nota b{display:block;font-size:33px;font-weight:700;color:${cls.cor};line-height:1}
+  .nota .cl{font-size:12px;font-weight:650;color:${cls.cor};margin-top:3px}
+  .nota .gr{font-size:8.5px;color:#8a8b96;text-transform:uppercase;letter-spacing:.7px;margin-top:2px}
+  .mini{flex:1;display:flex;gap:9px}
+  .m{flex:1;border:1px solid #e4e6ea;border-radius:10px;padding:10px 12px}
+  .m b{display:block;font-size:21px;font-weight:650;line-height:1.1}
+  .m span{font-size:9px;color:#8a8b96;text-transform:uppercase;letter-spacing:.6px}
+  .m.al b{color:#c0212a}
+
+  h2.tit{font-size:12px;text-transform:uppercase;letter-spacing:1.3px;color:#17756a;
+         margin:22px 0 9px;padding-bottom:5px;border-bottom:1.5px solid #d9e2df}
+
+  /* ---- tabela de seções ---- */
+  table.sec{width:100%;border-collapse:collapse}
+  table.sec td{padding:4.5px 0;vertical-align:middle;border-bottom:1px solid #f0f1f3}
+  table.sec .s{font-size:11px;width:38%;padding-right:12px}
+  table.sec .bar{width:auto}
+  table.sec .bar span{display:block;height:7px;border-radius:4px;min-width:2px}
+  table.sec .bar{background:#f0f1f3;border-radius:4px;height:7px;overflow:hidden}
+  table.sec .pc{width:52px;text-align:right;font-weight:650;font-size:11px;padding-left:10px}
+  table.sec .nn{width:42px;text-align:right;font-size:10.5px;color:#c0212a}
+  table.sec tr.ok .s{color:#6b7280;font-style:italic}
+  .ars{display:flex;flex-wrap:wrap;gap:6px}
+  .ar{border:1px solid #dfe2e6;border-left-width:3px;border-radius:7px;padding:4px 10px;font-size:10.5px}
+  .ar b{margin-left:7px;font-size:11px}
+
+  /* ---- os problemas ---- */
+  .area{margin-bottom:14px;page-break-inside:avoid}
+  .area h3{font-size:12.5px;margin:0 0 7px;padding:5px 10px;background:#eef3f1;border-radius:7px;
+           color:#0f5b52;display:flex;justify-content:space-between;align-items:center}
+  .area h3 span{font-size:9.5px;font-weight:500;color:#5b7a72;text-transform:uppercase;letter-spacing:.5px}
+  .p{border-left:3px solid #c0212a;background:#fffafa;border-radius:0 8px 8px 0;
+     padding:8px 11px;margin-bottom:6px;page-break-inside:avoid}
+  .ph{display:flex;gap:8px;align-items:baseline}
+  .ph .n{font-size:9.5px;color:#c0212a;font-weight:700;min-width:15px}
+  .ph b{font-size:11.5px;font-weight:600;flex:1}
+  .p p{margin:5px 0 0 23px;font-size:10.8px}
+  .p i{font-style:normal;font-weight:650;color:#6b7280}
+  .obs{color:#3f4149}
+  .ac{background:#eef6f2;border-radius:6px;padding:5px 9px;color:#14584a}
+  .ac i{color:#17756a}
+  .resp{color:#3f4149;font-size:10.3px}
+  .lg{color:#9aa0a8;font-size:9.2px;font-style:italic}
+  .fotos{margin:6px 0 0 23px;display:flex;gap:6px;flex-wrap:wrap}
+  .fotos img{max-width:138px;max-height:104px;border-radius:6px;border:1px solid #e4e6ea}
+  .limpo{background:#eef6f2;border-radius:10px;padding:16px 18px;color:#14584a;font-size:12px}
+
+  /* ---- apêndice ---- */
+  table.full{width:100%;border-collapse:collapse;font-size:10px}
+  table.full th{text-align:left;padding:5px 7px;background:#f4f5f7;color:#6b7280;
+                font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+  table.full td{padding:4px 7px;border-bottom:1px solid #f0f1f3;vertical-align:top}
+  table.full .ar{color:#8a8b96;width:22%}
+  table.full .rs{width:15%;font-weight:600}
+  table.full tr.r .rs{color:#c0212a}
+
+  /* ---- assinaturas ---- */
+  .ass{display:flex;gap:40px;margin-top:34px;page-break-inside:avoid}
   .ass div{flex:1}
-  .ass img{max-height:56px;display:block}
-  .linha{border-bottom:1px solid #2d2e3a;height:50px}
-  .rot{font-size:10.5px;color:#8a8b96;margin-top:4px}
+  .ass img{max-height:52px;display:block;margin-bottom:-6px}
+  .linha{border-bottom:1px solid #22242e;height:46px}
+  .rot{font-size:10px;color:#6b7280;margin-top:5px;line-height:1.5}
+  .rot b{color:#22242e;font-weight:600}
+  .pe{margin-top:22px;padding-top:9px;border-top:1px solid #eceef0;
+      font-size:8.8px;color:#9aa0a8;line-height:1.6}
+  .noprint{position:fixed;top:10px;right:10px;display:flex;gap:6px}
+  .noprint button{font:inherit;padding:7px 13px;border-radius:8px;border:1px solid #17756a;
+    background:#17756a;color:#fff;cursor:pointer}
+  .noprint button.g{background:#fff;color:#17756a}
+  @media print{.noprint{display:none}}
   </style></head><body>
-  <h1>${esc(p.modeloTitulo||"Inspeção")}</h1>
-  <div class="sub">${esc(loja)} · realizada em ${esc(brDate(p.concluidoEm||p.criadoEm||today()))}
-    · RT: ${esc(p.respondente||RT_INFO||RT_DEFAULT)}</div>
-  <div class="kpis">
-    <div class="k"><b class="${nota.pct!=null&&nota.pct<70?"ruim":""}">${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b><span>Nota</span></div>
-    <div class="k"><b class="${inc.length?"ruim":""}">${inc.length}</b><span>Inconformes</span></div>
-    <div class="k"><b>${perg.length}</b><span>Itens</span></div>
+
+  <div class="noprint">
+    <button onclick="window.print()">🖨 Imprimir / PDF</button>
   </div>
-  ${linhas}
+
+  <div class="cap">
+    <div class="et">Relatório de Inspeção</div>
+    <h1>Infraestrutura e Manutenção</h1>
+    <div class="loja">${esc(loja)}</div>
+    <div class="rt">
+      <div><div class="nm">${esc(nome)}</div>
+        <div class="cg">${esc(cargo)}${cred?" · "+esc(cred):""}</div></div>
+      <div class="dt">Inspeção realizada em<br><b>${esc(brDate(p.concluidoEm||p.criadoEm||today()))}</b></div>
+    </div>
+  </div>
+
+  <div class="placar">
+    <div class="nota"><b>${nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—"}</b>
+      <div class="cl">${esc(cls.rot)}</div>${cls.grupo?`<div class="gr">${esc(cls.grupo)}</div>`:""}</div>
+    <div class="mini">
+      <div class="m${inc.length?" al":""}"><b>${inc.length}</b><span>A corrigir</span></div>
+      <div class="m"><b>${nota.total}</b><span>Itens avaliados</span></div>
+      <div class="m"><b>${(p.areas||[]).length||"—"}</b><span>Áreas visitadas</span></div>
+    </div>
+  </div>
+
+  ${barras?`<h2 class="tit">Conformidade por assunto</h2>
+    <table class="sec"><tbody>${barras}</tbody></table>`:""}
+  ${(p.areas||[]).length?`<h2 class="tit">Áreas visitadas</h2>
+    <div class="ars">${(p.areas||[]).map(a=>{
+      const n=ckNotaDe(p,cel.filter(c=>c.area===a));
+      const r=cel.filter(c=>c.area===a&&ckRuim(c.q,(p.respostas||{})[c.chave])).length;
+      const cl=ckClassifica(n.pct);
+      return `<span class="ar"${r?` style="border-color:${cl.cor}"`:""}>${esc(a)}
+        <b style="color:${r?cl.cor:"#12b76a"}">${n.pct!=null?String(n.pct).replace(".",",")+"%":"—"}</b></span>`;}).join("")}
+    </div>`:""}
+
+  <h2 class="tit">${inc.length?"Pontos a corrigir":"Resultado"}</h2>
+  ${inc.length?problemas:`<div class="limpo"><b>Nenhuma não conformidade encontrada nesta inspeção.</b><br>
+    Todos os itens avaliados estão de acordo com os requisitos verificados.</div>`}
+
+  ${apendice}
+
   <div class="ass">
     <div>${p.assinatura?`<img src="${p.assinatura}">`:`<div class="linha"></div>`}
-      <div class="rot">${esc(p.respondente||RT_INFO||RT_DEFAULT)}<br>Responsável pela inspeção</div></div>
+      <div class="rot"><b>${esc(nome)}</b><br>${esc(cargo)}${cred?"<br>"+esc(cred):""}</div></div>
     <div><div class="linha"></div>
-      <div class="rot">Nome e assinatura do gerente<br>Data: ____/____/______</div></div>
+      <div class="rot"><b>Ciente — Gerência</b><br>Nome e assinatura<br>Data: ____/____/______</div></div>
+  </div>
+
+  <div class="pe">
+    Documento gerado a partir da lista de verificação de boas práticas · Base normativa:
+    RDC ANVISA nº 216/2004 (Boas Práticas para Serviços de Alimentação) e RDC ANVISA nº 275/2002,
+    Anexo II (Lista de Verificação das Boas Práticas de Fabricação).
+    Classificação percentual conforme Saccol <i>et al.</i> (2006).
+    ${esc(loja)} · ${esc(brDate(p.concluidoEm||p.criadoEm||today()))}
   </div>
   </body></html>`);
   w.document.close();
-  setTimeout(()=>{try{w.print();}catch(e){}},400);
+  setTimeout(()=>{try{w.print();}catch(e){}},450);
 }
