@@ -207,7 +207,14 @@ async function syncNow(){
  syncBusy=true;clearTimeout(syncT);setSyncState("sync");
  try{
    const res=await syncPull();
-   if(res.changed)syncRefreshViews();
+   if(res.changed){
+     syncRefreshViews();
+     /* FALHA CORRIGIDA EM 20/07: o que CHEGAVA do outro aparelho aparecia na tela mas
+        NÃO agendava o backup da pasta — só edições feitas aqui agendavam. Resultado:
+        ela trabalhava no PC do trabalho, abria em casa, via os dados, e a pasta de
+        backup continuava com o conteúdo velho. Agora chegar dado também grava a pasta. */
+     if(typeof scheduleBackup==="function")scheduleBackup();
+   }
    /* envia quando há mudança local pendente, algo só-local, ou o arquivo remoto ainda não existe */
    if(syncDirty||res.localAhead||syncSha===null)await syncPush();
    syncLast=Date.now();setSyncState("ok");
@@ -232,7 +239,18 @@ function syncInit(){
  document.addEventListener("visibilitychange",()=>{
    if(!document.hidden&&syncEnabled()&&!syncBusy&&Date.now()-syncLast>60000)syncNow();});
  window.addEventListener("online",()=>{if(syncEnabled())syncNow();});
+ /* RELÓGIO DE 5 EM 5 MINUTOS (20/07) — resposta à pergunta dela "e o PC ligado, como
+    funciona?". Antes só buscava ao ABRIR o site ou ao voltar para a aba: com a aba
+    aberta e parada, nada chegava sozinho. Agora, PC ligado + site aberto = o que ela
+    fez no trabalho aparece em casa sem ninguém tocar em nada.
+    Em aba escondida não faz nada (economiza bateria e chamadas à API do GitHub);
+    quando ela volta para a aba, o visibilitychange acima já cobre. */
+ setInterval(()=>{
+   if(document.hidden||!syncEnabled()||syncBusy)return;
+   if(Date.now()-syncLast>=SYNC_INTERVALO)syncNow();
+ },60000);
 }
+const SYNC_INTERVALO=5*60000;
 
 /* ---- tela de configuração ---- */
 function openSyncModal(){
