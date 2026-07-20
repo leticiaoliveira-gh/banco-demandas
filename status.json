@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "8.7",
-  "ondeParamos": "v8.7: as setas agora DESFAZEM TEXTO tambem. Antes elas so conheciam itens, por isso voce trocou o titulo e nao tinha como voltar em lugar nenhum — agora nome da tela, nome de quadro, a linha do titulo, nome de empresa, pendencias e cores voltam na seta ou no Ctrl+Z. Tirei os cards que eu tinha colocado na capa sem voce pedir. As empresas voltaram a ser cartoes separados, um por um. E tem o botao Organizar a capa: as empresas balancam, voce arrasta pela alca para a ordem que quiser e escolhe o que aparece na tela. O titulo da capa troca no lapis ao lado dele.",
-  "proximoPasso": "Voce conferir a capa e o desfazer; depois a tela de configuracoes no modelo do Notion e o cronometro"
+  "versao": "8.8",
+  "ondeParamos": "v8.8: ENTRAR SEM DIGITAR NADA no PC do trabalho. Em casa voce gera uma vez o arquivo minha-chave-de-acesso.json (com uma senha curta sua) e guarda no pendrive. La, e so abrir o site, ⚙ Sincronizacao, 🔑 Entrar com a minha chave, escolher o arquivo e digitar a senha. Nada fica salvo naquele computador. No fim do dia, 🚪 Sair e apagar deste PC envia o que voce fez e limpa tudo.",
+  "proximoPasso": "Escolher como fica a lista de empresas na capa e resolver o PDF com as paginas"
 }

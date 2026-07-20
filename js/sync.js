@@ -244,6 +244,19 @@ function openSyncModal(){
    <div class="form-wrap" style="max-width:560px;max-height:90vh;overflow:auto" onclick="event.stopPropagation()">
      <h2>⚙ Sincronização entre dispositivos</h2>
      <p class="desc">Seus dados são gravados num repositório <b>privado</b> do seu GitHub (nunca no site público). Configure uma vez em cada dispositivo e tudo passa a se atualizar sozinho.</p>
+     <!-- CAMINHO DO DIA A DIA no PC do trabalho: entrar pela chave do pendrive.
+          O passo a passo do token abaixo é só para a PRIMEIRA vez, em casa. -->
+     <div style="background:#eef5f2;border:1px solid #cfe3db;border-radius:11px;padding:14px 16px;margin-bottom:18px">
+       <b style="font-size:13.5px">🔑 Entrar sem digitar nada</b>
+       <p style="font-size:12.5px;color:var(--muted);margin:6px 0 11px;line-height:1.55">
+         Para o computador do trabalho: use o arquivo da sua chave, que fica no seu pendrive.
+         Nada é salvo naquele PC — fechou a aba, acabou.</p>
+       <div style="display:flex;gap:8px;flex-wrap:wrap">
+         <button class="btn" onclick="document.getElementById('arqChave').click()">🔑 Entrar com a minha chave</button>
+         <button class="btn ghost" title="Faça isto no SEU computador, uma vez" onclick="gerarChaveAcesso()">💾 Gerar minha chave</button>
+       </div>
+       <input type="file" id="arqChave" accept=".json" style="display:none" onchange="entrarComChave(event)">
+     </div>
      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:12.5px;line-height:1.6">
        <b>Como criar (só na primeira vez):</b><br>
        1. No GitHub, crie um repositório <b>privado</b> chamado <b>banco-demandas-dados</b> (github.com/new).<br>
@@ -282,6 +295,104 @@ function openSyncModal(){
  m.style.display="flex";
 }
 function closeSyncModal(){const m=document.getElementById("sync-modal");if(m)m.style.display="none";}
+
+/* =====================================================================
+   ENTRAR COM A MINHA CHAVE (20/07) — o problema real dela:
+   ela entra e sai do PC do trabalho TODOS OS DIAS, nada pode ficar salvo
+   lá, e o que trava é o TOKEN: uma linha enorme, impossível de digitar.
+   Solução: um arquivo-chave que mora no pendrive dela.
+   · Em casa: "Gerar minha chave" baixa o arquivo (cifrado com uma senha dela).
+   · No trabalho: escolhe o arquivo, digita a senha curta, e entra.
+   A configuração vai SÓ para sessionStorage — fecha a aba, some tudo.
+   ⚠️ NUNCA gravar a chave em localStorage por este caminho: é justamente
+   o que não pode acontecer no PC compartilhado.
+   ===================================================================== */
+const CHAVE_TIPO="chave-banco-demandas";
+function _b64(buf){let s="";const b=new Uint8Array(buf);for(let i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s);}
+function _unb64(s){const bin=atob(s);const b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);return b;}
+async function _chaveDe(senha,salt){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(senha),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},
+    base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function gerarChaveAcesso(){
+  const c=syncCfg();
+  if(!c.token){alert("Configure a sincronização neste dispositivo primeiro — é dela que a chave é feita.");return;}
+  const senha=prompt("Crie uma SENHA CURTA para a sua chave.\n\n"+
+    "Você vai digitar só ela no trabalho (o token fica dentro do arquivo).\n"+
+    "Escolha algo que você lembre sem anotar.\n\n"+
+    "Deixe em branco para gerar SEM senha (menos seguro se perder o pendrive).");
+  if(senha===null)return;
+  const cfg={owner:c.owner,repo:c.repo,token:c.token};
+  let arq;
+  if(senha.trim()){
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const k=await _chaveDe(senha.trim(),salt);
+    const cif=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(JSON.stringify(cfg)));
+    arq={tipo:CHAVE_TIPO,v:1,protegida:true,salt:_b64(salt),iv:_b64(iv),dados:_b64(cif)};
+  }else{
+    if(!confirm("Gerar SEM senha?\n\nQuem pegar o pendrive entra nos seus dados.\nRecomendo colocar uma senha."))return;
+    arq={tipo:CHAVE_TIPO,v:1,protegida:false,cfg};
+  }
+  download("minha-chave-de-acesso.json",JSON.stringify(arq,null,2),"application/json");
+  alert("Chave gerada ✓\n\nGuarde o arquivo 'minha-chave-de-acesso.json' no seu pendrive.\n\n"+
+    "No trabalho: abra o site → 🔑 Entrar com a minha chave → escolha o arquivo"+
+    (arq.protegida?" → digite a senha.":".")+"\n\nNada fica salvo no PC de lá.");
+}
+async function entrarComChave(ev){
+  const f=ev.target.files[0];ev.target.value="";
+  if(!f)return;
+  let arq;
+  try{arq=JSON.parse(await f.text());}catch(e){alert("Não consegui ler este arquivo.");return;}
+  if(!arq||arq.tipo!==CHAVE_TIPO){
+    alert("Este não é o arquivo da sua chave.\n\nProcure por 'minha-chave-de-acesso.json' no pendrive.");return;}
+  let cfg=arq.cfg;
+  if(arq.protegida){
+    const senha=prompt("Digite a senha da sua chave:");
+    if(senha===null)return;
+    try{
+      const k=await _chaveDe(senha.trim(),_unb64(arq.salt));
+      const claro=await crypto.subtle.decrypt({name:"AES-GCM",iv:_unb64(arq.iv)},k,_unb64(arq.dados));
+      cfg=JSON.parse(new TextDecoder().decode(claro));
+    }catch(e){alert("Senha errada. Tente de novo.");return;}
+  }
+  if(!cfg||!cfg.token){alert("A chave está incompleta. Gere outra no seu computador de casa.");return;}
+  /* SÓ sessionStorage: fechou a aba, sumiu deste PC */
+  try{
+    localStorage.removeItem("gh_sync_token");
+    sessionStorage.setItem("gh_sync_token",cfg.token);
+    sessionStorage.setItem("gh_sync_owner",cfg.owner||SYNC_DEFAULT_OWNER);
+    sessionStorage.setItem("gh_sync_repo",cfg.repo||SYNC_DEFAULT_REPO);
+  }catch(e){alert("Este navegador não deixou guardar nem para esta sessão.");return;}
+  closeSyncModal();
+  toast("Entrando e trazendo os seus dados…");
+  /* se o token venceu ou não há internet, ela precisa entender o que houve —
+     sem isto estourava um erro cru na tela e ela ficava sem saber o que fazer */
+  try{
+    await syncPull(true);
+    renderHome();
+    toast("Pronto ✓ Nada fica salvo neste computador");
+  }catch(e){
+    const msg=String(e&&e.message||e);
+    sessionStorage.removeItem("gh_sync_token");
+    renderHome();
+    if(/401|403/.test(msg))
+      alert("A sua chave não foi aceita pelo GitHub.\n\nQuase sempre é o token que venceu (ele dura 1 ano).\n\nO que fazer: no seu computador de casa, gere um token novo em ⚙ Sincronização e depois 💾 Gerar minha chave outra vez.");
+    else if(/Failed to fetch|NetworkError|offline/i.test(msg)||!navigator.onLine)
+      alert("Sem internet agora.\n\nA chave está certa, mas não deu para buscar os seus dados.\nConfira a conexão e tente de novo.");
+    else
+      alert("Não consegui entrar com a chave.\n\nDetalhe técnico: "+msg);
+  }
+}
+/* botão de sair: apaga tudo desta sessão sem mexer nos outros aparelhos */
+async function sairDaqui(){
+  if(!confirm("Sair e apagar tudo deste computador?\n\n"+
+    "Antes de sair eu envio o que você fez hoje para a sua nuvem.\n"+
+    "Seus outros aparelhos e os backups não são afetados."))return;
+  try{if(syncEnabled())await syncPush(true);}catch(e){}
+  await limparDispositivo();
+}
 
 function syCfgFromForm(){return {
  owner:document.getElementById("syOwner").value.trim(),
