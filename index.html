@@ -13,11 +13,17 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=54">
+<link rel="stylesheet" href="css/app.css?v=55">
 </head>
 <body>
 <div class="app">
   <div class="rail" id="rail">
+    <!-- SETAS no topo, acima do NP (pedido de Lê, 20/07): voltar/refazer é o que ela
+         mais usa e ficava escondido lá embaixo. -->
+    <div class="rail-hist">
+      <button class="ricon" id="btDesfazer" onclick="desfazer()" title="Voltar (desfazer) — Ctrl+Z">←</button>
+      <button class="ricon" id="btRefazer" onclick="refazer()" title="Avançar (refazer) — Ctrl+Shift+Z">→</button>
+    </div>
     <div class="rail-topo">
       <div class="logo" style="cursor:pointer" onclick="goHome()" title="Voltar à Capa (Central de Empresas)">NP</div>
       <button class="ricon rail-bt" id="btRail" onclick="toggleRail()" title="Abrir o menu" aria-label="Abrir ou fechar o menu">☰</button>
@@ -25,11 +31,7 @@
     <div class="ricon" title="Voltar à Capa (Central de Empresas)" onclick="goHome()">🏠</div>
     <div class="ricon" title="Início da empresa (todos os quadros)" onclick="showHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
     <div id="railTabs" class="rail-tabs" hidden></div>
-    <div class="rail-hist">
-      <button class="ricon" id="btDesfazer" onclick="desfazer()" title="Desfazer (Ctrl+Z)" disabled>←</button>
-      <button class="ricon" id="btRefazer" onclick="refazer()" title="Refazer (Ctrl+Shift+Z)" disabled>→</button>
-    </div>
-    <div class="rail-ver" title="Versão do site">v8.4</div>
+    <div class="rail-ver" title="Versão do site">v8.5</div>
   </div>
 
   <!-- CAPA -->
@@ -41,11 +43,17 @@
           <p id="rt-linha" class="store-sub" style="margin-top:7px;cursor:pointer" title="Toque para editar" onclick="editarRtInfo()"></p>
           <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px">
             <button class="btn ghost" id="syncPillHome" title="Configurar/ver o status da sincronização (vale para o site inteiro)" onclick="openSyncModal()"><span data-txt="capa.sync">⚙ Sincronização</span></button>
+            <!-- o modo edição só existia no menu ⋯ DENTRO da empresa; na Capa ela clicava
+                 no título e nada acontecia. Agora tem botão aqui. (20/07) -->
+            <button class="btn ghost" title="Ligar/desligar a edição dos textos desta tela" onclick="toggleModoEdicao()"><span data-txt="capa.editar">✏️ Editar textos</span></button>
             <span id="backup-top" class="backup-top"></span>
           </div>
         </div>
         <div class="placeholder-cards" id="home-cards"></div>
       </div>
+
+      <!-- faixa de números: cards úteis e clicáveis (referência que Lê mandou) -->
+      <div class="home-stats" id="home-stats"></div>
 
       <div id="backup-banner"></div>
 
@@ -94,8 +102,12 @@
   <!-- BANCO DE DADOS DA LOJA -->
   <div class="main" id="view-app" style="display:none">
     <div class="head">
+      <!-- CABEÇALHO PADRÃO DE TODAS AS ABAS (regra de Lê, 20/07):
+           1) em cima, a identificação da LOJA (só mostra — quem renomeia é a Capa);
+           2) no meio, o TÍTULO do quadro (independente do nome da loja);
+           3) embaixo, uma linha LIVRE que ela escreve o que quiser. -->
       <div class="head-faixa">
-        <div class="back-link" onclick="goHome()" style="margin-bottom:8px">← Capa</div>
+        <div class="head-eyebrow"><span class="back-link" onclick="goHome()">← Capa</span><span id="appLoja"></span></div>
         <h1 id="appTitle">Banco de Não Conformidades</h1>
         <p id="appSubtitle"></p>
       </div>
@@ -228,14 +240,14 @@
   </div>
 </div>
 
-<script src="js/app.js?v=54"></script>
-<script src="js/docxlite.js?v=54"></script>
-<script src="js/dg.js?v=54"></script>
-<script src="js/pdflite.js?v=54"></script>
-<script src="js/ck.js?v=54"></script>
-<script src="js/ck-modelo2.js?v=54"></script>
-<script src="js/arquivos.js?v=54"></script>
-<script src="js/nc.js?v=54"></script>
-<script src="js/sync.js?v=54"></script>
+<script src="js/app.js?v=55"></script>
+<script src="js/docxlite.js?v=55"></script>
+<script src="js/dg.js?v=55"></script>
+<script src="js/pdflite.js?v=55"></script>
+<script src="js/ck.js?v=55"></script>
+<script src="js/ck-modelo2.js?v=55"></script>
+<script src="js/arquivos.js?v=55"></script>
+<script src="js/nc.js?v=55"></script>
+<script src="js/sync.js?v=55"></script>
 </body>
 </html>

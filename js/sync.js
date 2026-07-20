@@ -110,6 +110,12 @@ async function syncMergeEnvelope(env){
    await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
    if(window.renderTabs)renderTabs();changed=true;
  }else if(env&&(ABA_NOMES_MOD||"")>(env.abaNomesMod||""))localAhead=true;
+ /* a linha livre que ela escreve embaixo do título de cada quadro (20/07) */
+ if(env&&env.abaSub&&(env.abaSubMod||"")>(ABA_SUB_MOD||"")){
+   ABA_SUB=env.abaSub;ABA_SUB_MOD=env.abaSubMod;
+   await metaSet("abaSub",ABA_SUB);await metaSet("abaSubMod",ABA_SUB_MOD);
+   if(window.updateSubtitle&&currentTab)updateSubtitle(currentTab);changed=true;
+ }else if(env&&(ABA_SUB_MOD||"")>(env.abaSubMod||""))localAhead=true;
  /* textos que ela reescreveu pelo modo edição */
  if(env&&env.textos&&(env.textosMod||"")>(TEXTOS_MOD||"")){
    TEXTOS=env.textos;TEXTOS_MOD=env.textosMod;

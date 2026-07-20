@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "8.4",
-  "ondeParamos": "v8.4: o relatorio agora VIRA UM PDF DE VERDADE dentro do proprio site. O botao 📱 Enviar no WhatsApp abre o WhatsApp COM O PDF ANEXADO e o texto pronto — e ele espera voce ler e conferir antes de enviar, nada sai sozinho. Tem tambem ⬇ Baixar o PDF, E-mail, Imprimir e Copiar o texto. No computador, como o navegador nao deixa anexar sozinho, ele baixa o PDF e abre a conversa com o texto para voce arrastar o arquivo.",
-  "proximoPasso": "Voce me mandar as anotacoes que fez antes desta rodada, para resolvermos uma a uma"
+  "versao": "8.5",
+  "ondeParamos": "v8.5: primeira rodada das SUAS ANOTACOES. Sumiu a faixa branca em cima do cabecalho verde; o cabecalho ficou mais enxuto e agora tem a LOJA em cima, o titulo no meio e uma LINHA LIVRE embaixo, que voce clica e escreve o que quiser em cada quadro. As setas de voltar/avancar subiram para o topo da barra lateral e nunca mais ficam mortas. Na Capa entrou o botao Editar textos (era por isso que editar o titulo nao funcionava) e uma faixa de 4 numeros clicaveis. O cadeado ficou do mesmo tamanho do Iniciar e os arquivos de backup passaram a ter o nome certo.",
+  "proximoPasso": "Voce conferir esta rodada no site e me dizer o que ajustar; depois as anotacoes que dependem de decisao sua"
 }

@@ -268,6 +268,22 @@ async function renomearAba(t,novo){
   await metaSet("abaNomes",ABA_NOMES);await metaSet("abaNomesMod",ABA_NOMES_MOD);
   renderTabs();updateSubtitle(currentTab);dataChanged();toast("Nome do quadro atualizado ✓");
 }
+/* ===== LINHA LIVRE DE CADA QUADRO (regra de Lê, 20/07: "títulos independentes") =====
+   Embaixo do título de cada aba ela escreve o que quiser — igual ao Notion.
+   É CONTEÚDO dela, então edita direto no clique (não precisa do modo edição);
+   o que exige modo edição é a CONFIGURAÇÃO (nome do quadro, nome da empresa).
+   Chave "hub" = a linha da tela de entrada da empresa. Viaja no backup e na sync. */
+let ABA_SUB={},ABA_SUB_MOD="";
+async function loadAbaSub(){ABA_SUB=await metaGet("abaSub")||{};ABA_SUB_MOD=await metaGet("abaSubMod")||"";}
+async function setAbaSub(chave,valor){
+  valor=String(valor||"").trim();
+  if(valor===(ABA_SUB[chave]||""))return;
+  if(valor)ABA_SUB[chave]=valor;else delete ABA_SUB[chave];
+  ABA_SUB_MOD=nowISO();
+  await metaSet("abaSub",ABA_SUB);await metaSet("abaSubMod",ABA_SUB_MOD);
+  dataChanged();toast("Salvo ✓");
+}
+
 /* ===== TEXTOS DO SITE EDITÁVEIS =====
    Regra fixa de Lê: tudo tem de ser editável por ela, sem mexer em código.
    Todo texto que ela pode trocar passa por txt("chave","texto de fábrica") e/ou
@@ -313,7 +329,9 @@ function toggleModoEdicao(){
   MODO_EDICAO=!MODO_EDICAO;
   document.body.classList.toggle("modo-edicao",MODO_EDICAO);
   document.querySelectorAll("[data-txt]").forEach(el=>MODO_EDICAO?ligarEdicao(el):desligarEdicao(el));
-  updateSubtitle(currentTab);   /* o nome do quadro e a pílula da loja seguem o modo */
+  /* o cabeçalho segue o modo — no hub, currentTab é nulo, então redesenha o hub */
+  if(currentStore&&!currentTab&&document.getElementById("view-hub")?.style.display==="block")showHub();
+  else updateSubtitle(currentTab);
   toast(MODO_EDICAO?"Modo edição LIGADO — clique em qualquer texto para trocar"
                    :"Modo edição desligado");
   if(MODO_EDICAO)barraModoEdicao();else{const b=document.getElementById("barraEdicao");if(b)b.remove();}
@@ -369,8 +387,20 @@ function showHub(){
   document.getElementById("cards").style.display="none";
   document.getElementById("tabs").style.display="none";
   currentTab=null;
-  document.getElementById("appTitle").textContent=nomeCurto(currentStoreName||"");
-  document.getElementById("appSubtitle").innerHTML=`<span class="loja-pill">Escolha um quadro</span>`;
+  /* o hub passa pelo MESMO cabeçalho das abas — antes escrevia o título na mão e
+     por isso "editar não funcionava no título" aqui (queixa dela, 20/07). */
+  const h1=document.getElementById("appTitle");
+  h1.textContent=txt("hub.titulo","Sumário");
+  renderEyebrow();
+  if(MODO_EDICAO){
+    h1.contentEditable="plaintext-only";h1.classList.add("editando");
+    h1.title="Escreva o nome desta tela de entrada";
+    h1.onblur=()=>{setTexto("hub.titulo",h1.textContent,"Sumário");};
+    h1.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();h1.blur();}
+      if(e.key==="Escape"){h1.textContent=txt("hub.titulo","Sumário");h1.blur();}};
+  }else{h1.contentEditable="false";h1.classList.remove("editando");h1.onblur=h1.onkeydown=null;
+    h1.title="Para renomear: ✏️ Editar textos";}
+  document.getElementById("appSubtitle").innerHTML=subLivreHTML("hub");
   renderHub();renderBreadcrumb();syncNav();window.scrollTo(0,0);
 }
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
@@ -434,11 +464,31 @@ function renderBreadcrumb(){
   const aba=currentTab&&TABS[currentTab]?` › <b>${esc(rotuloAba(currentTab))}</b>`:" › <b>Início</b>";
   c.innerHTML=`<span onclick="goHome()" title="Voltar à Central de Empresas">Capa</span> › <span onclick="showHub()" title="Voltar ao início desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
 }
-/* Cabeçalho padrão de TODAS as abas (pedido de Lê, 19/07):
-   título grande = nome do quadro · embaixo, a loja numa pílula verde. */
+/* Cabeçalho padrão de TODAS as abas (regra de Lê, 20/07 — "TÍTULOS INDEPENDENTES"):
+   1) EM CIMA a loja, só para identificar. NÃO é editável aqui: era isto que fazia
+      "mudar Arraial e mudar a capa junto" — renomear empresa é só na Capa, no ✎.
+   2) NO MEIO o título do quadro (editável no modo edição).
+   3) EMBAIXO uma linha LIVRE, que ela escreve o que quiser, direto no clique. */
+function renderEyebrow(){
+  const el=document.getElementById("appLoja");if(!el)return;
+  el.innerHTML=currentStore
+    ?`<span class="sep">·</span><span class="loja-tag" title="Para renomear a empresa: volte à Capa e use o ✎">${esc(nomeCurto(currentStoreName||""))}</span>`
+    :"";
+}
+/* a linha livre: clicou, escreveu, saiu — salvou. Enter confirma, Esc cancela. */
+function subLivreHTML(chave){
+  const v=ABA_SUB[chave]||"";
+  return `<span class="head-sub${v?"":" vazio"}" contenteditable="plaintext-only"
+    data-sub="${esc(chave)}" title="Escreva aqui o que quiser — some quando você apagar"
+    onblur="setAbaSub(this.dataset.sub,this.textContent);this.classList.toggle('vazio',!this.textContent.trim())"
+    onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}
+               if(event.key==='Escape'){this.textContent=(ABA_SUB[this.dataset.sub]||'');this.blur();}"
+    >${esc(v)}</span>`;
+}
 function updateSubtitle(t){
   const h1=document.getElementById("appTitle"),sub=document.getElementById("appSubtitle");
   const aba=TABS[t]&&rotuloAba(t);
+  renderEyebrow();
   if(h1){
     h1.textContent=aba||nomeCurto(currentStoreName||"");
     /* SÓ edita no modo edição — antes ficava sempre editável e ela renomeou a aba
@@ -452,12 +502,7 @@ function updateSubtitle(t){
     }else{h1.contentEditable="false";h1.classList.remove("editando");
       h1.onblur=h1.onkeydown=null;h1.title=MODO_EDICAO?"":"Para renomear: menu ⋯ → Editar os textos do site";}
   }
-  if(sub)sub.innerHTML=currentStore
-    ?`<span class="loja-pill"${MODO_EDICAO?` contenteditable="plaintext-only" title="Escreva o novo nome da empresa"
-        onblur="renomearLojaCurto(this.textContent)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"`
-      :` title="Para renomear: menu ⋯ → Editar os textos do site"`}>${esc(nomeCurto(currentStoreName||""))}</span>`
-    :"";
+  if(sub)sub.innerHTML=currentStore?subLivreHTML(t||"hub"):"";
 }
 
 /* Status por tipo de aba — a aba NC ganha vocabulário próprio na Fase 3 */
@@ -548,16 +593,20 @@ async function histAplicar(passo,voltando){
     if(window.syncSchedule)syncSchedule();
   }finally{HIST_LIGADO=true;}
 }
+/* POR QUE ELAS "FUNCIONAVAM QUANDO QUERIAM" (queixa de Lê, 20/07):
+   o histórico vive na memória da página. Ao recarregar o site ele zera, as setas
+   ficavam CINZAS e mortas, e parecia defeito. Agora elas nunca ficam desligadas:
+   clicou sem ter o que desfazer, ela recebe a explicação escrita. */
 async function desfazer(){
   histFechar();
-  if(HIST_POS<0){toast("Nada para desfazer");return;}
+  if(HIST_POS<0){toast("Nada para voltar — o histórico recomeça toda vez que o site é aberto");return;}
   const p=HIST[HIST_POS];
   await histAplicar(p,true);HIST_POS--;atualizarBotoesHist();
   toast("Desfeito: "+histRotulo(p));
 }
 async function refazer(){
   histFechar();
-  if(HIST_POS>=HIST.length-1){toast("Nada para refazer");return;}
+  if(HIST_POS>=HIST.length-1){toast("Nada para avançar — você já está no passo mais recente");return;}
   HIST_POS++;const p=HIST[HIST_POS];
   await histAplicar(p,false);atualizarBotoesHist();
   toast("Refeito: "+histRotulo(p));
@@ -565,9 +614,11 @@ async function refazer(){
 function atualizarBotoesHist(){
   const d=document.getElementById("btDesfazer"),r=document.getElementById("btRefazer");
   const dm=document.getElementById("btDesfazerM");
-  if(dm){dm.disabled=HIST_POS<0;dm.title=HIST_POS<0?"Nada para desfazer":"Desfazer "+histRotulo(HIST[HIST_POS]);}
-  if(d){d.disabled=HIST_POS<0;d.title=HIST_POS<0?"Nada para desfazer":"Desfazer "+histRotulo(HIST[HIST_POS])+" (Ctrl+Z)";}
-  if(r){r.disabled=HIST_POS>=HIST.length-1;r.title=HIST_POS>=HIST.length-1?"Nada para refazer":"Refazer (Ctrl+Shift+Z)";}
+  /* nunca ficam "disabled": só apagadinhas. Assim o clique sempre responde algo. */
+  const semVoltar=HIST_POS<0,semAvancar=HIST_POS>=HIST.length-1;
+  if(dm){dm.classList.toggle("apagado",semVoltar);dm.title=semVoltar?"Nada para voltar agora":"Voltar: "+histRotulo(HIST[HIST_POS]);}
+  if(d){d.classList.toggle("apagado",semVoltar);d.title=semVoltar?"Nada para voltar agora (Ctrl+Z)":"Voltar: "+histRotulo(HIST[HIST_POS])+" (Ctrl+Z)";}
+  if(r){r.classList.toggle("apagado",semAvancar);r.title=semAvancar?"Nada para avançar agora (Ctrl+Shift+Z)":"Avançar (Ctrl+Shift+Z)";}
 }
 function metaGet(k){return new Promise(r=>{const q=tx("meta","readonly").get(k);q.onsuccess=()=>r(q.result?q.result.v:null);q.onerror=()=>r(null);});}
 function metaSet(k,v){return new Promise(r=>{const q=tx("meta","readwrite").put({k,v});q.onsuccess=()=>r();});}
@@ -608,6 +659,7 @@ async function renderHome(){
      <div class="sub" style="margin-top:2px">${pendAbertas.length===1?"pendência em aberto":"pendências em aberto"}</div>
      <div class="sub" style="margin-top:10px;line-height:1.5"><b><span data-txt="capa.ondeParamos">Onde paramos</span>${quando}:</b><br>${ondeParamos}</div>
      <div style="margin-top:10px"><button class="btn ghost sm" onclick="gerirPendencias()"><span data-txt="capa.verLista">📋 Ver lista completa</span></button></div></div>`;
+ renderHomeStats(vivos);
  /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) */
  const topB=document.getElementById("backup-top");
  if(topB)topB.innerHTML=`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
@@ -628,12 +680,11 @@ async function renderHome(){
  lista=lista.slice().sort((a,b)=>_o==="pend"?_pendDe(b)-_pendDe(a):a.name.localeCompare(b.name,"pt-BR"));
  if(!lista.length)html=`<div class="store-row"><div class="store-info"><div class="store-sub">Nenhuma empresa encontrada.</div></div></div>`;
  for(const emp of lista){
-   const pend=vivos.filter(d=>d.loja===emp.code&&isPendente(d)).length;
-   const done=vivos.filter(d=>d.loja===emp.code&&isConcluido(d)).length;
+   /* subtítulo "N pendentes · N concluídos" REMOVIDO a pedido dela (20/07):
+      a contagem já está nos cards do topo; embaixo do nome só poluía. */
    html+=`<div class="store-row">
      <div class="store-info">
        <div class="store-title">${esc(emp.name)} (${esc(emp.code)})</div>
-       <div class="store-sub">${pend} pendente${pend===1?"":"s"} · ${done} concluído${done===1?"":"s"}</div>
      </div>
      <div class="store-toggle-wrap">
        <label class="switch" title="Ativar/desativar empresa"><input type="checkbox" aria-label="Ativar ou desativar empresa" ${emp.ativa?"checked":""} onchange="onToggleEmpresa('${emp.code}',this.checked)"><span class="slider"></span></label>
@@ -660,6 +711,40 @@ async function renderHome(){
        <div class="store-sub">${esc(d.loja)} · ${esc(d.area||"")} · ${brDate(d.relato)}${d.status==="Resolvida"?" · resolvida ✓":""}</div>
      </div></div>`;}).join("")+"</div>":"";
  }
+}
+
+/* ===== FAIXA DE NÚMEROS DA CAPA (20/07) =====
+   Pedido dela: "cards só com coisas úteis e funcionais" no topo, e aproveitar o
+   lado direito vazio. Cada card RESPONDE UMA PERGUNTA e é um atalho: clicou, entra
+   na empresa ativa já no quadro certo. Sem empresa ativa, avisa em vez de não fazer nada. */
+function abrirQuadro(tab){
+ const ativas=EMPRESAS.filter(e=>e.ativa);
+ if(ativas.length!==1){toast("Deixe ativa a empresa em que você está para entrar direto");return;}
+ enterStore(ativas[0].code);showTab(tab);
+}
+function renderHomeStats(vivos){
+ const box=document.getElementById("home-stats");if(!box)return;
+ const cod=EMPRESAS.map(e=>e.code);
+ const dgs=vivos.filter(d=>d.tipo==="dg");
+ const feito=(typeof DG_CHAVE_CONCLUIDO!=="undefined")?DG_CHAVE_CONCLUIDO:"concluido";
+ const urg=(typeof DG_CHAVE_URGENTE!=="undefined")?DG_CHAVE_URGENTE:"URGENTE";
+ const dgAbertas=dgs.filter(d=>d.situacao!==feito).length;
+ const dgUrg=dgs.filter(d=>d.situacao!==feito&&d.prioridade===urg).length;
+ const mnt=vivos.filter(d=>d.tipo==="mnt"&&cod.includes(d.loja)&&isPendente(d)).length;
+ const insp=vivos.filter(d=>d.tipo==="ckp"&&d.status==="concluido").length;
+ const cards=[
+  {t:"dg", lbl:"Quadro Geral",  n:dgAbertas,sub:"demandas em aberto",  cor:"#1d6b57",ico:"🗒"},
+  {t:"dg", lbl:"Urgentes",      n:dgUrg,    sub:"pedem atenção hoje",  cor:"#c0212a",ico:"🔥"},
+  {t:"list",lbl:"Manutenções",  n:mnt,      sub:"serviços pendentes",  cor:"#b3730a",ico:"🔧"},
+  {t:"ck", lbl:"Inspeções",     n:insp,     sub:"checklists concluídos",cor:"#7c3aed",ico:"✅"}
+ ];
+ box.innerHTML=cards.map(c=>
+  `<button class="stat" style="--c:${c.cor}" onclick="abrirQuadro('${c.t}')" title="Abrir ${esc(c.lbl)} na empresa ativa">
+     <span class="ic">${c.ico}</span>
+     <span class="n">${c.n}</span>
+     <span class="l">${esc(c.lbl)}</span>
+     <span class="s">${esc(c.sub)}</span>
+   </button>`).join("");
 }
 
 async function onToggleEmpresa(code,val){const e=empresa(code);if(!e)return;
@@ -928,17 +1013,22 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
  const rows=DATA.filter(d=>!d.deleted&&d.tipo!=="nc").map(d=>[rotuloTipo(d.tipo||"mnt"),d.loja,d.area,d.nc,d.acao,d.rt,d.executor,brDate(d.relato),brDate(d.atualizacao),d.status]);
  return [head,...rows].map(r=>r.map(c=>'"'+String(c==null?"":c).replace(/"/g,'""')+'"').join(";")).join("\r\n");
 }
+/* NOMES DOS ARQUIVOS (corrigido em 20/07 — ela reparou, com razão, que mentiam):
+   o "nao_conformidades.csv" na verdade traz o Quadro Geral + Manutenções, e o
+   "gestao_nc.csv" é o nome velho da aba. Agora cada arquivo diz o que é e leva a data. */
+function selo(){const d=new Date(),p=n=>String(n).padStart(2,"0");
+ return p(d.getDate())+"."+p(d.getMonth()+1)+"."+String(d.getFullYear()).slice(2);}
 async function exportExcel(){
- download("nao_conformidades.csv","﻿"+buildCsvGeral(),"text/csv");
+ download("Demandas e Manutencoes - "+selo()+".csv","﻿"+buildCsvGeral(),"text/csv");
  if(window.ncExportCSV)ncExportCSV(); /* CSV próprio da aba NC (colunas diferentes) */
- download("backup_banco_demandas.json",JSON.stringify(buildBackupEnvelope(),null,2),"application/json");
+ download("Backup completo do site - "+selo()+".json",JSON.stringify(buildBackupEnvelope(),null,2),"application/json");
  await metaSet("lastBackup",nowISO());
  if(document.getElementById("view-home").style.display!=="none")renderHome();
  toast("Excel (CSV) + backup exportados");}
@@ -1017,9 +1107,9 @@ async function doBackup(force){
    const sub=await dir.getDirectoryHandle(nomePasta,{create:true});
    const grava=async(nome,conteudo)=>{const fh=await sub.getFileHandle(nome,{create:true});
      const w=await fh.createWritable();await w.write(conteudo);await w.close();};
-   await grava("backup_banco_demandas.json",JSON.stringify(buildBackupEnvelope(),null,2));
-   await grava("nao_conformidades.csv","﻿"+buildCsvGeral());
-   if(window.ncBuildCSV){const c=ncBuildCSV();if(c)await grava("gestao_nc.csv","﻿"+c);}
+   await grava("Backup completo do site.json",JSON.stringify(buildBackupEnvelope(),null,2));
+   await grava("Demandas e Manutencoes.csv","﻿"+buildCsvGeral());
+   if(window.ncBuildCSV){const c=ncBuildCSV();if(c)await grava("Relatorio de Nao Conformidade.csv","﻿"+c);}
    await metaSet("lastBackup",nowISO());
    /* regra do projeto: manter apenas as últimas 7 pastas diárias */
    try{
@@ -1179,7 +1269,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();
  goHome();

@@ -260,8 +260,11 @@
   /* ideia tirada da referência: o conteúdo vive num painel branco "flutuante",
      com canto arredondado à esquerda encostando na barra colorida */
   .app{background:#f2f4f4}
-  .main{flex:1;padding:24px 30px 70px;min-width:0;background:#fff;border-radius:18px 0 0 18px;margin:10px 0 10px -6px;box-shadow:0 2px 24px rgba(15,91,82,.10)}
-  #view-home{border-radius:18px 0 0 18px}
+  /* SEM FAIXA CLARA EM CIMA (Lê pediu 2x e continuava aparecendo, 20/07):
+     a culpa era do margin-top:10px daqui — sobravam 10px do fundo cinza acima do
+     cabeçalho verde, atravessando a tela toda. Agora o painel encosta no topo. */
+  .main{flex:1;padding:24px 30px 70px;min-width:0;background:#fff;border-radius:0 0 0 18px;margin:0 0 10px -6px;box-shadow:0 2px 24px rgba(15,91,82,.10)}
+  #view-home{border-radius:0 0 0 18px}
   /* CABEÇALHO: faixa verde com o nome do quadro em branco e a loja numa pílula clara.
      É fixo em TODAS as abas (pedido de Lê, 19/07). */
   /* A faixa SANGRA até o topo e as laterais do painel branco, e só embaixo é
@@ -269,10 +272,22 @@
      o padding do .main (24px em cima, 30px nas laterais). */
   .head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
     background:linear-gradient(135deg,#0f5b52,#17756a 55%,#2a9d8a);color:#fff;
-    margin:-24px -30px 22px;padding:18px 30px 20px;
-    border-radius:18px 0 22px 22px;box-shadow:0 4px 18px rgba(15,91,82,.16)}
+    margin:-24px -30px 20px;padding:13px 30px 15px;
+    border-radius:0 0 22px 22px;box-shadow:0 4px 18px rgba(15,91,82,.16)}
   .head-faixa{flex:1;min-width:220px}
-  .head h1{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.15;color:#fff}
+  .head h1{font-size:23px;font-weight:700;letter-spacing:-.5px;line-height:1.2;color:#fff}
+  /* linha de cima: voltar + a LOJA (só identifica; renomear é na Capa) */
+  .head-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:3px;font-size:12px}
+  .head-eyebrow .back-link{margin:0;font-size:12px}
+  .head-eyebrow .sep{color:rgba(255,255,255,.45)}
+  .loja-tag{color:rgba(255,255,255,.92);font-weight:700;letter-spacing:.35px;text-transform:uppercase;font-size:11px}
+  /* linha LIVRE embaixo do título: ela clica e escreve o que quiser */
+  .head-sub{display:inline-block;margin-top:5px;font-size:13px;color:rgba(255,255,255,.88);
+    min-width:190px;border-radius:6px;padding:1px 5px;margin-left:-5px;outline:0;cursor:text}
+  .head-sub:hover{background:rgba(255,255,255,.12)}
+  .head-sub:focus{background:rgba(255,255,255,.18);color:#fff}
+  .head-sub.vazio::before{content:"escreva aqui o que quiser…";color:rgba(255,255,255,.5);font-style:italic}
+  .head-sub.vazio:focus::before{content:""}
   .loja-pill{display:inline-block;margin-top:9px;padding:5px 15px;border-radius:20px;
     background:rgba(255,255,255,.95);color:#0f5b52;font-size:12.5px;font-weight:700;letter-spacing:.2px}
   .loja-pill:focus{outline:0;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.45)}
@@ -400,7 +415,8 @@
   .backup-top-lbl{color:var(--muted);font-size:11.5px;white-space:nowrap}
   .backup-top .btn{padding:4px 9px;font-size:11.5px;line-height:1.3}
   /* versão do site na coluna lateral */
-  .rail-ver{margin-top:10px;color:var(--muted);font-size:10.5px;opacity:.75;text-align:center;letter-spacing:.2px}
+  /* as setas saíram do rodapé da barra; é a versão que agora empurra para baixo */
+  .rail-ver{margin-top:auto;color:var(--muted);font-size:10.5px;opacity:.75;text-align:center;letter-spacing:.2px}
   .card-ph{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:18px 17px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:76px}
   .card-ph .ph-tag{color:#e5484d;font-weight:700;font-size:12px;letter-spacing:.3px}
   .section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
@@ -417,9 +433,14 @@
   .store-toggle-label.on{color:var(--green)}
   .store-toggle-label.off{color:var(--muted)}
   .btn.iniciar:disabled{background:#e5e6ea;color:#a6a7b0;cursor:not-allowed}
+  /* TAMANHO PADRÃO FIXO (ela pediu em 20/07): o cadeado tinha o tamanho do emoji e
+     ficava menor que o "Iniciar →". Agora os dois ocupam exatamente a mesma caixa. */
+  .btn.iniciar,#view-home .store-list .btn.iniciar.off{
+    min-width:112px;height:36px;display:inline-flex;align-items:center;justify-content:center;
+    padding:0 15px;line-height:1}
   /* empresa inativa: MESMO tamanho do botão Iniciar, só apagado e com cadeado */
   #view-home .store-list .btn.iniciar.off{background:#eceef0 !important;color:#a6a7b0 !important;
-    cursor:not-allowed;user-select:none;box-shadow:none;display:inline-block}
+    cursor:not-allowed;user-select:none;box-shadow:none}
   .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:14px;font-weight:600}
   .back-link:hover{color:var(--text)}
   @media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.rail{display:none}
@@ -482,17 +503,33 @@
   .filtro-cfg-bt{border:1px solid var(--border);background:#fff;color:var(--muted);font-size:13px;
     padding:7px 9px;border-radius:8px;cursor:pointer;line-height:1}
   .filtro-cfg-bt:hover{border-color:var(--accent);color:var(--accent)}
-  /* desfazer / refazer na barra lateral */
-  .rail-hist{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:auto;padding-top:10px;
-    border-top:1px solid rgba(255,255,255,.22);width:34px}
-  .rail-hist .ricon{border:0;background:none;font-size:16px;font-weight:700;color:rgba(255,255,255,.72);cursor:pointer;
-    width:30px;height:28px;border-radius:7px}
-  .rail-hist .ricon:hover:not(:disabled){background:rgba(255,255,255,.18);color:#fff}
-  .rail-hist .ricon:disabled{opacity:.22;cursor:default}
+  /* VOLTAR / AVANÇAR — agora NO TOPO da barra, acima do NP (pedido dela, 20/07),
+     lado a lado e bem visíveis. Nunca ficam desligadas: sem histórico só apagam um
+     pouco, e o clique explica o porquê — antes pareciam quebradas. */
+  .rail-hist{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:5px;
+    width:100%;padding-bottom:9px;margin-bottom:3px;border-bottom:1px solid rgba(255,255,255,.22)}
+  .rail-hist .ricon{border:0;background:rgba(255,255,255,.16);font-size:16px;font-weight:700;
+    color:#fff;cursor:pointer;width:30px;height:28px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;transition:background .12s,opacity .12s}
+  .rail-hist .ricon:hover{background:rgba(255,255,255,.34)}
+  .rail-hist .ricon.apagado{opacity:.42}
+  .rail.aberta .rail-hist{padding:0 10px 9px}
   @media(max-width:1000px){
-    .mnav #btDesfazerM{border:0;background:none;font-size:19px;font-weight:700;color:var(--muted);opacity:.55}
-    .mnav #btDesfazerM:disabled{opacity:.2}
+    .mnav #btDesfazerM{border:0;background:none;font-size:19px;font-weight:700;color:var(--muted);opacity:.6}
+    .mnav #btDesfazerM.apagado{opacity:.28}
   }
+  /* ===== FAIXA DE NÚMEROS DA CAPA: cards úteis, clicáveis (20/07) ===== */
+  .home-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:30px}
+  .home-stats .stat{display:flex;flex-direction:column;align-items:flex-start;gap:0;
+    background:#fff;border:1px solid rgba(255,255,255,.2);border-radius:13px;padding:13px 15px 14px;
+    cursor:pointer;font:inherit;text-align:left;box-shadow:0 4px 20px rgba(0,0,0,.10);
+    transition:transform .12s,box-shadow .12s}
+  .home-stats .stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.16)}
+  .home-stats .ic{font-size:15px;line-height:1;margin-bottom:6px;opacity:.9}
+  .home-stats .n{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1.05;color:var(--c)}
+  .home-stats .l{font-size:12.5px;font-weight:700;color:var(--text);margin-top:3px}
+  .home-stats .s{font-size:11px;color:var(--muted);margin-top:1px}
+  @media(max-width:900px){.home-stats{grid-template-columns:repeat(2,1fr)}}
 
   /* ===== Aba CHECKLISTS (js/ck.js) ===== */
   .ck-barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
