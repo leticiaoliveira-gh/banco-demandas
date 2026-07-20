@@ -1,0 +1,12 @@
+# Arquivos com dados reais — vivem no repo privado banco-demandas-dados
+CONTINUIDADE.md
+PROMPT-PROXIMO-CHAT.md
+
+# Backups e dados exportados
+- BACKUPS/
+banco.json
+*.bak
+
+# Ambiente
+.DS_Store
+Thumbs.db

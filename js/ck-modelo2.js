@@ -15,9 +15,9 @@
    RÉGUA DA NOTA (ckClassifica): Saccol, Hecktheuer, Richards e Stangarlin (2006),
    adaptada da RDC 216 — a classificação usada na área de nutrição.
 
-   O QUE ESTE ARQUIVO RESOLVE: ela tem 60 áreas em [loja-A] e 50 em Arraial. Repetir
-   91 perguntas em cada área seria impossível. Por isso cada pergunta tem um ESCOPO
-   (`escopoP`) e cada área um TIPO (`tipoAmb`):
+   O QUE ESTE ARQUIVO RESOLVE: uma loja tem dezenas de áreas. Repetir 91 perguntas em
+   cada área seria impossível. Por isso cada pergunta tem um ESCOPO (`escopoP`) e cada
+   área um TIPO (`tipoAmb`):
      ""/loja      → respondida UMA vez na inspeção inteira
      ambiente     → respondida uma vez em CADA área visitada
      tipo:xxx     → só nas áreas daquele tipo (câmara, sanitário, produção, resíduo)
@@ -728,7 +728,7 @@ async function ckTriAceitarTudo(){
 
    ⚠️ REGRA QUE ELA DECIDIU (20/07) e que NÃO se muda sem ela mandar:
    pergunta SEM manutenção relatada fica EM BRANCO — "não avaliada".
-   NUNCA marcar 👍 automático: o documento leva a assinatura e o CRN dela, e marcar
+   NUNCA marcar 👍 automático: o documento leva a assinatura e o registro profissional, e marcar
    conforme sozinho faria o papel AFIRMAR que ela conferiu coisa que ela não olhou.
    A nota sai só sobre o que foi realmente avaliado.
    ======================================================================= */

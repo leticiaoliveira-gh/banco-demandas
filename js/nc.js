@@ -1,10 +1,9 @@
 /* =====================================================================
-   NP · Gestão de NC — porte das regras do sistema [sistema-privado]
-   (bot Telegram + painel Flask do PC) para a aba do site, por empresa.
-   Regras preservadas: áreas por piso, urgência automática
-   URGENTE/ATENÇÃO/OBSERVAÇÃO (ambíguo → ATENÇÃO + revisar), consolidação
+   Gestão de Não Conformidade — aba de registro por empresa.
+   Recursos: áreas por piso, urgência automática por palavras-chave
+   (URGENTE / OBSERVAÇÃO; ambíguo → OBSERVAÇÃO + revisar), consolidação
    de repetições, resolver/reabrir, reincidência mês a mês com contador,
-   redação técnica formal (RDCs orientam o tom, nunca aparecem no texto),
+   redação técnica formal (as RDCs orientam o tom, nunca aparecem no texto),
    relatório mensal por empresa (impressão/PDF e Word).
    ===================================================================== */
 
@@ -14,41 +13,10 @@ STATUS_FNS.nc={isPend:d=>d.status!=="Resolvida",isDone:d=>d.status==="Resolvida"
 TABS.nc.renderCards=function(){ncRenderCards();};
 
 /* ---- áreas por empresa (store meta, chave areas_<code>) ---- */
-const NC_SEED_AC=[
- [1,"Acesso Principal e Estacionamento","1º Piso — Parte Central"],
- [2,"Banheiro Clientes","1º Piso — Parte Central"],
- [3,"Frente de Caixa (PDV)","1º Piso — Parte Central"],
- [4,"Salão Principal","1º Piso — Parte Central"],
- [5,"Salão Hortifrúti (FLV)","1º Piso — Parte Central"],
- [6,"Balcões Expositores (vidros da padaria e açougue)","1º Piso — Parte Central"],
- [7,"Ilhas de Congelados (vidros)","1º Piso — Parte Central"],
- [8,"Geladeiras","1º Piso — Parte Central"],
- [9,"Freezer","1º Piso — Parte Central"],
- [10,"Gôndolas de Tempero","1º Piso — Parte Central"],
- [11,"Depósito de Materiais de Limpeza + MOP (sob a escada)","1º Piso — Parte Interna"],
- [12,"Corredor das Câmaras (teto, paredes e piso)","1º Piso — Parte Interna"],
- [13,"Câmaras Frias (portas) — 1º piso","1º Piso — Parte Interna"],
- [14,"CPD","1º Piso — Parte Interna"],
- [15,"Carga e Descarga (Doca)","1º Piso — Parte Interna"],
- [16,"Escada","1º Piso — Parte Interna"],
- [17,"Refeitório e Corredor de Acesso","2º Piso"],
- [18,"Administrativo (Escritórios)","2º Piso"],
- [19,"Banheiro ADM (Masculino)","2º Piso"],
- [20,"Banheiro ADM (Feminino)","2º Piso"],
- [21,"Corredor Armários","2º Piso"],
- [22,"Banheiro Funcionários (Masculino)","2º Piso"],
- [23,"Banheiro Funcionários (Feminino)","2º Piso"],
- [24,"Sala de Descanso","2º Piso"],
- [25,"Corredor das Câmaras (piso, parede e área do elevador) — 2º piso","2º Piso"],
- [26,"Câmaras Frias (portas) — 2º piso","2º Piso"],
- [27,"Depósito de Materiais de Limpeza + MOP — 2º piso","2º Piso"],
- [28,"Cozinha","2º Piso"]
-];
 let NC_AREAS={};/* code -> [{n,nome,piso}] */
 async function ncAreas(code){
  if(NC_AREAS[code])return NC_AREAS[code];
- let v=await metaGet("areas_"+code);
- if(!v&&code==="AC"){v=NC_SEED_AC.map(([n,nome,piso])=>({n,nome,piso}));await metaSet("areas_AC",v);AREAS_ALL.AC=v;}
+ const v=await metaGet("areas_"+code);
  NC_AREAS[code]=v||[];
  return NC_AREAS[code];
 }
@@ -56,13 +24,11 @@ async function ncSaveAreas(code){await metaSet("areas_"+code,NC_AREAS[code]||[])
 function ncPisos(areas){const seen=[];for(const a of areas)if(!seen.includes(a.piso))seen.push(a.piso);return seen;}
 
 /* ---- classificação automática de urgência ----
-   PORTE FIEL de bot/[modulo-privado] (recebido em 17/07/2026):
-   1) o texto é normalizado (minúsculas + acentos removidos, como o
-      unicodedata.normalize NFKD do bot);
+   Algoritmo por palavras-chave:
+   1) o texto é normalizado (minúsculas + acentos removidos);
    2) prioridade: URGENTE > ATENÇÃO > OBSERVAÇÃO — a primeira lista que
       tiver palavra reconhecida vence;
-   3) NENHUMA palavra reconhecida → ATENÇÃO + revisão pendente (regra do
-      CLAUDE.md do bot). Listas de palavras idênticas às do arquivo. */
+   3) NENHUMA palavra reconhecida → OBSERVAÇÃO + revisão pendente. */
 /* urgências EDITÁVEIS por ela (mesma regra do Quadro Geral: a chave nunca muda) */
 const NC_URG_PADRAO={URGENTE:{rotulo:"URGENTE",cor:"#e5484d",fundo:"#ffecec",ordem:0},
  OBSERVACAO:{rotulo:"OBSERVAÇÃO",cor:"#047857",fundo:"#d1fae5",ordem:1}};
@@ -111,7 +77,7 @@ function ncClassificar(texto){
 }
 
 /* ---- detecção automática de área "Nome da área: descrição" ----
-   Porte fiel de detectar_area/_tokenizar/_pontuar_area do bot. */
+   Algoritmo de classificação por radicais e correspondência ponderada. */
 const NC_PALAVRAS_IRRELEVANTES=new Set(["de","da","do","das","dos","e","em","na","no","nas","nos","com","sem","a","o","as","os","para","por"]);
 const NC_LIMIAR_AREA=0.5;
 function ncTokenizar(tn){

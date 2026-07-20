@@ -1,5 +1,5 @@
 /* ===== Aba CHECKLISTS — inspeções por formulário =====
-   Referência: o app Checkbits, que Lê usou em 19/07 e quis reproduzir aqui.
+   Referência: apps de checklist do dia a dia, reproduzidos aqui para uso offline.
 
    DOIS tipos de item no banco:
    - {tipo:"ckm"} MODELO do checklist: a lista de perguntas (o "formulário").
@@ -377,7 +377,7 @@ async function ckApagar(d){
 }
 
 /* ===================================================================
-   CONSTRUTOR DE PERGUNTAS — a tela dos prints do Checkbits
+   CONSTRUTOR DE PERGUNTAS — a tela em que as perguntas do checklist são montadas
    =================================================================== */
 let CK_MODELO_ABERTO="",CK_BUSCA="",CK_SEL=new Set();
 /* nº de colunas da tabela do construtor — usado no colspan do cabeçalho de seção e da
@@ -1664,7 +1664,7 @@ function ckPDF(uid,completo){
   const hist=p.origem==="historico";
   const loja=nomeCurto((empresa(p.loja)||{}).name||p.loja||"");
   const quem=p.respondente||RT_INFO||RT_DEFAULT;
-  /* o nome dela vem antes do "·" do CRN — o documento é assinado por ela */
+  /* o nome vem antes do "·" do registro profissional — o documento vai assinado */
   const nome=String(quem).split("·")[0].replace(/\(.*?\)/,"").trim()||quem;
   const cred=String(quem).includes("·")?String(quem).split("·").slice(1).join("·").trim():"";
   const cargo=(String(quem).match(/\(([^)]+)\)/)||[])[1]||"Responsável Técnica";

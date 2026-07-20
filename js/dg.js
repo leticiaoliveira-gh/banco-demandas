@@ -687,7 +687,7 @@ function dgNovaPorTexto(){
     use espaços no começo da linha para criar subitens.</p>
     <div class="field"><label>Título</label><input id="dg-voz-tit" placeholder="Ex.: Organizar a câmara fria"></div>
     <div class="field"><label>Passos (um por linha)</label>
-      <textarea id="dg-voz-texto" rows="9" placeholder="Conferir a temperatura&#10;  Anotar no formulário&#10;Chamar o [executor-removido] se estiver alta"></textarea></div>
+      <textarea id="dg-voz-texto" rows="9" placeholder="Conferir a temperatura&#10;  Anotar no formulário&#10;Chamar o responsável se estiver alta"></textarea></div>
     <div class="form-actions">
       <button class="btn ghost" id="dg-voz-bt" onclick="dgDitar(this)">🎤 Falar</button>
       <button class="btn" onclick="dgCriarPorTexto()">Criar demanda</button>
@@ -700,7 +700,7 @@ async function dgCriarPorTexto(){
   const txt=(document.getElementById("dg-voz-texto").value||"").trim();
   if(!tit&&!txt){toast("Escreva ou fale alguma coisa");return;}
   /* quebra por linha; e também por ponto final quando a pessoa ditou tudo corrido —
-     mas sem cortar abreviações como "[executor-removido]", "[nome-removido]", "etc." */
+     mas sem cortar abreviações comuns ("Sr.", "Dra.", "etc.") */
   const linhas=txt.split("\n").flatMap(l=>{
     if(l.includes("\n")||l.trim().split(/\s+/).length<8)return [l];
     const rec=(l.match(/^\s*/)||[""])[0];

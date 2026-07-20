@@ -6,8 +6,8 @@
    fora do IndexedDB para nunca sair num backup exportado).
    ===================================================================== */
 
-const SYNC_DEFAULT_OWNER="leticiaoliveira-gh";
-const SYNC_DEFAULT_REPO="banco-demandas-dados";
+const SYNC_DEFAULT_OWNER="";
+const SYNC_DEFAULT_REPO="";
 const SYNC_FILE="banco.json";
 
 let syncSha=null,syncT=null,syncBusy=false,syncDirty=false,syncLast=0;
@@ -98,7 +98,7 @@ async function syncMergeEnvelope(env){
    const wrapNC=document.getElementById("tab-nc");if(wrapNC)wrapNC.dataset.store="";
    changed=true;
  }else if(env&&(AREAS_MOD||"")>(env.areasMod||""))localAhead=true;
- /* informações da RT (CRN etc.): vence o rtInfoMod mais novo */
+ /* informações da RT (nome, cargo, registro profissional): vence o rtInfoMod mais novo */
  if(env&&typeof env.rtInfo==="string"&&(env.rtInfoMod||"")>RT_INFO_MOD){
    RT_INFO=env.rtInfo;RT_INFO_MOD=env.rtInfoMod;
    await metaSet("rtInfo",RT_INFO);await metaSet("rtInfoMod",RT_INFO_MOD);

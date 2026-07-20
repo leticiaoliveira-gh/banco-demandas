@@ -1,8 +1,8 @@
-const RT_DEFAULT="[nome-removido] (Nutricionista de Produção – RT)";
+const RT_DEFAULT="Responsável Técnica";
 
 /* ===== Empresas dinâmicas (gerenciáveis pela Central de Empresas) ===== */
 /* Grupo = conjunto de lojas que dividem a MESMA agenda de Demandas Gerais.
-   Só as lojas do [rede-removida] (CF e AC) têm grupo; empresa nova nasce sem. */
+   Empresa nova nasce sem grupo; a pessoa liga o grupo pelo ✎ da empresa. */
 const GRUPO_SF="SF";
 let EMPRESAS=[],EMPRESAS_MOD="";
 function grupoDe(code){const e=(EMPRESAS||[]).find(x=>x.code===code);return (e&&e.grupo)||"";}
@@ -10,42 +10,14 @@ function lojasDoGrupo(g){return (EMPRESAS||[]).filter(e=>e.grupo===g);}
 async function loadEmpresas(){
  EMPRESAS_MOD=await metaGet("empresasMod")||"";
  let v=await metaGet("empresas");
- if(!v||!Array.isArray(v)||!v.length){
-   /* migração: semeia das 2 lojas originais preservando os flags legados active_* */
-   v=[];
-   for(const s of [{code:"CF",name:"[loja-A]"},{code:"AC",name:"[loja-B]"}]){
-     const act=await metaGet("active_"+s.code);
-     v.push({code:s.code,name:s.name,ativa:act===null?true:!!act});
-   }
-   await metaSet("empresas",v);
- }
+ if(!v||!Array.isArray(v))v=[];
  EMPRESAS=v;
- /* pedido de 17/07: nomes completos com a rede (só uma vez; ela pode ajustar no ✎) */
- if(!(await metaGet("mig_nome_rede"))){
-   let mudou=false;
-   for(const e of EMPRESAS){
-     if(e.name==="[loja-A]"){e.name="[loja-A] · [rede-removida]";mudou=true;}
-     if(e.name==="[loja-B]"){e.name="[loja-B] · [rede-removida]";mudou=true;}
-   }
-   if(mudou){EMPRESAS_MOD=nowISO();await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);}
-   await metaSet("mig_nome_rede",true);
- }
- /* faxina: o código do GRUPO chegou a virar "empresa" numa importação — não é loja,
-    não pode aparecer na capa. (achado em 19/07) */
+ /* faxina: o código de um grupo chegou a virar "empresa" numa importação — grupo
+    não é loja, não pode aparecer na capa. (achado em 19/07) */
  const semGrupoFantasma=EMPRESAS.filter(e=>e.code!==GRUPO_SF);
  if(semGrupoFantasma.length!==EMPRESAS.length){
    EMPRESAS=semGrupoFantasma;EMPRESAS_MOD=nowISO();
    await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);
- }
- /* GRUPO (19/07): as lojas do [rede-removida] dividem a MESMA agenda de Demandas Gerais.
-    Empresa criada depois nasce SEM grupo -> agenda própria (regra explícita de Lê). */
- if(!(await metaGet("mig_grupo_sf"))){
-   let mudou=false;
-   for(const e of EMPRESAS){
-     if((e.code==="CF"||e.code==="AC")&&!e.grupo){e.grupo=GRUPO_SF;mudou=true;}
-   }
-   if(mudou){EMPRESAS_MOD=nowISO();await metaSet("empresas",EMPRESAS);await metaSet("empresasMod",EMPRESAS_MOD);}
-   await metaSet("mig_grupo_sf",true);
  }
 }
 /* botão ▶ Iniciar da capa: entra direto na (única) empresa ativa */
@@ -60,20 +32,20 @@ let RT_INFO="",RT_INFO_MOD="";
 async function loadRtInfo(){RT_INFO=await metaGet("rtInfo")||"";RT_INFO_MOD=await metaGet("rtInfoMod")||"";}
 function renderRtInfo(){
  const el=document.getElementById("rt-linha");
- if(el)el.textContent="👩‍⚕️ "+(RT_INFO||"[nome-removido] (Nutricionista de Produção – RT) · CRN: toque p/ preencher")+"  ✎";
+ if(el)el.textContent="👩‍⚕️ "+(RT_INFO||"Nome e registro profissional · toque p/ preencher")+"  ✎";
 }
 /* Renomear a tela inicial. Ela cobriu em 20/07 ("NÃO CONSIGO EDITARRRR / dica: troca
    nome"): o modo edição existia, mas exigia ligar um botão antes — e nada na tela
-   dizia isso. Renomear virou uma ação direta, igual à do CRN, que ela já usa. */
+   dizia isso. Renomear virou uma ação direta, no mesmo padrão do ✎ da capa. */
 async function renomearCapa(){
   const atual=txt("capa.titulo","Central de Empresas");
-  const v=prompt("Como você quer chamar esta tela?\n\n(Ex.: Central de Empresas, CENTRAL, Overview, Início)",atual);
+  const v=prompt("Como você quer chamar esta tela?\n\n(Ex.: Central de Empresas, CENTRAL, Painel, Início)",atual);
   if(v===null)return;
   await setTexto("capa.titulo",v,"Central de Empresas");
   aplicarTextos();toast("Nome trocado ✓ — pode voltar atrás na seta ← ou no Ctrl+Z");
 }
 async function editarRtInfo(){
- const v=prompt("Informações da Responsável Técnica (aparecem na capa):",RT_INFO||"[nome-removido] (Nutricionista de Produção – RT) · CRN: ");
+ const v=prompt("Informações da Responsável Técnica (aparecem na capa):",RT_INFO||"Nome (Cargo — RT) · Registro Profissional: ");
  if(v===null)return;
  RT_INFO=v.trim();RT_INFO_MOD=nowISO();
  await metaSetU("rtInfo",RT_INFO);await metaSetU("rtInfoMod",RT_INFO_MOD);
@@ -101,17 +73,7 @@ async function loadStatusSite(){
    if(r.ok)STATUS_SITE=await r.json();
  }catch(e){}
 }
-const PENDENCIAS_INICIAIS=[
- "Extrair os registros de NC do banco do Lenovo e importar no site (pauta das 18h)",
- "Colar o arquivo [modulo-privado] para deixar as urgências iguais às do bot (no Lenovo)",
- "Cadastrar as áreas de [loja-A] na aba NP · Gestão de NC (botão 🗂 Áreas)",
- "Conferir os backups exportados no Lenovo e no Samsung (18h)",
- "Transferir as configurações do Lenovo para o Samsung (18h)",
- "Montar as configurações atreladas ao login (nomes em português, markitdown etc.) (18h)",
- "Ativar o backup automático no Lenovo e no Samsung (capa → card do backup)",
- "Configurar a sincronização entre dispositivos (repo privado + token)",
- "Confirmar o formato da aba Demandas Gerais no uso"
-];
+const PENDENCIAS_INICIAIS=[];
 async function loadPendencias(){
  PENDENCIAS_MOD=await metaGet("pendenciasMod")||"";
  let v=await metaGet("pendencias");
@@ -153,10 +115,7 @@ async function removePendencia(i){
 let EXECUTORES=[];
 async function loadExecutores(){
  let v=await metaGet("executores");
- if(!v||!Array.isArray(v)||!v.length){
-   v=[{nome:"[executor-removido]",funcao:"Manutenção"},{nome:"[executor-removido]",funcao:"Elétrica"}];
-   await metaSet("executores",v);
- }
+ if(!v||!Array.isArray(v))v=[];
  EXECUTORES=v;
 }
 async function saveExecutores(){await metaSet("executores",EXECUTORES);dataChanged();}
@@ -365,7 +324,7 @@ async function restaurarTextos(){
   aplicarTextos();dataChanged();toast("Textos restaurados ✓");
 }
 
-/* nome da loja editável na pílula (mantém o sufixo da rede: "· [rede-removida]") */
+/* nome da loja editável na pílula (mantém o sufixo da rede que vier depois do "·") */
 async function renomearLojaCurto(novo){
   const e=empresa(currentStore);if(!e)return;
   novo=String(novo||"").trim();if(!novo)return;
@@ -375,7 +334,7 @@ async function renomearLojaCurto(novo){
   e.name=completo;currentStoreName=nomeCurto(completo);
   await saveEmpresas();fillLojaSelects();updateSubtitle(currentTab);toast("Empresa renomeada ✓");
 }
-/* "[loja-B] · [rede-removida]" -> "[loja-B]" (usado dentro das abas) */
+/* "Nome da loja · Nome da rede" -> "Nome da loja" (usado dentro das abas) */
 function nomeCurto(n){return String(n||"").split("·")[0].trim()||String(n||"");}
 /* A barra de abas de TEXTO foi removida a pedido de Lê (19/07: "está poluído").
    A navegação vive na barra lateral (ícones), na barra do celular, no hub e no Ctrl+K. */
@@ -416,7 +375,7 @@ function showHub(){
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
 function navItemHTML(t){const a=TABS[t];
   return `<button class="ricon nav-item" data-tab="${t}" style="color:${a.cor}" title="${esc(rotuloAba(t))}" aria-label="${esc(rotuloAba(t))}" onclick="showTab('${t}')">${a.icone}<span class="rlabel">${esc(rotuloAba(t))}</span></button>`;}
-/* ===== BARRA LATERAL QUE ABRE E FECHA (pedido de Lê, 20/07, vendo o Checkbits) =====
+/* ===== BARRA LATERAL QUE ABRE E FECHA =====
    Fechada = só ícones (como sempre foi). Aberta = ícone + nome por extenso, e as
    seções da aba atual aparecem recuadas embaixo dela. Fica no aparelho. */
 let RAIL_ABERTA=localStorage.getItem("rail_aberta")==="1";
@@ -474,11 +433,11 @@ function renderBreadcrumb(){
   const aba=currentTab&&TABS[currentTab]?` › <b>${esc(rotuloAba(currentTab))}</b>`:" › <b>Início</b>";
   c.innerHTML=`<span onclick="goHome()" title="Voltar à Central de Empresas">Capa</span> › <span onclick="showHub()" title="Voltar ao início desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
 }
-/* Cabeçalho padrão de TODAS as abas (regra de Lê, 20/07 — "TÍTULOS INDEPENDENTES"):
-   1) EM CIMA a loja, só para identificar. NÃO é editável aqui: era isto que fazia
-      "mudar Arraial e mudar a capa junto" — renomear empresa é só na Capa, no ✎.
+/* Cabeçalho padrão de TODAS as abas — "TÍTULOS INDEPENDENTES":
+   1) EM CIMA a loja, só para identificar. NÃO é editável aqui — renomear a empresa
+      só na Capa, no ✎ (senão o mesmo nome mudava em dois lugares).
    2) NO MEIO o título do quadro (editável no modo edição).
-   3) EMBAIXO uma linha LIVRE, que ela escreve o que quiser, direto no clique. */
+   3) EMBAIXO uma linha LIVRE, escrita direto no clique. */
 function renderEyebrow(){
   const el=document.getElementById("appLoja");if(!el)return;
   el.innerHTML=currentStore
@@ -512,8 +471,8 @@ function updateSubtitle(t){
   renderEyebrow();
   if(h1){
     h1.textContent=aba||nomeCurto(currentStoreName||"");
-    /* SÓ edita no modo edição — antes ficava sempre editável e ela renomeou a aba
-       sem querer só de clicar (aconteceu em 19/07: "Quadro Geral" virou "[loja-B]") */
+    /* SÓ edita no modo edição — antes ficava sempre editável e o nome da aba
+       era renomeado sem intenção só de clicar */
     if(aba&&MODO_EDICAO){
       h1.contentEditable="plaintext-only";h1.classList.add("editando");
       h1.title="Escreva o novo nome deste quadro";
@@ -934,7 +893,7 @@ async function removeEmpresa(code){const e=empresa(code);if(!e)return;
 function enterStore(code){
  currentStore=code;
  const e=empresa(code)||{name:"Empresa"};
- /* dentro das abas o nome vai CURTO ("[loja-B]"); o completo fica só na Capa */
+ /* dentro das abas o nome vai CURTO; o completo (com "· Rede") fica só na Capa */
  document.getElementById("appTitle").textContent=nomeCurto(e.name);
  currentStoreName=nomeCurto(e.name);
  showView("app");showHub();   /* entra pelo HUB de cards, não direto numa aba */
