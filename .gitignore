@@ -10,3 +10,4 @@ banco.json
 # Ambiente
 .DS_Store
 Thumbs.db
+.claude/
