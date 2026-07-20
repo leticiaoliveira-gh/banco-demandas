@@ -493,3 +493,45 @@
     .mnav #btDesfazerM{border:0;background:none;font-size:19px;font-weight:700;color:var(--muted);opacity:.55}
     .mnav #btDesfazerM:disabled{opacity:.2}
   }
+
+  /* ===== Aba CHECKLISTS (js/ck.js) ===== */
+  .ck-barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .ck-secs{display:flex;gap:6px;background:#f2f4f4;padding:4px;border-radius:11px}
+  .ck-sec{display:flex;align-items:center;gap:7px;border:0;background:none;cursor:pointer;font:inherit;
+    color:var(--muted);padding:8px 13px;border-radius:8px;font-weight:600;font-size:13px}
+  .ck-sec:hover{color:var(--text)}
+  .ck-sec.on{background:#fff;color:#7c3aed;box-shadow:0 1px 4px rgba(15,91,82,.12)}
+  .ck-sec .ic{font-size:14px}
+  .ck-sec .qt{background:rgba(0,0,0,.07);border-radius:20px;padding:1px 7px;font-size:11px;min-width:20px;text-align:center}
+  .ck-sec.on .qt{background:#f1ebfd;color:#7c3aed}
+  /* cartões dos modelos de checklist */
+  .ck-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px}
+  .ck-card{border:1px solid var(--border);border-radius:13px;padding:14px 15px;background:#fff;
+    box-shadow:0 1px 3px rgba(15,91,82,.05);border-left:3px solid #7c3aed}
+  .ck-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .ck-card-tit{font-size:14.5px;line-height:1.35}
+  .ck-qtd{white-space:nowrap;font-size:11.5px;color:#7c3aed;background:#f1ebfd;border-radius:20px;padding:3px 9px;font-weight:600}
+  .ck-card-desc{color:var(--muted);font-size:12.5px;margin-top:6px;line-height:1.45}
+  .ck-card-pe{display:flex;gap:6px;flex-wrap:wrap;margin-top:13px}
+  /* tabela de Enviados / Parciais */
+  .ck-tab-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:13px}
+  .ck-tab{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+  .ck-tab th{text-align:left;padding:11px 13px;background:#f7f8f8;color:var(--muted);
+    font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+  .ck-tab td{padding:11px 13px;border-bottom:1px solid var(--border)}
+  .ck-tab tr:last-child td{border-bottom:0}
+  .ck-tab tr:hover td{background:#fafbfb}
+  .ck-td-ac{white-space:nowrap;text-align:right}
+  .ck-nota{color:#047857;font-size:14px}
+  .ck-and{color:var(--muted);font-weight:600}
+  /* tela vazia: explica para que serve a seção, em vez de só ficar em branco */
+  .ck-vazio{text-align:center;padding:46px 22px;border:1px dashed var(--border);border-radius:14px;background:#fbfbfc}
+  .ck-vazio .t{font-weight:600;font-size:14.5px}
+  .ck-vazio .d{color:var(--muted);font-size:13px;margin-top:7px;max-width:520px;
+    margin-left:auto;margin-right:auto;line-height:1.55}
+  @media(max-width:1000px){
+    .ck-secs{width:100%}
+    .ck-sec{flex:1;justify-content:center;padding:9px 6px}
+    .ck-sec .nm{display:none}    /* no celular ficam só o ícone e o número */
+    .ck-cards{grid-template-columns:1fr}
+  }

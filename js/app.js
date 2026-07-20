@@ -219,6 +219,7 @@ const ICO={
   dg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M9 12h7M9 16h5"/></svg>',
   nc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v4M12 18h.01"/></svg>',
   mnt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5 5L4 17v3h3l5.7-5.7a4 4 0 0 1 5-5l-2.5 2.5 1.8 1.8L19.5 11a4 4 0 0 0-4.8-4.7z"/></svg>',
+  ck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8.5 12.5l2 2 4.5-4.5"/></svg>',
   add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   hub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'
 };
@@ -228,13 +229,18 @@ const ICO={
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","nc","list","add"];
+const TAB_ORDER=["dg","ck","nc","list","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
       subtitle:n=>"",
       renderCards(){document.getElementById("cards").innerHTML="";},
       onShow(){currentTipo="dg";renderDG();}},
+  ck:{label:"Checklists",tipo:"ckm",panel:"tab-ck",
+      icone:ICO.ck,cor:"#7c3aed",corFundo:"#f1ebfd",hub:true,
+      subtitle:n=>"",
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="ckm";renderCk();}},
   nc:{label:"Relatório de Não Conformidade - Gerência",tipo:"nc",panel:"tab-nc",
       icone:ICO.nc,cor:"#1668b8",corFundo:"#e7f0f9",hub:true,
       subtitle:n=>"Relatório de Não Conformidade — Gerência — "+n,
@@ -500,6 +506,7 @@ async function histAplicar(passo,voltando){
     }
     DATA=await getAll();
     if(typeof renderDG==="function"&&currentTab==="dg")renderDG();
+    if(typeof renderCk==="function"&&currentTab==="ck")renderCk();
     if(typeof renderNC==="function"&&currentTab==="nc")renderNC();
     if(typeof render==="function"&&(currentTab==="list"||currentTab==="add"))render();
     if(document.getElementById("view-home").style.display!=="none")await renderHome();
@@ -872,7 +879,20 @@ function renderNC(){}
 
 /* ===== export / import / backup automático ===== */
 /* Envelope versionado: leva itens E empresas; o import aceita também o formato antigo (array puro) */
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:(window.DG_PRIOS?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null),dgOpcoesMod:(window.DG_OPC_MOD||""),ncUrgencias:(window.NC_URG?JSON.parse(JSON.stringify(NC_URG)):null),ncUrgenciasMod:(window.NC_URG_MOD||""),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+/* BUG CORRIGIDO EM 20/07: aqui se lia window.DG_PRIOS, window.NC_URG etc.
+   Variável declarada com let/const NÃO vira propriedade de window — então as três
+   davam sempre "undefined" e as opções que ela configurou (nomes e cores de
+   prioridade, situação e urgência da NC) NUNCA entravam no backup nem na
+   sincronização, sem nenhum erro aparecer na tela. Só ficavam no aparelho de origem.
+   LIÇÃO: em script clássico, `let X` no topo do arquivo não é `window.X` —
+   para enxergar uma global de outro arquivo, usar typeof. */
+const temDG=()=>typeof DG_PRIOS!=="undefined";
+const modDG=()=>typeof DG_OPC_MOD!=="undefined"?(DG_OPC_MOD||""):"";
+const temNC=()=>typeof NC_URG!=="undefined";
+const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
+const temCK=()=>typeof CK_TIPOS!=="undefined";
+const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
+function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -1086,6 +1106,7 @@ function mapaDoSite(){
       <li><code>css/app.css</code> — todas as cores, tamanhos e espaçamentos</li>
       <li><code>js/app.js</code> — o núcleo: empresas, abas, banco, backup</li>
       <li><code>js/dg.js</code> — a aba Quadro Geral</li>
+      <li><code>js/ck.js</code> — a aba Checklists (modelos de inspeção e preenchimentos)</li>
       <li><code>js/nc.js</code> — a aba de Não Conformidade e o relatório</li>
       <li><code>js/sync.js</code> — a sincronização entre aparelhos</li>
       <li><code>status.json</code> — o texto "onde paramos" que aparece na capa</li>
@@ -1122,7 +1143,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
    if(dirty)await putItem(d);
  }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadTextos();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();
  goHome();

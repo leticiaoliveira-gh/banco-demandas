@@ -116,8 +116,10 @@ async function syncMergeEnvelope(env){
    await metaSet("textos",TEXTOS);await metaSet("textosMod",TEXTOS_MOD);
    if(window.aplicarTextos)aplicarTextos();changed=true;
  }else if(env&&(TEXTOS_MOD||"")>(env.textosMod||""))localAhead=true;
- /* opções de prioridade/situação que ela configurou */
- if(env&&env.dgOpcoes&&(env.dgOpcoesMod||"")>(window.DG_OPC_MOD||"")){
+ /* opções de prioridade/situação que ela configurou
+    (modDG/modNC/modCK vêm de js/app.js — window.DG_OPC_MOD daria sempre undefined,
+     porque `let` no topo de um script não vira propriedade de window) */
+ if(env&&env.dgOpcoes&&(env.dgOpcoesMod||"")>modDG()){
    if(env.dgOpcoes.prios)DG_PRIOS=env.dgOpcoes.prios;
    if(env.dgOpcoes.sits)DG_SIT=env.dgOpcoes.sits;
    if(env.dgOpcoes.papeis){DG_CHAVE_CONCLUIDO=env.dgOpcoes.papeis.concluido||DG_CHAVE_CONCLUIDO;
@@ -126,13 +128,23 @@ async function syncMergeEnvelope(env){
    DG_OPC_MOD=env.dgOpcoesMod;
    await metaSet("dgOpcoes",env.dgOpcoes);await metaSet("dgOpcoesMod",DG_OPC_MOD);
    if(window.renderDG)renderDG();changed=true;
- }else if(env&&(window.DG_OPC_MOD||"")>(env.dgOpcoesMod||""))localAhead=true;
+ }else if(env&&modDG()>(env.dgOpcoesMod||""))localAhead=true;
+ /* opções da aba Checklists (tipos de resposta, comentário, foto e listas de seleção) */
+ if(env&&env.ckOpcoes&&(env.ckOpcoesMod||"")>modCK()){
+   if(env.ckOpcoes.tipos)CK_TIPOS=env.ckOpcoes.tipos;
+   if(env.ckOpcoes.coment)CK_COMENT=env.ckOpcoes.coment;
+   if(env.ckOpcoes.foto)CK_FOTO=env.ckOpcoes.foto;
+   if(env.ckOpcoes.listas)CK_LISTAS=env.ckOpcoes.listas;
+   CK_OPC_MOD=env.ckOpcoesMod;
+   await metaSet("ckOpcoes",env.ckOpcoes);await metaSet("ckOpcoesMod",CK_OPC_MOD);
+   if(window.renderCk)renderCk();changed=true;
+ }else if(env&&modCK()>(env.ckOpcoesMod||""))localAhead=true;
  /* urgências da aba de Não Conformidade */
- if(env&&env.ncUrgencias&&(env.ncUrgenciasMod||"")>(window.NC_URG_MOD||"")){
+ if(env&&env.ncUrgencias&&(env.ncUrgenciasMod||"")>modNC()){
    NC_URG={...env.ncUrgencias};NC_URG_MOD=env.ncUrgenciasMod;
    await metaSet("ncUrgencias",env.ncUrgencias);await metaSet("ncUrgenciasMod",NC_URG_MOD);
    if(window.renderNC)renderNC();changed=true;
- }else if(env&&(window.NC_URG_MOD||"")>(env.ncUrgenciasMod||""))localAhead=true;
+ }else if(env&&modNC()>(env.ncUrgenciasMod||""))localAhead=true;
  return {changed,localAhead};
 }
 
