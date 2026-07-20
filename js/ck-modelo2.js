@@ -854,6 +854,314 @@ function ckProgressoPontos(p){
   return {total,feitos};
 }
 
+/* =======================================================================
+   O RELATÓRIO EM PDF DE VERDADE (arquivo, não impressão)
+   Existe porque ela pediu que o WhatsApp fosse COM O ARQUIVO ANEXADO — e para anexar
+   é preciso um File real. Usa js/pdflite.js. O print do navegador continua existindo
+   para quem quiser imprimir no papel.
+   ======================================================================= */
+const CK_PDF_CORES={verde:"#17756a",verdeEsc:"#0f5b52",vermelho:"#c0212a",
+  cinza:"#6b7280",cinzaClaro:"#9aa0a8",linha:"#e4e6ea",fundo:"#eef3f1",texto:"#22242e"};
+
+function ckRelPDF(p){
+  const m=ckAchar(p.modeloUid);
+  const cel=m?ckExpandir(m,p):[];
+  const nota=p.nota||ckNota(p);
+  const inc=ckInconformes(p);
+  const cls=ckClassifica(nota.pct);
+  const prog=ckProgressoPontos(p);
+  const hist=p.origem==="historico";
+  const loja=nomeCurto((empresa(p.loja)||{}).name||p.loja||"");
+  const quem=p.respondente||RT_INFO||RT_DEFAULT;
+  const nome=String(quem).split("·")[0].replace(/\(.*?\)/,"").trim()||quem;
+  const cred=String(quem).includes("·")?String(quem).split("·").slice(1).join("·").trim():"";
+  const cargo=(String(quem).match(/\(([^)]+)\)/)||[])[1]||"Responsável Técnica";
+  const dataBR=brDate(p.concluidoEm||p.criadoEm||today());
+  const C=CK_PDF_CORES;
+  const M=40,LARG=515;                       /* margem e largura útil */
+
+  const d=new PDFLite();
+  d.y=M;
+
+  /* ---------- capa ---------- */
+  d.retangulo(M,M,LARG,104,C.verdeEsc);
+  d.retangulo(M+LARG*0.55,M,LARG*0.45,104,C.verde);   /* degradê "fingido" em dois blocos */
+  d.texto(hist?"RELATÓRIO MENSAL":"RELATÓRIO DE INSPEÇÃO",{x:M+18,y:M+16,tam:8,cor:"#cfe4df"});
+  d.texto("Infraestrutura e Manutenção",{x:M+18,y:M+29,tam:19,cor:"#ffffff",negrito:true});
+  d.texto(loja,{x:M+18,y:M+54,tam:12,cor:"#d8ebe6"});
+  d.linha(M+18,M+76,M+LARG-18,M+76,"#4f9a8e",0.6);
+  d.texto(nome,{x:M+18,y:M+82,tam:11,cor:"#ffffff",negrito:true});
+  d.texto(cargo+(cred?" · "+cred:""),{x:M+18,y:M+94,tam:8,cor:"#cfe4df"});
+  d.texto(hist?"Levantamento consolidado em":"Inspeção realizada em",
+    {x:M,y:M+82,tam:8,cor:"#cfe4df",larg:LARG-18,direita:true});
+  d.texto(dataBR,{x:M,y:M+92,tam:10,cor:"#ffffff",negrito:true,larg:LARG-18,direita:true});
+  d.y=M+124;
+
+  /* ---------- placar ---------- */
+  const boxA=52;
+  const corNota=hist?C.verde:cls.cor;
+  d.retangulo(M,d.y,150,boxA,"#ffffff");
+  d.linha(M,d.y,M+150,d.y,corNota,1.4);
+  d.linha(M,d.y+boxA,M+150,d.y+boxA,corNota,1.4);
+  d.linha(M,d.y,M,d.y+boxA,corNota,1.4);
+  d.linha(M+150,d.y,M+150,d.y+boxA,corNota,1.4);
+  if(hist){
+    d.texto(String(prog.total||inc.length),{x:M,y:d.y+8,tam:26,cor:corNota,negrito:true,larg:150,centro:true});
+    d.texto("pontos levantados",{x:M,y:d.y+37,tam:9,cor:corNota,larg:150,centro:true});
+  }else{
+    d.texto(nota.pct!=null?String(nota.pct).replace(".",",")+"%":"—",
+      {x:M,y:d.y+7,tam:24,cor:corNota,negrito:true,larg:150,centro:true});
+    d.texto(cls.rot,{x:M,y:d.y+34,tam:10,cor:corNota,negrito:true,larg:150,centro:true});
+    if(cls.grupo)d.texto(cls.grupo,{x:M,y:d.y+45,tam:7,cor:C.cinzaClaro,larg:150,centro:true});
+  }
+  const mini=[hist?["Já resolvidos",String(prog.feitos),C.verde]
+                  :["A corrigir",String(inc.length),inc.length?C.vermelho:C.texto],
+              hist?["Em aberto",String(prog.total-prog.feitos),(prog.total-prog.feitos)?C.vermelho:C.texto]
+                  :["Itens avaliados",String(nota.total),C.texto],
+              [hist?"Áreas":"Áreas visitadas",String((p.areas||[]).length||"—"),C.texto]];
+  let mx=M+160;
+  const mlarg=(LARG-160-14)/3;
+  for(const [rot,val,cor] of mini){
+    d.linha(mx,d.y,mx+mlarg,d.y,C.linha,0.7);
+    d.linha(mx,d.y+boxA,mx+mlarg,d.y+boxA,C.linha,0.7);
+    d.linha(mx,d.y,mx,d.y+boxA,C.linha,0.7);
+    d.linha(mx+mlarg,d.y,mx+mlarg,d.y+boxA,C.linha,0.7);
+    d.texto(val,{x:mx+10,y:d.y+11,tam:17,cor,negrito:true});
+    d.texto(rot.toUpperCase(),{x:mx+10,y:d.y+36,tam:7,cor:C.cinzaClaro});
+    mx+=mlarg+7;
+  }
+  d.y+=boxA+16;
+
+  /* ---------- progresso ---------- */
+  if(prog.total){
+    d.retangulo(M,d.y,LARG,6,"#eceef0");
+    d.retangulo(M,d.y,LARG*(prog.feitos/prog.total),6,C.verde==="#17756a"?"#12b76a":"#12b76a");
+    d.y+=12;
+    d.texto(prog.feitos+" de "+prog.total+" pontos já resolvidos  ·  "
+      +(prog.total-prog.feitos)+" em aberto",{x:M,y:d.y,tam:9,cor:C.cinza});
+    d.y+=16;
+  }
+  if(hist){
+    d.paragrafo("Este documento consolida as não conformidades de infraestrutura levantadas no "
+      +"período, classificadas segundo a lista de verificação das boas práticas. Por reunir as "
+      +"ocorrências registradas, e não uma avaliação item a item de toda a unidade, não se "
+      +"aplica percentual de conformidade a esta consolidação.",
+      {x:M,larg:LARG,tam:8,cor:C.cinzaClaro,italico:true,alturaLinha:11});
+    d.y+=8;
+  }
+
+  /* ---------- título de seção ---------- */
+  const titulo=t=>{
+    d.espaco(34);
+    d.y+=10;
+    d.texto(t.toUpperCase(),{x:M,y:d.y,tam:9,cor:C.verde,negrito:true});
+    d.y+=13;
+    d.linha(M,d.y,M+LARG,d.y,"#d9e2df",1);
+    d.y+=9;
+  };
+
+  /* ---------- onde estão os pontos / conformidade ---------- */
+  if(hist){
+    const porSec={};
+    for(const c of inc){const s=c.q.secao||"Geral";
+      const it=((p.respostas||{})[c.chave]||{}).itens;
+      porSec[s]=(porSec[s]||0)+((it&&it.length)||1);}
+    const ord=Object.keys(porSec).sort((a,b)=>porSec[b]-porSec[a]);
+    if(ord.length){
+      titulo("Onde estão os pontos");
+      const max=Math.max(...Object.values(porSec),1);
+      for(const s of ord){
+        d.espaco(15);
+        d.texto(s,{x:M,y:d.y,tam:9,cor:C.texto});
+        d.retangulo(M+215,d.y+3,LARG-260,5,"#f0f1f3");
+        d.retangulo(M+215,d.y+3,(LARG-260)*(porSec[s]/max),5,C.verde);
+        d.texto(String(porSec[s]),{x:M,y:d.y,tam:9,cor:C.verde,negrito:true,larg:LARG,direita:true});
+        d.y+=14;
+      }
+    }
+  }else{
+    const secs=[];
+    for(const c of cel){
+      if(c.q.peso===0)continue;
+      const s=c.q.secao||"Geral";let g=secs.find(x=>x.s===s);
+      if(!g){g={s,itens:[]};secs.push(g);}g.itens.push(c);
+    }
+    const av=secs.map(g=>({...g,n:ckNotaDe(p,g.itens),
+      ruins:g.itens.filter(c=>ckRuim(c.q,(p.respostas||{})[c.chave])).length})).filter(g=>g.n.total>0);
+    const ruins=av.filter(g=>g.ruins).sort((a,b)=>a.n.pct-b.n.pct),limpas=av.filter(g=>!g.ruins);
+    if(ruins.length||limpas.length){
+      titulo("Conformidade por assunto");
+      for(const g of ruins){
+        const cl=ckClassifica(g.n.pct);
+        d.espaco(15);
+        d.texto(g.s,{x:M,y:d.y,tam:9,cor:C.texto});
+        d.retangulo(M+215,d.y+3,LARG-290,5,"#f0f1f3");
+        d.retangulo(M+215,d.y+3,(LARG-290)*(g.n.pct/100),5,cl.cor);
+        d.texto(String(g.n.pct).replace(".",",")+"%",{x:M,y:d.y,tam:9,cor:cl.cor,negrito:true,larg:LARG-28,direita:true});
+        d.texto(String(g.ruins),{x:M,y:d.y,tam:9,cor:C.vermelho,larg:LARG,direita:true});
+        d.y+=14;
+      }
+      if(limpas.length){
+        d.espaco(15);
+        d.texto(limpas.length+" assunto"+(limpas.length===1?"":"s")+" sem nenhuma ocorrência",
+          {x:M,y:d.y,tam:9,cor:C.cinza,italico:true});
+        d.texto("100%",{x:M,y:d.y,tam:9,cor:"#12b76a",negrito:true,larg:LARG-28,direita:true});
+        d.y+=14;
+      }
+    }
+  }
+
+  /* ---------- áreas ---------- */
+  if((p.areas||[]).length){
+    const chips=[];
+    for(const a of p.areas){
+      const naArea=cel.filter(c=>c.area===a&&ckRuim(c.q,(p.respostas||{})[c.chave]));
+      if(hist){
+        let n=0,ok=0;
+        for(const c of naArea)for(const it of ckItensDaResposta((p.respostas||{})[c.chave])){
+          n++;if(it.status==="Concluído")ok++;}
+        if(n)chips.push([a,ok+"/"+n,ok===n?"#12b76a":C.vermelho]);
+      }else{
+        const nt=ckNotaDe(p,cel.filter(c=>c.area===a));
+        if(nt.total)chips.push([a,String(nt.pct).replace(".",",")+"%",
+          naArea.length?ckClassifica(nt.pct).cor:"#12b76a"]);
+      }
+    }
+    if(chips.length){
+      titulo(hist?"Áreas com ocorrência":"Áreas visitadas");
+      let cx=M;
+      for(const [a,v,cor] of chips){
+        const w=d.largura(a,8)+d.largura(v,8,true)+22;
+        if(cx+w>M+LARG){cx=M;d.y+=18;d.espaco(20);}
+        d.linha(cx,d.y,cx,d.y+14,cor,2);
+        d.texto(a,{x:cx+6,y:d.y+2,tam:8,cor:C.texto});
+        d.texto(v,{x:cx+6+d.largura(a,8)+5,y:d.y+2,tam:8,cor,negrito:true});
+        cx+=w+6;
+      }
+      d.y+=20;
+      if(hist){d.texto("resolvidos / total de pontos por área",{x:M,y:d.y,tam:7,cor:C.cinzaClaro,italico:true});d.y+=10;}
+    }
+  }
+
+  /* ---------- os pontos, por área ---------- */
+  titulo(inc.length?(hist?"Não conformidades levantadas":"Pontos a corrigir"):"Resultado");
+  if(!inc.length){
+    d.retangulo(M,d.y,LARG,42,C.fundo);
+    d.texto("Nenhuma não conformidade encontrada nesta inspeção.",{x:M+12,y:d.y+13,tam:10,cor:"#14584a",negrito:true});
+    d.texto("Todos os itens avaliados estão de acordo com os requisitos verificados.",
+      {x:M+12,y:d.y+27,tam:9,cor:"#14584a"});
+    d.y+=52;
+  }else{
+    const porArea={};
+    for(const c of inc)(porArea[c.area||""]=porArea[c.area||""]||[]).push(c);
+    const ordem=Object.keys(porArea).sort((a,b)=>(a?1:-1)-(b?1:-1)||a.localeCompare(b,"pt-BR"));
+    let n=0;
+    for(const a of ordem){
+      d.espaco(40);
+      d.retangulo(M,d.y,LARG,18,C.fundo);
+      d.texto(a||"Geral da loja",{x:M+9,y:d.y+4,tam:10,cor:C.verdeEsc,negrito:true});
+      d.texto(porArea[a].length+" ponto"+(porArea[a].length===1?"":"s"),
+        {x:M,y:d.y+5,tam:7,cor:"#5b7a72",larg:LARG-9,direita:true});
+      d.y+=24;
+      for(const c of porArea[a]){
+        const q=c.q,r=(p.respostas||{})[c.chave]||{},t=r.tratativa||{};
+        const meus=ckItensDaResposta(r);
+        const todosOk=meus.length&&meus.every(x=>x.status==="Concluído");
+        n++;
+        /* estimativa do bloco, para não cortar no meio da página */
+        d.espaco(58);
+        const yIni=d.y;
+        const xT=M+22;
+        d.texto(String(n),{x:M+8,y:d.y+1,tam:8,cor:todosOk?"#0d8a52":C.vermelho,negrito:true});
+        d.paragrafo(q.titulo||"",{x:xT,larg:LARG-46,tam:9.5,negrito:true,cor:C.texto,alturaLinha:12});
+        if(todosOk){d.texto("RESOLVIDO",{x:M,y:yIni+1,tam:7,cor:"#0d8a52",negrito:true,larg:LARG-8,direita:true});}
+        d.y+=2;
+        if(meus.length){
+          for(const it of meus){
+            const ok=it.status==="Concluído";
+            d.espaco(13);
+            d.texto(ok?"[x]":"[ ]",{x:xT+4,y:d.y,tam:9,cor:ok?"#0d8a52":C.cinza,negrito:true});
+            d.paragrafo(it.nc||"",{x:xT+22,larg:LARG-70,tam:9,cor:ok?"#0d8a52":"#3f4149",alturaLinha:11.5});
+          }
+        }else if(r.comentario){
+          d.texto("Observado:",{x:xT+4,y:d.y,tam:8.5,cor:C.cinza,negrito:true});
+          d.y+=11;
+          d.paragrafo(r.comentario,{x:xT+4,larg:LARG-50,tam:9,cor:"#3f4149",alturaLinha:11.5});
+        }
+        const acao=t.oque||q.acaoPadrao||"";
+        if(acao){
+          d.y+=3;
+          const linhas=d.quebrar("Ação corretiva: "+acao,LARG-62,9);
+          d.espaco(linhas.length*11.5+8);
+          d.retangulo(xT,d.y,LARG-46,linhas.length*11.5+8,"#eef6f2");
+          d.y+=4;
+          d.texto("Ação corretiva:",{x:xT+8,y:d.y,tam:8.5,cor:C.verde,negrito:true});
+          const rec=d.quebrar(acao,LARG-62-d.largura("Ação corretiva: ",9),9);
+          d.texto(rec[0]||"",{x:xT+8+d.largura("Ação corretiva: ",8.5),y:d.y,tam:9,cor:"#14584a"});
+          d.y+=11.5;
+          for(let i=1;i<rec.length;i++){d.espaco(12);d.texto(rec[i],{x:xT+8,y:d.y,tam:9,cor:"#14584a"});d.y+=11.5;}
+          d.y+=4;
+        }
+        if(t.quem||t.prazo||t.custo){
+          d.espaco(13);
+          d.texto([t.quem?"Responsável: "+t.quem:"",t.prazo?"Prazo: "+brDate(t.prazo):"",
+                   t.custo?"Custo estimado: "+t.custo:""].filter(Boolean).join("   ·   "),
+            {x:xT+4,y:d.y,tam:8.5,cor:"#3f4149"});
+          d.y+=12;
+        }
+        /* fotos */
+        for(const f of (r.fotos||[]).slice(0,2)){
+          if(!/^data:image\/jpe?g/i.test(f))continue;
+          d.espaco(84);
+          d.jpeg(f,xT+4,d.y,118,78);
+          d.y+=82;
+        }
+        if(q.baseLegal){
+          d.espaco(12);
+          d.texto(q.baseLegal,{x:xT+4,y:d.y,tam:7.5,cor:C.cinzaClaro,italico:true});
+          d.y+=11;
+        }
+        /* barrinha vertical do bloco */
+        d.linha(M+14,yIni,M+14,d.y-4,todosOk?"#12b76a":C.vermelho,2);
+        d.y+=7;
+      }
+      d.y+=4;
+    }
+  }
+
+  /* ---------- assinaturas ---------- */
+  d.espaco(96);
+  d.y+=22;
+  const meio=M+LARG/2+10;
+  d.linha(M,d.y+40,M+220,d.y+40,C.texto,0.8);
+  d.linha(meio,d.y+40,meio+220,d.y+40,C.texto,0.8);
+  d.texto(nome,{x:M,y:d.y+46,tam:9,cor:C.texto,negrito:true});
+  d.texto(cargo,{x:M,y:d.y+58,tam:8,cor:C.cinza});
+  if(cred)d.texto(cred,{x:M,y:d.y+68,tam:8,cor:C.cinza});
+  d.texto("Ciente — Gerência",{x:meio,y:d.y+46,tam:9,cor:C.texto,negrito:true});
+  d.texto("Nome e assinatura",{x:meio,y:d.y+58,tam:8,cor:C.cinza});
+  d.texto("Data: ____/____/______",{x:meio,y:d.y+68,tam:8,cor:C.cinza});
+  d.y+=86;
+
+  /* ---------- rodapé ---------- */
+  d.espaco(38);
+  d.linha(M,d.y,M+LARG,d.y,"#eceef0",0.7);
+  d.y+=6;
+  d.paragrafo("Documento gerado a partir da lista de verificação de boas práticas · Base normativa: "
+    +"RDC ANVISA nº 216/2004 (Boas Práticas para Serviços de Alimentação) e RDC ANVISA nº 275/2002, "
+    +"Anexo II (Lista de Verificação das Boas Práticas de Fabricação)."
+    +(hist?"":" Classificação percentual conforme Saccol et al. (2006).")
+    +"  "+loja+" · "+dataBR,
+    {x:M,larg:LARG,tam:7,cor:C.cinzaClaro,alturaLinha:9.5});
+
+  return d.blob();
+}
+function ckNomeArquivoPDF(p){
+  const loja=nomeCurto((empresa(p.loja)||{}).name||p.loja||"");
+  return "Relatorio-Infraestrutura_"+String(loja).normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^\w]+/g,"-")+"_"+String(p.concluidoEm||p.criadoEm||today())+".pdf";
+}
+
 /* ---- transferir para a aba de Não Conformidades (o que é de manipulação) ---- */
 async function ckTransferirNC(){
   const alvo=ckItensMnt().filter(d=>d.perguntaRef===CK_FORA);

@@ -1720,8 +1720,15 @@ function ckPDF(uid,completo){
    :["Nenhuma não conformidade encontrada nesta inspeção."])
    .concat(["","Base: RDC 216/2004 e RDC 275/2002 (Anexo II)",nome+(cred?" — "+cred:"")])
    .join("\n");
-  const nomeArq="Relatorio-Infraestrutura_"+String(loja).replace(/[^\wÀ-ÿ]+/g,"-")
-    +"_"+String(p.concluidoEm||p.criadoEm||today())+".html";
+  /* PDF DE VERDADE, gerado aqui (js/pdflite.js). É ele que vai anexado no WhatsApp —
+     pedido dela. Se algo falhar, a barra cai no print do navegador, que sempre funciona. */
+  let pdfURL="",nomePDF="";
+  try{
+    if(typeof ckRelPDF==="function"){
+      pdfURL=URL.createObjectURL(ckRelPDF(p));
+      nomePDF=ckNomeArquivoPDF(p);
+    }
+  }catch(e){console.warn("PDF:",e);}
 
   const w=window.open("");
   w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -1842,40 +1849,59 @@ function ckPDF(uid,completo){
 
   <div class="barra">
     <b class="tt">Este relatório</b>
-    <button class="pri" onclick="window.print()">🖨 Salvar em PDF / Imprimir</button>
-    <button onclick="baixar()">⬇ Baixar arquivo</button>
-    <button onclick="zap()">📱 WhatsApp</button>
+    <button class="pri" onclick="zap()">📱 Enviar no WhatsApp</button>
+    <button onclick="baixar()">⬇ Baixar o PDF</button>
     <button onclick="email()">✉️ E-mail</button>
-    <button onclick="copiar()">📋 Copiar resumo</button>
-    <span class="dica">Para o PDF sair com o cabeçalho verde, ligue <b>Gráficos de plano de fundo</b> nas opções de impressão.</span>
+    <button onclick="window.print()">🖨 Imprimir</button>
+    <button onclick="copiar()">📋 Copiar o texto</button>
+    <span class="dica" id="dica">O WhatsApp abre com o <b>PDF anexado e o texto pronto</b> — você lê e confere antes de enviar.</span>
   </div>
 
   <script>
   var RESUMO=${JSON.stringify(resumoTxt)};
-  var ARQ=${JSON.stringify(nomeArq)};
+  var PDFURL=${JSON.stringify(pdfURL)};
+  var ARQPDF=${JSON.stringify(nomePDF||"Relatorio.pdf")};
   var ASSUNTO=${JSON.stringify("Relatório de Infraestrutura e Manutenção — "+loja+" — "+dataBR)};
+
+  function arquivoPDF(){
+    if(!PDFURL)return Promise.resolve(null);
+    return fetch(PDFURL).then(function(r){return r.blob();}).then(function(b){
+      return new File([b],ARQPDF,{type:"application/pdf"});
+    }).catch(function(){return null;});
+  }
   function baixar(){
-    /* baixa o relatório inteiro como arquivo: abre em qualquer aparelho e dá para anexar */
-    var html="<!doctype html>"+document.documentElement.outerHTML;
-    var b=new Blob([html],{type:"text/html;charset=utf-8"});
-    var a=document.createElement("a");
-    a.href=URL.createObjectURL(b);a.download=ARQ;a.click();
-    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+    if(!PDFURL){alert("Não consegui montar o PDF aqui.\\n\\nUse o botão 🖨 Imprimir e escolha \\"Salvar como PDF\\".");return;}
+    var a=document.createElement("a");a.href=PDFURL;a.download=ARQPDF;a.click();
   }
   function zap(){
-    /* no celular abre a folha de compartilhar (WhatsApp incluso); no PC, o WhatsApp Web */
-    if(navigator.share){navigator.share({title:ASSUNTO,text:RESUMO}).catch(function(){});return;}
-    window.open("https://wa.me/?text="+encodeURIComponent(RESUMO),"_blank");
+    /* CELULAR: abre a folha de compartilhar com o PDF JUNTO. O WhatsApp mostra a prévia
+       com o anexo e o texto — ela lê e só então aperta enviar. Nada sai sozinho. */
+    arquivoPDF().then(function(f){
+      if(f&&navigator.canShare&&navigator.canShare({files:[f]})){
+        navigator.share({files:[f],text:RESUMO,title:ASSUNTO}).catch(function(){});
+        return;
+      }
+      /* COMPUTADOR: o navegador não deixa anexar arquivo no WhatsApp Web sozinho.
+         Então baixo o PDF e abro a conversa com o texto pronto, para ela arrastar. */
+      if(PDFURL)baixar();
+      var d=document.getElementById("dica");
+      if(d)d.innerHTML="<b>PDF baixado.</b> O WhatsApp vai abrir com o texto pronto — "
+        +"arraste o PDF da pasta de downloads para a conversa e confira antes de enviar.";
+      setTimeout(function(){
+        window.open("https://web.whatsapp.com/send?text="+encodeURIComponent(RESUMO),"_blank");
+      },700);
+    });
   }
   function email(){
+    if(PDFURL)baixar();
     location.href="mailto:?subject="+encodeURIComponent(ASSUNTO)+"&body="+encodeURIComponent(RESUMO);
   }
   function copiar(){
     navigator.clipboard.writeText(RESUMO).then(function(){
-      alert("Resumo copiado.\\n\\nAgora é só colar onde você quiser.");
+      alert("Texto copiado.\\n\\nAgora é só colar onde você quiser.");
     },function(){
       var t=document.createElement("textarea");t.value=RESUMO;document.body.appendChild(t);
-      t.select();document.execCommand("copy");t.remove();alert("Resumo copiado.");
+      t.select();document.execCommand("copy");t.remove();alert("Texto copiado.");
     });
   }
   <\/script>

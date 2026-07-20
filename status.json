@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "8.3",
-  "ondeParamos": "v8.3: agora da para MONTAR O RELATORIO DO MES sem preencher nada. O botao 📅 pega tudo que voce ja relatou na aba Manutencoes e monta uma inspecao ja concluida, com cada manutencao na pergunta certa e na area certa. A data ja vem 30/06/2026 e da para trocar quando quiser no 📅 da lista. Dentro do relatorio cada ponto tem uma caixinha de CONCLUIDO: marcou ali, a manutencao fica Concluida na outra aba tambem, e a barra em cima mostra quantos de quantos ja foram resolvidos.",
-  "proximoPasso": "Em [loja-A]: conferir em Checklists > Areas, clicar em Ligar minhas manutencoes, depois em Montar o relatorio do mes"
+  "versao": "8.4",
+  "ondeParamos": "v8.4: o relatorio agora VIRA UM PDF DE VERDADE dentro do proprio site. O botao 📱 Enviar no WhatsApp abre o WhatsApp COM O PDF ANEXADO e o texto pronto — e ele espera voce ler e conferir antes de enviar, nada sai sozinho. Tem tambem ⬇ Baixar o PDF, E-mail, Imprimir e Copiar o texto. No computador, como o navegador nao deixa anexar sozinho, ele baixa o PDF e abre a conversa com o texto para voce arrastar o arquivo.",
+  "proximoPasso": "Voce me mandar as anotacoes que fez antes desta rodada, para resolvermos uma a uma"
 }
