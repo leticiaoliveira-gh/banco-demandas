@@ -46,6 +46,7 @@ async function ckLoadOpcoes(){
   if(g&&g.foto&&Object.keys(g.foto).length)CK_FOTO=g.foto;
   if(g&&g.listas)CK_LISTAS=g.listas;
   CK_ASSINATURA=await metaGet("assinaturaRT")||"";
+  CK_ASSIN_MOD=await metaGet("assinaturaRTMod")||"";
 }
 async function ckSalvarOpcoes(){
   CK_OPC_MOD=nowISO();
@@ -57,7 +58,7 @@ async function ckSalvarOpcoes(){
 const ckRot=(mapa,k,padrao)=>((mapa[k]||{}).rotulo)||padrao||k;
 
 /* assinatura dela: desenha UMA vez e o site aplica sozinho em toda inspeção */
-let CK_ASSINATURA="";
+let CK_ASSINATURA="",CK_ASSIN_MOD="";
 
 /* seção aberta dentro da aba: formularios | enviados | parciais (fica no aparelho) */
 let CK_SEC=localStorage.getItem("ck_sec")||"formularios";
@@ -597,12 +598,19 @@ async function ckDuplicarPergunta(uid){
   m.perguntas=[...lista,...(m.perguntas||[]).filter(p=>p.removida)];
   await ckSalvar(m);ckRedesenhaLista();toast("Pergunta duplicada ✓");
 }
+/* já foi respondida em alguma inspeção? Cobre resposta chaveada por uid
+   (checklist sem escopo) E por uid@Area (checklist com escopo por área). */
+function ckPerguntaFoiRespondida(uid,modeloUid){
+  const pref=uid+"@";
+  return DATA.some(d=>!d.deleted&&d.tipo==="ckp"&&d.modeloUid===modeloUid&&
+    Object.keys(d.respostas||{}).some(k=>k===uid||k.startsWith(pref)));
+}
 async function ckExcluirPergunta(uid){
   const m=ckAchar(CK_MODELO_ABERTO);if(!m)return;
   const p=(m.perguntas||[]).find(x=>x.uid===uid);if(!p)return;
   /* já foi respondida em alguma inspeção? então NÃO apaga: marca removida.
      Apagar de vez deixaria respostas órfãs no histórico. */
-  const usada=DATA.some(d=>!d.deleted&&d.tipo==="ckp"&&d.modeloUid===m.uid&&(d.respostas||{})[uid]);
+  const usada=ckPerguntaFoiRespondida(uid,m.uid);
   if(!confirm("Excluir a pergunta?\n\n"+(p.titulo||"(sem texto)")
     +(usada?"\n\nEla já foi respondida em inspeções antigas. Vou tirá-la das PRÓXIMAS inspeções, mas as respostas antigas continuam guardadas no histórico.":"")))return;
   if(usada){p.removida=true;}
@@ -677,7 +685,7 @@ async function ckMassaExcluir(){
   if(typeof dgPodeGravarEmMassa==="function"&&!dgPodeGravarEmMassa(n))return;
   for(const uid of CK_SEL){
     const p=(m.perguntas||[]).find(x=>x.uid===uid);if(!p)continue;
-    const usada=DATA.some(d=>!d.deleted&&d.tipo==="ckp"&&d.modeloUid===m.uid&&(d.respostas||{})[uid]);
+    const usada=ckPerguntaFoiRespondida(uid,m.uid);
     if(usada)p.removida=true;else m.perguntas=m.perguntas.filter(x=>x.uid!==uid);
   }
   ckPerguntas(m).forEach((x,i)=>x.ordem=i);
@@ -1373,8 +1381,9 @@ function ckAssinLimparRT(){const cv=document.getElementById("ck-cv-rt");
   if(cv)cv.getContext("2d").clearRect(0,0,cv.width,cv.height);}
 async function ckAssinSalvarRT(){
   const cv=document.getElementById("ck-cv-rt");if(!cv)return;
-  CK_ASSINATURA=cv.toDataURL("image/png");
-  await metaSet("assinaturaRT",CK_ASSINATURA);
+  CK_ASSINATURA=cv.toDataURL("image/png");CK_ASSIN_MOD=nowISO();
+  await metaSetU("assinaturaRT",CK_ASSINATURA);
+  await metaSetU("assinaturaRTMod",CK_ASSIN_MOD);
   dataChanged();ncFechar();toast("Assinatura guardada ✓");
 }
 

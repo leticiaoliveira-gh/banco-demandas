@@ -53,14 +53,27 @@ function ckSugerirTipo(nome){
   for(const [rx,t] of CK_REGRAS_AMB)if(rx.test(n))return t;
   return "apoio";
 }
-/* mapa {nomeDaArea: tipo} da empresa atual, guardado no meta e sincronizado */
-let CK_AMB={};
+/* mapa {nomeDaArea: tipo} POR EMPRESA, guardado no meta e sincronizado
+   CK_AMB_ALL espelha todas as empresas para poder sair no envelope do backup;
+   CK_AMB é o mapa da empresa atual (o que a UI usa). */
+let CK_AMB={},CK_AMB_ALL={},CK_AMB_MOD="";
 async function ckAmbCarregar(){
   CK_AMB=(await metaGet("ambTipos_"+currentStore))||{};
+  CK_AMB_ALL[currentStore]=CK_AMB;
+}
+async function ckAmbCarregarTodas(){
+  CK_AMB_ALL={};CK_AMB_MOD=await metaGet("ambTiposMod")||"";
+  const emps=(typeof EMPRESAS!=="undefined"?EMPRESAS:[])||[];
+  for(const e of emps){
+    const v=await metaGet("ambTipos_"+e.code);
+    if(v&&typeof v==="object")CK_AMB_ALL[e.code]=v;
+  }
+  if(currentStore)CK_AMB=CK_AMB_ALL[currentStore]||{};
 }
 async function ckAmbSalvar(){
-  await metaSet("ambTipos_"+currentStore,CK_AMB);
-  await metaSet("ambTiposMod",nowISO());
+  CK_AMB_ALL[currentStore]=CK_AMB;CK_AMB_MOD=nowISO();
+  await metaSetU("ambTipos_"+currentStore,CK_AMB);
+  await metaSetU("ambTiposMod",CK_AMB_MOD);
   dataChanged();
 }
 function ckTipoDaArea(area){
@@ -797,8 +810,15 @@ async function ckHistoricoGerar(modeloUid){
     const q=perg.find(x=>x.uid===d.perguntaRef);
     if(!q){fora++;continue;}
     const area=String(d.area||"").trim();
-    /* pergunta de escopo loja mora fora da área; as outras, dentro da área do item */
-    const chave=(!q.escopoP||q.escopoP==="loja")?q.uid:q.uid+"@"+area;
+    /* pergunta de tipo específico (câmara/sanitário/produção/resíduo) só entra na
+       área daquele tipo; senão a resposta ficaria num lugar que a inspeção normal
+       nunca mostraria — dado órfão. */
+    if(area&&q.escopoP&&q.escopoP.startsWith("tipo:")){
+      const alvo=q.escopoP.slice(5);
+      const tipoArea=(typeof ckTipoDaArea==="function")?ckTipoDaArea(area):"";
+      if(tipoArea!==alvo){fora++;continue;}
+    }
+    const chave=(typeof ckChave==="function")?ckChave(q,area):((!q.escopoP||q.escopoP==="loja")?q.uid:q.uid+"@"+area);
     const r=p.respostas[chave]=p.respostas[chave]||{fotos:[],comentario:"",em:nowISO()};
     r.valor="nao";
     r.comentario=[r.comentario,d.nc].filter(Boolean).join(" · ");

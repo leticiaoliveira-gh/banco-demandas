@@ -112,13 +112,14 @@ async function removePendencia(i){
  PENDENCIAS.splice(i,1);await savePendencias();gerirPendencias();renderHome();}
 
 /* ===== Executores gerenciáveis (lista única para todas as empresas) ===== */
-let EXECUTORES=[];
+let EXECUTORES=[],EXECUTORES_MOD="";
 async function loadExecutores(){
  let v=await metaGet("executores");
  if(!v||!Array.isArray(v))v=[];
- EXECUTORES=v;
+ EXECUTORES=v;EXECUTORES_MOD=await metaGet("executoresMod")||"";
 }
-async function saveExecutores(){await metaSet("executores",EXECUTORES);dataChanged();}
+async function saveExecutores(){EXECUTORES_MOD=nowISO();
+ await metaSetU("executores",EXECUTORES);await metaSetU("executoresMod",EXECUTORES_MOD);dataChanged();}
 function execOptionsHTML(sel){
  const extra=sel&&sel!=="Outro"&&!EXECUTORES.some(e=>e.nome===sel)?`<option selected>${esc(sel)}</option>`:"";
  return extra+EXECUTORES.map(e=>`<option value="${esc(e.nome)}" ${e.nome===sel?"selected":""}>${esc(e.nome)}</option>`).join("")
@@ -547,7 +548,8 @@ function histFechar(){
 /* nome do passo em português — é o que aparece no toast e na dica das setas */
 const META_NOME={textos:"o texto",abaNomes:"o nome do quadro",abaSub:"a linha do título",
   empresas:"as empresas",pendencias:"as pendências",rtInfo:"os seus dados",
-  dgOpcoes:"as prioridades",ncUrgencias:"as urgências",ckOpcoes:"o checklist"};
+  dgOpcoes:"as prioridades",ncUrgencias:"as urgências",ckOpcoes:"o checklist",
+  executores:"os executores",assinaturaRT:"a sua assinatura",ambTipos:"os tipos de ambiente"};
 function histRotulo(p){
   const n=p.mudancas.length;
   /* passo só de configuração: dizer O QUE mudou, não "1 alteração" */
@@ -632,9 +634,12 @@ async function metaSetU(k,v){
 async function recarregarConfig(){
   await loadEmpresas();await loadPendencias();await loadRtInfo();
   await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
+  await loadExecutores();await loadAreasAll();
   if(window.dgLoadOpcoes)await dgLoadOpcoes();
   if(window.ckLoadOpcoes)await ckLoadOpcoes();
   if(window.ncLoadUrgencias)await ncLoadUrgencias();
+  if(window.ckAmbCarregarTodas)await ckAmbCarregarTodas();
+  if(window.fillExecSelects)fillExecSelects();
   renderTabs();aplicarTextos();
   if(currentStore&&currentTab)updateSubtitle(currentTab);
   else if(currentStore)showHub();
@@ -1175,7 +1180,7 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:4,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,itens:DATA};}
+function buildBackupEnvelope(){return {versao:5,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];

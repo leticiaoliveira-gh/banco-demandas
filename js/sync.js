@@ -157,6 +157,32 @@ async function syncMergeEnvelope(env){
    await metaSet("ncUrgencias",env.ncUrgencias);await metaSet("ncUrgenciasMod",NC_URG_MOD);
    if(window.renderNC)renderNC();changed=true;
  }else if(env&&modNC()>(env.ncUrgenciasMod||""))localAhead=true;
+ /* executores (lista única para todas as empresas) */
+ if(env&&Array.isArray(env.executores)&&(env.executoresMod||"")>(EXECUTORES_MOD||"")){
+   EXECUTORES=env.executores;EXECUTORES_MOD=env.executoresMod;
+   await metaSet("executores",EXECUTORES);await metaSet("executoresMod",EXECUTORES_MOD);
+   if(window.fillExecSelects)fillExecSelects();changed=true;
+ }else if(env&&(EXECUTORES_MOD||"")>(env.executoresMod||""))localAhead=true;
+ /* assinatura da RT (imagem em base64, ~50 KB) */
+ if(env&&typeof env.assinaturaRT==="string"&&(env.assinaturaRTMod||"")>((typeof CK_ASSIN_MOD!=="undefined"?CK_ASSIN_MOD:"")||"")){
+   if(typeof CK_ASSINATURA!=="undefined"){CK_ASSINATURA=env.assinaturaRT;CK_ASSIN_MOD=env.assinaturaRTMod;}
+   await metaSet("assinaturaRT",env.assinaturaRT);await metaSet("assinaturaRTMod",env.assinaturaRTMod);
+   changed=true;
+ }else if(env&&typeof CK_ASSIN_MOD!=="undefined"&&(CK_ASSIN_MOD||"")>(env.assinaturaRTMod||""))localAhead=true;
+ /* mapa {empresa:{area:tipo}} do checklist Infra2 */
+ if(env&&env.ambTipos&&typeof env.ambTipos==="object"&&(env.ambTiposMod||"")>((typeof CK_AMB_MOD!=="undefined"?CK_AMB_MOD:"")||"")){
+   for(const code of Object.keys(env.ambTipos)){
+     const mapa=env.ambTipos[code];
+     if(mapa&&typeof mapa==="object"){
+       if(typeof CK_AMB_ALL!=="undefined")CK_AMB_ALL[code]=mapa;
+       await metaSet("ambTipos_"+code,mapa);
+       if(typeof CK_AMB!=="undefined"&&currentStore===code)CK_AMB=mapa;
+     }
+   }
+   if(typeof CK_AMB_MOD!=="undefined")CK_AMB_MOD=env.ambTiposMod;
+   await metaSet("ambTiposMod",env.ambTiposMod);
+   changed=true;
+ }else if(env&&typeof CK_AMB_MOD!=="undefined"&&(CK_AMB_MOD||"")>(env.ambTiposMod||""))localAhead=true;
  return {changed,localAhead};
 }
 
