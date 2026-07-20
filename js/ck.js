@@ -1246,6 +1246,11 @@ function ckComprimirCk(file){return new Promise(res=>{
     const cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);
     cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
     URL.revokeObjectURL(img.src);res(cv.toDataURL("image/jpeg",0.6));};
+  /* iPhone entrega foto em HEIC — navegador não lê, img.onerror dispara.
+     Antes: promise ficava pendurada e o formulário parecia travar. */
+  img.onerror=()=>{URL.revokeObjectURL(img.src);
+    toast("Não consegui abrir esta foto — se veio do iPhone, salve como JPEG antes.");
+    res(null);};
   img.src=URL.createObjectURL(file);});}
 function ckOrigem(id,camera){
   const inp=document.getElementById(id);if(!inp)return;
@@ -1258,7 +1263,9 @@ async function ckAddFoto(ev,qUid){
   const r=(p.respostas=p.respostas||{})[qUid]=(p.respostas[qUid]||{fotos:[]});
   r.fotos=r.fotos||[];
   if(r.fotos.length>=CK_MAX_FOTOS){toast("Máximo de "+CK_MAX_FOTOS+" fotos por pergunta");return;}
-  r.fotos.push(await ckComprimirCk(f));r.em=nowISO();
+  const foto=await ckComprimirCk(f);
+  if(!foto)return;   /* HEIC ou arquivo inválido: já mostrou toast */
+  r.fotos.push(foto);r.em=nowISO();
   await ckGravaResposta(p);ckRedesenhaPreench();
 }
 async function ckDelFoto(qUid,i){

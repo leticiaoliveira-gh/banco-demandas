@@ -85,9 +85,12 @@ PDFLite.prototype.linha=function(x1,y1,x2,y2,cor,esp){
 PDFLite.prototype.texto=function(txt,o){
   o=o||{};
   const tam=o.tam||11,f=this._fonte(o.negrito,o.italico);
-  let x=o.x||0;
-  if(o.centro)x=o.x+(o.larg-this.largura(txt,tam,o.negrito))/2;
-  if(o.direita)x=o.x+o.larg-this.largura(txt,tam,o.negrito);
+  /* centro/direita precisam de x + larg. Antes: x sozinho virava NaN e
+     o comando PDF ficava mal-formado. */
+  const base=(o.x==null?0:o.x);
+  let x=base;
+  if(o.centro)x=base+((o.larg||0)-this.largura(txt,tam,o.negrito))/2;
+  if(o.direita)x=base+(o.larg||0)-this.largura(txt,tam,o.negrito);
   this.pag.usa[f]=true;
   this.pag.ops.push("BT "+this._cor(o.cor)+" rg /"+f+" "+tam+" Tf 1 0 0 1 "
     +x.toFixed(2)+" "+this._y((o.y==null?this.y:o.y)+tam*0.85).toFixed(2)+" Tm ("

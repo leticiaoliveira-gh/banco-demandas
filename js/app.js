@@ -812,6 +812,9 @@ function capaArrIni(ev,code){
   linha.classList.add("arrastando");
   document.addEventListener("pointermove",capaArrMove);
   document.addEventListener("pointerup",capaArrFim,{once:true});
+  /* iPhone: se o gesto é interrompido (chamada, notificação, dedo saiu da tela)
+     o browser não dispara pointerup — arraste ficava "grudado". */
+  document.addEventListener("pointercancel",capaArrFim,{once:true});
 }
 function capaArrMove(ev){
   if(!CAPA_ARR)return;
@@ -887,10 +890,13 @@ async function addEmpresa(ev){ev.preventDefault();
  const code=document.getElementById("empCode").value.trim().toUpperCase();
  if(!/^[A-Z0-9]{2,4}$/.test(code)){alert("O código deve ter de 2 a 4 letras/números (ex.: BZ).");return;}
  if(empresa(code)){alert("Já existe uma empresa com o código "+code+".");return;}
+ /* SÓ uma empresa ativa por vez (regra da capa: o ▶ Iniciar entra direto na única
+    ativa). Antes: criar empresa nova deixava duas ativas e o botão travava. */
+ for(const e of EMPRESAS)e.ativa=false;
  EMPRESAS.push({code,name,ativa:true});
  await saveEmpresas();
  document.getElementById("empNome").value="";document.getElementById("empCode").value="";
- toggleEmpresaForm();fillLojaSelects();await renderHome();toast("Empresa "+name+" ("+code+") criada ✓");}
+ toggleEmpresaForm();fillLojaSelects();await renderHome();toast("Empresa "+name+" ("+code+") criada e ativada ✓");}
 
 async function renameEmpresa(code){const e=empresa(code);if(!e)return;
  const n=prompt("Novo nome para "+e.name+" ("+code+"):",e.name);
@@ -1049,6 +1055,7 @@ function mntArrIni(ev,id){
   tr.classList.add("arrastando");
   document.addEventListener("pointermove",mntArrMove);
   document.addEventListener("pointerup",mntArrFim,{once:true});
+  document.addEventListener("pointercancel",mntArrFim,{once:true});
 }
 function mntArrMove(ev){
   if(!MNT_ARR)return;
@@ -1117,11 +1124,10 @@ async function setField(id,field,val){
 }
 async function removeItem(id){const it=DATA.find(d=>d.id===id);
  if(!confirm("Excluir este item?\n\n"+(it?(it.nc||it.texto_bruto||""):"")))return;
- if(window.syncEnabled&&syncEnabled()&&it){
-   /* com sync ativo a exclusão vira "lápide": propaga aos outros dispositivos sem ressuscitar */
+ if(it){
+   /* SEMPRE lápide: se um dia a sync for ligada, o item deletado propaga.
+      Antes: sem sync fazia hard-delete e o item ressuscitava no primeiro pull. */
    it.deleted=true;it.mod=nowISO();await putItem(it);
- }else{
-   await delDB(id);DATA=DATA.filter(d=>d.id!==id);
  }
  dataChanged();toast("Item excluído");render();}
 async function addItem(e){e.preventDefault();
@@ -1446,23 +1452,28 @@ function mapaDoSite(){
 let toastT;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2000);}
 
 (async function(){await openDB();await seedIfEmpty();DATA=await getAll();
- /* migrações aditivas e idempotentes (nunca removem nada) */
- for(const d of DATA){
-   let dirty=false;
-   if(!d.tipo){d.tipo="mnt";dirty=true;}   /* itens antigos = Manutenções e Elétrica */
-   if(!d.uid){d.uid=(d.criado==="inicial")?seedUid(d.area,d.nc,d.executor):newUid();dirty=true;}  /* estável p/ sync; seed = determinístico */
-   /* limpeza: a importação do Notion trouxe restos de HTML como linha (ex.: "<tr>") */
-   if(d.tipo==="dg"&&Array.isArray(d.itens)){
-     const antes=d.itens.length;
-     d.itens=d.itens.filter(i=>!/^\s*<\/?[a-z][^>]*>\s*$/i.test(i.texto||""));
-     if(d.itens.length!==antes){d.mod=nowISO();dirty=true;}
+ /* migrações aditivas e idempotentes (nunca removem nada).
+    HIST_LIGADO=false: sem isso o loop enche o histórico e o primeiro Ctrl+Z
+    desfaz a migração em vez da última ação da usuária. */
+ HIST_LIGADO=false;
+ try{
+   for(const d of DATA){
+     let dirty=false;
+     if(!d.tipo){d.tipo="mnt";dirty=true;}   /* itens antigos = Manutenções e Elétrica */
+     if(!d.uid){d.uid=(d.criado==="inicial")?seedUid(d.area,d.nc,d.executor):newUid();dirty=true;}  /* estável p/ sync; seed = determinístico */
+     /* limpeza: a importação do Notion trouxe restos de HTML como linha (ex.: "<tr>") */
+     if(d.tipo==="dg"&&Array.isArray(d.itens)){
+       const antes=d.itens.length;
+       d.itens=d.itens.filter(i=>!/^\s*<\/?[a-z][^>]*>\s*$/i.test(i.texto||""));
+       if(d.itens.length!==antes){d.mod=nowISO();dirty=true;}
+     }
+     /* 19/07: demandas gerais das lojas do grupo passam a ser do GRUPO (agenda única CF+AC) */
+     if(d.tipo==="dg"&&d.loja!==GRUPO_SF&&(d.loja==="CF"||d.loja==="AC")&&!d.escopo){
+       d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
+     if(dirty)await putItem(d);
    }
-   /* 19/07: demandas gerais das lojas do grupo passam a ser do GRUPO (agenda única CF+AC) */
-   if(d.tipo==="dg"&&d.loja!==GRUPO_SF&&(d.loja==="CF"||d.loja==="AC")&&!d.escopo){
-     d.loja=GRUPO_SF;d.escopo="";d.mod=nowISO();dirty=true;}
-   if(dirty)await putItem(d);
- }
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();await loadStatusSite();
+ }finally{HIST_LIGADO=true;}
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();
  goHome();

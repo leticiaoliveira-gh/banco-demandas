@@ -60,6 +60,14 @@ function syncRefreshViews(){
 
 /* ---- merge por item: chave uid, vence o maior mod ---- */
 async function syncMergeEnvelope(env){
+ /* pull do sync mexe em MUITO item de uma vez — se o histórico gravar tudo,
+    o primeiro Ctrl+Z da usuária desfaz o pull inteiro. Desliga durante o merge. */
+ const _hist=(typeof HIST_LIGADO!=="undefined")?HIST_LIGADO:true;
+ if(typeof HIST_LIGADO!=="undefined")HIST_LIGADO=false;
+ try{ return await _syncMergeEnvelope(env); }
+ finally{ if(typeof HIST_LIGADO!=="undefined")HIST_LIGADO=_hist; }
+}
+async function _syncMergeEnvelope(env){
  let changed=false,localAhead=false;
  const remoteItens=Array.isArray(env&&env.itens)?env.itens:[];
  const remoteByUid=new Map(remoteItens.filter(r=>r&&r.uid).map(r=>[r.uid,r]));
@@ -67,7 +75,10 @@ async function syncMergeEnvelope(env){
  for(const [uid,r] of remoteByUid){
    const l=localByUid.get(uid);
    if(!l){const {id,...rest}=r;const nid=await putItem(rest);rest.id=nid;DATA.push(rest);changed=true;}
-   else if((r.mod||"")>(l.mod||"")){const keep=l.id;Object.assign(l,r);l.id=keep;await putItem(l);changed=true;}
+   /* mesmo mod nos dois lados? uid como tiebreaker — o remoto vence quando
+      empata (ordem alfabética da hash). Antes: dispositivos ficavam divergindo. */
+   else if((r.mod||"")>(l.mod||"")||((r.mod||"")===(l.mod||"")&&(r.uid||"")>(l.uid||"")&&JSON.stringify(r)!==JSON.stringify(l))){
+     const keep=l.id;Object.assign(l,r);l.id=keep;await putItem(l);changed=true;}
    else if((l.mod||"")>(r.mod||""))localAhead=true;
  }
  for(const [uid] of localByUid)if(!remoteByUid.has(uid))localAhead=true;
@@ -223,9 +234,15 @@ async function syncPull(){
 
 async function syncPush(isRetry){
  const c=syncCfg();
- /* expurga lápides com mais de 30 dias (a exclusão já propagou) */
+ /* expurga lápides com mais de 30 dias (a exclusão já propagou).
+    HIST_LIGADO=false: expurgo de lápide não é ação da usuária, não deve
+    aparecer no Ctrl+Z. */
  const corte=new Date(Date.now()-30*864e5).toISOString();
- for(const d of [...DATA])if(d.deleted&&(d.mod||"")<corte){await delDB(d.id);DATA.splice(DATA.indexOf(d),1);}
+ const _hist=(typeof HIST_LIGADO!=="undefined")?HIST_LIGADO:true;
+ if(typeof HIST_LIGADO!=="undefined")HIST_LIGADO=false;
+ try{
+   for(const d of [...DATA])if(d.deleted&&(d.mod||"")<corte){await delDB(d.id);DATA.splice(DATA.indexOf(d),1);}
+ }finally{ if(typeof HIST_LIGADO!=="undefined")HIST_LIGADO=_hist; }
  const body={message:"sync "+nowISO(),content:b64encUtf8(JSON.stringify(buildBackupEnvelope(),null,1))};
  if(body.content.length>5*1024*1024&&!window.__syncBigWarned){
    window.__syncBigWarned=true;

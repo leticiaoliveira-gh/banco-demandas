@@ -34,7 +34,7 @@ const CFG_ABAS={
   nc:()=>[
     {gr:"filtrar",rot:"Filtrar",dica:"Piso, área, urgência e status",
      valor:()=>cfgConta([ncF&&ncF.piso,ncF&&ncF.area,ncF&&ncF.urg,ncF&&ncF.q,(ncF&&ncF.status!=="Abertas")?ncF.status:""]),
-     acao:()=>{cfgFechar();document.getElementById("ncQ")?.focus();}},
+     acao:()=>{cfgFechar();document.getElementById("nc-f-q")?.focus();}},
     {gr:"ordenar",rot:"Ordenar",dica:"Piso → área → a ordem que você arrastar",
      valor:()=>"Arraste pela alça ⠿",acao:()=>{cfgFechar();toast("Segure o ⠿ de uma NC e arraste dentro da área");}},
     {gr:"cor",rot:"Cores das urgências",dica:"Nome e cor de cada urgência",

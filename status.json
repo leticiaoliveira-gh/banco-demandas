@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "9.5",
-  "ondeParamos": "Nova aba Qualidade / BPF com 9 modelos prontos (rondas rapidas por setor, BPF semanal, Equipamentos e Estrutura). Perguntas com escopo por area fisica e por setor comercial. Cada 'nao' vira tratativa 5W2H que registra manutencao ou NC.",
-  "proximoPasso": "Consertos de uso restantes (Fase 3.3) e manual mais facil (Fase 5)."
+  "versao": "9.6",
+  "ondeParamos": "Aba Qualidade / BPF no ar e bugs de uso corrigidos: foto do iPhone (HEIC) mostra aviso em vez de travar, arraste no celular libera se o gesto for interrompido, Ctrl+Z nao desfaz o que o sistema fez sozinho, excluir item sem sync propaga se um dia a sync for ligada, PDF centralizado sai certo.",
+  "proximoPasso": "Manual mais facil de entender e segunda leva de checklists (RHS Mensal, Prevencao de Perdas, Recebimento)."
 }

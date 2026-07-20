@@ -249,7 +249,7 @@ function ncCapRenderChips(atual,revisar){
   +(revisar?'<span class="nc-chip warn">⚠ revisar</span>':"");
 }
 async function ncCapFoto(e){
- for(const f of e.target.files)ncCapFotos.push(await ncComprimir(f));
+ for(const f of e.target.files){const d=await ncComprimir(f);if(d)ncCapFotos.push(d);}
  e.target.value="";
  document.getElementById("nc-cap-thumbs").innerHTML=ncCapFotos.map((d,i)=>
   `<span class="nc-thumb"><img src="${d}"><button onclick="ncCapFotos.splice(${i},1);ncCapFoto({target:{files:[]}})" title="Remover">×</button></span>`).join("");
@@ -260,6 +260,10 @@ function ncComprimir(file){return new Promise(res=>{
   const cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);
   cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
   URL.revokeObjectURL(img.src);res(cv.toDataURL("image/jpeg",0.7));};
+ /* iPhone entrega HEIC — navegador não lê, img.onerror dispara. */
+ img.onerror=()=>{URL.revokeObjectURL(img.src);
+  toast("Não consegui abrir esta foto — se veio do iPhone, salve como JPEG antes.");
+  res(null);};
  img.src=URL.createObjectURL(file);});}
 
 async function ncCapSalvar(){
@@ -381,6 +385,7 @@ function ncArrIni(ev,id){
   cx.classList.add("arrastando");
   document.addEventListener("pointermove",ncArrMove);
   document.addEventListener("pointerup",ncArrFim,{once:true});
+  document.addEventListener("pointercancel",ncArrFim,{once:true});
 }
 function ncArrMove(ev){
   if(!NC_ARR)return;
