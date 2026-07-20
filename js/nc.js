@@ -762,5 +762,8 @@ function ncBuildCSV(){
 }
 function ncExportCSV(){
  const csv=ncBuildCSV();
- if(csv)download("gestao_nc.csv","﻿"+csv,"text/csv");
+ /* nome antigo "gestao_nc.csv" ficou para trás — ela reparou que os arquivos
+    mentiam o conteúdo (20/07). Segue o nome que ELA deu à aba. */
+ if(csv)download((typeof rotuloAba==="function"?rotuloAba("nc"):"Relatorio de Nao Conformidade")
+   +(typeof selo==="function"?" - "+selo():"")+".csv","﻿"+csv,"text/csv");
 }

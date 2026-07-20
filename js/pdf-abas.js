@@ -125,7 +125,37 @@ function paChecklists(d,loja){
   if(!modelos.length&&!feitas.length)paVazio(d,"Nada registrado nesta aba ainda.");
 }
 
-/* ===== o PDF inteiro ===== */
+/* ===== UM PDF POR ABA, NOMEADO COM O NOME DA ABA =====
+   É o que ela pediu de verdade (20/07): *"inclua NA EXPORTAÇÃO um pdf com um print
+   de cada aba/página, nomeado com o nome da aba"*. Eu tinha entendido errado e
+   entregue só um botão de menu — ela corrigiu: é para entrar no BACKUP dela.
+   Estes arquivos entram no ⬇ Fazer backup E na pasta do backup automático. */
+const PA_MONTADORES={dg:paQuadroGeral,ck:paChecklists,nc:paNaoConformidades,list:paManutencoes};
+/* nome de arquivo seguro: sem / \ : * ? " < > | (o Windows recusa) */
+function paNomeArquivo(s){
+  return String(s||"aba").replace(/[\/\\:*?"<>|]/g,"-").replace(/\s+/g," ").trim().slice(0,80);
+}
+function pdfDaAba(t){
+  if(typeof PDFLite!=="function"||!PA_MONTADORES[t])return null;
+  const loja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
+  const d=new PDFLite();
+  try{PA_MONTADORES[t](d,loja);}
+  catch(e){paVazio(d,"Não consegui montar esta parte: "+(e&&e.message||e));}
+  d.paginas.forEach((pg,i)=>{const g=d.pag;d.pag=pg;paRodape(d,i+1);d.pag=g;});
+  return d.blob();
+}
+/* devolve [{nome, blob}] — um por aba, já com o nome que ELA deu à aba */
+function pdfsPorAba(){
+  const out=[];
+  for(const t of TAB_ORDER){
+    if(!PA_MONTADORES[t])continue;
+    const b=pdfDaAba(t);
+    if(b)out.push({nome:paNomeArquivo(rotuloAba(t))+".pdf",blob:b});
+  }
+  return out;
+}
+
+/* ===== o PDF inteiro (tudo num arquivo só) ===== */
 function pdfDeTodasAsAbas(){
   if(!currentStore){toast("Entre numa empresa primeiro");return;}
   if(typeof PDFLite!=="function"){alert("O gerador de PDF não carregou. Recarregue a página.");return;}

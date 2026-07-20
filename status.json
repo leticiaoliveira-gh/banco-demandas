@@ -1,6 +1,6 @@
 {
   "atualizadoEm": "2026-07-20",
-  "versao": "9.0",
-  "ondeParamos": "v9.0: fechou a lista. Toda aba agora tem o botao ⚙ Configuracoes, no modelo do Notion (Layout, Filtrar, Ordenar, Agrupar, Cores) — uma porta so, igual em todas. Entrou arraste na aba de Manutencoes e na de Nao Conformidade, que eram as duas que nao tinham. E no menu ⋯ tem 📄 PDF de todos os quadros: um arquivo com uma pagina para cada quadro, com o nome da aba no topo.",
-  "proximoPasso": "Voce usar no trabalho e me dizer o que atrapalha; e o manual facil, que continua devendo"
+  "versao": "9.1",
+  "ondeParamos": "v9.1: os PDFs das abas entraram no SEU BACKUP, que era o que voce tinha pedido. Agora o ⬇ Fazer backup e o backup automatico da pasta geram UM PDF PARA CADA ABA, com o nome da aba no arquivo (Quadro Geral.pdf, Checklists.pdf...). Na pasta do dia eles ficam dentro de PDF das abas. E o arquivo que ainda se chamava gestao_nc.csv passou a usar o nome certo da aba.",
+  "proximoPasso": "Voce usar no trabalho; depois o manual facil, que continua devendo"
 }

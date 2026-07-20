@@ -1232,6 +1232,11 @@ async function exportExcel(){
  download("Demandas e Manutencoes - "+selo()+".csv","﻿"+buildCsvGeral(),"text/csv");
  if(window.ncExportCSV)ncExportCSV(); /* CSV próprio da aba NC (colunas diferentes) */
  download("Backup completo do site - "+selo()+".json",JSON.stringify(buildBackupEnvelope(),null,2),"application/json");
+ /* UM PDF POR ABA, com o nome da aba — pedido dela (20/07). Só dá para montar
+    dentro de uma empresa: as abas leem os dados da loja aberta. */
+ if(currentStore&&typeof pdfsPorAba==="function"){
+   try{for(const a of pdfsPorAba())download(a.nome,a.blob,"application/pdf");}catch(e){}
+ }
  await metaSet("lastBackup",nowISO());
  if(document.getElementById("view-home").style.display!=="none")renderHome();
  toast("Excel (CSV) + backup exportados");}
@@ -1313,6 +1318,18 @@ async function doBackup(force){
    await grava("Backup completo do site.json",JSON.stringify(buildBackupEnvelope(),null,2));
    await grava("Demandas e Manutencoes.csv","﻿"+buildCsvGeral());
    if(window.ncBuildCSV){const c=ncBuildCSV();if(c)await grava("Relatorio de Nao Conformidade.csv","﻿"+c);}
+   /* UM PDF POR ABA dentro da pasta do dia, com o nome da aba (pedido dela, 20/07).
+      Vai numa subpasta "PDF das abas" para não misturar com as planilhas.
+      Precisa de uma empresa aberta — as abas leem os dados da loja atual. */
+   if(currentStore&&typeof pdfsPorAba==="function"){
+     try{
+       const sub2=await sub.getDirectoryHandle("PDF das abas",{create:true});
+       for(const a of pdfsPorAba()){
+         const fh=await sub2.getFileHandle(a.nome,{create:true});
+         const w=await fh.createWritable();await w.write(a.blob);await w.close();
+       }
+     }catch(e){/* sem permissão ou sem empresa aberta: o resto do backup continua */}
+   }
    await metaSet("lastBackup",nowISO());
    /* regra do projeto: manter apenas as últimas 7 pastas diárias */
    try{
