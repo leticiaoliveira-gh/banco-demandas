@@ -111,6 +111,10 @@ async function ckSalvar(d){d.mod=nowISO();await putItem(d);dataChanged();}
    A CHAVE da resposta é "uid" quando a pergunta é da loja e "uid@Área" quando é por área.
    Checklist SEM escopo (o Semanal) cai no caminho de sempre: chave = uid. */
 function ckTemAreas(m){return ckPerguntas(m).some(q=>q.escopoP&&q.escopoP!=="loja");}
+/* o MODO LISTA serve para dois casos: checklist por ÁREA (Infra 2) e checklist com
+   SEÇÕES (o Diário) — neste, a lista mostra os cabeçalhos de seção e agrupa por eles.
+   Modelo sem área e sem seção (o Semanal) continua só no wizard, como sempre foi. */
+function ckModoListaOk(m){return ckTemAreas(m)||ckPerguntas(m).some(q=>(q.secao||"").trim());}
 function ckChave(q,area){
   return (area&&q.escopoP&&q.escopoP!=="loja")?q.uid+"@"+area:q.uid;
 }
@@ -189,8 +193,10 @@ function renderCk(){
         ${ckSecBotao("parciais","⏸",txt("ck.sec.parciais","Parciais"),ckPreenchimentos("andamento").length)}
       </div>
       <div class="ck-acoes">
+        ${typeof pprRelatorio==="function"?`<button class="btn sm alt" onclick="pprRelatorio()" title="Junta as divergências (👎) dos preenchimentos dos últimos dias num relatório para a gerência">📄 <span data-txt="ck.ppr.bt">Relatório da semana (PPR)</span></button>`:""}
         ${CK_SEC==="formularios"?`
           <button class="btn sm" onclick="ckNovo()"><span data-txt="ck.novo">＋ Novo checklist</span></button>
+          <button class="btn sm alt" onclick="ckModeloDiarioPronto()" title="Cria o Checklist Diário com todas as seções do mercado já montadas">📋 <span data-txt="ck.diario.bt">Criar meu Checklist Diário</span></button>
           ${typeof ckModeloInfra2==="function"?`<button class="btn sm alt" onclick="ckModeloInfra2()" title="Cria o checklist completo com as perguntas da legislação">✨ <span data-txt="ck.infra2.bt">Infraestrutura e Manutenção 2</span></button>`:""}
           ${typeof ckAmbientes==="function"?`<button class="filtro-cfg-bt" onclick="ckAmbientes()" title="Dizer o que é cada área: câmara, banheiro, produção...">⚙ <span data-txt="ck.cfg.amb">Áreas</span></button>`:""}
           <button class="filtro-cfg-bt" onclick="dgGerirOpcoes('cktipos')" title="Renomear ou recolorir os tipos de resposta">⚙ <span data-txt="ck.cfg.tipos">Tipos</span></button>
@@ -232,6 +238,7 @@ function ckListaModelosHTML(){
       Você pode começar do zero, ou já sair com o de Manutenção e Infraestrutura montado —
       e depois mudar o que quiser nele.</p>
     <div class="ck-vazio-bts">
+      <button class="btn" onclick="ckModeloDiarioPronto()">📋 <span data-txt="ck.diario.bt2">Criar meu Checklist Diário</span></button>
       <button class="btn" onclick="ckModeloPronto()">✨ <span data-txt="ck.pronto.bt">Criar o checklist de Manutenção e Infraestrutura</span></button>
       <button class="btn ghost" onclick="ckNovo()"><span data-txt="ck.novo2">＋ Criar um vazio</span></button>
     </div></div>`;
@@ -340,6 +347,345 @@ async function ckModeloPronto(){
   o.id=await putItem(o);DATA.push(o);dataChanged();
   CK_SEC="formularios";renderCk();ckAbrirConstrutor(o.uid);
   toast("Checklist pronto ✓ Mude o que quiser nele");
+}
+/* ===== CHECKLIST DIÁRIO (Nutri Qualidade) — o checklist do dia a dia dela =====
+   Conteúdo REAL importado da planilha "- Checklist Diário (importando info).xlsx"
+   (abas "Checklist Diário - Mercado" + "notion pra cá"), mesclado sem repetição.
+   Cada entrada é [titulo, secao]. As seções carregam o piso no nome — é isso que
+   agrupa o preenchimento em lista e o relatório PPR (js/ppr.js). */
+
+/* ITENS QUE FICARAM DE FORA — são de OBRA/ELÉTRICA (Sr. João / Matheus-elétrica),
+   não de verificação diária. Registrados aqui para não se perderem; a aba certa
+   deles é Manutenções e Elétrica. NÃO entram no checklist. */
+const CK_DIARIO_MANUTENCAO=[
+  "Colocar forno em UAN (220v), embaixo do exaustor — instalação elétrica",
+  "Parede está rachando e abrindo (piso) — Produção - Manipulação",
+  "Troca de piso quebrado na câmara (Câmara: Produção) — acumula bactéria",
+  "Vazamento de água na Cozinha (UAN)",
+  "Dedetização e partes com frestas — Sr. João (fechar embaixo por causa das baratas)",
+  "Troca da borracha da porta da câmara Produção",
+  "Trocar forno de lugar (instalação elétrica) — Cozinha"
+];
+
+const CK_MODELO_DIARIO=[
+  /* --- visão geral (as 3 perguntas rápidas do Notion) --- */
+  ["Como ficaram as câmaras?","VISÃO GERAL DO DIA"],
+  ["Como está o depósito?","VISÃO GERAL DO DIA"],
+  ["Produção: como estão em relação a etiquetagem e limpeza?","VISÃO GERAL DO DIA"],
+
+  /* ================= 1º PISO ================= */
+  ["Extintores desobstruídos e acessíveis?","1º PISO — SALÃO"],
+  ["Limpeza nos cantos das áreas dos temperos (sujeira e barata morta)","1º PISO — SALÃO"],
+  ["Limpeza semanal no maracanã","1º PISO — SALÃO"],
+
+  ["Bomba de incêndio desobstruída (nunca pode estar tapada)","1º PISO — CARGA E DESCARGA"],
+
+  ["Nenhum material no fluxo do corredor (papelão, chapatex, lixos, produtos e materiais de limpeza, carrinhos e caixas vazias)","1º PISO — CÂMARA: CORREDOR"],
+  ["Limpeza e organização da bancada do Sr. Sérgio (neste corredor)","1º PISO — CÂMARA: CORREDOR"],
+  ["Elevador fechado sempre que não estiver sendo usado?","1º PISO — CÂMARA: CORREDOR"],
+
+  ["Todas as caixas de papelão retiradas do local?","1º PISO — CÂMARA: HORTIFRUTI"],
+  ["Parte inferior da bancada organizada?","1º PISO — CÂMARA: HORTIFRUTI"],
+  ["Limpeza geral em toda a área (parede, porta, chão, mesa, teto com mofo)","1º PISO — CÂMARA: HORTIFRUTI"],
+  ["Acúmulo de água retirado do local?","1º PISO — CÂMARA: HORTIFRUTI"],
+
+  ["Limpeza e higiene diária em dia?","1º PISO — CÂMARA: FLV"],
+  ["Gancho de ferro retirado de dentro da câmara?","1º PISO — CÂMARA: FLV"],
+  ["Limpeza mensal em todos os paletes","1º PISO — CÂMARA: FLV"],
+  ["Garrafas de água retiradas da câmara?","1º PISO — CÂMARA: FLV"],
+
+  ["Limpeza na porta da câmara (mofo)","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Produto de descarte está separado?","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Prateleira fechada e com etiqueta \"produtos para descarte\"?","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Nenhuma MP imprópria exposta à venda? (vender ou entregar MP imprópria para consumo é crime)","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Validade de tudo conferida (algo vencido?)","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Existe área de descarte para MP/produtos vencidos/troca com fornecedor?","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["A área de descarte é refrigerada?","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Ralo limpo e inteiro? (pedir para levantarem; não pode estar sujo nem quebrado)","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Sem pontos de ferrugem nos locais de manipulação?","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+  ["Câmara Troca: limpeza e organização","1º PISO — CÂMARA: MP IMPRÓPRIA (DESCARTE)"],
+
+  ["Garrafas de água retiradas de dentro da câmara?","1º PISO — CÂMARA: C&A"],
+  ["Japona disponível?","1º PISO — CÂMARA: C&A"],
+  ["Carnes sem identificação?","1º PISO — CÂMARA: C&A"],
+  ["Paletes e MP afastados da parede?","1º PISO — CÂMARA: C&A"],
+  ["Caixas vazias e itens inutilizados retirados de dentro da câmara?","1º PISO — CÂMARA: C&A"],
+  ["Todas as bandejas quebradas substituídas?","1º PISO — CÂMARA: C&A"],
+  ["Carne pendurada (fracionada) com validade e rastreabilidade? (saber quem é o fabricante — senão fica impróprio para consumo)","1º PISO — CÂMARA: C&A"],
+  ["Nada enferrujado?","1º PISO — CÂMARA: C&A"],
+  ["Frango separado da carne bovina? (o ideal é uma câmara para cada, evitando contaminação cruzada)","1º PISO — CÂMARA: C&A"],
+  ["Etiqueta de descongelamento colocada?","1º PISO — CÂMARA: C&A"],
+  ["Estrutura física em ordem? (ferrugem trocar; caixas afastadas da parede para não perder temperatura)","1º PISO — CÂMARA: C&A"],
+  ["Descongelamento de um dia para o outro só? (tirou a embalagem, como saber se está vencido?)","1º PISO — CÂMARA: C&A"],
+
+  ["Bandejas quebradas ou rachadas trocadas?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Refrigeração ligada?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["EPIs nos armários?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Materiais de limpeza fora da área de manipulação? (estão espalhados?)","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Sem acúmulo de caixas de papelão, chapatex e lixo na área?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Sem garrafas e copos espalhados?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Esterilizador de faca funcionando e limpo?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Bico da torneira do tanque está limpo?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Vidro da área de atendimento limpo?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Produto em degelo identificado e no lugar certo? (ex.: fígado ou peito de frango precisam de identificação específica)","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Limpeza em dia?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Etiquetagem em dia?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Bacalhau sem identificação (ilha)?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Bucho bovino sem pesar (etiqueta)?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Identificação dos produtos em dia?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Refrigerador da área de manipulação ligado?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Troca do mata-mosca feita?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+  ["Limpeza na câmara do açougue em dia?","1º PISO — AÇOUGUE - ÁREA DE MANIPULAÇÃO"],
+
+  ["Nada em cima das geladeiras?","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Limpeza das plaquinhas penduradas no teto (acúmulo de sujeira)","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Insulfilme nos picadores de carne?","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Limpeza geral solicitada? (dentro dos balcões, embaixo dos freezers, portas, chão)","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Produtos expostos à venda estão identificados?","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Garrafas e copos retirados da área de manipulação?","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Voltam com a carne do balcão para dentro ao final do expediente? (contrafluxo)","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Troca dos materiais de limpeza feita? (madeira → plástico)","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Vendem carne moída? Como é?","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Carne moída só na hora? (não pode moer antecipado sem área refrigerada e autorização da vigilância — geralmente só indústria tem; podem comprar moído da indústria)","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+  ["Caixas quebradas verificadas e descartadas?","1º PISO — AÇOUGUE - ÁREA DE VENDAS"],
+
+  ["Limpeza das plaquinhas penduradas no teto (acúmulo de sujeira)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Produtos de salmoura no meio do balcão (não no canto)? Problema de mofo diminuiu?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Limpeza no armário (elevador)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Alimento levado para a padaria sai imediatamente da caixa de papelão? (descartar a caixa para prevenir pragas)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Bancada de vendas (parte interna): limpa e organizada? (retirar tudo, avaliar o que não é útil; havia sujeira, baratas e materiais inutilizados)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Bancada de pão e utensílios: limpa e organizada? (havia sujeira, baratas e materiais inutilizados)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Giletes/navalhas de corte de pães retiradas do local?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["EPIs guardados no armário de cada manipulador ao fim do expediente? (sem aventais espalhados)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Etiquetas rasgadas retiradas da parede?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Sem garrafas e copos d'água na área de manipulação? (manter dentro da bancada)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Sem itens (vassoura, rodo, pá) e produtos de limpeza espalhados pela área? (existe local específico)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Pia de lavagem das mãos exclusiva e sem nada em cima?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Sem uso de antissepsia para matar moscas? (usar o produto que a INOVA fornece)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Limpeza interna em todos os balcões (mofo acumulado)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Troca dos materiais de limpeza feita? (madeira → plástico)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Trocaram as plaquinhas vencidas?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Limparam os armários?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Ralo solto?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Materiais de limpeza estão organizados?","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Baratas nos armários? (havia muita)","1º PISO — PADARIA (ATENDIMENTO)"],
+  ["Troca do mata-mosca feita?","1º PISO — PADARIA (ATENDIMENTO)"],
+
+  ["Limpeza do balcão expositor de frutas","1º PISO — HORTIFRUTI"],
+  ["Japonas novas com rasgos: serão costuradas ou substituídas?","1º PISO — HORTIFRUTI"],
+  ["Manipuladores sem barba e sem acessórios?","1º PISO — HORTIFRUTI"],
+  ["Varrição constante do salão? (impecável e limpo nos dias de feirinha)","1º PISO — HORTIFRUTI"],
+  ["Tarefas de limpeza subdivididas entre o salão e a área interna?","1º PISO — HORTIFRUTI"],
+
+  ["Área só com materiais de limpeza do 1º piso?","1º PISO — ÁREA MATERIAIS DE LIMPEZA"],
+  ["Ambiente limpo e organizado? (sem lixo e entulho misturado com material de limpeza)","1º PISO — ÁREA MATERIAIS DE LIMPEZA"],
+
+  ["Limpeza reforçada e diária feita?","1º PISO — BANHEIRO DOS CLIENTES"],
+  ["Os dois banheiros possuem papel higiênico?","1º PISO — BANHEIRO DOS CLIENTES"],
+
+  /* ================= 2º PISO ================= */
+  ["Sem alimentos impróprios para consumo armazenados nesta área? (retirar sempre, sem deixar acumular)","2º PISO — CÂMARA: CORREDOR"],
+  ["Acesso ao extintor desobstruído?","2º PISO — CÂMARA: CORREDOR"],
+  ["Limpeza no chão, paredes e na caixa da mangueira de bombeiro","2º PISO — CÂMARA: CORREDOR"],
+  ["Armários que estavam parados no estoque: higienizados antes do uso? (limpeza pesada urgente)","2º PISO — CÂMARA: CORREDOR"],
+  ["Lixos, caixas de papelão vazias, materiais de limpeza, pedra e outros itens fora do fluxo?","2º PISO — CÂMARA: CORREDOR"],
+  ["Aviso repetido retirado das portas das câmaras? (sem necessidade de 2 avisos iguais)","2º PISO — CÂMARA: CORREDOR"],
+  ["Empresa do óleo acionada para fazer a retirada?","2º PISO — CÂMARA: CORREDOR"],
+  ["Limpeza geral em todas as portas com mofo e salmonela","2º PISO — CÂMARA: CORREDOR"],
+  ["Japonas em perfeito estado? (fechos funcionando, sem desgastes; rasgadas: costurar ou substituir)","2º PISO — CÂMARA: CORREDOR"],
+
+  ["Limpeza geral da área feita?","2º PISO — CÂMARA: C&A"],
+  ["Itens sem uso retirados da câmara? (carrinho, caixas...)","2º PISO — CÂMARA: C&A"],
+  ["Paletes e MP afastados da parede?","2º PISO — CÂMARA: C&A"],
+  ["Toda matéria-prima organizada?","2º PISO — CÂMARA: C&A"],
+
+  ["Limpeza geral da área feita?","2º PISO — CÂMARA: DESLIGADA"],
+  ["Sala com papel toalha?","2º PISO — CÂMARA: DESLIGADA"],
+  ["Armário lacrado retirado do local? (ocupando espaço desnecessário)","2º PISO — CÂMARA: DESLIGADA"],
+  ["Utensílios do açougue retirados desta câmara?","2º PISO — CÂMARA: DESLIGADA"],
+
+  ["Restos sem acúmulo excessivo e dentro das caixas?","2º PISO — CÂMARA: DESCARTE C&A"],
+  ["Limpeza diária da câmara em dia? (mesmo sem uso — o cheiro do acúmulo estava extremo)","2º PISO — CÂMARA: DESCARTE C&A"],
+
+  ["Limpeza geral feita? (cantos das paredes, chão, porta e bancadas)","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Sem itens e produtos de limpeza no local?","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Local específico para embalagens, sacos, luvas, toucas e etiquetas? (sugestão: última prateleira)","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Sala com papel toalha?","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Sem frango descongelando dentro da pia? (proibido, ainda mais ao lado de utensílios sujos)","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Parede do fundo (lado esquerdo) sem mofo? (atenção ao chão e aos cantos do piso)","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Paletes e MP desencostados da parede?","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Caixas vazias, papelão e itens inutilizados retirados da sala?","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Estoque reorganizado de forma eficiente ao dia a dia?","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Limpeza da porta da câmara, removendo todo o mofo","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Baldes de azeitona (ou de outro alimento) em cima dos armários, nunca no chão?","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+  ["Azeitonas: limpeza, organização e identificação em dia? (já estava bem suja de novo)","2º PISO — CÂMARA: PREPARAÇÃO F&L"],
+
+  ["Carnes identificadas e sem encostar em caixas?","2º PISO — CÂMARA: CONGELADOS"],
+  ["Limpeza na porta (salmonela e mofo)","2º PISO — CÂMARA: CONGELADOS"],
+  ["Bancada exclusiva para a produção (padaria) combinada com o Sr. Sérgio? (separar do açougue — evita contaminação cruzada)","2º PISO — CÂMARA: CONGELADOS"],
+  ["Sem carnes em cima dos pães de alho? (contaminação cruzada — por isso o espaço específico da produção)","2º PISO — CÂMARA: CONGELADOS"],
+  ["Armário da produção com salgadinhos identificado?","2º PISO — CÂMARA: CONGELADOS"],
+
+  ["Câmara 1 (Laticínios + melancias e abóboras): limpeza e organização em dia?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Câmara 2 (Hortifruti): limpeza e organização em dia?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Câmara 3 (Pelanca): limpeza e organização em dia?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Câmara 4 (Embalamento): limpeza e organização em dia?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Câmara 5 (Carnes): limpeza e organização em dia?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Câmara 6 (Zero): divisão em ordem?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Câmara 7 (Confeitaria): porta limpa? (estava muito suja)","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Zero: carnes identificadas? (havia várias sem identificação e pizza vencida no carrinho)","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Zero: frios em grande volume e sem identificação? (precisa mandar um pouco para CF)","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Tiraram todos os salgados da Zero?","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+  ["Freezer dos salgados limpo? Temperatura conferida? (parece gelar muito rápido — precisa do degelo)","2º PISO — CÂMARAS (VISTORIA POR CÂMARA)"],
+
+  ["EPIs guardados no armário de cada manipulador ao fim do expediente? (sem aventais espalhados)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Alimento levado para a produção sai imediatamente da caixa de papelão? (descartar a caixa para prevenir pragas)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Limpeza no equipamento do pão francês (estava completamente sujo, com muita teia de aranha)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Bancada ao lado da porta só com MP? (retirar avental, embalagem, garrafa de água, caixas de papelão)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Bancada de matéria-prima sem produtos abertos vazando, sem identificação ou vencidos? (limpeza mínima semanal)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Limpeza geral (faxinão) feita? (armários, teto, parede, chão, utensílios)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Sem utensílio de madeira e pano de tecido?","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Produtos e itens de limpeza retirados da área?","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Massa sem ficar muito tempo na máquina?","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Utensílios totalmente limpos? (quanto tempo sem limpar? verificar o estado — compromete toda a alimentação preparada)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Como está a mistura para frios? (queijos e presuntos misturados?)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Pizzas e pães fracionados com validade na bandeja? (misturar queijo e presunto só na hora; fracionou, a validade deixa de ser da indústria — máximo 3 dias)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Sem fracionar com casca / lavagem parada ao mexer com MP? (pode espirrar no alimento)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Prateleiras dos armários limpas? (mesmo indo ao forno, precisa limpar — raspar com uma faca)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Validade de tudo conferida (algo vencido?)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Caixas quebradas verificadas e descartadas?","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+  ["Validades dos produtos produzidos conferidas? (ex.: pão de forma — quantos dias colocam e o produto aguenta?)","2º PISO — PRODUÇÃO - MANIPULAÇÃO"],
+
+  ["Palete exclusivo para a farinha? (sem embalagens e caixas em cima dos sacos)","2º PISO — PRODUÇÃO - SALA DA FARINHA"],
+  ["Limpeza geral em toda a parede (muito acúmulo de mofo)","2º PISO — PRODUÇÃO - SALA DA FARINHA"],
+  ["Toda matéria-prima fora do chão? (proibido)","2º PISO — PRODUÇÃO - SALA DA FARINHA"],
+  ["Bancada reorganizada? (itens pessoais separados dos alimentos — sugestão: uma prateleira só para itens pessoais, pranchetas, papéis, canetas)","2º PISO — PRODUÇÃO - SALA DA FARINHA"],
+
+  ["Bolos embalados com plástico? (estavam mofando)","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["Limpeza na lixeira, principalmente embaixo da tampa (estava extremamente suja)","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["Bolo confeitado guardado no armário da câmara? (a refrigeração desta área não é suficiente)","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["MP abertas com etiqueta e dentro da validade?","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["Limpeza nos armários e bancadas","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["Bancada inferior organizada, só com as embalagens do dia?","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["Celular, embalagens, itens pessoais, toucas e luvas guardados no local específico? (não espalhados pelo ambiente e alimentos)","2º PISO — PRODUÇÃO - CONFEITARIA"],
+  ["Limpeza e pintura em todos os armários da confeitaria","2º PISO — PRODUÇÃO - CONFEITARIA"],
+
+  ["Sem copos e garrafas na câmara?","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Limpeza geral feita? (armários, prateleiras, porta, paredes e forros — estava muito suja)","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["MP com etiqueta e dentro da validade? (não está com a mesma limpeza e organização de antes)","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Chantilly preparado no momento do uso? (não armazenar em estoque para depois)","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Validade de tudo conferida (algo vencido?)","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Caixas quebradas verificadas e descartadas?","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Manipuladores da produção e padaria usando acessórios?","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Porta: limpeza de mofo e ferrugem feita?","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Nada em cima dos armários?","2º PISO — CÂMARA: PRODUÇÃO"],
+  ["Freezer verificado?","2º PISO — CÂMARA: PRODUÇÃO"],
+
+  ["Etiquetagem em dia?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Limpeza em dia?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Pragas?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Produtos de limpeza guardados e fechados? (havia água sanitária aberta no meio dos alimentos e jogada no chão)","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Como estão os uniformes? Todos de sapatinho?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Estão de adornos?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Usaram reforçador vencido?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Corredor limpo e somente com ovos?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Polvilho dentro da sala de farinha?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Caixas vazias retiradas?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Limpeza dos maquinários em dia?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Sem louça suja de um dia para o outro?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Ralos fechados?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Copos guardados?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Luvas em bom estado?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Limpeza geral pesada agendada? (sábado?)","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Limpeza nos armários: molho e decapagem?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Máquina da foto da Dayse: como limpa aquilo?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Ovo subindo muito podre?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+  ["Empadão / pastel / torta salgada / salgadinhos: separação por pessoa feita? Cronograma da Monique em dia?","2º PISO — PRODUÇÃO (VERIFICAÇÃO GERAL)"],
+
+  ["Padeiros (Didi e Luciano): rotina, limpeza e etiquetagem em dia?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+  ["Matheus (auxiliar de padeiro): está identificando tudo do pastel e do empadão?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+  ["Matheus (auxiliar de padeiro): melhorou a qualidade em não deixar massudo e seco?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+  ["Vivi (confeitaria): organização do depósito com Jonatas em dia?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+  ["Vivi (confeitaria): limpeza em dia?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+  ["Vivi (confeitaria): etiquetagem em dia?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+  ["Tauan (confeitaria): bancada com limpeza, organização e identificação?","2º PISO — PRODUÇÃO (POR PESSOA)"],
+
+  ["Depósito organizado com Vivi e Álamo?","2º PISO — ESTOQUE PRODUÇÃO"],
+  ["PVPS organizado?","2º PISO — ESTOQUE PRODUÇÃO"],
+  ["Tem algo vencido? (olhar tudo eu mesma → usar logo)","2º PISO — ESTOQUE PRODUÇÃO"],
+  ["Embalagens organizadas?","2º PISO — ESTOQUE PRODUÇÃO"],
+  ["Matéria-prima fora do chão?","2º PISO — ESTOQUE PRODUÇÃO"],
+
+  ["Extintores desobstruídos e acessíveis?","2º PISO — DEPÓSITO"],
+  ["Objetos que obstruem o acesso ao extintor retirados?","2º PISO — DEPÓSITO"],
+  ["Paletes e matéria-prima afastados da parede?","2º PISO — DEPÓSITO"],
+  ["Chapatex, lixo, escada, produtos e itens de limpeza, maquinário e itens fora de lugar retirados?","2º PISO — DEPÓSITO"],
+  ["Embalagens e sacos separados da MP? (estavam misturados)","2º PISO — DEPÓSITO"],
+
+  ["Elevador fechado sempre que não estiver sendo usado?","2º PISO — ÁREA ELEVADOR"],
+
+  ["Ambiente limpo e organizado? (sem lixo e entulho misturado com material de limpeza)","2º PISO — ÁREA MATERIAIS DE LIMPEZA"],
+  ["Limpeza nos MOPs feita? (estavam extremamente sujos)","2º PISO — ÁREA MATERIAIS DE LIMPEZA"],
+
+  ["Limpeza em todas as caixas de mantimentos das comidas","2º PISO — COZINHA (UAN)"],
+  ["Etiquetas de abertura/validade em todos os alimentos utilizados?","2º PISO — COZINHA (UAN)"],
+  ["Limpeza em todos os freezers (muita sujeira acumulada)","2º PISO — COZINHA (UAN)"],
+  ["Produtos estragados ou fora da validade revisados e descartados?","2º PISO — COZINHA (UAN)"],
+  ["EPIs guardados no armário de cada manipulador ao fim do expediente?","2º PISO — COZINHA (UAN)"],
+  ["Máquinas sem uso retiradas da cozinha? (desfiador de frango e fritadeira → produção?)","2º PISO — COZINHA (UAN)"],
+  ["Garrafas de refrigerante retiradas da UAN? (muita quantidade — para quê e por que tudo isso?)","2º PISO — COZINHA (UAN)"],
+  ["Limpeza dos potes e utensílios em dia?","2º PISO — COZINHA (UAN)"],
+  ["Como está a geladeira?","2º PISO — COZINHA (UAN)"],
+  ["Pegou álcool?","2º PISO — COZINHA (UAN)"],
+  ["Retirou os potes que não usa? Precisa de mais?","2º PISO — COZINHA (UAN)"],
+  ["Identificação dos produtos em dia? (tanto na bancada quanto na geladeira)","2º PISO — COZINHA (UAN)"],
+  ["Como está com baratas?","2º PISO — COZINHA (UAN)"],
+  ["Bandeja grande para ovos providenciada?","2º PISO — COZINHA (UAN)"],
+  ["Trocar pote aberto pelo branco? (os com furinho que entra barata)","2º PISO — COZINHA (UAN)"],
+  ["Precisa daqueles potes da produção?","2º PISO — COZINHA (UAN)"],
+  ["Samuel: terminou a limpeza na cozinha? (forro, azulejos e janela) Já levaram tudo para dentro?","2º PISO — COZINHA (UAN)"],
+  ["Ver temperos naturais do mercado para a menina da cozinha usar","2º PISO — COZINHA (UAN)"],
+  ["Sobras?","2º PISO — COZINHA (UAN)"],
+  ["Higienização das verduras em dia? Tem produto ainda?","2º PISO — COZINHA (UAN)"],
+  ["Novo cardápio: revisado?","2º PISO — COZINHA (UAN)"],
+
+  ["Limpeza geral no bebedouro","2º PISO — REFEITÓRIO"],
+  ["Limpeza diária na rampa","2º PISO — REFEITÓRIO"],
+  ["Sem copos e garrafas em cima do bebedouro? (colocar aviso)","2º PISO — REFEITÓRIO"],
+
+  ["Feminino: itens pessoais dos colaboradores retirados do banheiro?","2º PISO — BANHEIROS COLABORADORES (F/M)"],
+  ["Masculino: itens pessoais dos colaboradores retirados do banheiro?","2º PISO — BANHEIROS COLABORADORES (F/M)"],
+
+  ["Itens pessoais fora dos armários? (orientar para que sejam guardados)","2º PISO — CORREDOR - BANHEIROS"],
+  ["Chave de cada armário com o respectivo funcionário?","2º PISO — CORREDOR - BANHEIROS"],
+
+  ["Extintor sinalizado, no cavalinho ou no suporte a 20cm?","2º PISO — ADM"]
+];
+async function ckModeloDiarioPronto(){
+  if(!currentStore){toast("Escolha uma empresa primeiro");return;}
+  /* já existe? abre o que existe em vez de criar duplicado */
+  const ja=ckModelos().find(m=>m.criado==="modelo-diario");
+  if(ja){toast("O Checklist Diário já existe — abrindo");ckAbrirConstrutor(ja.uid);return;}
+  const perguntas=CK_MODELO_DIARIO.map(([t,s],i)=>({
+    uid:newUid(),titulo:t,descricao:"",tipoResp:"simnao",opcoesLista:"",
+    na:true,coment:"inconforme",foto:"opcional",peso:1,ordem:i,removida:false,
+    secao:s,escopoP:"",acaoPadrao:"",baseLegal:""}));
+  /* encerramento: data e assinatura (peso 0 — não entram na nota) */
+  perguntas.push({uid:newUid(),titulo:"Data da verificação",descricao:"Informe a data.",
+    tipoResp:"data",opcoesLista:"",na:false,coment:"nao",foto:"nao",peso:0,
+    ordem:perguntas.length,removida:false,secao:"ENCERRAMENTO",escopoP:"",acaoPadrao:"",baseLegal:""});
+  perguntas.push({uid:newUid(),titulo:"Responsável pela verificação",
+    descricao:"Sua assinatura entra sozinha se já estiver guardada.",
+    tipoResp:"assinatura",opcoesLista:"",na:false,coment:"nao",foto:"nao",peso:0,
+    ordem:perguntas.length,removida:false,secao:"ENCERRAMENTO",escopoP:"",acaoPadrao:"",baseLegal:""});
+  const o={uid:newUid(),mod:nowISO(),tipo:"ckm",loja:ckLojaBase(),escopo:"",
+    criado:"modelo-diario",criadoEm:today(),ordem:ckModelos().length,ativo:true,
+    titulo:"Checklist Diário (Nutri Qualidade)",
+    descricao:"Verificação diária do mercado, seção por seção (1º e 2º piso). Marque 👎 no que estiver fora do padrão — as divergências entram no relatório semanal (PPR).",
+    perguntas};
+  o.id=await putItem(o);DATA.push(o);dataChanged();
+  CK_SEC="formularios";renderCk();ckAbrirConstrutor(o.uid);
+  toast("Checklist Diário criado ✓ Mude o que quiser nele");
 }
 async function ckRenomear(uid){
   const m=ckAchar(uid);if(!m)return;
@@ -854,7 +1200,7 @@ function ckRedesenhaPreench(){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   if(p.status==="concluido")return ckDesenhaResumo(true);
   const m=ckAchar(p.modeloUid);
-  if(CK_MODO==="lista"&&m&&ckTemAreas(m))ckDesenhaLista();else ckDesenhaPasso();
+  if(CK_MODO==="lista"&&m&&ckModoListaOk(m))ckDesenhaLista();else ckDesenhaPasso();
 }
 
 async function ckIniciar(modeloUid){
@@ -872,11 +1218,11 @@ async function ckCriarPreench(m,areas){
     respondente:"",assinatura:"",nota:null,respostas:{}};
   o.id=await putItem(o);DATA.push(o);dataChanged();
   CK_PREENCH=o.uid;CK_ETAPA=0;
-  if(CK_MODO==="lista"&&ckTemAreas(m))ckDesenhaLista();else ckDesenhaPasso();
+  if(CK_MODO==="lista"&&ckModoListaOk(m))ckDesenhaLista();else ckDesenhaPasso();
 }
 function ckRetomar(uid){const p=ckAchar(uid);if(!p)return;CK_PREENCH=uid;
   const m=ckAchar(p.modeloUid);
-  if(CK_MODO==="lista"&&m&&ckTemAreas(m))ckDesenhaLista();else ckDesenhaPasso();}
+  if(CK_MODO==="lista"&&m&&ckModoListaOk(m))ckDesenhaLista();else ckDesenhaPasso();}
 
 /* ---- escolher as áreas da inspeção de hoje ---- */
 let CK_AREAS_SEL=new Set(),CK_AREAS_MOD="";
@@ -956,7 +1302,7 @@ function ckDesenhaPasso(){
   const p=ckAchar(CK_PREENCH);if(!p)return ckFecharPreench();
   const m=ckAchar(p.modeloUid);
   if(!m){alert("O checklist deste preenchimento foi excluído.");return ckFecharPreench();}
-  if(CK_MODO==="lista"&&ckTemAreas(m))return ckDesenhaLista();
+  if(CK_MODO==="lista"&&ckModoListaOk(m))return ckDesenhaLista();
   const cel=ckExpandir(m,p);
   if(p.posicao>=cel.length)return ckDesenhaResumo(false);
   const i=Math.max(0,Math.min(p.posicao||0,cel.length-1));
@@ -967,7 +1313,7 @@ function ckDesenhaPasso(){
   el.innerHTML=`<div class="ck-pr-topo">
       <button class="ck-pr-x" onclick="ckSairPreench()" title="Sair e guardar em Parciais">✕</button>
       <span class="ck-pr-nome">${esc(m.titulo||"")}</span>
-      ${ckTemAreas(m)?`<button class="ck-pr-modo" onclick="ckSetModo('lista')" title="Ver tudo em lista">☰ Lista</button>`:""}
+      ${ckModoListaOk(m)?`<button class="ck-pr-modo" onclick="ckSetModo('lista')" title="Ver tudo em lista">☰ Lista</button>`:""}
     </div>
     <div class="ck-pr-box">
       ${area?`<div class="ck-pr-area">${ckIcoArea(area)} ${esc(area)}</div>`:""}
@@ -1002,7 +1348,8 @@ function ckDesenhaPasso(){
    =================================================================== */
 let CK_ETAPA=0;
 function ckEtapas(m,p){
-  const et=[{area:"",rot:"Geral da loja",ico:"🏬"}];
+  /* checklist sem áreas (o Diário): uma etapa só, com as seções agrupadas dentro */
+  const et=[{area:"",rot:ckTemAreas(m)?"Geral da loja":"Checklist completo",ico:"🏬"}];
   for(const a of (p.areas||[]))et.push({area:a,rot:a,ico:ckIcoArea(a)});
   return et.filter(e=>ckExpandir(m,p).some(c=>c.area===e.area));
 }
@@ -1517,7 +1864,7 @@ function ckValorTexto(q,r){
 async function ckVoltarUltima(){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   const m=ckAchar(p.modeloUid);
-  if(CK_MODO==="lista"&&m&&ckTemAreas(m))return ckDesenhaLista();
+  if(CK_MODO==="lista"&&m&&ckModoListaOk(m))return ckDesenhaLista();
   const n=m?ckExpandir(m,p).length:1;
   p.posicao=Math.max(0,n-1);await ckSalvar(p);ckDesenhaPasso();
 }
