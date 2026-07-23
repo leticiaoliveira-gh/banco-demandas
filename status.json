@@ -1,6 +1,7 @@
 {
-  "atualizadoEm": "2026-07-20",
+  "atualizadoEm": "2026-07-23",
   "versao": "9.7",
+  "qa": "QA 23/07 (sessao PLANEJAMENTO UNIFICACAO): sintaxe dos 13 modulos OK; boot sem erro de console; capa, hub Sumario e todas as abas (dg, ck, ckq, nc, list, add) renderizam limpas; criacao de item OK; site no ar = commit 25a0ab1 (v9.7, deploy 20/07 success); sincronizacao REAL ok (banco.json 1,35 MB, 1527 itens, ultimo sync 21/07, CRN preenchido). Achados menores a conferir: (1) barra lateral exibe 'v9.2' mas a versao e 9.7; (2) 34 itens da empresa SF sem campo status; (3) statuses 'andamento'/'concluido' em minusculo nos checklists — confirmar se e vocabulario intencional; (4) lista de pendencias da capa esta vazia no sync — confirmar se ela zerou de proposito.",
   "ondeParamos": "Aba Qualidade / BPF com 12 modelos e a caixa 'Como faco para...' na capa. FALTA: os modelos foram montados com perguntas inventadas — a proxima sessao vai abrir cada arquivo que voce me mandou na pasta SITE pc e reescrever com o texto real seu.",
   "proximoPasso": "Ler PLANILHAS.docx primeiro (e o inventario), depois cada .xls dela e substituir as perguntas nos modelos correspondentes."
 }
