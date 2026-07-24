@@ -696,9 +696,10 @@ async function renderHome(){
     olho, nunca confio"). Os DADOS continuam existindo e sincronizando — a lista
     abre por gerirPendencias() no painel ↕ Organizar a capa. Fica só o "Onde
     paramos" (status.json), enxuto. */
- document.getElementById("home-cards").innerHTML=`
-   <div class="card">
-     <div class="sub" style="line-height:1.5"><b><span data-txt="capa.ondeParamos">Onde paramos</span>${quando}:</b><br>${ondeParamos}</div></div>`;
+ /* 23/07 (2ª rodada): ela mandou tirar TAMBÉM o "Onde paramos" e qualquer card
+    da capa ("nunca confio, nunca entro"). A capa fica só com empresas. O texto
+    do status.json continua disponível no 🗺 Mapa do site, para quando quiser. */
+ document.getElementById("home-cards").innerHTML="";
  renderHomeStats(vivos);
  /* painel do modo organizar: o que ela quer ver na capa */
  const po=document.getElementById("capa-organizar");
