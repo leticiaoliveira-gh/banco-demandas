@@ -675,13 +675,15 @@ async function renderHome(){
  const vivos=DATA.filter(d=>!d.deleted);
  const lb=await metaGet("lastBackup");
  /* estado do backup automático em pasta */
- let autoOk=false,backupInfo="",backupBtns=`<button class="btn ghost sm" onclick="exportExcel()"><span data-txt="capa.fazerBackup">⬇ Fazer backup</span></button>`;
+ /* 23/07 (pedido dela — menos poluição): UM botãozinho "⬇ Backup" + estado curto.
+    "Ativar automático" saiu do topo — mora no painel ↕ Organizar a capa.
+    "Reautorizar" só aparece quando a pasta perdeu a permissão (aí é necessário). */
+ let autoOk=false,backupInfo="",backupBtns=`<button class="btn ghost sm" title="Baixar agora um backup completo (Excel + arquivo do site)" onclick="exportExcel()"><span data-txt="capa.fazerBackup">⬇ Backup</span></button>`;
  if(window.showDirectoryPicker){
    const dirH=await metaGet("backupDir");
-   if(!dirH)backupBtns+=` <button class="btn ghost sm" onclick="setupAutoBackup()"><span data-txt="capa.autoBackup">⚙ Ativar automático</span></button>`;
-   else{
+   if(dirH){
      let perm="denied";try{perm=await dirH.queryPermission({mode:"readwrite"});}catch(e){}
-     if(perm==="granted"){autoOk=true;backupInfo=" · automático ativo ✓";}
+     if(perm==="granted"){autoOk=true;backupInfo=" · auto ✓";}
      else backupBtns+=` <button class="btn ghost sm" onclick="reauthBackup()">🔓 Reautorizar pasta</button>`;
    }
  }
@@ -690,12 +692,13 @@ async function renderHome(){
  const ondeParamos=st.ondeParamos?esc(st.ondeParamos):"—";
  const dISO=/^\d{4}-\d{2}-\d{2}$/.test(st.atualizadoEm||"")?st.atualizadoEm.split("-").reverse().join("/"):(st.atualizadoEm||"");
  const quando=dISO?` <span style="opacity:.7">(${esc(dISO)})</span>`:"";
+ /* 23/07: o card "PENDÊNCIAS DE CONFIGURAÇÃO" SAIU da capa (pedido dela: "nunca
+    olho, nunca confio"). Os DADOS continuam existindo e sincronizando — a lista
+    abre por gerirPendencias() no painel ↕ Organizar a capa. Fica só o "Onde
+    paramos" (status.json), enxuto. */
  document.getElementById("home-cards").innerHTML=`
-   <div class="card"><div class="lbl" data-txt="capa.pendTitulo">PENDÊNCIAS DE CONFIGURAÇÃO</div>
-     <div class="val accent">${pendAbertas.length}</div>
-     <div class="sub" style="margin-top:2px">${pendAbertas.length===1?"pendência em aberto":"pendências em aberto"}</div>
-     <div class="sub" style="margin-top:10px;line-height:1.5"><b><span data-txt="capa.ondeParamos">Onde paramos</span>${quando}:</b><br>${ondeParamos}</div>
-     <div style="margin-top:10px"><button class="btn ghost sm" onclick="gerirPendencias()"><span data-txt="capa.verLista">📋 Ver lista completa</span></button></div></div>`;
+   <div class="card">
+     <div class="sub" style="line-height:1.5"><b><span data-txt="capa.ondeParamos">Onde paramos</span>${quando}:</b><br>${ondeParamos}</div></div>`;
  renderHomeStats(vivos);
  /* painel do modo organizar: o que ela quer ver na capa */
  const po=document.getElementById("capa-organizar");
@@ -705,23 +708,26 @@ async function renderHome(){
     <div class="org-tit">↕ Organizando a capa</div>
     <p class="org-txt">Segure a alça <b>⠿</b> de cada empresa e arraste para a ordem que você quiser.
       Marque abaixo o que deve aparecer nesta tela.</p>
-    <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarPendencias?"checked":""}
-      onchange="capaMostrar('mostrarPendencias',this.checked)"> Card de <b>Pendências de configuração</b></label>
     <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarNumeros?"checked":""}
       onchange="capaMostrar('mostrarNumeros',this.checked)"> Faixa com os <b>números</b> (Quadro Geral, Urgentes, Manutenções, Inspeções)</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn ghost sm" title="A lista continua existindo e sincronizando — só saiu da capa" onclick="gerirPendencias()">📋 Pendências de configuração${pendAbertas.length?" ("+pendAbertas.length+")":""}</button>
+      ${window.showDirectoryPicker&&!autoOk?`<button class="btn ghost sm" onclick="setupAutoBackup()"><span data-txt="capa.autoBackup">⚙ Ativar backup automático</span></button>`:""}
+    </div>
     <button class="btn sm" style="margin-top:12px" onclick="toggleOrganizarCapa()">✓ Concluir</button>`;
  }
- /* o card de pendências também é opcional agora */
- const pc=document.getElementById("home-cards");
- if(pc)pc.hidden=!CAPA_CFG.mostrarPendencias;
  /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) */
  const topB=document.getElementById("backup-top");
  if(topB)topB.innerHTML=`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
- /* lembrete: sem backup automático e sem export recente */
+ /* Lembrete de backup SILENCIADO (23/07, pedido dela: "parar de pedir").
+    Não aparece: com backup automático ativo, com backup recente (<14 dias),
+    em dispositivo temporário (PC do trabalho — nada fica lá mesmo) ou sem dados.
+    Quando aparece, é UMA linha discreta, não um cartão de aviso. */
  const dias=lb?Math.floor((Date.now()-new Date(lb).getTime())/864e5):null;
+ const tempSync=(typeof syncIsTemporario==="function")&&syncIsTemporario();
  document.getElementById("backup-banner").innerHTML=
-   (vivos.length&&!autoOk&&(dias===null||dias>=7))?
-   `<div class="card" style="border-color:var(--amber);margin-bottom:22px">⚠️ ${lb?("Seu último backup foi há "+dias+" dia"+(dias===1?"":"s")):"Você ainda não fez nenhum backup"} — os dados ficam salvos apenas neste navegador. <button class="btn sm" style="margin-left:8px" onclick="exportExcel()">Exportar agora</button></div>`:"";
+   (vivos.length&&!autoOk&&!tempSync&&(dias===null||dias>=14))?
+   `<div style="font-size:12.5px;margin:0 0 16px;opacity:.75">${lb?("Último backup há "+dias+" dias"):"Nenhum backup feito neste navegador"} · <span class="back-link" onclick="exportExcel()">baixar agora</span></div>`:"";
  let html="";
  /* busca, filtro e ordenação das empresas (capa) */
  const _q=(document.getElementById("empQ")?.value||"").trim().toLowerCase();
@@ -1265,7 +1271,7 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
   toast(novos+(novos===1?" item importado":" itens importados")+(pulados?" · "+pulados+" já estavam aqui":"")+" ✓");
   render();if(typeof renderDG==="function")renderDG();dataChanged();
  }catch(err){alert("Não consegui ler este arquivo.\n\nEste botão aceita apenas o arquivo .json de backup"
-   +" gerado por este próprio site (botão \"⬇ Fazer backup\" na capa).\n\n"
+   +" gerado por este próprio site (botão \"⬇ Backup\" na capa).\n\n"
    +"Planilhas (.xlsx/.csv), PDF e Word não entram por aqui.");}e.target.value="";}
 
 /* ---- backup automático em pasta (Chrome/Edge no computador) ---- */
@@ -1438,13 +1444,13 @@ const COMO_FACO=[
     "Aperte Registrar. O item aparece na aba correspondente automaticamente."
   ]},
   {k:"backup",titulo:"Fazer um backup agora",passos:[
-    "Na Capa, aperte ⬇ Fazer backup (ao lado do ⚙ Sincronização).",
+    "Na Capa, aperte ⬇ Backup (ao lado do ⚙ Sincronização).",
     "O site baixa os arquivos direto para a pasta de downloads.",
     "Se o backup automático está ativo, esta pasta também é atualizada sozinha."
   ]},
   {k:"backup-auto",titulo:"Ativar o backup automático no computador",passos:[
     "Só funciona no Chrome/Edge do computador (não vai no celular).",
-    "Na Capa, aperte ⚙ Ativar automático.",
+    "Na Capa, aperte ↕ Organizar a capa (no rodapé) e depois ⚙ Ativar backup automático.",
     "Escolha a pasta onde os backups devem ficar (ex.: Backups - Relatório Não Conformidades).",
     "Pronto. A partir de agora, cada mudança grava sozinha em uma subpasta com a data."
   ]},
@@ -1546,7 +1552,7 @@ function mapaDoSite(){
   <div class="mapa-cx"><h3>6. Se você quiser sair do site um dia</h3>
     <ul>
       <li><b>⬇ Exportar Excel</b> (dentro de uma empresa) tira tudo em planilha.</li>
-      <li><b>⬇ Fazer backup</b> (na capa) salva um arquivo com absolutamente tudo.</li>
+      <li><b>⬇ Backup</b> (na capa) salva um arquivo com absolutamente tudo.</li>
       <li>Esse arquivo abre em qualquer computador, sem depender deste site nem de nenhuma inteligência artificial.</li>
     </ul></div>
   <div class="form-actions"><button class="btn" onclick="ncFechar()">Fechar</button></div>`);

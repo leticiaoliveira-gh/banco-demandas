@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=70">
+<link rel="stylesheet" href="css/app.css?v=71">
 </head>
 <body>
 <div class="app">
@@ -33,7 +33,7 @@
     <div id="railTabs" class="rail-tabs" hidden></div>
     <!-- cronômetro: fica na barra, alcançável de qualquer aba -->
     <button class="ricon" id="btCrono" onclick="toggleCronometro()" title="Cronômetro (vários tempos)" aria-label="Cronômetro">⏱<span class="crono-bolha" id="crono-bolha" hidden></span></button>
-    <div class="rail-ver" title="Versão do site">v9.9</div>
+    <div class="rail-ver" title="Versão do site">v9.10</div>
   </div>
 
   <!-- CAPA -->
@@ -47,10 +47,10 @@
           <p id="rt-linha" class="store-sub" style="margin-top:7px;cursor:pointer" title="Toque para editar" onclick="editarRtInfo()"></p>
           <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px">
             <button class="btn ghost" id="syncPillHome" title="Configurar/ver o status da sincronização (vale para o site inteiro)" onclick="openSyncModal()"><span data-txt="capa.sync">⚙ Sincronização</span></button>
-            <!-- o modo edição só existia no menu ⋯ DENTRO da empresa; na Capa ela clicava
-                 no título e nada acontecia. Agora tem botão aqui. (20/07) -->
-            <button class="btn ghost" title="Ligar/desligar a edição dos textos desta tela" onclick="toggleModoEdicao()"><span data-txt="capa.editar">✏️ Editar textos</span></button>
-            <button class="btn ghost" id="btOrganizar" title="Arrastar as empresas para a ordem que você quiser e escolher o que aparece" onclick="toggleOrganizarCapa()"><span data-txt="capa.organizar">↕ Organizar a capa</span></button>
+            <!-- 23/07: pedido dela — menos poluição. Editar textos virou SÓ um botãozinho
+                 redondo com o lápis; "Organizar a capa" saiu daqui (o acesso mora no rodapé
+                 da capa e dentro do painel de organizar — a função continua a mesma). -->
+            <button class="btn ghost btn-round" title="Ligar/desligar a edição dos textos desta tela (lápis)" aria-label="Editar os textos" onclick="toggleModoEdicao()">✎</button>
             <span id="backup-top" class="backup-top"></span>
           </div>
         </div>
@@ -103,11 +103,12 @@
       <div style="margin-top:28px;text-align:center">
         <span class="back-link" style="margin:0 14px 0 0" title="Passo a passo curto para as coisas mais comuns" onclick="comoFacoLista()"><span data-txt="capa.comofaco">❓ Como faço para...</span></span>
         <span class="back-link" style="margin:0 14px 0 0" title="Entenda como o site funciona por dentro — para você mexer sozinha" onclick="mapaDoSite()"><span data-txt="capa.mapa">🗺 Mapa do site</span></span>
+        <span class="back-link" style="margin:0 14px 0 0" title="Arrastar as empresas para a ordem que você quiser e escolher o que aparece" onclick="toggleOrganizarCapa()"><span data-txt="capa.organizar">↕ Organizar a capa</span></span>
         <span class="back-link" style="margin:0 14px 0 0" title="Use ao sair de um computador que não é seu" onclick="limparDispositivo()"><span data-txt="capa.limpar">🧹 Limpar dados deste dispositivo</span></span>
         <!-- fim de expediente no PC do trabalho: envia o que ela fez e apaga o rastro -->
         <span class="back-link" style="margin:0" title="Ao terminar o dia no PC do trabalho: envia o que você fez e apaga tudo daqui" onclick="sairDaqui()"><span data-txt="capa.sair">🚪 Sair e apagar deste PC</span></span>
         <!-- versão visível também no celular (a rail some em telas pequenas — pedido de Lê 23/07) -->
-        <div style="margin-top:10px;opacity:.55;font-size:12px" title="Versão do site">Versão do site: v9.9</div>
+        <div style="margin-top:10px;opacity:.55;font-size:12px" title="Versão do site">Versão do site: v9.10</div>
       </div>
     </div>
   </div>
@@ -263,20 +264,20 @@
   </div>
 </div>
 
-<script src="js/app.js?v=70"></script>
-<script src="js/docxlite.js?v=70"></script>
-<script src="js/dg.js?v=70"></script>
-<script src="js/pdflite.js?v=70"></script>
-<script src="js/ck.js?v=70"></script>
-<script src="js/ck-modelo2.js?v=70"></script>
-<script src="js/arquivos.js?v=70"></script>
-<script src="js/cronometro.js?v=70"></script>
-<script src="js/pdf-abas.js?v=70"></script>
-<script src="js/configs.js?v=70"></script>
-<script src="js/nc.js?v=70"></script>
-<script src="js/ck-qualidade.js?v=70"></script>
-<script src="js/ppr.js?v=70"></script>
-<script src="js/ind.js?v=70"></script>
-<script src="js/sync.js?v=70"></script>
+<script src="js/app.js?v=71"></script>
+<script src="js/docxlite.js?v=71"></script>
+<script src="js/dg.js?v=71"></script>
+<script src="js/pdflite.js?v=71"></script>
+<script src="js/ck.js?v=71"></script>
+<script src="js/ck-modelo2.js?v=71"></script>
+<script src="js/arquivos.js?v=71"></script>
+<script src="js/cronometro.js?v=71"></script>
+<script src="js/pdf-abas.js?v=71"></script>
+<script src="js/configs.js?v=71"></script>
+<script src="js/nc.js?v=71"></script>
+<script src="js/ck-qualidade.js?v=71"></script>
+<script src="js/ppr.js?v=71"></script>
+<script src="js/ind.js?v=71"></script>
+<script src="js/sync.js?v=71"></script>
 </body>
 </html>

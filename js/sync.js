@@ -308,64 +308,70 @@ function syncInit(){
 }
 const SYNC_INTERVALO=5*60000;
 
-/* ---- tela de configuração ---- */
+/* ---- tela de configuração ----
+   REESTRUTURADA em 23/07 (pedido dela — muito mais limpa):
+   1) estado atual em UMA linha; 2) UM botão grande "Entrar com a minha chave"
+   (+ "Gerar minha chave" pequeno, só quando já conectada); 3) usuário/repo/token
+   e o passo a passo curto dentro de um <details> fechado; 4) "Salvar e conectar"
+   TESTA sozinho antes de salvar; "Desconectar" virou linkzinho; fechar = X/fora. */
+const SY_PAD_OWNER="leticiaoliveira-gh",SY_PAD_REPO="banco-demandas-dados";
 function openSyncModal(){
  let m=document.getElementById("sync-modal");
  if(!m){
    m=document.createElement("div");m.id="sync-modal";
    m.style.cssText="position:fixed;inset:0;background:rgba(20,20,30,.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px";
-   m.innerHTML=`
-   <div class="form-wrap" style="max-width:560px;max-height:90vh;overflow:auto" onclick="event.stopPropagation()">
-     <h2>⚙ Sincronização entre dispositivos</h2>
-     <p class="desc">Seus dados são gravados num repositório <b>privado</b> do seu GitHub (nunca no site público). Configure uma vez em cada dispositivo e tudo passa a se atualizar sozinho.</p>
-     <!-- CAMINHO DO DIA A DIA no PC do trabalho: entrar pela chave do pendrive.
-          O passo a passo do token abaixo é só para a PRIMEIRA vez, em casa. -->
-     <div style="background:#eef5f2;border:1px solid #cfe3db;border-radius:11px;padding:14px 16px;margin-bottom:18px">
-       <b style="font-size:13.5px">🔑 Entrar sem digitar nada</b>
-       <p style="font-size:12.5px;color:var(--muted);margin:6px 0 11px;line-height:1.55">
-         Para o computador do trabalho: use o arquivo da sua chave, que fica no seu pendrive.
-         Nada é salvo naquele PC — fechou a aba, acabou.</p>
-       <div style="display:flex;gap:8px;flex-wrap:wrap">
-         <button class="btn" onclick="document.getElementById('arqChave').click()">🔑 Entrar com a minha chave</button>
-         <button class="btn ghost" title="Faça isto no SEU computador, uma vez" onclick="gerarChaveAcesso()">💾 Gerar minha chave</button>
-       </div>
-       <input type="file" id="arqChave" accept=".json" style="display:none" onchange="entrarComChave(event)">
-     </div>
-     <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:12.5px;line-height:1.6">
-       <b>Como criar (só na primeira vez):</b><br>
-       1. No GitHub, crie um repositório <b>privado</b> chamado <b>banco-demandas-dados</b> (github.com/new).<br>
-       2. Vá em <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token</b>.<br>
-       3. Em <i>Repository access</i>, escolha <b>Only select repositories</b> → selecione <b>banco-demandas-dados</b>.<br>
-       4. Em <i>Permissions → Repository permissions → Contents</i>, escolha <b>Read and write</b>.<br>
-       5. Validade: <b>1 ano</b>. Gere e copie o token (começa com <code>github_pat_</code>) e cole abaixo.
-     </div>
-     <div class="grid2">
-       <div class="field"><label>Usuário do GitHub</label><input id="syOwner"></div>
-       <div class="field"><label>Repositório privado</label><input id="syRepo"></div>
-     </div>
-     <div class="field"><label>Token (fine-grained PAT)</label><input id="syToken" type="password" placeholder="github_pat_..."></div>
-     <label style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px;margin:2px 0 16px;cursor:pointer;line-height:1.5">
-       <input type="checkbox" id="syTemp" style="width:auto;margin-top:2px">
-       <span><b>Não salvar neste dispositivo</b> — use em computador de trabalho ou de terceiros. O acesso funciona só até você fechar esta aba; depois disso, nada fica guardado aqui, mesmo que outra pessoa use o PC em seguida.</span>
-     </label>
-     <div id="syMsg" style="font-size:12.5px;margin-bottom:12px"></div>
-     <div class="form-actions" style="flex-wrap:wrap">
-       <button class="btn ghost" onclick="testSyncConnection()">Testar conexão</button>
-       <button class="btn" onclick="saveSyncConfig()">Salvar e sincronizar</button>
-       <button class="btn ghost" onclick="disableSync()">Desativar</button>
-       <button class="btn ghost" onclick="closeSyncModal()">Fechar</button>
-     </div>
-   </div>`;
    m.onclick=closeSyncModal;
    document.body.appendChild(m);
  }
  const c=syncCfg();
- document.getElementById("syOwner").value=c.owner;
- document.getElementById("syRepo").value=c.repo;
- document.getElementById("syToken").value=c.token;
- document.getElementById("syTemp").checked=syncIsTemporario();
- document.getElementById("syMsg").textContent=syncEnabled()?
-   (syncIsTemporario()?"Sincronização TEMPORÁRIA ativa — some ao fechar esta aba.":"Sincronização ativa neste dispositivo."):"";
+ const ligada=syncEnabled();
+ /* estado em UMA linha */
+ let estado;
+ if(ligada){
+   const min=syncLast?Math.max(0,Math.round((Date.now()-syncLast)/60000)):null;
+   estado=`Conectada como <b>${c.owner||"?"}</b>`+
+     (min===null?"":` · última sincronização ${min===0?"agora":"há "+min+" min"}`)+
+     (syncIsTemporario()?" · <b>temporária</b> (some ao fechar a aba)":"");
+ }else estado=`<span data-txt="sync.naoConectada">Não conectada neste aparelho.</span>`;
+ /* usuário/repositório memorizados (localStorage NÃO sensível; token NUNCA) */
+ let lo="",lr="";try{lo=localStorage.getItem("sy_last_owner")||"";lr=localStorage.getItem("sy_last_repo")||"";}catch(e){}
+ m.innerHTML=`
+ <div class="form-wrap" style="max-width:520px;max-height:90vh;overflow:auto;position:relative" onclick="event.stopPropagation()">
+   <button class="btn ghost sm" style="position:absolute;top:10px;right:10px;padding:4px 10px" title="Fechar" aria-label="Fechar" onclick="closeSyncModal()">✕</button>
+   <h2>⚙ Sincronização</h2>
+   <p class="desc" style="margin-bottom:6px">${estado}</p>
+   <p class="desc" style="font-size:12.5px" data-txt="sync.explica">O que você fizer aqui sobe na hora para a nuvem; seus outros aparelhos recebem quando abrirem o site.</p>
+   <div style="margin:16px 0 6px">
+     <button class="btn" style="width:100%;padding:13px;font-size:14.5px" onclick="document.getElementById('arqChave').click()"><span data-txt="sync.entrarChave">🔑 Entrar com a minha chave</span></button>
+     ${ligada?`<div style="margin-top:8px;text-align:center"><span class="back-link" style="font-size:12.5px" title="Baixa o arquivo-chave para usar em outro aparelho" onclick="gerarChaveAcesso()"><span data-txt="sync.gerarChave">💾 Gerar minha chave</span></span></div>`:""}
+     <input type="file" id="arqChave" accept=".json" style="display:none" onchange="entrarComChave(event)">
+   </div>
+   <details style="margin:14px 0 4px">
+     <summary style="cursor:pointer;font-size:13px;color:var(--muted)" data-txt="sync.manual">Configuração manual (primeira vez)</summary>
+     <div style="margin-top:12px">
+       <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin:0 0 12px">
+         1. Crie um repositório <b>privado</b> em github.com/new.<br>
+         2. Em Settings → Developer settings → Fine-grained tokens, gere um token só desse repositório.<br>
+         3. Permissão Contents: <b>Read and write</b> · validade 1 ano.<br>
+         4. Cole o token abaixo e aperte Salvar e conectar.</p>
+       <div class="grid2">
+         <div class="field"><label>Usuário do GitHub</label><input id="syOwner" value="${(c.owner||lo||SY_PAD_OWNER).replace(/"/g,"&quot;")}"></div>
+         <div class="field"><label>Repositório privado</label><input id="syRepo" value="${(c.repo||lr||SY_PAD_REPO).replace(/"/g,"&quot;")}"></div>
+       </div>
+       <div class="field"><label>Token (fine-grained PAT)</label><input id="syToken" type="password" placeholder="github_pat_..."></div>
+       <label style="display:flex;gap:9px;align-items:center;font-size:12.5px;margin:2px 0 14px;cursor:pointer">
+         <input type="checkbox" id="syTemp" style="width:auto" ${syncIsTemporario()?"checked":""}>
+         <span data-txt="sync.temp"><b>Não salvar neste dispositivo</b> (PC de trabalho/terceiros — some ao fechar a aba).</span>
+       </label>
+       <div id="syMsg" style="font-size:12.5px;margin-bottom:10px"></div>
+       <div class="form-actions" style="flex-wrap:wrap;align-items:center">
+         <button class="btn" onclick="saveSyncConfig()"><span data-txt="sync.salvar">Salvar e conectar</span></button>
+         ${ligada?`<span class="back-link" style="font-size:12px" onclick="disableSync()"><span data-txt="sync.desconectar">Desconectar deste aparelho</span></span>`:""}
+       </div>
+     </div>
+   </details>
+ </div>`;
+ if(window.aplicarTextos)setTimeout(aplicarTextos,0);
  m.style.display="flex";
 }
 function closeSyncModal(){const m=document.getElementById("sync-modal");if(m)m.style.display="none";}
@@ -473,25 +479,30 @@ function syCfgFromForm(){return {
  repo:document.getElementById("syRepo").value.trim(),
  token:document.getElementById("syToken").value.trim()};}
 
-async function testSyncConnection(){
- const c=syCfgFromForm(),msg=document.getElementById("syMsg");
- if(!c.owner||!c.repo||!c.token){msg.textContent="Preencha usuário, repositório e token.";msg.style.color="var(--amber)";return;}
- msg.textContent="Testando…";msg.style.color="";
+/* teste de conexão — devolve string de erro ou "" quando OK
+   (o "Testar conexão" foi FUNDIDO no Salvar e conectar em 23/07) */
+async function _syTesta(c){
  try{
    const r=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo,{headers:syncHdrs(c)});
-   if(r.status===404)throw new Error("Repositório não encontrado — confira o nome e se o token tem acesso a ele.");
-   if(r.status===401)throw new Error("Token inválido ou expirado.");
-   if(!r.ok)throw new Error("Erro "+r.status+" ao acessar o repositório.");
+   if(r.status===404)return "Repositório não encontrado — confira o nome e se o token tem acesso a ele.";
+   if(r.status===401)return "Token inválido ou expirado.";
+   if(!r.ok)return "Erro "+r.status+" ao acessar o repositório.";
    const j=await r.json();
-   if(!j.private){msg.textContent="⚠ Esse repositório é PÚBLICO. Use um repositório privado para os seus dados.";msg.style.color="var(--amber)";return;}
-   if(!(j.permissions&&j.permissions.push)){msg.textContent="⚠ O token não tem permissão de escrita (Contents: Read and write).";msg.style.color="var(--amber)";return;}
-   msg.textContent="✓ Conexão OK — repositório privado com permissão de escrita.";msg.style.color="var(--green)";
- }catch(e){msg.textContent="✗ "+e.message;msg.style.color="var(--amber)";}
+   if(!j.private)return "Esse repositório é PÚBLICO. Use um repositório privado para os seus dados.";
+   if(!(j.permissions&&j.permissions.push))return "O token não tem permissão de escrita (Contents: Read and write).";
+   return "";
+ }catch(e){return navigator.onLine===false?"Sem internet agora.":("Não consegui testar: "+(e&&e.message||e));}
 }
 
 async function saveSyncConfig(){
  const c=syCfgFromForm(),msg=document.getElementById("syMsg");
  if(!c.owner||!c.repo||!c.token){msg.textContent="Preencha usuário, repositório e token.";msg.style.color="var(--amber)";return;}
+ /* testa SOZINHO antes de salvar — só grava se a conexão funcionar */
+ msg.textContent="Testando a conexão…";msg.style.color="";
+ const erro=await _syTesta(c);
+ if(erro){msg.textContent="✗ "+erro;msg.style.color="var(--amber)";return;}
+ /* memoriza usuário/repositório para pré-preencher da próxima vez (NUNCA o token) */
+ try{localStorage.setItem("sy_last_owner",c.owner);localStorage.setItem("sy_last_repo",c.repo);}catch(e){}
  const temporario=document.getElementById("syTemp").checked;
  const guarda=temporario?sessionStorage:localStorage;
  const outra=temporario?localStorage:sessionStorage;
@@ -500,11 +511,12 @@ async function saveSyncConfig(){
  guarda.setItem("gh_sync_owner",c.owner);
  guarda.setItem("gh_sync_repo",c.repo);
  guarda.setItem("gh_sync_token",c.token);
- closeSyncModal();toast(temporario?"Sincronização temporária ativada ✓ (some ao fechar a aba)":"Sincronização configurada ✓");
+ closeSyncModal();toast(temporario?"Conectada só nesta aba ✓ (some ao fechar)":"Conectada ✓");
  syncDirty=true;syncNow();
 }
 
 function disableSync(){
+ if(!confirm("Desconectar a sincronização DESTE aparelho?\n\nSeus dados na nuvem e os outros aparelhos continuam intactos."))return;
  try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
- setSyncState("off");closeSyncModal();toast("Sincronização desativada neste dispositivo");
+ setSyncState("off");closeSyncModal();toast("Desconectada deste aparelho ✓");
 }
