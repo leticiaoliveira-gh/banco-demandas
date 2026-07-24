@@ -341,11 +341,31 @@ function openSyncModal(){
    <h2>⚙ Sincronização</h2>
    <p class="desc" style="margin-bottom:6px">${estado}</p>
    <p class="desc" style="font-size:12.5px" data-txt="sync.explica">O que você fizer aqui sobe na hora para a nuvem; seus outros aparelhos recebem quando abrirem o site.</p>
+   ${ligada?`
    <div style="margin:16px 0 6px">
      <button class="btn" style="width:100%;padding:13px;font-size:14.5px" onclick="document.getElementById('arqChave').click()"><span data-txt="sync.entrarChave">🔑 Entrar com a minha chave</span></button>
-     ${ligada?`<div style="margin-top:8px;text-align:center"><span class="back-link" style="font-size:12.5px" title="Baixa o arquivo-chave para usar em outro aparelho" onclick="gerarChaveAcesso()"><span data-txt="sync.gerarChave">💾 Gerar minha chave</span></span></div>`:""}
+     <div style="margin-top:10px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+       <span class="back-link" style="font-size:12.5px" title="Baixa o arquivo-chave para usar em outro aparelho" onclick="gerarChaveAcesso()"><span data-txt="sync.gerarChave">💾 Gerar minha chave</span></span>
+       <span class="back-link" style="font-size:12.5px" title="Entrar em qualquer computador digitando só uma senha, sem pendrive" onclick="criarAcessoPorSenha()"><span data-txt="sync.criarSenha">🔒 Criar acesso por senha</span></span>
+     </div>
      <input type="file" id="arqChave" accept=".json" style="display:none" onchange="entrarComChave(event)">
-   </div>
+   </div>`:`
+   <!-- APARELHO NÃO CONECTADO = está fora de casa. O caminho curto é a senha. -->
+   <div style="margin:16px 0 6px">
+     <label style="font-size:12.5px;color:var(--muted);display:block;margin-bottom:6px" data-txt="sync.suaSenha">Digite a sua senha para entrar:</label>
+     <div style="display:flex;gap:8px">
+       <input id="syPwd" type="password" autocomplete="current-password" placeholder="Sua senha"
+         style="flex:1;padding:12px;font-size:15px"
+         onkeydown="if(event.key==='Enter'){event.preventDefault();entrarComSenha();}">
+       <button class="btn" style="padding:12px 20px;font-size:14.5px" onclick="entrarComSenha()"><span data-txt="sync.entrar">Entrar</span></button>
+     </div>
+     <div id="syPwdMsg" style="font-size:12.5px;margin-top:8px;min-height:16px"></div>
+     <p class="desc" style="font-size:12px;margin:2px 0 0" data-txt="sync.senhaNota">Entrando por senha, nada fica salvo neste computador — some ao fechar a aba.</p>
+     <div style="margin-top:10px;text-align:center">
+       <span class="back-link" style="font-size:12.5px" title="Se você trouxe o arquivo-chave no pendrive" onclick="document.getElementById('arqChave').click()"><span data-txt="sync.entrarChave2">🔑 Entrar com o arquivo da chave</span></span>
+     </div>
+     <input type="file" id="arqChave" accept=".json" style="display:none" onchange="entrarComChave(event)">
+   </div>`}
    <details style="margin:14px 0 4px">
      <summary style="cursor:pointer;font-size:13px;color:var(--muted)" data-txt="sync.manual">Configuração manual (primeira vez)</summary>
      <div style="margin-top:12px">
@@ -465,6 +485,126 @@ async function entrarComChave(ev){
       alert("Não consegui entrar com a chave.\n\nDetalhe técnico: "+msg);
   }
 }
+/* =====================================================================
+   ENTRAR SÓ COM A SENHA (23/07) — para FORA DE CASA
+   O arquivo-chave resolve o PC do trabalho, mas depende do pendrive: sem ele
+   (ou num computador emprestado) ela ficava de fora. E o seletor de arquivo
+   nem abre em alguns navegadores.
+   Como funciona: um COFRE cifrado (cofre.json) mora ao lado do site. Ele guarda
+   owner/repo/token cifrados com AES-GCM, com a chave derivada da SENHA dela
+   (PBKDF2-SHA256, 600 mil voltas — o recomendado hoje). Sem a senha o arquivo
+   não serve para nada, mesmo baixado.
+   ⚠️ REGRAS QUE NÃO MUDAM:
+   · Nos computadores DELA nada muda: já estão conectados, nunca pedem senha.
+     O campo de senha só aparece em aparelho NÃO conectado.
+   · Entrar por senha é SEMPRE modo temporário (sessionStorage): fechou, sumiu.
+   · O cofre nunca é gravado em disco aqui — é lido para a memória e descartado.
+     O sw.js está proibido de guardá-lo no cache (ver sw.js).
+   ===================================================================== */
+const COFRE_ARQ="cofre.json";
+const COFRE_TIPO="cofre-banco-demandas";
+const COFRE_VOLTAS=600000;
+async function _chaveDeV(senha,salt,voltas){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(senha),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:voltas||150000,hash:"SHA-256"},
+    base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function cofreBaixar(){
+  /* no-store: nada deste arquivo pode ficar no computador de terceiro */
+  const r=await fetch(COFRE_ARQ+"?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw new Error("cofre "+r.status);
+  const j=await r.json();
+  if(!j||j.tipo!==COFRE_TIPO)throw new Error("cofre inválido");
+  return j;
+}
+/* força mínima da senha: este arquivo fica em lugar público, então senha fraca
+   não passa. Não é frescura — é o que separa "cifrado" de "aberto". */
+function cofreSenhaFraca(s){
+  s=String(s||"");
+  if(s.length<12)return "Use pelo menos 12 caracteres.";
+  if(!/[a-zA-Z]/.test(s)||!/[0-9]/.test(s))return "Misture letras e números.";
+  if(/^(.)\1+$/.test(s))return "Essa senha é previsível demais.";
+  return "";
+}
+async function criarAcessoPorSenha(){
+  const c=syncCfg();
+  if(!c.token){alert("Faça isto no seu computador de casa, com a sincronização já ligada — é dela que o cofre é feito.");return;}
+  alert("Vamos criar o seu acesso por SENHA.\n\n"+
+    "Depois disto você entra em QUALQUER computador digitando só a senha, sem pendrive.\n\n"+
+    "A senha protege os seus dados: escolha uma que você lembre e que ninguém adivinhe "+
+    "(12 letras/números ou mais).");
+  const senha=prompt("Digite a senha que você vai usar:");
+  if(senha===null)return;
+  const fraca=cofreSenhaFraca(senha.trim());
+  if(fraca){alert("Senha recusada: "+fraca+"\n\nTente de novo.");return;}
+  const conf=prompt("Digite a MESMA senha outra vez, para conferir:");
+  if(conf===null)return;
+  if(conf.trim()!==senha.trim()){alert("As duas senhas não bateram. Comece de novo.");return;}
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const k=await _chaveDeV(senha.trim(),salt,COFRE_VOLTAS);
+  const cif=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,
+    new TextEncoder().encode(JSON.stringify({owner:c.owner,repo:c.repo,token:c.token})));
+  const arq={tipo:COFRE_TIPO,v:1,voltas:COFRE_VOLTAS,criadoEm:nowISO(),
+    salt:_b64(salt),iv:_b64(iv),dados:_b64(cif)};
+  download(COFRE_ARQ,JSON.stringify(arq,null,2),"application/json");
+  alert("Arquivo 'cofre.json' baixado ✓\n\n"+
+    "Falta 1 passo, feito UMA vez só:\n\n"+
+    "1. Abra github.com/"+(c.owner||"seu-usuario")+"/banco-demandas\n"+
+    "2. Clique em Add file → Upload files\n"+
+    "3. Arraste o arquivo cofre.json que acabou de baixar\n"+
+    "4. Clique no botão verde Commit changes\n\n"+
+    "Pronto: dali em diante, em qualquer computador, é só abrir o site, tocar em "+
+    "⚙ Sincronização e digitar a sua senha.\n\n"+
+    "Se um dia quiser cancelar esse acesso, apague o cofre.json do GitHub.");
+}
+async function entrarComSenha(){
+  const inp=document.getElementById("syPwd"),msg=document.getElementById("syPwdMsg");
+  if(!inp)return;
+  const senha=(inp.value||"").trim();
+  if(!senha){if(msg){msg.textContent="Digite a sua senha.";msg.style.color="var(--amber)";}return;}
+  if(msg){msg.textContent="Abrindo o seu acesso…";msg.style.color="";}
+  let arq;
+  try{arq=await cofreBaixar();}
+  catch(e){
+    if(msg){msg.style.color="var(--amber)";
+      msg.textContent=/40[34]|cofre 4/.test(String(e.message||e))
+        ?"Ainda não existe acesso por senha. No seu computador de casa: ⚙ Sincronização → 🔒 Criar acesso por senha."
+        :"Não consegui buscar o seu acesso — confira a internet.";}
+    return;
+  }
+  let cfg;
+  try{
+    const k=await _chaveDeV(senha,_unb64(arq.salt),arq.voltas||150000);
+    const claro=await crypto.subtle.decrypt({name:"AES-GCM",iv:_unb64(arq.iv)},k,_unb64(arq.dados));
+    cfg=JSON.parse(new TextDecoder().decode(claro));
+  }catch(e){
+    if(msg){msg.textContent="Senha errada. Tente de novo.";msg.style.color="var(--amber)";}
+    inp.value="";inp.focus();return;
+  }
+  if(!cfg||!cfg.token){if(msg){msg.textContent="O acesso está incompleto — refaça em casa.";msg.style.color="var(--amber)";}return;}
+  /* SEMPRE temporário: este caminho é o de fora de casa */
+  try{
+    localStorage.removeItem("gh_sync_token");
+    sessionStorage.setItem("gh_sync_token",cfg.token);
+    sessionStorage.setItem("gh_sync_owner",cfg.owner||SYNC_DEFAULT_OWNER);
+    sessionStorage.setItem("gh_sync_repo",cfg.repo||SYNC_DEFAULT_REPO);
+  }catch(e){if(msg){msg.textContent="Este navegador não deixou entrar nem por esta sessão.";msg.style.color="var(--amber)";}return;}
+  closeSyncModal();
+  toast("Entrando e trazendo os seus dados…");
+  try{
+    await syncPull();
+    renderHome();
+    toast("Pronto ✓ Nada fica salvo neste computador");
+  }catch(e){
+    const m=String(e&&e.message||e);
+    sessionStorage.removeItem("gh_sync_token");renderHome();
+    if(/401|403/.test(m))
+      alert("A senha abriu o cofre, mas o GitHub recusou a conexão.\n\nQuase sempre é o token que venceu (dura 1 ano).\n\nEm casa: ⚙ Sincronização → gere um token novo → 🔒 Criar acesso por senha outra vez.");
+    else alert("Entrei com a senha, mas não consegui buscar os seus dados.\n\nDetalhe: "+m);
+  }
+}
+
 /* botão de sair: apaga tudo desta sessão sem mexer nos outros aparelhos */
 async function sairDaqui(){
   if(!confirm("Sair e apagar tudo deste computador?\n\n"+

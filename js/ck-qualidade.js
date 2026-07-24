@@ -472,8 +472,8 @@ async function ckqIniciar(modeloUid){
   p.id=await putItem(p);DATA.push(p);dataChanged();
   CKQ_INSP=p.uid;CKQ_ETAPA=0;renderCkq();
 }
-function ckqRetomar(uid){CKQ_INSP=uid;CKQ_ETAPA=0;renderCkq();}
-function ckqSair(){CKQ_INSP=null;renderCkq();}
+function ckqRetomar(uid){CKQ_INSP=uid;CKQ_ETAPA=0;CKQ_SO_FALTA=false;renderCkq();}
+function ckqSair(){CKQ_INSP=null;CKQ_SO_FALTA=false;renderCkq();}
 
 async function ckqResponder(chave,campo,valor){
   const p=ckqAchar(CKQ_INSP);if(!p)return;
@@ -486,18 +486,54 @@ async function ckqResponder(chave,campo,valor){
   if(cel)cel.outerHTML=ckqCelulaHTML(p,chave);
 }
 
-async function ckqConcluir(){
+/* ---------- "IR DIRETO AO QUE FALTA" ----------
+   Pendente = em branco, ou inconforme sem o comentário obrigatório. */
+let CKQ_SO_FALTA=false;
+function ckqPendencia(cel,p){
+  const r=(p.respostas||{})[cel.chave]||{};
+  const resp=r.valor!==undefined&&r.valor!=="";
+  if(!resp)return cel.q.tipoResp==="texto"?"":"sem resposta";
+  if((r.valor==="nao"||r.valor==="I")&&cel.q.coment==="inconforme"&&!(r.comentario||"").trim())
+    return "falta o comentário";
+  return "";
+}
+function ckqPendentes(m,p){return ckqExpandir(m,p).filter(c=>ckqPendencia(c,p));}
+function ckqIrPendentes(){
+  ncFechar();
   const p=ckqAchar(CKQ_INSP);if(!p)return;
   const m=ckqAchar(p.modeloUid);if(!m)return;
-  /* validação: 👎 com comentário obrigatório mas vazio */
-  const faltando=[];
-  for(const cel of ckqExpandir(m,p)){
-    const r=(p.respostas||{})[cel.chave];
-    if(r&&(r.valor==="nao"||r.valor==="I")&&cel.q.coment==="inconforme"&&!(r.comentario||"").trim()){
-      faltando.push(cel.q.titulo);if(faltando.length>=3)break;
-    }
+  const falta=ckqPendentes(m,p);
+  if(!falta.length){toast("Não falta nada ✓");return;}
+  CKQ_SO_FALTA=true;
+  const et=ckqEtapas(m,p);
+  const i=et.findIndex(e=>ckqCelulasDaEtapa(m,p,e).some(c=>ckqPendencia(c,p)));
+  CKQ_ETAPA=i<0?0:i;
+  renderCkq();toast(falta.length+" pendente(s) — mostrando só o que falta");
+}
+function ckqMostrarTudo(){CKQ_SO_FALTA=false;CKQ_ETAPA=0;renderCkq();}
+
+async function ckqConcluir(forcado){
+  const p=ckqAchar(CKQ_INSP);if(!p)return;
+  const m=ckqAchar(p.modeloUid);if(!m)return;
+  const falta=ckqPendentes(m,p);
+  const graves=falta.filter(c=>ckqPendencia(c,p)!=="sem resposta");
+  if(falta.length&&!(forcado&&!graves.length)){
+    const lista=falta.slice(0,8).map(c=>`<li><b>${esc(c.q.titulo||"")}</b>`
+      +((c.area||c.setor)?` <span class="a">${esc([c.setor?ckqSetorRot(c.setor):"",c.area].filter(Boolean).join(" · "))}</span>`:"")
+      +` <em>${esc(ckqPendencia(c,p))}</em></li>`).join("");
+    ncModal(`<h2>Ainda falta terminar ${falta.length} pergunta(s)</h2>
+      ${graves.length?`<p class="desc">${graves.length} estão marcadas como inconformes e ainda
+        <b>sem o comentário</b> — o relatório não aceita em branco.</p>`
+       :`<p class="desc">Nenhuma é obrigatória, mas ficam em branco no documento que você assina.</p>`}
+      <ul class="ck-falta-lst">${lista}${falta.length>8?`<li class="mais">… e mais ${falta.length-8}</li>`:""}</ul>
+      <div class="form-actions">
+        <button class="btn" onclick="ckqIrPendentes()">⚠ Ir direto ao que falta</button>
+        ${graves.length?"":`<button class="btn ghost" onclick="ncFechar();ckqConcluir(true)">Concluir assim mesmo</button>`}
+        <button class="btn ghost" onclick="ncFechar()">Voltar</button>
+      </div>`);
+    return;
   }
-  if(faltando.length){alert("Falta comentário em ponto(s) marcado(s) como inconforme:\n\n· "+faltando.join("\n· "));return;}
+  CKQ_SO_FALTA=false;
   p.status="concluido";p.concluidoEm=nowISO();p.atualizacao=nowISO();
   if(CK_ASSINATURA&&!p.assinatura)p.assinatura=CK_ASSINATURA;
   p.nota=ckqNota(p,m);
@@ -669,13 +705,21 @@ function ckqCelulaHTML(p,chave){
 function ckqEtapaHTML(){
   const p=ckqAchar(CKQ_INSP);if(!p)return "";
   const m=ckqAchar(p.modeloUid);if(!m)return "";
-  const et=ckqEtapas(m,p);
+  const totalFalta=ckqPendentes(m,p);
+  /* terminou tudo no modo "só o que falta"? desliga sozinho */
+  if(CKQ_SO_FALTA&&!totalFalta.length){CKQ_SO_FALTA=false;CKQ_ETAPA=0;}
+  let et=ckqEtapas(m,p);
+  if(CKQ_SO_FALTA)et=et.filter(x=>ckqCelulasDaEtapa(m,p,x).some(c=>ckqPendencia(c,p)));
+  if(!et.length)et=ckqEtapas(m,p);
   if(CKQ_ETAPA>=et.length)CKQ_ETAPA=et.length-1;if(CKQ_ETAPA<0)CKQ_ETAPA=0;
   const e=et[CKQ_ETAPA];
-  const cels=ckqCelulasDaEtapa(m,p,e);
+  let cels=ckqCelulasDaEtapa(m,p,e);
+  if(CKQ_SO_FALTA)cels=cels.filter(c=>ckqPendencia(c,p));
   const trilha=et.map((x,i)=>{
-    const feita=ckqCelulasDaEtapa(m,p,x).every(c=>((p.respostas||{})[c.chave]||{}).valor);
-    return `<button class="ckq-trilha-bt${i===CKQ_ETAPA?" ativo":""}${feita?" feita":""}" onclick="CKQ_ETAPA=${i};renderCkq()">${feita?"✓ ":""}${esc(x.rot)}</button>`;
+    const dela=ckqCelulasDaEtapa(m,p,x);
+    const nFalta=dela.filter(c=>ckqPendencia(c,p)).length;
+    const feita=dela.every(c=>((p.respostas||{})[c.chave]||{}).valor);
+    return `<button class="ckq-trilha-bt${i===CKQ_ETAPA?" ativo":""}${(!CKQ_SO_FALTA&&feita)?" feita":""}" onclick="CKQ_ETAPA=${i};renderCkq()">${CKQ_SO_FALTA?"⚠ "+nFalta+" ":(feita?"✓ ":"")}${esc(x.rot)}</button>`;
   }).join("");
   const antP=CKQ_ETAPA>0?`<button class="btn ghost" onclick="CKQ_ETAPA--;renderCkq()">← Etapa anterior</button>`:"";
   const proxP=CKQ_ETAPA<et.length-1?`<button class="btn" onclick="CKQ_ETAPA++;renderCkq()">Próxima etapa →</button>`:`<button class="btn" onclick="ckqConcluir()">✓ Concluir inspeção</button>`;
@@ -685,6 +729,10 @@ function ckqEtapaHTML(){
       <div><b>${esc(m.titulo||"")}</b> · ${esc(currentStoreName||"")} · <span class="badge">Etapa ${CKQ_ETAPA+1}/${et.length}</span></div>
       <div><button class="btn ghost sm" onclick="ckqSair()">Sair (grava parcial)</button></div>
     </div>
+    ${CKQ_SO_FALTA?`<div class="ck-so-falta">
+      <b>Mostrando só o que falta — ${totalFalta.length} pergunta(s).</b>
+      <button class="btn ghost sm" onclick="ckqMostrarTudo()">Mostrar a inspeção inteira</button>
+    </div>`:(totalFalta.length?`<div style="margin:8px 0"><button class="btn ghost sm" onclick="ckqIrPendentes()">⚠ Ir direto às ${totalFalta.length} pendentes</button></div>`:"")}
     <div class="ckq-trilha">${trilha}</div>
     <h3 style="margin:14px 0 8px">${esc(e.rot)}</h3>
     ${cels.filter(c=>c.q.tipoResp==="simnao"||c.q.tipoResp==="nota4").length?`<div style="margin-bottom:10px"><button class="btn ghost sm" onclick="ckqTudoSim()">👍 Tudo certo nesta etapa</button></div>`:""}

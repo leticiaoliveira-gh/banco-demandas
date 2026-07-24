@@ -669,6 +669,15 @@ async function seedIfEmpty(){}
 /* ---- capa / Central de Empresas ---- */
 const brDateTime=iso=>iso?new Date(iso).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
 
+/* CELULAR (iPhone/iPad/Android): backup em pasta não existe lá e o arquivo baixado
+   não tem onde ficar. Tudo dela chega no celular pela sincronização — então nenhum
+   aviso de backup aparece no aparelho. Pedido dela: "parar de pedir backup no iPhone". */
+function ehCelular(){
+  const ua=navigator.userAgent||"";
+  if(/iPhone|iPad|iPod|Android/i.test(ua))return true;
+  /* iPad com iOS 13+ se apresenta como Mac; o toque é o que o entrega */
+  return /Mac/i.test(navigator.platform||"")&&(navigator.maxTouchPoints||0)>1;
+}
 async function renderHome(){
  setTimeout(aplicarTextos,0);
  renderRtInfo();
@@ -717,9 +726,11 @@ async function renderHome(){
     </div>
     <button class="btn sm" style="margin-top:12px" onclick="toggleOrganizarCapa()">✓ Concluir</button>`;
  }
- /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) */
+ /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) —
+    no CELULAR o bloco inteiro não aparece (ver ehCelular acima) */
+ const noCel=ehCelular();
  const topB=document.getElementById("backup-top");
- if(topB)topB.innerHTML=`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
+ if(topB)topB.innerHTML=noCel?"":`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
  /* Lembrete de backup SILENCIADO (23/07, pedido dela: "parar de pedir").
     Não aparece: com backup automático ativo, com backup recente (<14 dias),
     em dispositivo temporário (PC do trabalho — nada fica lá mesmo) ou sem dados.
@@ -727,7 +738,7 @@ async function renderHome(){
  const dias=lb?Math.floor((Date.now()-new Date(lb).getTime())/864e5):null;
  const tempSync=(typeof syncIsTemporario==="function")&&syncIsTemporario();
  document.getElementById("backup-banner").innerHTML=
-   (vivos.length&&!autoOk&&!tempSync&&(dias===null||dias>=14))?
+   (vivos.length&&!noCel&&!autoOk&&!tempSync&&(dias===null||dias>=14))?
    `<div style="font-size:12.5px;margin:0 0 16px;opacity:.75">${lb?("Último backup há "+dias+" dias"):"Nenhum backup feito neste navegador"} · <span class="back-link" onclick="exportExcel()">baixar agora</span></div>`:"";
  let html="";
  /* busca, filtro e ordenação das empresas (capa) */
@@ -1344,7 +1355,16 @@ async function limparDispositivo(){
  if(!confirm("Tem certeza? Esta ação não pode ser desfeita neste dispositivo."))return;
  try{if(db)db.close();}catch(e){}
  await new Promise(r=>{const q=indexedDB.deleteDatabase(DB_NAME);q.onsuccess=q.onerror=q.onblocked=()=>r();});
- try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
+ /* APAGAR DE VERDADE (23/07): não bastava tirar o token — sobravam preferências,
+    o último usuário/repositório e o que ficou na sessão. Em PC emprestado, tudo sai.
+    Só os prefixos DESTE site são varridos (o github.io é compartilhado com outras
+    páginas dela — um localStorage.clear() levaria junto o que não é daqui). */
+ try{
+   const PREF=["gh_sync_","sy_last_","ck_","ckq_","dg_","DG_","crono","capa_","nc_","pal_"];
+   for(const k of Object.keys(localStorage))
+     if(PREF.some(p=>k.startsWith(p)))localStorage.removeItem(k);
+ }catch(e){}
+ try{sessionStorage.clear();}catch(e){}
  try{if(window.caches)for(const k of await caches.keys())await caches.delete(k);}catch(e){}
  try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();for(const rg of rs)await rg.unregister();}}catch(e){}
  alert("Dados deste dispositivo apagados ✓");
@@ -1386,6 +1406,35 @@ function paletteDraw(){
 }
 function paletteMove(d){if(!PAL_ITENS.length)return;PAL_SEL=(PAL_SEL+d+PAL_ITENS.length)%PAL_ITENS.length;paletteDraw();}
 function paletteEnter(){const t=PAL_ITENS[PAL_SEL];if(t){showTab(t);closePalette();}}
+/* ===== ATALHO DIRETO (Plano D) =====
+   Abrir o site com  ?rapido=CF  já cai na tela de registrar NC daquela loja,
+   com a câmera a um toque. É o que faz o atalho do iPhone valer a pena: um
+   toque no ícone da tela inicial e ela já está fotografando, sem navegar.
+   ?rapido=CF&aba=ck leva ao Checklist da loja em vez da NC. */
+function atalhoRapido(){
+  const q=new URLSearchParams(location.search);
+  const loja=(q.get("rapido")||"").toUpperCase();
+  if(!loja)return false;
+  if(!empresa(loja)){toast("Não achei a empresa "+loja);return false;}
+  enterStore(loja);
+  const aba=(q.get("aba")||"nc").toLowerCase();
+  showTab(TABS[aba]?aba:"nc");
+  if(aba==="nc")setTimeout(()=>{
+    const b=document.getElementById("nc-cap-body");
+    if(b&&b.style.display==="none")ncToggleCap();
+    const f=document.getElementById("nc-cap-foto");
+    if(f)f.scrollIntoView({block:"center"});
+  },250);
+  /* tira o ?rapido da barra: recarregar não deve reabrir o formulário */
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  return true;
+}
+/* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
+   um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
+const APP_VERSAO="9.12";
+function carimbarVersao(){
+  document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
+}
 function initAtalhos(){
  document.addEventListener("keydown",e=>{
    /* desfazer/refazer valem no site inteiro — menos enquanto ela digita num campo */
@@ -1586,8 +1635,9 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  }finally{HIST_LIGADO=true;}
  await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();await loadStatusSite();
  document.getElementById("fmData").value=today();
- renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();
+ renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();carimbarVersao();
  goHome();
+ atalhoRapido();          /* ?rapido=CF abre direto no registro de NC daquela loja */
  if(window.syncInit)syncInit();
  /* PWA: service worker só em https (GitHub Pages); no file:// é ignorado */
  if("serviceWorker" in navigator&&location.protocol==="https:")

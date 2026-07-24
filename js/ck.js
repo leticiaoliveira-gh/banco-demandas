@@ -661,15 +661,83 @@ const CK_MODELO_DIARIO=[
 
   ["Extintor sinalizado, no cavalinho ou no suporte a 20cm?","2º PISO — ADM"]
 ];
+/* ===== O DIÁRIO EM CADA LOJA =====
+   As 254 perguntas vieram da planilha de ARRAIAL e as seções carregam as áreas de
+   lá. Em qualquer OUTRA loja as seções são reescritas com as áreas REAIS daquela
+   loja, as que já estão cadastradas no site — nada é inventado. Quando a área não
+   existe na loja, a seção vai marcada com "⚠ REVISAR" para ela apagar ou renomear. */
+const CK_DIARIO_ORIGEM="AC";
+/* ⚠️ nome propositalmente diferente: já existe um ckAreasDaLoja() em ck-modelo2.js,
+   que é carregado DEPOIS e sobrescreveria este sem avisar. */
+function ckAreasCadastradas(loja){
+  return (typeof AREAS_ALL!=="undefined")?(AREAS_ALL[loja]||[]):[];
+}
+function ckNorm(s){return semAcento(String(s||"")).toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+function ckPalavras(s){return ckNorm(s).split(" ").filter(w=>w.length>2);}
+/* duas palavras casam quando uma começa pela outra (adm ≈ administrativo) */
+function ckCasaPalavra(a,b){return a===b||(a.length>=3&&b.startsWith(a))||(b.length>=3&&a.startsWith(b));}
+/* pontuação de 0 a 100 entre o nome da seção de origem e o nome de uma área da loja */
+function ckPontoArea(alvoP,nomeArea){
+  const na=ckPalavras(nomeArea);
+  if(!alvoP.length||!na.length)return 0;
+  if(ckNorm(alvoP.join(" "))===ckNorm(na.join(" ")))return 100;
+  const todasNoNome=alvoP.every(w=>na.some(x=>ckCasaPalavra(w,x)));
+  const todasNoAlvo=na.every(w=>alvoP.some(x=>ckCasaPalavra(w,x)));
+  if(todasNoNome&&todasNoAlvo)return 95;
+  /* prefere o nome mais curto: "Salão" deve virar "Salão Principal", não "Salão Hortifrúti (FLV)" */
+  if(todasNoNome)return 80-Math.min(19,na.length);
+  if(todasNoAlvo)return 70-Math.min(19,alvoP.length);
+  return 0;
+}
+/* Casamento AMBÍGUO (duas áreas empatadas) vira "⚠ REVISAR" de propósito: é melhor
+   ela ver a marca e escolher do que o site chutar a área errada num documento que
+   leva a assinatura e o CRN dela. */
+/* palavra genérica demais para casar sozinha: a loja tem 8 câmaras e 5 corredores,
+   e "CÂMARA: C&A" não pode virar a primeira câmara que aparecer na lista. */
+const CK_GENERICAS=["camara","camaras","area","areas","sala","salas","corredor","corredores",
+  "deposito","estoque","geral","producao","banheiro","banheiros","piso"];
+function ckMapearSecao(sec,areas,usadas){
+  const m=/^(\d+º PISO)\s+—\s+(.*)$/.exec(sec);
+  if(!m)return sec;                 /* "VISÃO GERAL DO DIA" e afins ficam como estão */
+  const piso=m[1],alvoP=ckPalavras(m[2]);
+  if(alvoP.length===1&&CK_GENERICAS.includes(alvoP[0]))return "⚠ REVISAR — "+sec;
+  const tenta=lista=>{
+    const notas=lista.map(a=>({a,p:ckPontoArea(alvoP,a.nome)}))
+      .filter(x=>x.p>0&&!(usadas&&usadas.has(x.a.nome)))
+      .sort((x,y)=>y.p-x.p);
+    if(!notas.length)return null;
+    if(notas.length>1&&notas[1].p===notas[0].p)return null;   /* empate = ambíguo */
+    return notas[0].a;
+  };
+  const doPiso=areas.filter(a=>ckNorm(a.piso)===ckNorm(piso));
+  const achou=tenta(doPiso)||tenta(areas.filter(a=>ckNorm(a.piso)!==ckNorm(piso)));
+  if(!achou)return "⚠ REVISAR — "+sec;
+  if(usadas)usadas.add(achou.nome);
+  return (achou.piso||piso).toUpperCase().replace("PISO","PISO")+" — "+achou.nome;
+}
 async function ckModeloDiarioPronto(){
   if(!currentStore){toast("Escolha uma empresa primeiro");return;}
-  /* já existe? abre o que existe em vez de criar duplicado */
-  const ja=ckModelos().find(m=>m.criado==="modelo-diario");
+  /* já existe NESTA loja? abre o que existe em vez de criar duplicado */
+  const ja=ckModelos().find(m=>m.criado==="modelo-diario"
+    &&(!m.escopo||m.escopo===currentStore)
+    &&(m.escopo||currentStore===CK_DIARIO_ORIGEM));
   if(ja){toast("O Checklist Diário já existe — abrindo");ckAbrirConstrutor(ja.uid);return;}
+  /* o Diário antigo era do GRUPO e aparecia nas duas lojas, mas o conteúdo é de
+     Arraial. Ao criar o da outra loja, ele passa a ser exclusivo de Arraial. */
+  const antigo=DATA.find(d=>!d.deleted&&d.tipo==="ckm"&&d.criado==="modelo-diario"&&!d.escopo);
+  if(antigo&&currentStore!==CK_DIARIO_ORIGEM){
+    antigo.escopo=CK_DIARIO_ORIGEM;await ckSalvar(antigo);
+  }
+  const daLoja=currentStore===CK_DIARIO_ORIGEM;
+  const areas=ckAreasCadastradas(currentStore);
+  /* uma área só recebe UMA seção — sem isso "Depósito" e "Materiais de limpeza"
+     cairiam na mesma área e ela perderia a separação que faz na loja */
+  const usadas=new Set(),cache={};
+  const secaoDe=s=>daLoja?s:(cache[s]!==undefined?cache[s]:(cache[s]=ckMapearSecao(s,areas,usadas)));
   const perguntas=CK_MODELO_DIARIO.map(([t,s],i)=>({
     uid:newUid(),titulo:t,descricao:"",tipoResp:"simnao",opcoesLista:"",
     na:true,coment:"inconforme",foto:"opcional",peso:1,ordem:i,removida:false,
-    secao:s,escopoP:"",acaoPadrao:"",baseLegal:""}));
+    secao:secaoDe(s),escopoP:"",acaoPadrao:"",baseLegal:""}));
   /* encerramento: data e assinatura (peso 0 — não entram na nota) */
   perguntas.push({uid:newUid(),titulo:"Data da verificação",descricao:"Informe a data.",
     tipoResp:"data",opcoesLista:"",na:false,coment:"nao",foto:"nao",peso:0,
@@ -678,14 +746,18 @@ async function ckModeloDiarioPronto(){
     descricao:"Sua assinatura entra sozinha se já estiver guardada.",
     tipoResp:"assinatura",opcoesLista:"",na:false,coment:"nao",foto:"nao",peso:0,
     ordem:perguntas.length,removida:false,secao:"ENCERRAMENTO",escopoP:"",acaoPadrao:"",baseLegal:""});
-  const o={uid:newUid(),mod:nowISO(),tipo:"ckm",loja:ckLojaBase(),escopo:"",
+  const rever=daLoja?0:new Set(perguntas.filter(q=>/^⚠ REVISAR/.test(q.secao)).map(q=>q.secao)).size;
+  const o={uid:newUid(),mod:nowISO(),tipo:"ckm",loja:ckLojaBase(),escopo:currentStore,
     criado:"modelo-diario",criadoEm:today(),ordem:ckModelos().length,ativo:true,
-    titulo:"Checklist Diário (Nutri Qualidade)",
-    descricao:"Verificação diária do mercado, seção por seção (1º e 2º piso). Marque 👎 no que estiver fora do padrão — as divergências entram no relatório semanal (PPR).",
+    titulo:"Checklist Diário (Nutri Qualidade) — "+(currentStoreName||currentStore),
+    descricao:"Verificação diária do mercado, seção por seção. Marque 👎 no que estiver fora do padrão — as divergências entram no relatório semanal (PPR)."
+      +(daLoja?"":" As seções foram montadas com as áreas cadastradas desta loja; apague ou renomeie o que não existir aqui."),
     perguntas};
   o.id=await putItem(o);DATA.push(o);dataChanged();
   CK_SEC="formularios";renderCk();ckAbrirConstrutor(o.uid);
-  toast("Checklist Diário criado ✓ Mude o que quiser nele");
+  toast(daLoja?"Checklist Diário criado ✓ Mude o que quiser nele"
+    :("Checklist Diário de "+(currentStoreName||currentStore)+" criado ✓"
+      +(rever?" — "+rever+" seção(ões) marcada(s) com ⚠ REVISAR":"")));
 }
 async function ckRenomear(uid){
   const m=ckAchar(uid);if(!m)return;
@@ -1292,6 +1364,7 @@ async function ckAreasConfirmar(modeloUid){
 function ckVer(uid){const p=ckAchar(uid);if(!p)return;CK_PREENCH=uid;ckDesenhaResumo(true);}
 
 function ckFecharPreench(){
+  CK_SO_FALTA=false;
   const el=document.getElementById("ck-preench");if(el)el.remove();
   document.body.style.overflow="";CK_PREENCH="";renderCk();
 }
@@ -1347,17 +1420,23 @@ function ckDesenhaPasso(){
    É o que torna 91 perguntas × várias áreas viável numa inspeção de verdade.
    =================================================================== */
 let CK_ETAPA=0;
-function ckEtapas(m,p){
+function ckEtapas(m,p,cels){
   /* checklist sem áreas (o Diário): uma etapa só, com as seções agrupadas dentro */
   const et=[{area:"",rot:ckTemAreas(m)?"Geral da loja":"Checklist completo",ico:"🏬"}];
   for(const a of (p.areas||[]))et.push({area:a,rot:a,ico:ckIcoArea(a)});
-  return et.filter(e=>ckExpandir(m,p).some(c=>c.area===e.area));
+  const base=cels||ckExpandir(m,p);
+  return et.filter(e=>base.some(c=>c.area===e.area));
 }
 function ckDesenhaLista(){
   const p=ckAchar(CK_PREENCH);if(!p)return ckFecharPreench();
   const m=ckAchar(p.modeloUid);
   if(!m){alert("O checklist deste preenchimento foi excluído.");return ckFecharPreench();}
-  const cel=ckExpandir(m,p),etapas=ckEtapas(m,p);
+  const todas=ckExpandir(m,p);
+  const falta=todas.filter(c=>ckPendencia(c,p));
+  /* modo "só o que falta": se ela terminou tudo, o filtro se desliga sozinho */
+  if(CK_SO_FALTA&&!falta.length){CK_SO_FALTA=false;CK_ETAPA=0;toast("Tudo respondido ✓");return ckDesenhaResumo(false);}
+  const cel=CK_SO_FALTA?falta:todas;
+  const etapas=ckEtapas(m,p,cel);
   if(!etapas.length)return ckDesenhaResumo(false);
   CK_ETAPA=Math.max(0,Math.min(CK_ETAPA,etapas.length-1));
   const et=etapas[CK_ETAPA];
@@ -1380,19 +1459,24 @@ function ckDesenhaLista(){
       <span class="ck-pr-nome">${esc(m.titulo||"")}</span>
       <button class="ck-pr-modo" onclick="ckSetModo('passo')" title="Uma pergunta por vez">◻ Uma por vez</button>
     </div>
+    ${CK_SO_FALTA?`<div class="ck-so-falta">
+      <b>Mostrando só o que falta — ${falta.length} pergunta(s).</b>
+      <button class="btn ghost sm" onclick="ckMostrarTudo()">Mostrar o checklist inteiro</button>
+    </div>`:""}
     <div class="ck-et-trilha">${etapas.map((e,i)=>{
       const c2=cel.filter(c=>c.area===e.area);
       const ok=c2.filter(c=>{const r=(p.respostas||{})[c.chave]||{};return r.na||(r.valor!==undefined&&r.valor!=="");}).length;
-      return `<button class="ck-et${i===CK_ETAPA?" on":""}${ok===c2.length?" full":""}"
+      return `<button class="ck-et${i===CK_ETAPA?" on":""}${(!CK_SO_FALTA&&ok===c2.length)?" full":""}"
         onclick="CK_ETAPA=${i};ckDesenhaLista()" title="${esc(e.rot)}">
         <span class="ic">${e.ico}</span><span class="nm">${esc(e.rot)}</span>
-        <span class="qt">${ok}/${c2.length}</span></button>`;}).join("")}
+        <span class="qt">${CK_SO_FALTA?"⚠ "+c2.length:ok+"/"+c2.length}</span></button>`;}).join("")}
     </div>
     <div class="ck-pr-box larga">
       <div class="ck-lst-h">
         <h2>${et.ico} ${esc(et.rot)}</h2>
         <div class="ck-lst-info">
-          <span>${feitas}/${desta.length} respondidas</span>
+          <span>${CK_SO_FALTA?desta.length+" faltando aqui":feitas+"/"+desta.length+" respondidas"}</span>
+          ${!CK_SO_FALTA&&falta.length?`<button class="btn ghost sm" onclick="ckIrPendentes()" title="Ver só as que faltam">⚠ Ir para as ${falta.length} pendentes</button>`:""}
           ${et.area?`<button class="btn ghost sm" onclick="ckRepetirUltima()" title="Copiar as respostas da última inspeção desta área">↻ Repetir da última vez</button>`:""}
           <button class="btn ghost sm" onclick="ckMarcarTudoOk()" title="Marcar 👍 em tudo que ainda não foi respondido">👍 Tudo certo aqui</button>
         </div>
@@ -1401,7 +1485,7 @@ function ckDesenhaLista(){
       <div class="ck-lst">
         ${secs.map(g=>`
           ${g.s?`<div class="ck-lst-sec">${esc(g.s)}</div>`:""}
-          ${g.itens.map(c=>ckLinhaHTML(c,(p.respostas||{})[c.chave]||{})).join("")}
+          ${g.itens.map(c=>ckLinhaHTML(c,(p.respostas||{})[c.chave]||{},p)).join("")}
         `).join("")}
       </div>
       <div class="ck-pr-pe">
@@ -1414,8 +1498,9 @@ function ckDesenhaLista(){
   aplicarTextos(el);
 }
 /* uma linha da lista. É esta a unidade que ckRepintaLinha troca sozinha. */
-function ckLinhaHTML(c,r){
+function ckLinhaHTML(c,r,p){
   const {q,chave}=c,ruim=ckRuim(q,r);
+  const pend=(CK_SO_FALTA&&p)?ckPendencia(c,p):"";
   const resp=r.na?"na":(r.valor||"");
   const nEmAberto=(typeof ckNCsDaPergunta==="function")
     ?ckNCsDaPergunta(q.uid,c.area).filter(d=>d.status!=="Concluído").length:0;
@@ -1425,6 +1510,7 @@ function ckLinhaHTML(c,r){
       <b>${esc(q.titulo||"")}</b>
       ${q.descricao?`<span class="d">${esc(q.descricao)}</span>`:""}
       ${q.baseLegal?`<span class="lg">§ ${esc(q.baseLegal)}</span>`:""}
+      ${pend?`<span class="ck-falta-tag">⚠ ${esc(pend)}</span>`:""}
       ${nEmAberto?`<button class="ck-nc-tag" onclick="ckVerNCs('${q.uid}','${esc(c.area).replace(/'/g,"&#39;")}')">⚠ ${nEmAberto} em aberto</button>`:""}
       ${r.comentario?`<span class="cm">💬 ${esc(r.comentario)}</span>`:""}
       ${(r.fotos||[]).length?`<span class="cm">📷 ${r.fotos.length}</span>`:""}
@@ -1446,16 +1532,22 @@ function ckRepintaLinha(chave){
   const c=ckExpandir(m,p).find(x=>x.chave===chave);if(!c)return;
   const el=document.querySelector(`.ck-lin-r[data-k="${CSS.escape(chave)}"]`);
   if(!el)return ckDesenhaLista();
-  el.outerHTML=ckLinhaHTML(c,(p.respostas||{})[chave]||{});
+  el.outerHTML=ckLinhaHTML(c,(p.respostas||{})[chave]||{},p);
   /* atualiza os contadores da trilha sem redesenhar a lista inteira */
-  const cel=ckExpandir(m,p),etapas=ckEtapas(m,p);
+  const todas=ckExpandir(m,p),falta=todas.filter(x=>ckPendencia(x,p));
+  const cel=CK_SO_FALTA?falta:todas,etapas=ckEtapas(m,p,cel);
   document.querySelectorAll(".ck-et").forEach((b,i)=>{
     const e=etapas[i];if(!e)return;
     const c2=cel.filter(x=>x.area===e.area);
     const ok=c2.filter(x=>{const r=(p.respostas||{})[x.chave]||{};return r.na||(r.valor!==undefined&&r.valor!=="");}).length;
-    const qt=b.querySelector(".qt");if(qt)qt.textContent=ok+"/"+c2.length;
-    b.classList.toggle("full",ok===c2.length);
+    const qt=b.querySelector(".qt");if(qt)qt.textContent=CK_SO_FALTA?"⚠ "+c2.length:ok+"/"+c2.length;
+    b.classList.toggle("full",!CK_SO_FALTA&&ok===c2.length);
   });
+  /* no modo "só o que falta", o contador do cabeçalho segue a conta que sobrou */
+  if(CK_SO_FALTA){
+    const cx=document.querySelector(".ck-so-falta b");
+    if(cx)cx.textContent="Mostrando só o que falta — "+falta.length+" pergunta(s).";
+  }
 }
 /* abre UMA célula na tela cheia de sempre (para comentário, foto e plano de ação) */
 async function ckAbrirUma(chave){
@@ -1675,6 +1767,48 @@ function ckValidar(q,r){
     return "Esta pergunta exige foto.\n\nTire ou escolha uma foto antes de avançar.";
   return "";
 }
+/* ===================================================================
+   "IR PARA AS PENDENTES" — mostra SÓ o que falta terminar
+   Uma pergunta é PENDENTE quando: (a) ficou em branco, ou (b) está
+   inconforme e falta o comentário/foto que a própria pergunta exige.
+   Perguntas de texto em branco não contam — muitas são opcionais.
+   =================================================================== */
+let CK_SO_FALTA=false;
+function ckPendencia(c,p){
+  const r=(p.respostas||{})[c.chave]||{};
+  if(r.na)return "";
+  const respondeu=r.valor!==undefined&&r.valor!=="";
+  /* texto costuma ser opcional; a assinatura o site aplica sozinho no fechamento —
+     cobrar as duas faria toda inspeção terminar com "faltam 2" sem faltar nada */
+  if(!respondeu)return (c.q.tipoResp==="texto"||c.q.tipoResp==="assinatura")?"":"sem resposta";
+  const e=ckValidar(c.q,r);
+  if(!e||/Responda a pergunta/.test(e))return "";
+  return /foto/i.test(e)?"falta a foto":"falta o comentário";
+}
+function ckPendentes(m,p){return ckExpandir(m,p).filter(c=>ckPendencia(c,p));}
+/* liga o filtro e leva ela direto para a primeira pendente */
+async function ckIrPendentes(){
+  ncFechar();
+  const p=ckAchar(CK_PREENCH);if(!p)return;
+  const m=ckAchar(p.modeloUid);if(!m)return;
+  const falta=ckPendentes(m,p);
+  if(!falta.length){toast("Não falta nada ✓");return;}
+  CK_SO_FALTA=true;
+  if(ckModoListaOk(m)){
+    CK_MODO="lista";localStorage.setItem("ck_modo","lista");
+    /* abre já na etapa que tem a primeira pendência */
+    const et=ckEtapas(m,p,falta);
+    const i=et.findIndex(e=>e.area===falta[0].area);
+    CK_ETAPA=i<0?0:i;
+    ckDesenhaLista();
+  }else{
+    const i=ckExpandir(m,p).findIndex(c=>c.chave===falta[0].chave);
+    p.posicao=Math.max(0,i);await ckSalvar(p);
+    CK_MODO="passo";ckDesenhaPasso();
+  }
+  toast(falta.length+" pendente(s) — mostrando só o que falta");
+}
+function ckMostrarTudo(){CK_SO_FALTA=false;CK_ETAPA=0;ckDesenhaLista();}
 async function ckSairPreench(){
   const p=ckAchar(CK_PREENCH);
   if(p&&p.status==="andamento"){
@@ -1789,6 +1923,11 @@ function ckDesenhaResumo(soLeitura){
           :`<i>${prog.total-prog.feitos} em aberto</i>`}
       </div>`:""}
 
+      ${(p.status!=="concluido"&&m&&ckPendentes(m,p).length)?`<div class="ck-pend falta">
+        <b>${ckPendentes(m,p).length} pergunta(s) ainda sem terminar.</b>
+        <button class="btn ghost sm" onclick="ckIrPendentes()">⚠ Ir direto ao que falta</button>
+      </div>`:""}
+
       ${inc.length?`<div class="ck-pend">
         <b>${inc.length} ponto${inc.length===1?"":"s"} a corrigir.</b>
         ${inc.filter(c=>!((p.respostas||{})[c.chave]||{}).tratativa).length
@@ -1868,30 +2007,34 @@ async function ckVoltarUltima(){
   const n=m?ckExpandir(m,p).length:1;
   p.posicao=Math.max(0,n-1);await ckSalvar(p);ckDesenhaPasso();
 }
-async function ckConcluir(){
+async function ckConcluir(forcado){
   const p=ckAchar(CK_PREENCH);if(!p)return;
   const m=ckAchar(p.modeloUid);const perg=m?ckExpandir(m,p):[];
   /* No modo lista a validação de comentário/foto obrigatórios NÃO passou pelo wizard.
      Varre tudo aqui — senão dá para concluir com inconformidade sem explicação. */
-  const erros=[];
-  for(const c of perg){
-    const r=(p.respostas||{})[c.chave]||{};
-    if(r.valor===undefined&&!r.na)continue;      /* em branco é tratado logo abaixo */
-    const e=ckValidar(c.q,r);
-    if(e&&!/Responda a pergunta/.test(e))
-      erros.push("· "+(c.q.titulo||"")+(c.area?" ["+c.area+"]":""));
-  }
-  if(erros.length){
-    alert("Faltam informações obrigatórias em "+erros.length+" resposta(s):\n\n"
-      +erros.slice(0,8).join("\n")+(erros.length>8?"\n…":"")
-      +"\n\nAbra cada uma e escreva o comentário (ou anexe a foto) antes de concluir.");
+  const falta=m?ckPendentes(m,p):[];
+  /* "grave" = inconforme sem o comentário/foto que a pergunta exige. Esse não passa. */
+  const graves=falta.filter(c=>ckPendencia(c,p)!=="sem resposta");
+  if(falta.length&&!(forcado&&!graves.length)){
+    /* guarda quem fez a inspeção antes de sair desta tela */
+    const quem=(document.getElementById("ck-quem")?.value||"").trim();
+    if(quem&&quem!==p.respondente){p.respondente=quem;await ckSalvar(p);}
+    const lista=falta.slice(0,8).map(c=>`<li><b>${esc(c.q.titulo||"")}</b>`
+      +(c.area?` <span class="a">${esc(c.area)}</span>`:"")
+      +` <em>${esc(ckPendencia(c,p))}</em></li>`).join("");
+    ncModal(`<h2>Ainda falta terminar ${falta.length} pergunta(s)</h2>
+      ${graves.length?`<p class="desc">${graves.length} delas estão marcadas como inconformes e ainda
+        <b>sem o comentário ou a foto</b> — essas o relatório não aceita em branco.</p>`
+       :`<p class="desc">Nenhuma é obrigatória, mas ficam em branco no documento que você assina.</p>`}
+      <ul class="ck-falta-lst">${lista}${falta.length>8?`<li class="mais">… e mais ${falta.length-8}</li>`:""}</ul>
+      <div class="form-actions">
+        <button class="btn" onclick="ckIrPendentes()">⚠ Ir direto ao que falta</button>
+        ${graves.length?"":`<button class="btn ghost" onclick="ncFechar();ckConcluir(true)">Concluir assim mesmo</button>`}
+        <button class="btn ghost" onclick="ncFechar()">Voltar</button>
+      </div>`);
     return;
   }
-  const faltam=perg.filter(c=>{const r=(p.respostas||{})[c.chave]||{};
-    return !r.na&&(r.valor===undefined||r.valor==="")&&c.q.tipoResp!=="texto";});
-  if(faltam.length&&!confirm(faltam.length+" pergunta(s) ficaram sem resposta.\n\nConcluir mesmo assim?\n\n"
-    +faltam.slice(0,5).map(c=>"· "+(c.q.titulo||"")+(c.area?" ["+c.area+"]":"")).join("\n")))return;
-  p.respondente=(document.getElementById("ck-quem")?.value||"").trim()||RT_INFO||RT_DEFAULT;
+  p.respondente=(document.getElementById("ck-quem")?.value||"").trim()||p.respondente||RT_INFO||RT_DEFAULT;
   p.assinatura=CK_ASSINATURA||"";
   p.nota=ckNota(p);
   p.status="concluido";p.concluidoEm=today();p.atualizacao=nowISO();

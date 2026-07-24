@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=72">
+<link rel="stylesheet" href="css/app.css?v=73">
 </head>
 <body>
 <div class="app">
@@ -33,7 +33,7 @@
     <div id="railTabs" class="rail-tabs" hidden></div>
     <!-- cronômetro: fica na barra, alcançável de qualquer aba -->
     <button class="ricon" id="btCrono" onclick="toggleCronometro()" title="Cronômetro (vários tempos)" aria-label="Cronômetro">⏱<span class="crono-bolha" id="crono-bolha" hidden></span></button>
-    <div class="rail-ver" title="Versão do site">v9.11</div>
+    <div class="rail-ver" data-versao title="Versão do site">v9.12</div>
   </div>
 
   <!-- CAPA -->
@@ -44,6 +44,9 @@
           <!-- o ✎ renomeia direto, sem precisar ligar modo nenhum (ela cobriu em 20/07:
                "NÃO CONSIGO EDITARRRR — dica: troca nome") -->
           <h1><span data-txt="capa.titulo">Central de Empresas</span><span class="tit-lapis" title="Trocar o nome desta tela" onclick="renomearCapa()">✎</span></h1>
+          <!-- versão logo abaixo do título, SÓ no celular (a barra lateral some lá,
+               e no rodapé ela não via rápido) — pedido dela 23/07 -->
+          <div class="ver-topo" data-versao title="Versão do site">v9.12</div>
           <p id="rt-linha" class="store-sub" style="margin-top:7px;cursor:pointer" title="Toque para editar" onclick="editarRtInfo()"></p>
           <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px">
             <button class="btn ghost" id="syncPillHome" title="Configurar/ver o status da sincronização (vale para o site inteiro)" onclick="openSyncModal()"><span data-txt="capa.sync">⚙ Sincronização</span></button>
@@ -107,8 +110,8 @@
         <span class="back-link" style="margin:0 14px 0 0" title="Use ao sair de um computador que não é seu" onclick="limparDispositivo()"><span data-txt="capa.limpar">🧹 Limpar dados deste dispositivo</span></span>
         <!-- fim de expediente no PC do trabalho: envia o que ela fez e apaga o rastro -->
         <span class="back-link" style="margin:0" title="Ao terminar o dia no PC do trabalho: envia o que você fez e apaga tudo daqui" onclick="sairDaqui()"><span data-txt="capa.sair">🚪 Sair e apagar deste PC</span></span>
-        <!-- versão visível também no celular (a rail some em telas pequenas — pedido de Lê 23/07) -->
-        <div style="margin-top:10px;opacity:.55;font-size:12px" title="Versão do site">Versão do site: v9.11</div>
+        <!-- no celular a versão subiu para o topo (.ver-topo); aqui fica só no computador -->
+        <div class="ver-rodape" data-versao title="Versão do site">v9.12</div>
       </div>
     </div>
   </div>
@@ -264,20 +267,20 @@
   </div>
 </div>
 
-<script src="js/app.js?v=72"></script>
-<script src="js/docxlite.js?v=72"></script>
-<script src="js/dg.js?v=72"></script>
-<script src="js/pdflite.js?v=72"></script>
-<script src="js/ck.js?v=72"></script>
-<script src="js/ck-modelo2.js?v=72"></script>
-<script src="js/arquivos.js?v=72"></script>
-<script src="js/cronometro.js?v=72"></script>
-<script src="js/pdf-abas.js?v=72"></script>
-<script src="js/configs.js?v=72"></script>
-<script src="js/nc.js?v=72"></script>
-<script src="js/ck-qualidade.js?v=72"></script>
-<script src="js/ppr.js?v=72"></script>
-<script src="js/ind.js?v=72"></script>
-<script src="js/sync.js?v=72"></script>
+<script src="js/app.js?v=73"></script>
+<script src="js/docxlite.js?v=73"></script>
+<script src="js/dg.js?v=73"></script>
+<script src="js/pdflite.js?v=73"></script>
+<script src="js/ck.js?v=73"></script>
+<script src="js/ck-modelo2.js?v=73"></script>
+<script src="js/arquivos.js?v=73"></script>
+<script src="js/cronometro.js?v=73"></script>
+<script src="js/pdf-abas.js?v=73"></script>
+<script src="js/configs.js?v=73"></script>
+<script src="js/nc.js?v=73"></script>
+<script src="js/ck-qualidade.js?v=73"></script>
+<script src="js/ppr.js?v=73"></script>
+<script src="js/ind.js?v=73"></script>
+<script src="js/sync.js?v=73"></script>
 </body>
 </html>
