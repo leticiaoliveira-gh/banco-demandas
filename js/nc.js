@@ -616,11 +616,11 @@ async function ncRelatorioPrint(){
   if(d.area!==area){area=d.area;corpo+=`<div class="area">${esc(area)}</div>`;}
   const m=ncMeses(d,ym),urg=d.urgencia==="URGENTE";
   corpo+=`<div class="card ${urg?"urg":""}">
+   ${(d.fotos||[]).length?`<div class="fts">${d.fotos.map((f,i)=>`<img src="${f}"${i?' class="extra"':""}>`).join("")}</div>`:""}
    <p class="prob">${esc(ncRelProblema(d))}</p>
    <div class="acao">${esc(ncRelAcao(d))}</div>
    ${d.obs?`<div class="obsline">${esc(d.obs)}</div>`:""}
    ${m>=2?`<span class="rei">Reincidente — ${ncOrdinal(m)}</span>`:""}
-   ${(d.fotos||[]).length?`<div>${d.fotos.map(f=>`<img src="${f}">`).join("")}</div>`:""}
   </div>`;
  }
  const res=r.resolvidas.map(d=>`<li><b>${esc(d.area)}</b>: ${esc(ncTextoRelatorio(d))} <span class="mut">(resolvida em ${brDate(d.resolvida_em)})</span></li>`).join("");
@@ -648,7 +648,10 @@ async function ncRelatorioPrint(){
  .obsline{margin:8px 0 0;background:#fdf4e3;border-radius:8px;padding:8px 10px;color:#7a561a;font-size:13px}
  .obsline::before{content:"👁 "}
  .rei{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;color:#9a6b1f;background:#fdf4e3;border-radius:10px;padding:2px 10px}
- .card img{max-width:220px;max-height:160px;margin:8px 6px 0 0;border:1px solid #ddd;border-radius:6px;vertical-align:top}
+ .card{overflow:hidden}
+ .card .fts{float:right;margin:0 0 6px 12px;max-width:126px}
+ .card .fts img{display:block;max-width:120px;max-height:90px;margin:0 0 6px;border:1px solid #ddd;border-radius:6px}
+ .card .fts img.extra{max-width:88px;max-height:64px}
  h2{font-size:14px;margin:24px 0 8px;color:#1d6b57}
  .concl{background:#f3f7f4;border-radius:10px;padding:13px 16px}
  .ass{margin-top:40px;font-size:13px}

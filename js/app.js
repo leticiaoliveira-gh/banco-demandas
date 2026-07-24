@@ -200,7 +200,7 @@ const ICO={
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","ck","ckq","nc","list","add"];
+const TAB_ORDER=["dg","ck","ckq","nc","list","ind","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
@@ -229,6 +229,12 @@ const TABS={
       icone:ICO.mnt,cor:"#b3730a",corFundo:"#fdf0e0",hub:true,
       subtitle:n=>(EXECUTORES.length?EXECUTORES.map(e=>e.funcao+" ("+e.nome+")").join(" e "):"Manutenções e Elétrica")+" — "+n,
       onShow(){configTableTab("mnt");}},
+  ind:{label:"Indicadores",tipo:null,panel:"tab-ind",
+      icone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="12" width="3.4" height="7" rx="1"/><rect x="10.3" y="7" width="3.4" height="12" rx="1"/><rect x="15.6" y="10" width="3.4" height="9" rx="1"/></svg>',
+      cor:"#0e7490",corFundo:"#e2f1f5",hub:true,
+      subtitle:n=>"",
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){if(typeof renderInd==="function")renderInd();}},
   add:{label:"Adicionar Manualmente",tipo:null,panel:"tab-add",
       icone:ICO.add,cor:"#8a8b96",corFundo:"#f1f1f3",hub:false,
       subtitle:n=>"Cadastro manual de itens — "+n,

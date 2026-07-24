@@ -90,7 +90,7 @@ function pprDivergencias(){
     if(!pprNoPeriodo(String(d.data||d.criadoEm||"").slice(0,10)))continue;
     const loc=pprLocal(d.area,"","");
     out.push({origem:"pprx",pUid:d.uid,chave:"",titulo:d.texto||"",
-      comentario:"",fotos:[],resolvidoEm:d.resolvidoEm||"",
+      comentario:"",fotos:d.fotos||[],resolvidoEm:d.resolvidoEm||"",
       data:String(d.data||d.criadoEm||"").slice(0,10),fonte:"Item avulso",
       piso:loc.piso,area:loc.area});
   }
@@ -126,6 +126,7 @@ function pprDesenha(){
   const grupos=pprGrupos();
   const total=grupos.reduce((n,g)=>n+g.areas.reduce((m,a)=>m+a.itens.length,0),0);
   const feitas=grupos.reduce((n,g)=>n+g.areas.reduce((m,a)=>m+a.itens.filter(i=>i.resolvidoEm).length,0),0);
+  const comFoto=grupos.reduce((n,g)=>n+g.areas.reduce((m,a)=>m+a.itens.filter(i=>(i.fotos||[]).length).length,0),0);
   let el=document.getElementById("ppr-tela");
   if(!el){el=document.createElement("div");el.id="ppr-tela";el.className="ck-preench";document.body.appendChild(el);}
   document.body.style.overflow="hidden";
@@ -142,6 +143,7 @@ function pprDesenha(){
           <span>${feitas}/${total} resolvidas</span>
           <button class="btn ghost sm" onclick="pprAvulso()">➕ Adicionar item avulso</button>
           <button class="btn sm" ${total?"":"disabled"} onclick="pprPDF()">📄 Gerar o documento</button>
+          <button class="btn ghost sm" ${comFoto?"":"disabled"} title="${comFoto?"Uma foto grande por item, com legenda":"Nenhuma divergência do período tem foto"}" onclick="pprFotoDoc()">📷 Versão fotográfica</button>
         </div>
       </div>
       ${!total?`<div class="ck-vazio"><p class="t">Nenhuma divergência (👎) nos checklists deste período.</p>
@@ -186,8 +188,10 @@ async function pprResolver(origem,pUid,chave,on){
 }
 
 /* ===== item avulso ({tipo:"pprx"}) ===== */
+let PPR_AV_FOTOS=[];
 function pprAvulso(uid){
   const d=uid?DATA.find(x=>x.uid===uid&&!x.deleted):null;
+  PPR_AV_FOTOS=(d&&d.fotos)?d.fotos.slice():[];
   ncModal(`<h2>${d?"Editar item avulso":"Divergência fora do checklist"}</h2>
     <p class="desc">Algo que você viu na loja e quer que entre no relatório da semana,
     mesmo sem estar em nenhum checklist.</p>
@@ -199,10 +203,30 @@ function pprAvulso(uid){
       <div class="field"><label>Data</label>
         <input type="date" id="ppr-av-dt" value="${esc(d?String(d.data||"").slice(0,10):today())}"></div>
     </div>
+    <div class="field"><label>Fotos (opcional, até 2)</label>
+      <input type="file" accept="image/*" multiple onchange="pprAvFoto(event)">
+      <div id="ppr-av-thumbs" class="nc-thumbs">${pprAvThumbs()}</div></div>
     <div class="form-actions">
       <button class="btn ghost" onclick="ncFechar()">Cancelar</button>
       <button class="btn" onclick="pprAvulsoSalvar('${uid||""}')">Salvar</button>
     </div>`);
+}
+function pprAvThumbs(){
+  return PPR_AV_FOTOS.map((f,i)=>`<span class="nc-thumb"><img src="${f}">
+    <button onclick="pprAvFotoDel(${i})" title="Remover">×</button></span>`).join("");
+}
+async function pprAvFoto(e){
+  for(const f of (e.target.files||[])){
+    if(PPR_AV_FOTOS.length>=2){toast("No máximo 2 fotos por item");break;}
+    const d=await ncComprimir(f);         /* mesma compressão das NCs (JPEG) */
+    if(d)PPR_AV_FOTOS.push(d);
+  }
+  e.target.value="";
+  const el=document.getElementById("ppr-av-thumbs");if(el)el.innerHTML=pprAvThumbs();
+}
+function pprAvFotoDel(i){
+  PPR_AV_FOTOS.splice(i,1);
+  const el=document.getElementById("ppr-av-thumbs");if(el)el.innerHTML=pprAvThumbs();
 }
 async function pprAvulsoSalvar(uid){
   const tx=(document.getElementById("ppr-av-tx").value||"").trim();
@@ -214,7 +238,7 @@ async function pprAvulsoSalvar(uid){
     d={uid:newUid(),tipo:"pprx",loja:currentStore,criadoEm:today(),resolvidoEm:""};
     DATA.push(d);
   }
-  d.texto=tx;d.area=ar;d.data=dt;d.mod=nowISO();
+  d.texto=tx;d.area=ar;d.data=dt;d.fotos=PPR_AV_FOTOS.slice();d.mod=nowISO();
   d.id=await putItem(d);dataChanged();
   ncFechar();pprDesenha();toast("Item guardado ✓");
 }
@@ -495,6 +519,250 @@ function pprRelPDF(grupos,info){
   d.linha(M,d.y,M+LARG,d.y,"#eceef0",0.7);
   d.y+=6;
   d.paragrafo("Consolidação semanal das verificações de rotina (PPR) · "
+    +info.loja+" · "+info.periodoBR,
+    {x:M,larg:LARG,tam:7,cor:C.cinzaClaro,alturaLinha:9.5});
+  return d.blob();
+}
+
+/* ===== VERSÃO FOTOGRÁFICA (estilo do PowerPoint que ela fazia) =====
+   Só os itens COM foto: uma foto grande por item + legenda
+   (área · problema · data · status). Mesma barra de envio do documento normal. */
+function pprComFoto(){
+  const out=[];
+  for(const g of pprGrupos())for(const a of g.areas)for(const i of a.itens)
+    if((i.fotos||[]).length)out.push(i);
+  return out;
+}
+function pprFotoDoc(){
+  const itens=pprComFoto();
+  if(!itens.length){toast("Nenhuma divergência do período tem foto");return;}
+  const loja=nomeCurto((empresa(currentStore)||{}).name||currentStore||"");
+  const {nome,cred,cargo}=pprQuem();
+  const periodoBR=brDate(PPR_DE)+" a "+brDate(PPR_ATE);
+  const feitas=itens.filter(i=>i.resolvidoEm).length;
+
+  const resumoTxt=["*Relatório Fotográfico (PPR semanal)*",loja+" — "+periodoBR,"",
+    "Registros com foto: *"+itens.length+"*   |   Resolvidos: *"+feitas+"*",""]
+    .concat(itens.map(i=>(i.resolvidoEm?"[OK] ":"[  ] ")
+      +(i.piso==="GERAL"?"":i.piso+" — ")+i.area+": "+i.titulo
+      +(i.comentario?" — "+i.comentario:"")))
+    .concat(["",nome+(cred?" — "+cred:"")]).join("\n");
+
+  let pdfURL="",nomePDF="";
+  try{
+    if(typeof PDFLite==="function"){
+      pdfURL=URL.createObjectURL(pprFotoPDF(itens,{loja,periodoBR,feitas}));
+      nomePDF="Relatorio-Fotografico-PPR_"+String(loja).normalize("NFD").replace(/[̀-ͯ]/g,"")
+        .replace(/[^\w]+/g,"-")+"_"+String(PPR_ATE||today())+".pdf";
+    }
+  }catch(e){console.warn("PPR foto PDF:",e);}
+
+  const w=window.open("");
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+  <title>Relatório Fotográfico — ${esc(loja)} — ${esc(periodoBR)}</title><style>
+  @page{margin:15mm 14mm 18mm}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#22242e;font-size:12px;
+       margin:0;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cap{background:linear-gradient(135deg,#0f5b52,#17756a 55%,#2a9d8a);color:#fff;
+       border-radius:12px;padding:20px 22px;margin-bottom:16px}
+  .cap .et{font-size:9.5px;letter-spacing:2.2px;text-transform:uppercase;opacity:.72}
+  .cap h1{font-size:22px;margin:5px 0 2px;font-weight:650;letter-spacing:-.2px}
+  .cap .loja{font-size:13.5px;opacity:.92}
+  .cap .rt{margin-top:14px;padding-top:11px;border-top:1px solid rgba(255,255,255,.24);
+           display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .cap .rt .nm{font-size:13px;font-weight:650}
+  .cap .rt .cg{font-size:10px;opacity:.78;margin-top:1px}
+  .cap .rt .dt{font-size:10px;opacity:.85;text-align:right;white-space:nowrap}
+  .fitem{border:1px solid #e4e6ea;border-radius:12px;overflow:hidden;margin-bottom:16px;
+         page-break-inside:avoid}
+  .fitem .fts{background:#f4f6f5;text-align:center;padding:10px}
+  .fitem .fts img{max-width:100%;max-height:330px;border-radius:8px}
+  .fitem .fts img+img{max-height:150px;margin-left:8px}
+  .leg{padding:10px 14px 12px;border-top:3px solid #17756a}
+  .fitem.ok .leg{border-top-color:#12b76a}
+  .leg .ar{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0f5b52}
+  .leg .pb{font-size:13px;font-weight:600;margin:3px 0 2px}
+  .fitem.ok .leg .pb{color:#0d8a52}
+  .leg .cm{font-size:11.5px;color:#3f4149}
+  .leg .mt{font-size:10px;color:#8a8b96;margin-top:4px}
+  .leg .st{font-weight:700}
+  .leg .st.ab{color:#c0212a}.leg .st.ok{color:#0d8a52}
+  .ass{display:flex;gap:40px;margin-top:34px;page-break-inside:avoid}
+  .ass div{flex:1}
+  .ass img{max-height:52px;display:block;margin-bottom:-6px}
+  .linha{border-bottom:1px solid #22242e;height:46px}
+  .rot{font-size:10px;color:#6b7280;margin-top:5px;line-height:1.5}
+  .rot b{color:#22242e;font-weight:600}
+  .pe{margin-top:22px;padding-top:9px;border-top:1px solid #eceef0;
+      font-size:8.8px;color:#9aa0a8;line-height:1.6}
+  .barra{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e4e6ea;
+    padding:10px 0 11px;margin-bottom:14px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .barra b.tt{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8a8b96;margin-right:4px}
+  .barra button{font:inherit;font-size:12px;padding:9px 14px;border-radius:9px;cursor:pointer;
+    border:1px solid #d6dbd9;background:#fff;color:#22242e;display:inline-flex;align-items:center;gap:6px}
+  .barra button.pri{background:#17756a;border-color:#17756a;color:#fff;font-weight:600}
+  .barra button:hover{border-color:#17756a}
+  .barra .dica{font-size:10.5px;color:#8a8b96;flex-basis:100%;margin-top:-2px}
+  @media print{.barra{display:none}}
+  @media(max-width:640px){.barra button{flex:1 1 42%;justify-content:center}}
+  </style></head><body>
+
+  <div class="barra">
+    <b class="tt">Este relatório</b>
+    <button class="pri" onclick="zap()">📱 Enviar no WhatsApp</button>
+    <button onclick="baixar()">⬇ Baixar o PDF</button>
+    <button onclick="window.print()">🖨 Imprimir</button>
+    <button onclick="copiar()">📋 Copiar o texto</button>
+    <span class="dica" id="dica">No celular, o WhatsApp abre com o <b>PDF anexado e o texto pronto</b> — você confere antes de enviar. Ao imprimir, ligue "Gráficos de plano de fundo" para o cabeçalho sair verde.</span>
+  </div>
+
+  <script>
+  var RESUMO=${JSON.stringify(resumoTxt)};
+  var PDFURL=${JSON.stringify(pdfURL)};
+  var ARQPDF=${JSON.stringify(nomePDF||"Relatorio-Fotografico-PPR.pdf")};
+  var ASSUNTO=${JSON.stringify("Relatório Fotográfico (PPR) — "+loja+" — "+periodoBR)};
+  function arquivoPDF(){
+    if(!PDFURL)return Promise.resolve(null);
+    return fetch(PDFURL).then(function(r){return r.blob();}).then(function(b){
+      return new File([b],ARQPDF,{type:"application/pdf"});
+    }).catch(function(){return null;});
+  }
+  function baixar(){
+    if(!PDFURL){alert("Não consegui montar o PDF aqui.\\n\\nUse o botão 🖨 Imprimir e escolha \\"Salvar como PDF\\".");return;}
+    var a=document.createElement("a");a.href=PDFURL;a.download=ARQPDF;a.click();
+  }
+  function zap(){
+    arquivoPDF().then(function(f){
+      if(f&&navigator.canShare&&navigator.canShare({files:[f]})){
+        navigator.share({files:[f],text:RESUMO,title:ASSUNTO}).catch(function(){});
+        return;
+      }
+      if(PDFURL)baixar();
+      var d=document.getElementById("dica");
+      if(d)d.innerHTML="<b>PDF baixado.</b> O WhatsApp vai abrir com o texto pronto — "
+        +"arraste o PDF da pasta de downloads para a conversa e confira antes de enviar.";
+      setTimeout(function(){
+        window.open("https://web.whatsapp.com/send?text="+encodeURIComponent(RESUMO),"_blank");
+      },700);
+    });
+  }
+  function copiar(){
+    navigator.clipboard.writeText(RESUMO).then(function(){
+      alert("Texto copiado.\\n\\nAgora é só colar onde você quiser.");
+    },function(){
+      var t=document.createElement("textarea");t.value=RESUMO;document.body.appendChild(t);
+      t.select();document.execCommand("copy");t.remove();alert("Texto copiado.");
+    });
+  }
+  <\/script>
+
+  <div class="cap">
+    <div class="et">PPR semanal · Registro fotográfico</div>
+    <h1>Relatório Fotográfico</h1>
+    <div class="loja">${esc(loja)}</div>
+    <div class="rt">
+      <div><div class="nm">${esc(nome)}</div>
+        <div class="cg">${esc(cargo)}${cred?" · "+esc(cred):""}</div></div>
+      <div class="dt">Período<br><b>${esc(periodoBR)}</b></div>
+    </div>
+  </div>
+
+  ${itens.map(i=>`
+    <div class="fitem${i.resolvidoEm?" ok":""}">
+      <div class="fts">${(i.fotos||[]).slice(0,2).map(f=>`<img src="${f}">`).join("")}</div>
+      <div class="leg">
+        <span class="ar">${esc((i.piso==="GERAL"?"":i.piso+" — ")+i.area)}</span>
+        <div class="pb">${i.resolvidoEm?"☑":"☐"} ${esc(i.titulo)}</div>
+        ${i.comentario?`<div class="cm">${esc(i.comentario)}</div>`:""}
+        <div class="mt">${esc(brDate(i.data))} · ${esc(i.fonte)} ·
+          <span class="st ${i.resolvidoEm?"ok":"ab"}">${i.resolvidoEm?"RESOLVIDA em "+esc(brDate(i.resolvidoEm)):"EM ABERTO"}</span></div>
+      </div>
+    </div>`).join("")}
+
+  <div class="ass">
+    <div>${(typeof CK_ASSINATURA!=="undefined"&&CK_ASSINATURA)?`<img src="${CK_ASSINATURA}">`:""}<div class="linha" style="${(typeof CK_ASSINATURA!=="undefined"&&CK_ASSINATURA)?"height:0":""}"></div>
+      <p class="rot"><b>${esc(nome)}</b><br>${esc(cargo)}${cred?"<br>"+esc(cred):""}</p></div>
+    <div><div class="linha"></div>
+      <p class="rot"><b>Ciente — Gerência</b><br>Nome e assinatura<br>Data: ____/____/______</p></div>
+  </div>
+  <p class="pe">Registro fotográfico das verificações de rotina (PPR) · ${esc(loja)} · ${esc(periodoBR)}</p>
+  </body></html>`);
+  w.document.close();
+}
+
+/* o fotográfico em PDF DE VERDADE (pdflite), para anexar no WhatsApp */
+function pprFotoPDF(itens,info){
+  const C={verde:"#17756a",verdeEsc:"#0f5b52",vermelho:"#c0212a",
+    cinza:"#6b7280",cinzaClaro:"#9aa0a8",linha:"#e4e6ea",texto:"#22242e"};
+  const {nome,cred,cargo}=pprQuem();
+  const M=40,LARG=515;
+  const d=new PDFLite();
+  d.y=M;
+  d.retangulo(M,M,LARG,104,C.verdeEsc);
+  d.retangulo(M+LARG*0.55,M,LARG*0.45,104,C.verde);
+  d.texto("PPR SEMANAL · REGISTRO FOTOGRÁFICO",{x:M+18,y:M+16,tam:8,cor:"#cfe4df"});
+  d.texto("Relatório Fotográfico",{x:M+18,y:M+29,tam:19,cor:"#ffffff",negrito:true});
+  d.texto(info.loja,{x:M+18,y:M+54,tam:12,cor:"#d8ebe6"});
+  d.linha(M+18,M+76,M+LARG-18,M+76,"#4f9a8e",0.6);
+  d.texto(nome,{x:M+18,y:M+82,tam:11,cor:"#ffffff",negrito:true});
+  d.texto(cargo+(cred?" · "+cred:""),{x:M+18,y:M+94,tam:8,cor:"#cfe4df"});
+  d.texto("Período",{x:M,y:M+82,tam:8,cor:"#cfe4df",larg:LARG-18,direita:true});
+  d.texto(info.periodoBR,{x:M,y:M+92,tam:10,cor:"#ffffff",negrito:true,larg:LARG-18,direita:true});
+  d.y=M+124;
+  d.paragrafo(itens.length+" registro"+(itens.length===1?"":"s")+" com foto no período · "
+    +info.feitas+" resolvido"+(info.feitas===1?"":"s")+" · "
+    +(itens.length-info.feitas)+" em aberto.",
+    {x:M,larg:LARG,tam:9,cor:C.cinza,alturaLinha:12});
+  d.y+=8;
+  /* um bloco por item: foto grande + legenda (área · problema · data · status) */
+  for(const i of itens){
+    const fts=(i.fotos||[]).filter(f=>/^data:image\/jpe?g/i.test(f)).slice(0,2);
+    const FH=fts.length?236:0;                 /* caixa da(s) foto(s) */
+    const linhas=d.quebrar(i.titulo+(i.comentario?" — "+i.comentario:""),LARG-24,10);
+    const altura=FH+18+linhas.length*13+30;
+    d.espaco(Math.min(altura,700));
+    const topo=d.y;
+    if(fts.length===1)d.jpeg(fts[0],M+8,d.y+8,LARG-16,FH-16);
+    else if(fts.length===2){
+      d.jpeg(fts[0],M+8,d.y+8,(LARG-24)/2,FH-16);
+      d.jpeg(fts[1],M+16+(LARG-24)/2,d.y+8,(LARG-24)/2,FH-16);
+    }
+    d.y+=FH+8;
+    const ok=!!i.resolvidoEm;
+    d.linha(M,d.y,M+LARG,d.y,ok?"#12b76a":C.verde,2);
+    d.y+=7;
+    d.texto(((i.piso==="GERAL"?"":i.piso+" — ")+i.area).toUpperCase(),
+      {x:M+8,y:d.y,tam:8,cor:C.verdeEsc,negrito:true});
+    d.y+=13;
+    d.paragrafo((ok?"[x] ":"[ ] ")+i.titulo+(i.comentario?" — "+i.comentario:""),
+      {x:M+8,larg:LARG-24,tam:10,cor:ok?"#0d8a52":C.texto,negrito:true,alturaLinha:13});
+    d.texto(brDate(i.data)+" · "+i.fonte+" · "
+      +(ok?"RESOLVIDA em "+brDate(i.resolvidoEm):"EM ABERTO"),
+      {x:M+8,y:d.y+2,tam:8,cor:ok?"#0d8a52":C.vermelho});
+    d.y+=16;
+    d.linha(M,topo,M,d.y-4,C.linha,0.7);      /* moldura discreta do bloco */
+    d.linha(M+LARG,topo,M+LARG,d.y-4,C.linha,0.7);
+    d.linha(M,topo,M+LARG,topo,C.linha,0.7);
+    d.linha(M,d.y-4,M+LARG,d.y-4,C.linha,0.7);
+    d.y+=10;
+  }
+  /* assinaturas: a dela + linha para a Gerência */
+  d.espaco(96);d.y+=22;
+  const meio=M+LARG/2+10;
+  d.linha(M,d.y+40,M+220,d.y+40,C.texto,0.8);
+  d.linha(meio,d.y+40,meio+220,d.y+40,C.texto,0.8);
+  d.texto(nome,{x:M,y:d.y+46,tam:9,cor:C.texto,negrito:true});
+  d.texto(cargo,{x:M,y:d.y+58,tam:8,cor:C.cinza});
+  if(cred)d.texto(cred,{x:M,y:d.y+68,tam:8,cor:C.cinza});
+  d.texto("Ciente — Gerência",{x:meio,y:d.y+46,tam:9,cor:C.texto,negrito:true});
+  d.texto("Nome e assinatura",{x:meio,y:d.y+58,tam:8,cor:C.cinza});
+  d.texto("Data: ____/____/______",{x:meio,y:d.y+68,tam:8,cor:C.cinza});
+  d.y+=86;
+  d.espaco(24);
+  d.linha(M,d.y,M+LARG,d.y,"#eceef0",0.7);
+  d.y+=6;
+  d.paragrafo("Registro fotográfico das verificações de rotina (PPR) · "
     +info.loja+" · "+info.periodoBR,
     {x:M,larg:LARG,tam:7,cor:C.cinzaClaro,alturaLinha:9.5});
   return d.blob();

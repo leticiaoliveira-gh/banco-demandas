@@ -342,6 +342,10 @@ const CKQ_PACOTES=[
    com o texto inventado são atualizados AQUI — só os que nunca foram respondidos
    (preenchimento existente = histórico dela, não se toca). Idempotente via meta. */
 async function ckqMigrarPerguntasReais(){
+  /* dispositivo recém-limpo boota VAZIO e a sync só traz os modelos depois —
+     não gravar a flag sem ter modelo para olhar, senão a migração nunca roda
+     (aconteceu no Lenovo em 23/07; a nuvem foi corrigida à mão). */
+  if(!DATA.some(d=>!d.deleted&&d.tipo==="ckqm"&&d.chavePronta))return;
   if(await metaGet("mig_ckq_real_v1"))return;
   let mudou=0;HIST_LIGADO=false;
   try{
