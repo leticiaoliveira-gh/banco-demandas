@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════════════════════════════
+   MODELO DE RELATÓRIO — pronto para virar PDF
+   ───────────────────────────────────────────────────────────────────
+   Abre no navegador → Ctrl+P → "Salvar como PDF". Sai em A4, com
+   cabeçalho e rodapé em toda página, sem cortar tabela no meio.
+
+   Classes começam com "rel-" para não brigar com nada.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@page{ size:A4; margin:16mm 14mm 20mm 14mm; }
+
+:root{
+  --rel-verde:#1d6b57; --rel-verde-esc:#155244; --rel-verde-claro:#e8f5f0;
+  --rel-ok:#067647; --rel-ok-f:#ecfdf3; --rel-ok-b:#abefc6;
+  --rel-at:#b54708; --rel-at-f:#fffaeb; --rel-at-b:#fedf89;
+  --rel-er:#b42318; --rel-er-f:#fef3f2; --rel-er-b:#fecdca;
+  --rel-tinta:#101828; --rel-txt:#344054; --rel-fraco:#667085;
+  --rel-linha:#eaecf0; --rel-fundo:#f9fafb;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:10.5pt; line-height:1.5; color:var(--rel-txt);
+  background:#e9ebee; padding:24px;
+}
+
+/* A folha — na tela parece papel; na impressão vira a página */
+.rel-folha{
+  width:210mm; min-height:297mm; margin:0 auto 20px; background:#fff;
+  padding:16mm 14mm 22mm; box-shadow:0 4px 20px rgba(16,24,40,.14);
+  position:relative;
+}
+
+/* ─────────── CAPA ─────────── */
+.rel-capa{
+  background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
+  color:#fff; margin:-16mm -14mm 12mm; padding:26mm 14mm 14mm;
+}
+.rel-capa-etiqueta{
+  font-size:8.5pt; font-weight:700; text-transform:uppercase; letter-spacing:1.6px;
+  color:rgba(255,255,255,.75); margin-bottom:7px;
+}
+.rel-capa h1{font-size:23pt;font-weight:700;letter-spacing:-.5px;line-height:1.2}
+.rel-capa-sub{font-size:11.5pt;color:rgba(255,255,255,.9);margin-top:6px}
+.rel-capa-linha{
+  display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.25);
+}
+.rel-capa-item .rot{font-size:8pt;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.68)}
+.rel-capa-item .val{font-size:11pt;font-weight:600;margin-top:2px}
+
+/* ─────────── TÍTULOS DE SEÇÃO ─────────── */
+.rel-secao{margin:11mm 0 5mm;page-break-after:avoid}
+.rel-secao h2{
+  font-size:12pt;font-weight:700;color:var(--rel-tinta);letter-spacing:-.2px;
+  padding-bottom:6px;border-bottom:2px solid var(--rel-verde);display:inline-block;
+}
+.rel-secao p{font-size:9.5pt;color:var(--rel-fraco);margin-top:6px}
+
+/* ─────────── RESUMO EM NÚMEROS ─────────── */
+.rel-numeros{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;page-break-inside:avoid}
+.rel-num{border:1px solid var(--rel-linha);border-radius:9px;padding:11px 12px;background:var(--rel-fundo)}
+.rel-num .rot{font-size:7.8pt;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--rel-fraco)}
+.rel-num .val{font-size:19pt;font-weight:700;color:var(--rel-tinta);line-height:1.1;margin-top:5px;
+  font-variant-numeric:tabular-nums}
+.rel-num .obs{font-size:8.2pt;color:var(--rel-fraco);margin-top:2px}
+.rel-num-ok .val{color:var(--rel-ok)} .rel-num-at .val{color:var(--rel-at)} .rel-num-er .val{color:var(--rel-er)}
+
+/* ─────────── GRÁFICO DE BARRAS (CSS puro, imprime perfeito) ─────────── */
+.rel-graf{page-break-inside:avoid}
+.rel-graf-linha{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rel-graf-nome{width:34%;font-size:9.5pt;color:var(--rel-txt);text-align:right;flex:none}
+.rel-graf-trilho{flex:1;height:17px;background:var(--rel-fundo);border-radius:4px;overflow:hidden;
+  border:1px solid var(--rel-linha)}
+.rel-graf-barra{height:100%;background:var(--rel-verde);border-radius:3px}
+.rel-graf-barra.at{background:#f59e0b} .rel-graf-barra.er{background:#f04438}
+.rel-graf-val{width:44px;font-size:9.5pt;font-weight:600;color:var(--rel-tinta);
+  text-align:right;flex:none;font-variant-numeric:tabular-nums}
+
+/* ─────────── TABELA ─────────── */
+.rel-tab{width:100%;border-collapse:collapse;font-size:9.5pt;margin-top:3mm}
+.rel-tab thead{display:table-header-group}          /* repete o cabeçalho em toda página */
+.rel-tab th{
+  background:var(--rel-verde-claro);color:var(--rel-verde-esc);text-align:left;
+  padding:8px 10px;font-size:8.2pt;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  border-bottom:1.5px solid var(--rel-verde);
+}
+.rel-tab td{padding:9px 10px;border-bottom:1px solid var(--rel-linha);vertical-align:top}
+.rel-tab tbody tr{page-break-inside:avoid}
+.rel-tab tbody tr:nth-child(even){background:#fcfcfd}
+.rel-tab td:first-child{font-weight:600;color:var(--rel-tinta)}
+.rel-tab .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ─────────── SELO DE STATUS ─────────── */
+.rel-selo{display:inline-block;font-size:8pt;font-weight:700;padding:2px 8px;
+  border-radius:99px;border:1px solid;white-space:nowrap}
+.rel-selo-ok{background:var(--rel-ok-f);color:var(--rel-ok);border-color:var(--rel-ok-b)}
+.rel-selo-at{background:var(--rel-at-f);color:var(--rel-at);border-color:var(--rel-at-b)}
+.rel-selo-er{background:var(--rel-er-f);color:var(--rel-er);border-color:var(--rel-er-b)}
+
+/* ─────────── FOTOS ─────────── */
+.rel-fotos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:3mm}
+.rel-foto{border:1px solid var(--rel-linha);border-radius:8px;overflow:hidden;page-break-inside:avoid}
+.rel-foto img{width:100%;height:52mm;object-fit:cover;display:block;background:var(--rel-fundo)}
+.rel-foto-legenda{padding:7px 10px;font-size:8.6pt;color:var(--rel-txt);background:var(--rel-fundo)}
+.rel-foto-legenda b{display:block;color:var(--rel-tinta);margin-bottom:1px}
+
+/* ─────────── OBSERVAÇÃO EM DESTAQUE ─────────── */
+.rel-nota{border-left:3px solid var(--rel-verde);background:var(--rel-verde-claro);
+  padding:10px 13px;border-radius:0 8px 8px 0;font-size:9.6pt;page-break-inside:avoid;margin-top:3mm}
+.rel-nota b{color:var(--rel-verde-esc)}
+
+/* ─────────── ASSINATURA ─────────── */
+.rel-assinatura{margin-top:14mm;padding-top:5mm;border-top:1px solid var(--rel-linha);
+  page-break-inside:avoid;text-align:center}
+.rel-assinatura .risco{width:68mm;border-bottom:1px solid var(--rel-tinta);margin:0 auto 6px;height:14mm}
+.rel-assinatura .nome{font-size:10.5pt;font-weight:700;color:var(--rel-tinta)}
+.rel-assinatura .cargo{font-size:9pt;color:var(--rel-fraco);margin-top:1px}
+
+/* ─────────── RODAPÉ (repete em toda página impressa) ─────────── */
+.rel-rodape{
+  position:fixed;bottom:8mm;left:14mm;right:14mm;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:8pt;color:var(--rel-fraco);
+  padding-top:5px;border-top:1px solid var(--rel-linha);
+}
+
+/* ─────────── CONTROLES (só na tela, somem no PDF) ─────────── */
+.rel-barra{max-width:210mm;margin:0 auto 16px;display:flex;gap:9px;align-items:center}
+.rel-barra .dica{font-size:12px;color:#667085;margin-right:auto}
+.rel-bt{background:var(--rel-verde);color:#fff;border:0;border-radius:8px;padding:9px 16px;
+  font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.rel-bt:hover{background:var(--rel-verde-esc)}
+
+/* ─────────── QUEBRA DE PÁGINA MANUAL ─────────── */
+.rel-nova-pagina{page-break-before:always}
+
+/* ═══════════ NA HORA DE IMPRIMIR ═══════════ */
+@media print{
+  body{background:#fff;padding:0}
+  .rel-folha{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}
+  .rel-capa{margin:0 0 12mm;padding:20mm 14mm 14mm}
+  .rel-barra{display:none}
+  /* garante que as cores de fundo saiam no PDF */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}

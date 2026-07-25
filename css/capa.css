@@ -195,6 +195,19 @@
   .hub-livro{min-height:132px}
 }
 
+/* ═════════ ALVO DE TOQUE NO CELULAR (auditoria de 25/07) ═════════
+   Botões pequenos que sobraram de antes: o dedo errava. Onde crescer não
+   atrapalha o desenho, cresce; onde atrapalharia, cresce só a ÁREA de toque
+   (retângulo invisível), mantendo a peça do mesmo tamanho na tela. */
+@media (max-width:1000px){
+  /* trocador de visão da agenda e as seções do checklist: viram pílulas de 44 */
+  .dg-visao button,.ck-sec,.ckq-sub{min-height:44px}
+  /* engrenagens de configurar filtro: desenho igual, alvo de 44 */
+  .filtro-cfg-bt{position:relative}
+  .filtro-cfg-bt:after{content:"";position:absolute;left:0;right:0;
+    top:50%;height:44px;transform:translateY(-50%)}
+}
+
 /* quem pediu menos animação no aparelho não recebe nenhuma */
 @media (prefers-reduced-motion:reduce){
   #view-home .store-list .store-row,.sr-barra>i{transition:none !important}
