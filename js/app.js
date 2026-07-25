@@ -357,12 +357,36 @@ function renderTabs(){renderRailTabs();renderMobileNav();}
 /* ===== Hub de cards (porta de entrada da empresa) ===== */
 function renderHub(){
   const box=document.getElementById("hub-grid");if(!box)return;
+  /* MODO CADERNO (25/07, escolha dela): cada quadro é uma folha de caderno que já
+     mostra como está a coisa — quantos faltam, barrinha e selo escrito.
+     As peças vêm PRONTAS da biblioteca (biblioteca/pecas.css, classes bd-*):
+     bd-card / bd-card-faixa / bd-card-icone / bd-selo / bd-barra. Nada do zero. */
+  const vivos=DATA.filter(d=>!d.deleted&&d.loja===currentStore);
   box.innerHTML=ABAS_HUB().map(t=>{const a=TABS[t];
-    /* card BRANCO: a cor fica só na barra, no fundo do ícone e no título (pedido de Lê, 19/07) */
-    return `<button class="hub-card" data-hub="${t}" style="color:${a.cor}" onclick="showTab('${t}')" title="${esc(rotuloAba(t))}">
-      <span class="bar" style="background:${a.cor}"></span>
-      <span class="ico" style="background:${a.corFundo}">${a.icone}</span>
-      <span class="nm">${esc(rotuloAba(t))}</span></button>`;}).join("");
+    const meus=a.tipo?vivos.filter(d=>d.tipo===a.tipo):[];
+    const pend=meus.filter(isPendente).length, done=meus.filter(isConcluido).length;
+    const tot=pend+done, pct=tot?Math.round(done/tot*100):0;
+    const urg=a.tipo==="nc"?meus.filter(d=>d.urgencia==="URGENTE"&&isPendente(d)).length:0;
+    /* o selo SEMPRE tem palavra escrita — a cor nunca conta a história sozinha */
+    let selo="";
+    if(!a.tipo)                selo=`<span class="bd-selo bd-selo-neutro"><i></i>quadro</span>`;
+    else if(urg)               selo=`<span class="bd-selo bd-selo-erro"><i></i>${urg} urgente${urg===1?"":"s"}</span>`;
+    else if(pend)              selo=`<span class="bd-selo bd-selo-atencao"><i></i>${pend} em aberto</span>`;
+    else if(tot)               selo=`<span class="bd-selo bd-selo-ok"><i></i>em dia</span>`;
+    else                       selo=`<span class="bd-selo bd-selo-neutro"><i></i>vazio</span>`;
+    return `<button class="bd-card bd-card-clique hub-livro" data-hub="${t}"
+        onclick="showTab('${t}')" title="Abrir ${esc(rotuloAba(t))}">
+      <span class="bd-card-faixa" style="background:${a.cor}"></span>
+      <span class="hub-livro-corpo">
+        <span class="hub-livro-cab">
+          <span class="hub-livro-ico" aria-hidden="true" style="background:${a.corFundo};color:${a.cor}">${a.icone}</span>
+          ${selo}
+        </span>
+        <span class="bd-card-tit">${esc(rotuloAba(t))}</span>
+        <span class="bd-card-sub">${tot?`${tot} item${tot===1?"":"ns"} no total`:"nada lançado ainda"}</span>
+        ${tot?`<span class="bd-barra"><span style="width:${pct}%"></span></span>
+        <span class="bd-barra-legenda"><span>${done} de ${tot} resolvidas</span><span>${pct}%</span></span>`:""}
+      </span></button>`;}).join("");
 }
 function showHub(){
   if(!currentStore)return goHome();
@@ -798,7 +822,8 @@ async function renderHome(){
    const abertoT=vivos.filter(d=>isPendente(d)).length;
    const ativasT=EMPRESAS.filter(e=>e.ativa).length;
    chips.innerHTML=
-     (urgT?`<span class="chip urg" onclick="abrirUrgentes()" title="Ver as urgentes">${urgT} urgente${urgT===1?"":"s"}</span>`:"")+
+     /* BOTÃO de verdade, não texto clicável: quem navega por teclado tem de alcançar */
+     (urgT?`<button type="button" class="chip urg" onclick="abrirUrgentes()" title="Ver as urgentes">${urgT} urgente${urgT===1?"":"s"}</button>`:"")+
      `<span class="chip">${abertoT} em aberto</span>`+
      `<span class="chip">${ativasT} loja${ativasT===1?"":"s"} ligada${ativasT===1?"":"s"}</span>`;
  }
@@ -1481,7 +1506,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.15";
+const APP_VERSAO="9.16";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
 }

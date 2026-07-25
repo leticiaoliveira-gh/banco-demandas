@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=76">
+<link rel="stylesheet" href="css/app.css?v=77">
 <!-- POLIMENTO: camada de acabamento (contraste, foco de teclado, sombras
      padronizadas, alvo de toque no celular). Só acabamento — não muda layout.
      PARA DESFAZER TUDO: apague só esta linha de baixo. -->
@@ -21,7 +21,10 @@
 <!-- CAPA: escolha dela em 25/07 — "Painel de vidro" no computador e "Modo loja"
      no celular. É UMA capa só; quem troca a cara é o tamanho da tela.
      PARA VOLTAR AO DE ANTES: apague só esta linha de baixo. -->
-<link rel="stylesheet" href="css/capa.css?v=76">
+<!-- PEÇAS PRONTAS da biblioteca de design (classes bd-*). É daqui que sai todo
+     visual novo — nada é construído do zero. Catálogo em /catalogo/ -->
+<link rel="stylesheet" href="biblioteca/pecas.css?v=77">
+<link rel="stylesheet" href="css/capa.css?v=77">
 </head>
 <body>
 <div class="app">
@@ -120,6 +123,8 @@
         <span class="back-link" style="margin:0 14px 0 0" title="Passo a passo curto para as coisas mais comuns" onclick="comoFacoLista()"><span data-txt="capa.comofaco">❓ Como faço para...</span></span>
         <span class="back-link" style="margin:0 14px 0 0" title="Entenda como o site funciona por dentro — para você mexer sozinha" onclick="mapaDoSite()"><span data-txt="capa.mapa">🗺 Mapa do site</span></span>
         <span class="back-link" style="margin:0 14px 0 0" title="Arrastar as empresas para a ordem que você quiser e escolher o que aparece" onclick="toggleOrganizarCapa()"><span data-txt="capa.organizar">↕ Organizar a capa</span></span>
+        <!-- catálogo das peças prontas: abre numa aba nova, não interfere no site -->
+        <a class="back-link" style="margin:0 14px 0 0;text-decoration:none" href="catalogo/" target="_blank" rel="noopener" title="Ver todas as peças prontas do site (botões, campos, avisos, cartões)"><span data-txt="capa.catalogo">🧩 Catálogo de peças</span></a>
         <span class="back-link" style="margin:0 14px 0 0" title="Use ao sair de um computador que não é seu" onclick="limparDispositivo()"><span data-txt="capa.limpar">🧹 Limpar dados deste dispositivo</span></span>
         <!-- fim de expediente no PC do trabalho: envia o que ela fez e apaga o rastro -->
         <span class="back-link" style="margin:0" title="Ao terminar o dia no PC do trabalho: envia o que você fez e apaga tudo daqui" onclick="sairDaqui()"><span data-txt="capa.sair">🚪 Sair e apagar deste PC</span></span>
@@ -280,20 +285,20 @@
   </div>
 </div>
 
-<script src="js/app.js?v=76"></script>
-<script src="js/docxlite.js?v=76"></script>
-<script src="js/dg.js?v=76"></script>
-<script src="js/pdflite.js?v=76"></script>
-<script src="js/ck.js?v=76"></script>
-<script src="js/ck-modelo2.js?v=76"></script>
-<script src="js/arquivos.js?v=76"></script>
-<script src="js/cronometro.js?v=76"></script>
-<script src="js/pdf-abas.js?v=76"></script>
-<script src="js/configs.js?v=76"></script>
-<script src="js/nc.js?v=76"></script>
-<script src="js/ck-qualidade.js?v=76"></script>
-<script src="js/ppr.js?v=76"></script>
-<script src="js/ind.js?v=76"></script>
-<script src="js/sync.js?v=76"></script>
+<script src="js/app.js?v=77"></script>
+<script src="js/docxlite.js?v=77"></script>
+<script src="js/dg.js?v=77"></script>
+<script src="js/pdflite.js?v=77"></script>
+<script src="js/ck.js?v=77"></script>
+<script src="js/ck-modelo2.js?v=77"></script>
+<script src="js/arquivos.js?v=77"></script>
+<script src="js/cronometro.js?v=77"></script>
+<script src="js/pdf-abas.js?v=77"></script>
+<script src="js/configs.js?v=77"></script>
+<script src="js/nc.js?v=77"></script>
+<script src="js/ck-qualidade.js?v=77"></script>
+<script src="js/ppr.js?v=77"></script>
+<script src="js/ind.js?v=77"></script>
+<script src="js/sync.js?v=77"></script>
 </body>
 </html>

@@ -21,8 +21,13 @@
 /* etiquetas de número do topo */
 .home-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .home-chips .chip{font-size:12px;font-weight:650;line-height:1;
-  padding:7px 12px;border-radius:999px;white-space:nowrap}
-.home-chips .chip.urg{cursor:pointer}
+  padding:7px 12px;border-radius:999px;white-space:nowrap;
+  font-family:inherit;border:0;margin:0}
+.home-chips .chip.urg{cursor:pointer;position:relative}
+/* a etiqueta é pequena de propósito, mas a ÁREA DE TOQUE tem de ter 44px:
+   este retângulo invisível cresce o alvo sem engordar o desenho */
+.home-chips .chip.urg:after{content:"";position:absolute;left:0;right:0;
+  top:50%;height:44px;transform:translateY(-50%)}
 .home-chips .chip.urg:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
 
 /* barrinha de progresso dentro de cada loja */
@@ -34,6 +39,8 @@
   font-size:11.5px;color:var(--muted);margin-top:6px}
 .store-row[data-off] .sr-barra>i{background:#d0d5dd}
 .sr-urg{color:#b42318;font-weight:700}
+/* nome de loja comprido não pode empurrar a linha para fora da tela */
+#view-home .store-list .store-title{overflow-wrap:anywhere}
 
 /* ═════════════════════ COMPUTADOR — PAINEL DE VIDRO ═════════════════════ */
 @media (min-width:1001px){
@@ -165,6 +172,27 @@
   #view-home .home-wrap>div:last-child .back-link{
     display:block;margin:0 0 12px !important;padding:4px 0;font-size:14.5px;
   }
+}
+
+/* ═════════ MODO CADERNO — os cartões dos quadros (hub) ═════════
+   Só o encaixe: o desenho vem das peças bd-* da biblioteca. */
+.hub-livro{
+  display:block;text-align:left;width:100%;padding:0;overflow:hidden;
+  font:inherit;cursor:pointer;
+}
+.hub-livro-corpo{display:block;padding:16px 18px 18px}
+.hub-livro-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.hub-livro-ico{
+  width:40px;height:40px;flex:none;border-radius:11px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.hub-livro-ico svg{width:21px;height:21px}
+.hub-livro .bd-card-tit,.hub-livro .bd-card-sub{display:block}
+.hub-livro .bd-barra{margin-top:14px}
+/* alvo de toque confortável no celular */
+@media (max-width:1000px){
+  .hub-livro-corpo{padding:14px 16px 16px}
+  .hub-livro{min-height:132px}
 }
 
 /* quem pediu menos animação no aparelho não recebe nenhuma */
