@@ -1,7 +1,7 @@
 /* Service worker — network-first com fallback em cache: o app abre offline
    e atualiza sozinho quando há internet. Bump da versão a cada deploy. */
-const CACHE = "np-demandas-v78";
-const SHELL = ["./", "./index.html", "./css/app.css", "./css/polimento.css", "./css/capa.css", "./biblioteca/pecas.css", "./js/app.js",
+const CACHE = "np-demandas-v79";
+const SHELL = ["./", "./index.html", "./css/app.css", "./css/polimento.css", "./css/capa.css", "./biblioteca/pecas.css", "./biblioteca/graficos.css", "./js/app.js",
   "./js/docxlite.js", "./js/dg.js", "./js/pdflite.js", "./js/ck.js", "./js/ck-modelo2.js", "./js/ck-qualidade.js", "./js/arquivos.js", "./js/cronometro.js", "./js/pdf-abas.js", "./js/configs.js", "./js/nc.js", "./js/ppr.js", "./js/ind.js", "./js/sync.js", "./manifest.json",
   "./catalogo/index.html", "./catalogo/pecas.css",
   "./catalogo/graficos/index.html", "./catalogo/graficos/graficos.css",

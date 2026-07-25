@@ -146,13 +146,115 @@ function indPctTexto(nums){
   return {v:nums.pct+"%",s:"dos registros do período já resolvidos"};
 }
 
+/* =====================================================================
+   OS GRÁFICOS — usam as peças bd-g-* da biblioteca (catalogo/graficos).
+   Regras da biblioteca respeitadas aqui:
+   · o valor vai SEMPRE escrito junto da cor (cor nunca conta sozinha);
+   · a 2ª série é TRACEJADA, então dá para ler impresso em preto e branco;
+   · nada de texto dentro do SVG (nome de mês e número ficam fora, em HTML);
+   · no máximo 6 cores da paleta — o que sobra vira "Outros".
+   ===================================================================== */
+
+/* 1) "Qual área está pior?" — barras deitadas com o que está EM ABERTO */
+function indGrafAreas(){
+  const abertos=indItens().filter(d=>!indResolvido(d));
+  const porArea={};
+  for(const d of abertos){
+    const a=String(d.area||"").trim()||"Sem área definida";
+    porArea[a]=porArea[a]||{n:0,urg:0};
+    porArea[a].n++;
+    if(d.tipo==="nc"&&d.urgencia==="URGENTE")porArea[a].urg++;
+  }
+  const rank=Object.entries(porArea).sort((a,b)=>b[1].n-a[1].n||b[1].urg-a[1].urg);
+  if(!rank.length)return `<div class="bd-g"><div class="bd-g-tit">${txt("ind.g.areas","Onde estão os pontos em aberto")}</div>
+    <div class="bd-g-sub">nada em aberto no momento</div>
+    <div class="bd-g-nota">Quando houver pontos abertos, as áreas aparecem aqui, da pior para a melhor.</div></div>`;
+  /* a paleta tem 6 cores e não se acrescenta uma sétima: o resto vira "Outros" */
+  const topo=rank.slice(0,6), resto=rank.slice(6);
+  const restoN=resto.reduce((s,[,v])=>s+v.n,0);
+  if(restoN)topo.push(["Outros ("+resto.length+" áreas)",{n:restoN,urg:0}]);
+  const max=Math.max(1,...topo.map(([,v])=>v.n));
+  const linhas=topo.map(([nome,v])=>{
+    const cor=v.urg?"c5":"c1";   /* vermelho só onde há urgente — e escrito também */
+    return `<div class="bd-g-lin">
+      <div class="bd-g-nome">${esc(nome)}</div>
+      <div class="bd-g-trilho" data-dica="${esc(nome)}: ${v.n} em aberto${v.urg?", "+v.urg+" urgente"+(v.urg===1?"":"s"):""}">
+        <div class="bd-g-barra ${cor}" style="width:${Math.max(2,Math.round(v.n*100/max))}%"></div></div>
+      <div class="bd-g-val">${v.n}${v.urg?" ⚠":""}</div></div>`;}).join("");
+  const comUrg=topo.filter(([,v])=>v.urg).length;
+  return `<div class="bd-g">
+    <div class="bd-g-tit">${txt("ind.g.areas","Onde estão os pontos em aberto")}</div>
+    <div class="bd-g-sub">por área, do maior para o menor</div>
+    <div class="bd-g-corpo bd-g-barras">${linhas}</div>
+    <div class="bd-g-nota">${comUrg?("⚠ marca área com ponto urgente ("+comUrg+" no total).")
+      :"Nenhuma dessas áreas tem ponto urgente."}</div></div>`;
+}
+
+/* 2) "Está melhorando?" — linha do tempo, 6 meses, resolvidos (cheia) x identificados (tracejada) */
+function indGrafEvolucao(evo){
+  const max=Math.max(1,...evo.map(m=>Math.max(m.ident,m.resolv)));
+  const n=evo.length||1;
+  const X=i=>Math.round(14+i*(326-14)/(n>1?n-1:1));
+  const Y=v=>Math.round(128-(v/max)*(128-12));
+  const pts=k=>evo.map((m,i)=>X(i)+","+Y(m[k])).join(" ");
+  const ult=evo[n-1]||{ident:0,resolv:0};
+  const vazio=evo.every(m=>!m.ident&&!m.resolv);
+  return `<div class="bd-g">
+    <div class="bd-g-tit">${txt("ind.g.evo","Está melhorando?")}</div>
+    <div class="bd-g-sub">últimos 6 meses — identificados × resolvidos</div>
+    <div class="bd-g-corpo">
+      <svg class="bd-g-svg" viewBox="0 0 340 130" role="img"
+        aria-label="Gráfico de linha dos últimos 6 meses. Resolvidos terminam em ${ult.resolv}; identificados terminam em ${ult.ident}.">
+        <line class="bd-g-grade" x1="0" y1="12" x2="340" y2="12"/>
+        <line class="bd-g-grade" x1="0" y1="51" x2="340" y2="51"/>
+        <line class="bd-g-grade" x1="0" y1="90" x2="340" y2="90"/>
+        <line class="bd-g-grade" x1="0" y1="128" x2="340" y2="128"/>
+        <polyline class="bd-g-linha-s1" points="${pts("resolv")}"/>
+        <circle class="bd-g-ponto-cheio" cx="${X(n-1)}" cy="${Y(ult.resolv)}"/>
+        <polyline class="bd-g-linha-s2" points="${pts("ident")}"/>
+        <circle class="bd-g-ponto-s2" cx="${X(n-1)}" cy="${Y(ult.ident)}"/>
+      </svg>
+      <div class="bd-g-eixo-x">${evo.map(m=>`<span>${esc(m.rot)}</span>`).join("")}</div>
+    </div>
+    <div class="bd-g-legenda">
+      <span class="bd-g-leg"><i style="background:#0a7d63"></i>Resolvidos — linha cheia · <b>${ult.resolv} no mês</b></span>
+      <span class="bd-g-leg"><i style="background:#1668b8"></i>Identificados — linha tracejada · <b>${ult.ident} no mês</b></span>
+    </div>
+    ${vazio?`<div class="bd-g-nota">Ainda sem lançamentos nestes meses.</div>`:""}</div>`;
+}
+
+/* 3) "Estou perto do alvo?" — medidor. NUNCA um número que a prejudique:
+      sem registros ou 0% não vira vermelho acusatório, vira acompanhamento. */
+function indGrafMeta(nums,pct){
+  if(nums.ident===0||nums.pct===null||nums.pct===0){
+    return `<div class="bd-g">
+      <div class="bd-g-tit">${txt("ind.g.meta","Resolução do período")}</div>
+      <div class="bd-g-sub">${nums.ident===0?"sem novos registros no período":nums.ident+" registro(s) em tratativa"}</div>
+      <div class="bd-g-corpo bd-g-meta">
+        <div class="bd-g-meta-arco" style="--p:0%"></div>
+        <div class="bd-g-meta-num" style="font-size:19px">em acompanhamento</div>
+        <div class="bd-g-meta-txt">o percentual entra quando houver conclusão</div>
+        <div class="bd-g-meta-lados"><span>0%</span><span>100%</span></div>
+      </div></div>`;
+  }
+  const p=nums.pct;
+  return `<div class="bd-g">
+    <div class="bd-g-tit">${txt("ind.g.meta","Resolução do período")}</div>
+    <div class="bd-g-sub">dos registros do período já resolvidos</div>
+    <div class="bd-g-corpo bd-g-meta">
+      <div class="bd-g-meta-arco" style="--p:${(p/2).toFixed(1)}%"></div>
+      <div class="bd-g-meta-num">${p}%</div>
+      <div class="bd-g-meta-txt">${nums.resolv} de ${nums.ident} concluídos</div>
+      <div class="bd-g-meta-lados"><span>0%</span><span>100%</span></div>
+    </div></div>`;
+}
+
 /* ===== a tela ===== */
 function renderInd(){
   const el=document.getElementById("tab-ind");if(!el)return;
   const nums=indNumeros(),per=indPeriodo(),evo=indEvolucao(),prev=indPrevencao();
   const lojas=indLojasDoGrupo(),temGrupo=lojas.length>1;
   const pct=indPctTexto(nums);
-  const maxBar=Math.max(1,...evo.map(m=>Math.max(m.ident,m.resolv)));
 
   const cartao=(v,rot,sub,cls)=>`<div class="card"><div class="lbl">${rot}</div>
     <div class="sub">${sub||""}</div><div class="val ${cls||"accent"}">${v}</div></div>`;
@@ -184,21 +286,14 @@ function renderInd(){
     ${cartao(nums.semVolta,txt("ind.c.reinc","Sem reincidência"),"resolvidos que não voltaram")}
   </div>
 
-  <h3 data-txt="ind.h.evolucao" style="font-size:13px;margin:0 0 8px">Evolução — identificados × resolvidos (6 meses)</h3>
-  <div style="display:flex;gap:14px;align-items:flex-end;height:150px;padding:8px 4px 0;border:1px solid #e4e6ea;border-radius:12px;margin-bottom:6px;overflow-x:auto">
-    ${evo.map(m=>`
-      <div style="flex:1;min-width:56px;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
-        <div style="flex:1;display:flex;gap:5px;align-items:flex-end;width:100%;justify-content:center">
-          <div title="Identificados: ${m.ident}" style="width:16px;border-radius:4px 4px 0 0;background:#9db8b0;height:${Math.round(m.ident*100/maxBar)}%;min-height:${m.ident?"3px":"0"}"></div>
-          <div title="Resolvidos: ${m.resolv}" style="width:16px;border-radius:4px 4px 0 0;background:#17756a;height:${Math.round(m.resolv*100/maxBar)}%;min-height:${m.resolv?"3px":"0"}"></div>
-        </div>
-        <span style="font-size:10.5px;color:#8a8b96">${esc(m.rot)}</span>
-        <span style="font-size:10px;color:#5b7a72">${m.ident}·${m.resolv}</span>
-      </div>`).join("")}
+  <!-- GRÁFICOS: peças bd-g-* da biblioteca de design (catalogo/graficos).
+       Nada desenhado à mão aqui, e nenhum texto dentro do desenho — nome de
+       mês e número ficam fora, em texto normal, para não esticarem. -->
+  <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));margin-bottom:22px">
+    ${indGrafAreas()}
+    ${indGrafEvolucao(evo)}
+    ${indGrafMeta(nums,pct)}
   </div>
-  <p style="font-size:10.5px;color:#8a8b96;margin:0 0 20px">
-    <span style="display:inline-block;width:10px;height:10px;background:#9db8b0;border-radius:3px;vertical-align:-1px"></span> <span data-txt="ind.leg.ident">identificados</span>
-    &nbsp;<span style="display:inline-block;width:10px;height:10px;background:#17756a;border-radius:3px;vertical-align:-1px"></span> <span data-txt="ind.leg.resolv">resolvidos</span></p>
 
   <h3 data-txt="ind.h.prev" style="font-size:13px;margin:0 0 4px">Prevenção de perdas — argumentos com números reais</h3>
   <p data-txt="ind.p.prev" style="font-size:11.5px;color:#8a8b96;margin:0 0 10px">O que a rotina de qualidade evitou neste período. São contagens reais dos checklists e registros — use no relatório ou na reunião.</p>

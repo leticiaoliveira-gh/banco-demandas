@@ -1,0 +1,225 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   CATÁLOGO DE GRÁFICOS — HTML e CSS puro
+   ───────────────────────────────────────────────────────────────────────
+   Nenhum programa, nenhuma internet, nenhuma biblioteca. Funciona offline,
+   abre com duplo clique e imprime bonito.
+
+   Classes começam com "bd-g-" para não brigar com nada.
+
+   PARA TROCAR UM NÚMERO: o valor aparece escrito no HTML, do lado da barra.
+   Você troca o número escrito E a porcentagem da barra. Só isso.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── AS 6 CORES DE SÉRIE ──
+     Testadas em validador profissional: passaram em contraste, em saturação
+     e em distinção para quem não enxerga cor (daltonismo). NÃO troque, e
+     NUNCA invente uma sétima. Se precisar de mais de 6, junte o resto em
+     "Outros" ou faça dois gráficos. */
+  --g1:#0a7d63;  /* verde da casa   — sempre a série principal */
+  --g2:#1668b8;  /* azul                                        */
+  --g3:#c2620a;  /* âmbar                                       */
+  --g4:#7b5cff;  /* roxo                                        */
+  --g5:#d92d3a;  /* vermelho                                    */
+  --g6:#2f9e86;  /* verde claro                                 */
+
+  /* ── ESCALA DE INTENSIDADE (quando é MUITO x POUCO da mesma coisa) ──
+     Uma cor só, do claro ao escuro. Nunca arco-íris. */
+  --gi1:#e6f2ee; --gi2:#bfe0d5; --gi3:#8ec9b7; --gi4:#4fae94; --gi5:#0a7d63;
+
+  /* ── PARTES CINZAS DO GRÁFICO (nunca chamam atenção) ── */
+  --g-linha:#eaecf0;    /* linhas de fundo */
+  --g-eixo:#d0d5dd;     /* eixo            */
+  --g-tinta:#101828;    /* números fortes  */
+  --g-texto:#344054;    /* nomes           */
+  --g-fraco:#6f707b;    /* legendas        */
+  --g-fundo:#fff;
+}
+
+/* ═══════════ MOLDURA COMUM ═══════════ */
+.bd-g{
+  font-family:inherit;background:var(--g-fundo);border:1px solid var(--g-linha);
+  border-radius:14px;padding:18px 20px 16px;
+}
+.bd-g-tit{font-size:14px;font-weight:620;color:var(--g-tinta);letter-spacing:-.2px}
+.bd-g-sub{font-size:12.3px;color:var(--g-fraco);margin-top:2px;line-height:1.45}
+.bd-g-corpo{margin-top:16px}
+
+/* legenda — obrigatória quando há 2 séries ou mais */
+.bd-g-legenda{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:14px;
+  padding-top:12px;border-top:1px solid var(--g-linha)}
+.bd-g-leg{display:inline-flex;align-items:center;gap:6px;font-size:12.2px;color:var(--g-texto)}
+.bd-g-leg i{width:10px;height:10px;border-radius:3px;flex:none;display:block}
+
+/* nota de rodapé do gráfico */
+.bd-g-nota{font-size:11.6px;color:var(--g-fraco);margin-top:11px;line-height:1.5}
+
+/* ═══════════ 1. BARRAS DEITADAS ═══════════
+   O gráfico mais legível que existe. Use sempre que der. */
+.bd-g-barras{display:flex;flex-direction:column;gap:11px}
+.bd-g-lin{display:grid;grid-template-columns:minmax(74px,32%) 1fr auto;
+  align-items:center;gap:11px}
+.bd-g-nome{font-size:12.6px;color:var(--g-texto);text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-g-trilho{height:16px;background:var(--gi1);border-radius:4px;position:relative}
+.bd-g-barra{height:100%;background:var(--g1);border-radius:0 4px 4px 0;
+  min-width:3px;transition:width .32s cubic-bezier(.2,.8,.3,1)}
+.bd-g-lin:first-child .bd-g-barra,.bd-g-barra:first-child{border-radius:4px}
+.bd-g-val{font-size:12.6px;font-weight:620;color:var(--g-tinta);
+  font-variant-numeric:tabular-nums;min-width:46px;text-align:right}
+
+/* ═══════════ 2. BARRAS EM PÉ (comparar meses) ═══════════ */
+.bd-g-colunas{display:flex;align-items:flex-end;gap:9px;height:158px;
+  border-bottom:1px solid var(--g-eixo);padding-bottom:0}
+.bd-g-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:center;height:100%;gap:5px;min-width:0}
+.bd-g-col-val{font-size:11.8px;font-weight:620;color:var(--g-tinta);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.bd-g-col-barra{width:100%;max-width:46px;background:var(--g1);
+  border-radius:4px 4px 0 0;min-height:3px;
+  transition:height .32s cubic-bezier(.2,.8,.3,1)}
+.bd-g-col-nome{font-size:11.4px;color:var(--g-fraco);margin-top:7px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bd-g-eixo-x{display:flex;gap:9px;margin-top:0}
+.bd-g-eixo-x span{flex:1;text-align:center;font-size:11.4px;color:var(--g-fraco);
+  padding-top:7px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* coluna em destaque (o mês atual, por exemplo) */
+.bd-g-col-barra.destaque{background:var(--g1)}
+.bd-g-col-barra.apagada{background:var(--gi3)}
+
+/* ═══════════ 3. LINHA DO TEMPO ═══════════
+   Desenhada em SVG. Você troca só os números dentro de "points". */
+.bd-g-svg{width:100%;height:auto;display:block;overflow:visible}
+.bd-g-grade{stroke:var(--g-linha);stroke-width:1}
+.bd-g-linha-s1{fill:none;stroke:var(--g1);stroke-width:2;
+  stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.bd-g-linha-s2{fill:none;stroke:var(--g2);stroke-width:2;
+  stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;
+  stroke-dasharray:5 4}                 /* série 2 tracejada: não depende da cor */
+.bd-g-area{fill:var(--g1);opacity:.10}
+/* Bolinha da ponta. O raio é pequeno de propósito: o desenho estica em telas
+   grandes e a bolinha estica junto. A cor tem que ser a MESMA da linha. */
+.bd-g-ponto-cheio{fill:var(--g1);stroke:var(--g-fundo);stroke-width:1.2;r:2.4;
+  vector-effect:non-scaling-stroke}
+.bd-g-ponto-s2{fill:var(--g2);stroke:var(--g-fundo);stroke-width:1.2;r:2.4;
+  vector-effect:non-scaling-stroke}
+/* Regra importante: NUNCA escreva texto dentro do SVG. O desenho estica em
+   telas grandes e o texto estica junto, saindo gigante. Nome de mês e número
+   vão SEMPRE fora do desenho, em HTML normal (.bd-g-eixo-x e a legenda). */
+.bd-g-legenda b{font-weight:620;color:var(--g-tinta);font-variant-numeric:tabular-nums}
+
+/* ═══════════ 4. BARRA EMPILHADA (composição do todo) ═══════════
+   O vão de 2px entre os pedaços é regra profissional: sem ele os blocos
+   se fundem e a leitura falha. */
+.bd-g-pilha{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px;
+  background:var(--g-linha)}
+.bd-g-fatia{display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:620;color:#fff;min-width:2px;
+  font-variant-numeric:tabular-nums;overflow:hidden;white-space:nowrap}
+.bd-g-fatia:first-child{border-radius:6px 0 0 6px}
+.bd-g-fatia:last-child{border-radius:0 6px 6px 0}
+
+/* ═══════════ 5. ROSCA (só para 2 a 4 pedaços) ═══════════
+   Mais que 4 pedaços, use barras deitadas: pizza com muita fatia é ilegível. */
+.bd-g-rosca-cx{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.bd-g-rosca{width:132px;height:132px;border-radius:50%;flex:none;position:relative;
+  display:grid;place-items:center}
+.bd-g-rosca::after{content:"";position:absolute;width:58%;height:58%;
+  border-radius:50%;background:var(--g-fundo)}
+.bd-g-rosca-centro{position:relative;z-index:1;text-align:center;line-height:1.15}
+.bd-g-rosca-num{font-size:23px;font-weight:700;color:var(--g-tinta);
+  letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.bd-g-rosca-lbl{font-size:10.6px;color:var(--g-fraco);text-transform:uppercase;
+  letter-spacing:.6px;margin-top:1px}
+.bd-g-rosca-lista{flex:1;min-width:150px;display:flex;flex-direction:column;gap:8px}
+.bd-g-rosca-item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--g-texto)}
+.bd-g-rosca-item i{width:10px;height:10px;border-radius:3px;flex:none}
+.bd-g-rosca-item b{margin-left:auto;color:var(--g-tinta);font-weight:620;
+  font-variant-numeric:tabular-nums}
+
+/* ═══════════ 6. MEDIDOR DE META ═══════════ */
+.bd-g-meta{text-align:center}
+.bd-g-meta-arco{width:190px;height:98px;margin:0 auto;position:relative;overflow:hidden}
+.bd-g-meta-arco::before{content:"";position:absolute;inset:0;
+  border-radius:190px 190px 0 0;
+  background:conic-gradient(from 270deg,var(--g1) 0 var(--p,50%),var(--gi1) var(--p,50%) 50%,transparent 50%)}
+.bd-g-meta-arco::after{content:"";position:absolute;left:22px;right:22px;bottom:0;height:76px;
+  border-radius:150px 150px 0 0;background:var(--g-fundo)}
+.bd-g-meta-num{position:relative;z-index:1;margin-top:-42px;font-size:29px;
+  font-weight:700;color:var(--g-tinta);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.bd-g-meta-txt{font-size:12.3px;color:var(--g-fraco);margin-top:3px}
+.bd-g-meta-lados{display:flex;justify-content:space-between;
+  font-size:11.2px;color:var(--g-fraco);margin:2px 8px 0}
+
+/* ═══════════ 7. MINI GRÁFICO DENTRO DO CARTÃO ═══════════ */
+.bd-g-mini-cx{border:1px solid var(--g-linha);border-radius:14px;padding:16px 17px;
+  background:var(--g-fundo)}
+.bd-g-mini-nome{font-size:11.8px;font-weight:560;color:var(--g-fraco);
+  text-transform:uppercase;letter-spacing:.5px}
+.bd-g-mini-num{font-size:27px;font-weight:680;color:var(--g-tinta);
+  letter-spacing:-1px;line-height:1;margin-top:9px;font-variant-numeric:tabular-nums}
+.bd-g-mini-var{font-size:12.2px;font-weight:620;margin-top:6px}
+.bd-g-sobe{color:#067647}.bd-g-desce{color:#b42318}
+.bd-g-mini-obs{color:var(--g-fraco);font-weight:400;margin-left:4px}
+.bd-g-mini-svg{width:100%;height:38px;margin-top:11px;display:block}
+
+/* ═══════════ 8. COMPARAÇÃO LADO A LADO (antes x depois) ═══════════ */
+.bd-g-par{display:flex;flex-direction:column;gap:14px}
+.bd-g-par-lin{display:grid;grid-template-columns:minmax(74px,28%) 1fr;
+  gap:11px;align-items:center}
+.bd-g-par-barras{display:flex;flex-direction:column;gap:4px}
+.bd-g-par-b{display:flex;align-items:center;gap:9px}
+.bd-g-par-t{flex:1;height:13px;background:var(--gi1);border-radius:4px}
+.bd-g-par-f{height:100%;border-radius:0 4px 4px 0;min-width:3px}
+.bd-g-par-f.antes{background:var(--gi3)}
+.bd-g-par-f.depois{background:var(--g1)}
+.bd-g-par-v{font-size:11.8px;font-weight:620;color:var(--g-tinta);
+  font-variant-numeric:tabular-nums;min-width:44px;text-align:right}
+
+/* ═══════════ DICA AO PASSAR O MOUSE ═══════════ */
+.bd-g-trilho[data-dica],.bd-g-col[data-dica],.bd-g-fatia[data-dica]{position:relative}
+.bd-g-trilho[data-dica]::after,.bd-g-col[data-dica]::after,.bd-g-fatia[data-dica]::after{
+  content:attr(data-dica);position:absolute;bottom:calc(100% + 7px);left:50%;
+  transform:translateX(-50%);background:var(--g-tinta);color:#fff;font-size:11.4px;
+  font-weight:500;padding:5px 9px;border-radius:6px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .14s;z-index:30}
+.bd-g-trilho[data-dica]:hover::after,.bd-g-col[data-dica]:hover::after,
+.bd-g-fatia[data-dica]:hover::after{opacity:1}
+
+/* ═══════════ LISTRAS PARA IMPRESSÃO EM PRETO E BRANCO ═══════════
+   Ponha a classe "bd-g-listrado" no gráfico inteiro: cada série ganha uma
+   textura diferente, e o gráfico continua legível impresso sem cor. */
+.bd-g-listrado .bd-g-barra,.bd-g-listrado .bd-g-fatia,.bd-g-listrado .bd-g-col-barra{
+  background-image:repeating-linear-gradient(45deg,
+    rgba(255,255,255,.28) 0 4px,transparent 4px 8px)}
+.bd-g-listrado .c2{background-image:repeating-linear-gradient(135deg,
+  rgba(255,255,255,.28) 0 4px,transparent 4px 8px)}
+.bd-g-listrado .c3{background-image:repeating-linear-gradient(90deg,
+  rgba(255,255,255,.28) 0 3px,transparent 3px 8px)}
+
+/* ═══════════ ATALHOS DE COR (use nas séries) ═══════════ */
+.c1{background:var(--g1)} .c2{background:var(--g2)} .c3{background:var(--g3)}
+.c4{background:var(--g4)} .c5{background:var(--g5)} .c6{background:var(--g6)}
+.i1{background:var(--gi1)} .i2{background:var(--gi2)} .i3{background:var(--gi3)}
+.i4{background:var(--gi4)} .i5{background:var(--gi5)}
+
+/* ═══════════ CELULAR ═══════════ */
+@media(max-width:560px){
+  .bd-g{padding:15px 14px 13px}
+  .bd-g-lin{grid-template-columns:minmax(62px,38%) 1fr auto;gap:8px}
+  .bd-g-nome{font-size:11.8px}
+  .bd-g-colunas{height:132px;gap:6px}
+  .bd-g-rosca-cx{gap:16px}
+  .bd-g-rosca{margin:0 auto}
+}
+
+/* ═══════════ IMPRESSÃO ═══════════ */
+@media print{
+  .bd-g{break-inside:avoid;box-shadow:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ═══════════ QUEM DESLIGOU ANIMAÇÃO ═══════════ */
+@media(prefers-reduced-motion:reduce){
+  .bd-g-barra,.bd-g-col-barra{transition:none}
+}
