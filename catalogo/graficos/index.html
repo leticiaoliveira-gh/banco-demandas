@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catálogo de Gráficos — Biblioteca de Design</title>
+<link rel="stylesheet" href="graficos.css">
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#f9fafb;color:#344054;font-size:14px;line-height:1.55;margin:0}
+  .topo{background:linear-gradient(135deg,#0a5b4b,#0a7d63 58%,#2f9e86);color:#fff;padding:38px 26px 34px}
+  .topo-in{max-width:1000px;margin:0 auto}
+  .topo h1{font-size:26px;letter-spacing:-.6px;margin:0 0 7px;font-weight:680}
+  .topo p{margin:0;color:rgba(255,255,255,.9);font-size:14.5px;max-width:640px}
+  .como{margin-top:18px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);
+    border-radius:12px;padding:14px 17px;font-size:13.4px;max-width:680px}
+  .como b{display:block;margin-bottom:5px}
+  .como ol{margin:0;padding-left:19px}.como li{margin-bottom:3px}
+  .conteudo{max-width:1000px;margin:0 auto;padding:34px 26px 80px}
+  .peca{background:#fff;border:1px solid #eaecf0;border-radius:14px;margin-bottom:16px;
+    overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .peca-cab{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 16px;border-bottom:1px solid #f2f4f7;background:#fcfcfd}
+  .peca-nome{font-size:13.6px;font-weight:620;color:#101828}
+  .peca-quando{font-size:12.3px;color:#6f707b;margin-top:1px;max-width:640px}
+  .bt-copiar{background:#fff;border:1px solid #d0d5dd;color:#344054;font:inherit;font-size:12.3px;
+    font-weight:600;padding:7px 13px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all .14s}
+  .bt-copiar:hover{background:#0a7d63;color:#fff;border-color:#0a7d63}
+  .bt-copiar.ok{background:#ecfdf3;color:#067647;border-color:#abefc6}
+  .demo{padding:22px 20px;background:#f9fafb}
+  .grade2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .aviso{background:#eff8ff;border:1px solid #b2ddff;color:#175cd3;border-radius:12px;
+    padding:13px 16px;font-size:13.2px;margin-bottom:22px;line-height:1.55}
+  .aviso b{display:block;margin-bottom:3px}
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <div class="topo-in">
+    <h1>Catálogo de Gráficos</h1>
+    <p>Oito gráficos prontos, sem programa nenhum por trás. Funcionam sem internet, abrem com duplo clique e imprimem bonito.</p>
+    <div class="como">
+      <b>Como usar</b>
+      <ol>
+        <li>Ache o gráfico que serve para a sua pergunta.</li>
+        <li>Clique em <b>Copiar</b>.</li>
+        <li>Me manda: "quero esse gráfico na tela X, com estes números".</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="conteudo">
+
+<div class="aviso">
+  <b>As cores foram testadas, não escolhidas no olho</b>
+  As 6 cores passaram em teste profissional de contraste e de daltonismo. Por isso todo gráfico
+  aqui também traz o número escrito: quem não distingue as cores continua conseguindo ler.
+  Nunca acrescente uma sétima cor — se sobrar categoria, junte em "Outros".
+</div>
+
+<!-- 1 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">1. Barras deitadas</div>
+    <div class="peca-quando">Para comparar categorias. É o gráfico mais fácil de ler que existe — na dúvida, use este. Nome comprido cabe.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g">
+      <div class="bd-g-tit">Conformidade por setor</div>
+      <div class="bd-g-sub">Percentual de itens conformes · julho de 2026</div>
+      <div class="bd-g-corpo bd-g-barras">
+        <div class="bd-g-lin"><div class="bd-g-nome">Recebimento</div>
+          <div class="bd-g-trilho" data-dica="59 de 64 itens conformes"><div class="bd-g-barra c1" style="width:92%"></div></div>
+          <div class="bd-g-val">92%</div></div>
+        <div class="bd-g-lin"><div class="bd-g-nome">Higienização</div>
+          <div class="bd-g-trilho" data-dica="56 de 64 itens conformes"><div class="bd-g-barra c1" style="width:88%"></div></div>
+          <div class="bd-g-val">88%</div></div>
+        <div class="bd-g-lin"><div class="bd-g-nome">Armazenamento</div>
+          <div class="bd-g-trilho" data-dica="54 de 64 itens conformes"><div class="bd-g-barra c1" style="width:85%"></div></div>
+          <div class="bd-g-val">85%</div></div>
+        <div class="bd-g-lin"><div class="bd-g-nome">Pré-preparo</div>
+          <div class="bd-g-trilho" data-dica="43 de 64 itens conformes"><div class="bd-g-barra c1" style="width:68%"></div></div>
+          <div class="bd-g-val">68%</div></div>
+        <div class="bd-g-lin"><div class="bd-g-nome">Cocção</div>
+          <div class="bd-g-trilho" data-dica="41 de 64 itens conformes"><div class="bd-g-barra c1" style="width:64%"></div></div>
+          <div class="bd-g-val">64%</div></div>
+        <div class="bd-g-lin"><div class="bd-g-nome">Câmara fria</div>
+          <div class="bd-g-trilho" data-dica="26 de 64 itens conformes"><div class="bd-g-barra c5" style="width:41%"></div></div>
+          <div class="bd-g-val">41%</div></div>
+      </div>
+      <div class="bd-g-nota">A câmara fria está em vermelho por estar abaixo da meta de 60%. Passe o mouse em qualquer barra para ver o número absoluto.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">2. Barras em pé</div>
+    <div class="peca-quando">Para comparar poucos períodos (meses, semanas). O mês atual fica cheio; os anteriores, mais claros.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g">
+      <div class="bd-g-tit">Não conformidades abertas por mês</div>
+      <div class="bd-g-sub">Últimos 6 meses</div>
+      <div class="bd-g-corpo">
+        <div class="bd-g-colunas">
+          <div class="bd-g-col" data-dica="Fevereiro: 34"><div class="bd-g-col-val">34</div><div class="bd-g-col-barra apagada" style="height:68%"></div></div>
+          <div class="bd-g-col" data-dica="Março: 41"><div class="bd-g-col-val">41</div><div class="bd-g-col-barra apagada" style="height:82%"></div></div>
+          <div class="bd-g-col" data-dica="Abril: 29"><div class="bd-g-col-val">29</div><div class="bd-g-col-barra apagada" style="height:58%"></div></div>
+          <div class="bd-g-col" data-dica="Maio: 26"><div class="bd-g-col-val">26</div><div class="bd-g-col-barra apagada" style="height:52%"></div></div>
+          <div class="bd-g-col" data-dica="Junho: 21"><div class="bd-g-col-val">21</div><div class="bd-g-col-barra apagada" style="height:42%"></div></div>
+          <div class="bd-g-col" data-dica="Julho: 18"><div class="bd-g-col-val">18</div><div class="bd-g-col-barra destaque" style="height:36%"></div></div>
+        </div>
+        <div class="bd-g-eixo-x">
+          <span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span>
+        </div>
+      </div>
+      <div class="bd-g-nota">Caiu 56% desde março. Julho está em verde cheio por ser o mês em andamento.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 3 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">3. Linha do tempo</div>
+    <div class="peca-quando">Para evolução ao longo de muitos períodos. Duas linhas: a segunda é <b>tracejada</b>, então dá para separar mesmo impresso em preto e branco.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g">
+      <div class="bd-g-tit">Abertas x resolvidas</div>
+      <div class="bd-g-sub">Fevereiro a julho de 2026</div>
+      <div class="bd-g-corpo">
+        <svg class="bd-g-svg" viewBox="0 0 340 130" role="img" aria-label="Gráfico de linha: resolvidas subindo de 22 para 47; abertas caindo de 34 para 18">
+          <line class="bd-g-grade" x1="0" y1="12"  x2="340" y2="12"/>
+          <line class="bd-g-grade" x1="0" y1="51"  x2="340" y2="51"/>
+          <line class="bd-g-grade" x1="0" y1="90"  x2="340" y2="90"/>
+          <line class="bd-g-grade" x1="0" y1="128" x2="340" y2="128"/>
+          <!-- RESOLVIDAS (linha cheia) — troque os pares "x,y" para mudar -->
+          <polyline class="bd-g-linha-s1" points="14,100 77,88 140,74 203,55 266,38 326,22"/>
+          <circle class="bd-g-ponto-cheio" cx="326" cy="22"/>
+          <!-- ABERTAS (linha tracejada) -->
+          <polyline class="bd-g-linha-s2" points="14,50 77,36 140,64 203,72 266,88 326,106"/>
+          <circle class="bd-g-ponto-s2" cx="326" cy="106"/>
+        </svg>
+        <div class="bd-g-eixo-x">
+          <span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span>
+        </div>
+      </div>
+      <div class="bd-g-legenda">
+        <span class="bd-g-leg"><i style="background:#0a7d63"></i>Resolvidas — linha cheia · <b>47 em julho</b></span>
+        <span class="bd-g-leg"><i style="background:#1668b8"></i>Abertas — linha tracejada · <b>18 em julho</b></span>
+      </div>
+      <div class="bd-g-nota">Os nomes dos meses e os números ficam fora do desenho, em texto normal — assim não esticam junto com o gráfico em telas grandes.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">4. Barra empilhada</div>
+    <div class="peca-quando">Para mostrar do que um total é feito. O vão entre os pedaços não é enfeite: sem ele os blocos se fundem e a leitura falha.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g">
+      <div class="bd-g-tit">Situação das 64 ocorrências</div>
+      <div class="bd-g-sub">Julho de 2026</div>
+      <div class="bd-g-corpo">
+        <div class="bd-g-pilha">
+          <div class="bd-g-fatia c1" style="width:72%" data-dica="Resolvidas: 46 de 64">72%</div>
+          <div class="bd-g-fatia c3" style="width:20%" data-dica="Em correção: 13 de 64">20%</div>
+          <div class="bd-g-fatia c5" style="width:8%"  data-dica="Críticas: 5 de 64">8%</div>
+        </div>
+      </div>
+      <div class="bd-g-legenda">
+        <span class="bd-g-leg"><i style="background:#0a7d63"></i>Resolvidas · 46</span>
+        <span class="bd-g-leg"><i style="background:#c2620a"></i>Em correção · 13</span>
+        <span class="bd-g-leg"><i style="background:#d92d3a"></i>Críticas · 5</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">5. Rosca</div>
+    <div class="peca-quando">Só para 2 a 4 pedaços, e só quando o total importa. Com muita fatia, ninguém consegue comparar tamanhos — nesse caso volte para as barras deitadas.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g">
+      <div class="bd-g-tit">De onde vieram as ocorrências</div>
+      <div class="bd-g-sub">Total de 64 no mês</div>
+      <div class="bd-g-corpo bd-g-rosca-cx">
+        <div class="bd-g-rosca" style="background:conic-gradient(#0a7d63 0 45%,#1668b8 45% 73%,#c2620a 73% 91%,#7b5cff 91% 100%)">
+          <div class="bd-g-rosca-centro">
+            <div class="bd-g-rosca-num">64</div>
+            <div class="bd-g-rosca-lbl">no mês</div>
+          </div>
+        </div>
+        <div class="bd-g-rosca-lista">
+          <div class="bd-g-rosca-item"><i style="background:#0a7d63"></i>Inspeção de rotina <b>29 · 45%</b></div>
+          <div class="bd-g-rosca-item"><i style="background:#1668b8"></i>Reclamação interna <b>18 · 28%</b></div>
+          <div class="bd-g-rosca-item"><i style="background:#c2620a"></i>Auditoria externa <b>12 · 18%</b></div>
+          <div class="bd-g-rosca-item"><i style="background:#7b5cff"></i>Outros <b>5 · 9%</b></div>
+        </div>
+      </div>
+      <div class="bd-g-nota">Repare que cada fatia tem número E porcentagem escritos ao lado. A cor sozinha nunca conta a história.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">6. Medidor de meta</div>
+    <div class="peca-quando">Para uma informação só, quando existe um alvo. Ótimo no topo de uma tela, respondendo "como estou hoje".</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g" style="max-width:290px">
+      <div class="bd-g-tit">Meta de conformidade</div>
+      <div class="bd-g-sub">Meta do trimestre: 85%</div>
+      <div class="bd-g-corpo bd-g-meta">
+        <div class="bd-g-meta-arco" style="--p:36%"></div>
+        <div class="bd-g-meta-num">72%</div>
+        <div class="bd-g-meta-txt">13 pontos abaixo da meta</div>
+        <div class="bd-g-meta-lados"><span>0%</span><span>100%</span></div>
+      </div>
+      <div class="bd-g-nota">Para mudar: troque <code>--p</code> pela metade do valor (72% vira 36%), porque o arco é meia-volta.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 7 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">7. Mini gráfico no cartão</div>
+    <div class="peca-quando">O número grande responde "quanto"; a linhinha responde "e está melhorando?". Cabe numa fileira no topo do painel.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="grade2">
+      <div class="bd-g-mini-cx">
+        <div class="bd-g-mini-nome">Demandas abertas</div>
+        <div class="bd-g-mini-num">18</div>
+        <div class="bd-g-mini-var bd-g-desce">↓ 14% <span class="bd-g-mini-obs">vs. junho</span></div>
+        <svg class="bd-g-mini-svg" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-label="Tendência de queda nos últimos 6 meses">
+          <polyline class="bd-g-linha-s1" points="2,6 21,3 40,12 59,15 78,21 98,25"/>
+        </svg>
+      </div>
+      <div class="bd-g-mini-cx">
+        <div class="bd-g-mini-nome">Resolvidas no mês</div>
+        <div class="bd-g-mini-num">47</div>
+        <div class="bd-g-mini-var bd-g-sobe">↑ 23% <span class="bd-g-mini-obs">vs. junho</span></div>
+        <svg class="bd-g-mini-svg" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-label="Tendência de alta nos últimos 6 meses">
+          <polyline class="bd-g-linha-s1" points="2,25 21,22 40,18 59,12 78,7 98,3"/>
+        </svg>
+      </div>
+      <div class="bd-g-mini-cx">
+        <div class="bd-g-mini-nome">Prazo médio</div>
+        <div class="bd-g-mini-num">3,4<span style="font-size:15px;font-weight:500;color:#6f707b"> dias</span></div>
+        <div class="bd-g-mini-var bd-g-desce">↑ 0,6 <span class="bd-g-mini-obs">mais lento</span></div>
+        <svg class="bd-g-mini-svg" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-label="Prazo subindo levemente">
+          <polyline class="bd-g-linha-s1" points="2,20 21,17 40,19 59,14 78,11 98,8"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8 ─────────────────────────────────────────── -->
+<div class="peca">
+  <div class="peca-cab">
+    <div><div class="peca-nome">8. Antes e depois</div>
+    <div class="peca-quando">Para provar que uma ação funcionou. As duas barras ficam uma embaixo da outra, na mesma régua — é assim que a diferença fica óbvia.</div></div>
+    <button class="bt-copiar">Copiar</button>
+  </div>
+  <div class="demo">
+    <div class="bd-g">
+      <div class="bd-g-tit">Antes e depois do plano de ação</div>
+      <div class="bd-g-sub">Conformidade por setor · junho comparado a julho</div>
+      <div class="bd-g-corpo bd-g-par">
+        <div class="bd-g-par-lin"><div class="bd-g-nome">Cocção</div>
+          <div class="bd-g-par-barras">
+            <div class="bd-g-par-b"><div class="bd-g-par-t"><div class="bd-g-par-f antes" style="width:39%"></div></div><div class="bd-g-par-v">39%</div></div>
+            <div class="bd-g-par-b"><div class="bd-g-par-t"><div class="bd-g-par-f depois" style="width:64%"></div></div><div class="bd-g-par-v">64%</div></div>
+          </div></div>
+        <div class="bd-g-par-lin"><div class="bd-g-nome">Pré-preparo</div>
+          <div class="bd-g-par-barras">
+            <div class="bd-g-par-b"><div class="bd-g-par-t"><div class="bd-g-par-f antes" style="width:52%"></div></div><div class="bd-g-par-v">52%</div></div>
+            <div class="bd-g-par-b"><div class="bd-g-par-t"><div class="bd-g-par-f depois" style="width:68%"></div></div><div class="bd-g-par-v">68%</div></div>
+          </div></div>
+        <div class="bd-g-par-lin"><div class="bd-g-nome">Câmara fria</div>
+          <div class="bd-g-par-barras">
+            <div class="bd-g-par-b"><div class="bd-g-par-t"><div class="bd-g-par-f antes" style="width:44%"></div></div><div class="bd-g-par-v">44%</div></div>
+            <div class="bd-g-par-b"><div class="bd-g-par-t"><div class="bd-g-par-f depois" style="width:41%"></div></div><div class="bd-g-par-v">41%</div></div>
+          </div></div>
+      </div>
+      <div class="bd-g-legenda">
+        <span class="bd-g-leg"><i style="background:#8ec9b7"></i>Junho (antes)</span>
+        <span class="bd-g-leg"><i style="background:#0a7d63"></i>Julho (depois)</span>
+      </div>
+      <div class="bd-g-nota">A câmara fria piorou. Um gráfico honesto mostra isso — é o que protege você quando assina o relatório.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.peca').forEach(function (peca) {
+    var bt = peca.querySelector('.bt-copiar');
+    var demo = peca.querySelector('.demo');
+    bt.addEventListener('click', function () {
+      var linhas = demo.innerHTML.replace(/\r/g, '').split('\n');
+      var menor = 999;
+      linhas.forEach(function (l) {
+        if (l.trim()) { menor = Math.min(menor, l.length - l.replace(/^\s+/, '').length); }
+      });
+      var txt = linhas.map(function (l) { return l.slice(menor); }).join('\n').trim();
+      navigator.clipboard.writeText(txt).then(function () {
+        bt.textContent = '✓ Copiado';
+        bt.classList.add('ok');
+        setTimeout(function () { bt.textContent = 'Copiar'; bt.classList.remove('ok'); }, 1600);
+      });
+    });
+  });
+</script>
+</body>
+</html>
