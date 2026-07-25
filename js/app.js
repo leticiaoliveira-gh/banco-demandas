@@ -761,12 +761,22 @@ async function renderHome(){
       original — "eu odiei o que você fez". Manter assim até ela pedir outra coisa. */
    const pend=vivos.filter(d=>d.loja===emp.code&&isPendente(d)).length;
    const done=vivos.filter(d=>d.loja===emp.code&&isConcluido(d)).length;
-   html+=`<div class="store-row" data-code="${esc(emp.code)}">
+   /* VISUAL v9.15 (escolha dela: vidro no computador, modo loja no celular).
+      Os dois desenhos leem os MESMOS dados desta linha — quem troca de cara é só
+      o CSS (css/capa.css). Nada de tela duplicada. */
+   const urg=vivos.filter(d=>d.loja===emp.code&&d.tipo==="nc"&&d.urgencia==="URGENTE"&&isPendente(d)).length;
+   const tot=pend+done, pct=tot?Math.round(done/tot*100):0;
+   html+=`<div class="store-row" data-code="${esc(emp.code)}"${urg?' data-urg="1"':""}${emp.ativa?"":' data-off="1"'}>
      ${CAPA_ORGANIZANDO?`<span class="capa-alca" title="Segure e arraste para mudar a ordem"
         onpointerdown="capaArrIni(event,'${emp.code}')">⠿</span>`:""}
      <div class="store-info">
        <div class="store-title">${esc(emp.name)} (${esc(emp.code)})</div>
-       <div class="store-sub">${pend} pendente${pend===1?"":"s"} · ${done} concluído${done===1?"":"s"}</div>
+       <div class="store-sub">${pend} pendente${pend===1?"":"s"} · ${done} concluído${done===1?"":"s"}${
+         urg?` · <b class="sr-urg">${urg} urgente${urg===1?"":"s"}</b>`:""}</div>
+       ${tot?`<div class="sr-prog">
+         <div class="sr-barra"><i style="width:${pct}%"></i></div>
+         <div class="sr-legenda"><span>${done} de ${tot} resolvidas</span><span>${pct}%</span></div>
+       </div>`:""}
      </div>
      <div class="store-toggle-wrap">
        <label class="switch" title="Ativar/desativar empresa"><input type="checkbox" aria-label="Ativar ou desativar empresa" ${emp.ativa?"checked":""} onchange="onToggleEmpresa('${emp.code}',this.checked)"><span class="slider"></span></label>
@@ -780,6 +790,21 @@ async function renderHome(){
    </div>`;
  }
  document.getElementById("store-list").innerHTML=html;
+ /* ETIQUETAS DO TOPO (só no computador, pelo CSS) e BOTÃO DE REGISTRAR (só no celular).
+    Números de verdade, tirados do banco — nada escrito na mão. */
+ const chips=document.getElementById("home-chips");
+ if(chips){
+   const urgT=vivos.filter(d=>d.tipo==="nc"&&d.urgencia==="URGENTE"&&isPendente(d)).length;
+   const abertoT=vivos.filter(d=>isPendente(d)).length;
+   const ativasT=EMPRESAS.filter(e=>e.ativa).length;
+   chips.innerHTML=
+     (urgT?`<span class="chip urg" onclick="abrirUrgentes()" title="Ver as urgentes">${urgT} urgente${urgT===1?"":"s"}</span>`:"")+
+     `<span class="chip">${abertoT} em aberto</span>`+
+     `<span class="chip">${ativasT} loja${ativasT===1?"":"s"} ligada${ativasT===1?"":"s"}</span>`;
+ }
+ const acaoCel=document.getElementById("capa-acao-cel");
+ if(acaoCel)acaoCel.innerHTML=EMPRESAS.some(e=>e.ativa)
+   ?`<button class="btn" onclick="registrarAgora()" title="Abre o registro com a câmera a um toque">📷 Registrar agora</button>`:"";
  /* últimas 5 NCs com tag colorida (da home do painel original do projeto NC) */
  const boxNcs=document.getElementById("home-ncs");
  if(boxNcs){
@@ -1411,13 +1436,12 @@ function paletteEnter(){const t=PAL_ITENS[PAL_SEL];if(t){showTab(t);closePalette
    com a câmera a um toque. É o que faz o atalho do iPhone valer a pena: um
    toque no ícone da tela inicial e ela já está fotografando, sem navegar.
    ?rapido=CF&aba=ck leva ao Checklist da loja em vez da NC. */
-function atalhoRapido(){
-  const q=new URLSearchParams(location.search);
-  const loja=(q.get("rapido")||"").toUpperCase();
-  if(!loja)return false;
+/* abrir o registro de uma loja com a câmera pronta — usado pelo ?rapido=CF e pelo
+   botão "📷 Registrar agora" do celular (uma função só, não duas cópias) */
+function irRegistrar(loja,aba){
   if(!empresa(loja)){toast("Não achei a empresa "+loja);return false;}
   enterStore(loja);
-  const aba=(q.get("aba")||"nc").toLowerCase();
+  aba=(aba||"nc").toLowerCase();
   showTab(TABS[aba]?aba:"nc");
   if(aba==="nc")setTimeout(()=>{
     const b=document.getElementById("nc-cap-body");
@@ -1425,13 +1449,39 @@ function atalhoRapido(){
     const f=document.getElementById("nc-cap-foto");
     if(f)f.scrollIntoView({block:"center"});
   },250);
+  return true;
+}
+/* botão do celular: uma loja ligada vai direto; mais de uma, ela escolhe. */
+function registrarAgora(){
+  const ativas=EMPRESAS.filter(e=>e.ativa);
+  if(!ativas.length){toast("Ligue uma empresa antes (botão ao lado do nome).");return;}
+  if(ativas.length===1){irRegistrar(ativas[0].code);return;}
+  ncModal(`<h2 style="margin-bottom:4px">📷 Registrar em qual loja?</h2>
+    <p class="desc">Você está em qual unidade agora?</p>
+    ${ativas.map(e=>`<button class="btn" style="width:100%;margin-bottom:8px"
+      onclick="ncFechar();irRegistrar('${e.code}')">${esc(e.name)}</button>`).join("")}
+    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Cancelar</button></div>`);
+}
+/* etiqueta "N urgentes" da capa: entra na loja com mais urgentes, já na aba de NC */
+function abrirUrgentes(){
+  const vivos=DATA.filter(d=>!d.deleted);
+  const conta=c=>vivos.filter(d=>d.loja===c&&d.tipo==="nc"&&d.urgencia==="URGENTE"&&isPendente(d)).length;
+  const alvo=EMPRESAS.filter(e=>e.ativa).sort((a,b)=>conta(b.code)-conta(a.code))[0];
+  if(!alvo){toast("Ligue uma empresa antes.");return;}
+  enterStore(alvo.code);showTab("nc");
+}
+function atalhoRapido(){
+  const q=new URLSearchParams(location.search);
+  const loja=(q.get("rapido")||"").toUpperCase();
+  if(!loja)return false;
+  if(!irRegistrar(loja,q.get("aba")))return false;
   /* tira o ?rapido da barra: recarregar não deve reabrir o formulário */
   try{history.replaceState(null,"",location.pathname);}catch(e){}
   return true;
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.14";
+const APP_VERSAO="9.15";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
 }

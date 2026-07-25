@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catálogo de Peças — Biblioteca de Design</title>
+<link rel="stylesheet" href="pecas.css">
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bd-c50);color:var(--bd-texto);font-size:14px;line-height:1.55;margin:0}
+  .topo{background:linear-gradient(135deg,#0f5b52,#17756a 60%,#2a9d8a);color:#fff;padding:38px 26px 34px}
+  .topo-in{max-width:1080px;margin:0 auto}
+  .topo h1{font-size:26px;letter-spacing:-.6px;margin:0 0 7px;font-weight:680}
+  .topo p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;max-width:620px}
+  .como{margin-top:18px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);
+    border-radius:12px;padding:14px 17px;font-size:13.4px;max-width:660px}
+  .como b{display:block;margin-bottom:5px}
+  .como ol{margin:0;padding-left:19px}
+  .como li{margin-bottom:3px}
+
+  .conteudo{max-width:1080px;margin:0 auto;padding:34px 26px 80px}
+  .secao{margin-bottom:44px}
+  .secao > h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;
+    color:var(--bd-c400);margin:0 0 16px;padding-bottom:9px;border-bottom:1px solid var(--bd-c200)}
+
+  .peca{background:#fff;border:1px solid var(--bd-borda);border-radius:14px;margin-bottom:15px;
+    overflow:hidden;box-shadow:var(--bd-sombra1)}
+  .peca-cab{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 16px;border-bottom:1px solid var(--bd-c100);background:var(--bd-c25)}
+  .peca-nome{font-size:13.6px;font-weight:620;color:var(--bd-c900)}
+  .peca-quando{font-size:12.3px;color:var(--bd-c500);margin-top:1px}
+  .bt-copiar{background:#fff;border:1px solid var(--bd-c300);color:var(--bd-c700);
+    font:inherit;font-size:12.3px;font-weight:600;padding:7px 13px;border-radius:8px;
+    cursor:pointer;white-space:nowrap;transition:all .14s}
+  .bt-copiar:hover{background:var(--bd-verde);color:#fff;border-color:var(--bd-verde)}
+  .bt-copiar.ok{background:var(--bd-ok-fundo);color:var(--bd-ok-texto);border-color:var(--bd-ok-borda)}
+  .demo{padding:24px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .demo-bloco{display:block;padding:24px 20px}
+  .demo-escuro{background:var(--bd-c50)}
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <div class="topo-in">
+    <h1>Catálogo de Peças</h1>
+    <p>Tudo aqui já está pronto e no estilo do seu site. Nada é feito do zero.</p>
+    <div class="como">
+      <b>Como usar (não precisa saber nada de código)</b>
+      <ol>
+        <li>Ache a peça que quer aqui embaixo.</li>
+        <li>Clique em <b>Copiar</b>.</li>
+        <li>Me manda: "quero esse botão na tela X" — e eu encaixo.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="conteudo">
+
+<!-- ══════════ BOTÕES ══════════ -->
+<div class="secao">
+  <h2>Botões</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Os cinco tipos</div>
+      <div class="peca-quando">Regra de ouro: só UM verde cheio por tela — a ação mais importante.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo">
+      <button class="bd-btn bd-btn-principal">Salvar demanda</button>
+      <button class="bd-btn bd-btn-secundario">Cancelar</button>
+      <button class="bd-btn bd-btn-suave">Duplicar</button>
+      <button class="bd-btn bd-btn-fantasma">Ver histórico</button>
+      <button class="bd-btn bd-btn-perigo">Excluir</button>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Tamanhos e variações</div>
+      <div class="peca-quando">Botão redondo para ícone sozinho. "Largo" ocupa a linha toda (bom no celular).</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo">
+      <button class="bd-btn bd-btn-principal bd-btn-p">Pequeno</button>
+      <button class="bd-btn bd-btn-principal">Normal</button>
+      <button class="bd-btn bd-btn-principal bd-btn-g">Grande</button>
+      <button class="bd-btn bd-btn-secundario bd-btn-redondo" title="Editar">✎</button>
+      <button class="bd-btn bd-btn-principal" disabled>Desativado</button>
+      <button class="bd-btn bd-btn-principal bd-btn-carregando">Salvando</button>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Botão com ícone</div>
+      <div class="peca-quando">O ícone vem antes do texto. Nunca use ícone sozinho sem título explicativo.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo">
+      <button class="bd-btn bd-btn-principal">＋ Nova demanda</button>
+      <button class="bd-btn bd-btn-secundario">⭳ Baixar PDF</button>
+      <button class="bd-btn bd-btn-secundario">⎘ Duplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FORMULÁRIOS ══════════ -->
+<div class="secao">
+  <h2>Formulários</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Campo de texto completo</div>
+      <div class="peca-quando">Com nome em cima, asterisco de obrigatório e frase de ajuda embaixo.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco" style="max-width:420px">
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="ex-nome">Nome da demanda <span class="bd-obrig">*</span></label>
+        <input class="bd-campo" id="ex-nome" type="text" placeholder="Ex.: Trocar filtro da coifa">
+        <span class="bd-ajuda">Escreva de um jeito que qualquer colega entenda.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Campo com erro</div>
+      <div class="peca-quando">O erro fica embaixo do campo, em vermelho, dizendo o que fazer.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco" style="max-width:420px">
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="ex-erro">Data do prazo <span class="bd-obrig">*</span></label>
+        <input class="bd-campo bd-campo-erro" id="ex-erro" type="text" value="32/07/2026">
+        <span class="bd-msg-erro">⚠ Essa data não existe. Use dia/mês/ano.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Busca, lista suspensa e caixa de texto</div>
+      <div class="peca-quando">A lupa fica dentro do campo, do lado esquerdo.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco" style="max-width:420px">
+      <div class="bd-grupo bd-campo-ico">
+        <span class="bd-ico-esq">🔍</span>
+        <input class="bd-campo" type="search" placeholder="Buscar demanda...">
+      </div>
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="ex-sel">Setor</label>
+        <select class="bd-campo" id="ex-sel">
+          <option>Cozinha</option><option>Estoque</option><option>Salão</option>
+        </select>
+      </div>
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="ex-obs">Observações</label>
+        <textarea class="bd-campo" id="ex-obs" placeholder="O que foi visto no local..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Marcar e ligar/desligar</div>
+      <div class="peca-quando">Caixinha para "escolher vários". Chavinha para "ligado ou desligado".</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco" style="max-width:420px">
+      <label class="bd-check-linha" style="margin-bottom:13px">
+        <input class="bd-check" type="checkbox" checked>
+        <span class="bd-check-txt">Enviar aviso por e-mail quando o prazo chegar</span>
+      </label>
+      <label class="bd-switch">
+        <input type="checkbox" checked>
+        <span class="bd-switch-tr"></span>
+        <span class="bd-check-txt">Sincronizar automaticamente</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ AVISOS E SELOS ══════════ -->
+<div class="secao">
+  <h2>Avisos e selos de status</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Selos de status</div>
+      <div class="peca-quando">A bolinha colorida ajuda quem não enxerga bem a diferença das cores.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo">
+      <span class="bd-selo bd-selo-ok"><i></i>Resolvida</span>
+      <span class="bd-selo bd-selo-atencao"><i></i>Vence hoje</span>
+      <span class="bd-selo bd-selo-erro"><i></i>Atrasada</span>
+      <span class="bd-selo bd-selo-info"><i></i>Em análise</span>
+      <span class="bd-selo bd-selo-neutro"><i></i>Arquivada</span>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Faixas de aviso</div>
+      <div class="peca-quando">Título curto em negrito e uma frase dizendo o que a pessoa deve fazer.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco">
+      <div class="bd-aviso bd-aviso-ok" style="margin-bottom:11px">
+        <span class="bd-aviso-ico">✓</span>
+        <div><b>Salvo com sucesso</b>As 18 demandas foram sincronizadas agora.</div>
+      </div>
+      <div class="bd-aviso bd-aviso-atencao" style="margin-bottom:11px">
+        <span class="bd-aviso-ico">⚠</span>
+        <div><b>3 demandas vencem hoje</b>Abra o quadro de Não Conformidades para revisar.</div>
+      </div>
+      <div class="bd-aviso bd-aviso-erro" style="margin-bottom:11px">
+        <span class="bd-aviso-ico">✕</span>
+        <div><b>Não foi possível salvar</b>Verifique a internet e tente de novo.</div>
+      </div>
+      <div class="bd-aviso bd-aviso-info">
+        <span class="bd-aviso-ico">ℹ</span>
+        <div><b>Backup automático ativo</b>Uma cópia é guardada toda vez que você fecha o site.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PAINEL ══════════ -->
+<div class="secao">
+  <h2>Painel de números (dashboard)</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Linha de indicadores</div>
+      <div class="peca-quando">Máximo 4 por linha. Sempre diga a comparação ("vs. mês passado").</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco demo-escuro">
+      <div class="bd-kpis">
+        <div class="bd-kpi">
+          <div class="bd-kpi-topo"><span class="bd-kpi-nome">Demandas abertas</span><span class="bd-ico-caixa" style="width:32px;height:32px;font-size:15px">📋</span></div>
+          <div class="bd-kpi-num">18</div>
+          <div class="bd-kpi-var bd-kpi-desce">↓ 12% <span class="bd-kpi-obs">vs. mês passado</span></div>
+        </div>
+        <div class="bd-kpi">
+          <div class="bd-kpi-topo"><span class="bd-kpi-nome">Resolvidas no mês</span><span class="bd-ico-caixa" style="width:32px;height:32px;font-size:15px">✓</span></div>
+          <div class="bd-kpi-num">47</div>
+          <div class="bd-kpi-var bd-kpi-sobe">↑ 23% <span class="bd-kpi-obs">vs. mês passado</span></div>
+        </div>
+        <div class="bd-kpi">
+          <div class="bd-kpi-topo"><span class="bd-kpi-nome">Prazo médio</span><span class="bd-ico-caixa" style="width:32px;height:32px;font-size:15px">⏱</span></div>
+          <div class="bd-kpi-num">3,4<span style="font-size:16px;font-weight:500;color:var(--bd-c400)"> dias</span></div>
+          <div class="bd-kpi-var bd-kpi-sobe">↑ 0,6 <span class="bd-kpi-obs">mais lento</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Cartão com barra de progresso</div>
+      <div class="peca-quando">Passe o mouse: ele sobe de leve. Sempre mostre número E porcentagem.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco demo-escuro">
+      <div class="bd-card bd-card-clique" style="max-width:330px">
+        <span class="bd-card-faixa"></span>
+        <div class="bd-card-corpo">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <span class="bd-ico-caixa">📋</span>
+            <span class="bd-selo bd-selo-ok"><i></i>Em dia</span>
+          </div>
+          <div class="bd-card-tit" style="margin-top:15px">Não Conformidades</div>
+          <div class="bd-card-sub">Nutrição · atualizado hoje</div>
+          <div class="bd-barra"><span style="width:72%"></span></div>
+          <div class="bd-barra-legenda"><span>13 de 18 resolvidas</span><span>72%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LISTAS E ABAS ══════════ -->
+<div class="secao">
+  <h2>Tabelas e abas</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Tabela profissional</div>
+      <div class="peca-quando">No celular ela rola para o lado sozinha, não quebra a tela.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco demo-escuro">
+      <div class="bd-tab-caixa"><div class="bd-tab-rolagem">
+        <table class="bd-tab">
+          <thead><tr><th>Demanda</th><th>Setor</th><th>Status</th><th class="bd-num">Prazo</th></tr></thead>
+          <tbody>
+            <tr><td>Trocar filtro da coifa</td><td>Cozinha</td><td><span class="bd-selo bd-selo-atencao"><i></i>Vence hoje</span></td><td class="bd-num">25/07</td></tr>
+            <tr><td>Etiquetar produtos abertos</td><td>Estoque</td><td><span class="bd-selo bd-selo-ok"><i></i>Resolvida</span></td><td class="bd-num">22/07</td></tr>
+            <tr><td>Revisar temperatura da câmara</td><td>Cozinha</td><td><span class="bd-selo bd-selo-erro"><i></i>Atrasada</span></td><td class="bd-num">19/07</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Abas com contador</div>
+      <div class="peca-quando">O número dentro da bolinha mostra quantos itens tem em cada aba.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco">
+      <div class="bd-abas">
+        <button class="bd-aba bd-aba-ativa">Abertas <span class="bd-aba-cont">18</span></button>
+        <button class="bd-aba">Em análise <span class="bd-aba-cont">4</span></button>
+        <button class="bd-aba">Resolvidas <span class="bd-aba-cont">47</span></button>
+        <button class="bd-aba">Arquivadas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ESTADOS ══════════ -->
+<div class="secao">
+  <h2>Telas de espera e tela vazia</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Tela vazia</div>
+      <div class="peca-quando">Nunca deixe uma lista vazia sem explicação. Diga o que fazer.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco">
+      <div class="bd-vazio">
+        <div class="bd-vazio-ico">📋</div>
+        <div class="bd-vazio-tit">Nenhuma demanda por aqui</div>
+        <div class="bd-vazio-txt">Quando você registrar a primeira demanda deste setor, ela aparece nesta tela.</div>
+        <button class="bd-btn bd-btn-principal">＋ Registrar a primeira</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Carregando (esqueleto)</div>
+      <div class="peca-quando">Muito melhor que uma rodinha: a pessoa já vê o formato do que vem.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco">
+      <div class="bd-card" style="max-width:330px"><div class="bd-card-corpo">
+        <div style="display:flex;gap:13px;align-items:center;margin-bottom:17px">
+          <div class="bd-esq bd-esq-circ"></div>
+          <div style="flex:1"><div class="bd-esq bd-esq-linha" style="width:64%"></div>
+          <div class="bd-esq bd-esq-linha" style="width:40%;margin:0"></div></div>
+        </div>
+        <div class="bd-esq bd-esq-linha"></div>
+        <div class="bd-esq bd-esq-linha" style="width:82%"></div>
+        <div class="bd-esq bd-esq-linha" style="width:56%;margin:0"></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ JANELA ══════════ -->
+<div class="secao">
+  <h2>Janela de confirmação</h2>
+
+  <div class="peca">
+    <div class="peca-cab">
+      <div><div class="peca-nome">Confirmar antes de excluir</div>
+      <div class="peca-quando">O botão perigoso fica à direita. O "Cancelar" sempre existe.</div></div>
+      <button class="bt-copiar">Copiar</button>
+    </div>
+    <div class="demo demo-bloco demo-escuro">
+      <div class="bd-janela" style="margin:0 auto">
+        <div class="bd-janela-topo">
+          <span class="bd-ico-caixa" style="background:var(--bd-erro-fundo)">⚠</span>
+          <div><div class="bd-card-tit">Excluir esta demanda?</div>
+          <div class="bd-card-sub">Essa ação não pode ser desfeita.</div></div>
+          <button class="bd-janela-x" aria-label="Fechar">✕</button>
+        </div>
+        <div class="bd-janela-corpo">
+          <div class="bd-aviso bd-aviso-atencao">
+            <span class="bd-aviso-ico">⚠</span>
+            <div>A demanda <b>"Trocar filtro da coifa"</b> e todo o seu histórico serão apagados.</div>
+          </div>
+        </div>
+        <div class="bd-janela-rodape">
+          <button class="bd-btn bd-btn-secundario">Cancelar</button>
+          <button class="bd-btn bd-btn-perigo">Sim, excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  // Botão "Copiar": copia exatamente o HTML da peça que está aparecendo ao lado.
+  document.querySelectorAll('.peca').forEach(function (peca) {
+    var bt = peca.querySelector('.bt-copiar');
+    var demo = peca.querySelector('.demo');
+    bt.addEventListener('click', function () {
+      var linhas = demo.innerHTML.replace(/\r/g, '').split('\n');
+      // tira a indentação sobrando, para o código sair limpo
+      var menor = 999;
+      linhas.forEach(function (l) {
+        if (l.trim()) { menor = Math.min(menor, l.length - l.replace(/^\s+/, '').length); }
+      });
+      var txt = linhas.map(function (l) { return l.slice(menor); }).join('\n').trim();
+      navigator.clipboard.writeText(txt).then(function () {
+        bt.textContent = '✓ Copiado';
+        bt.classList.add('ok');
+        setTimeout(function () { bt.textContent = 'Copiar'; bt.classList.remove('ok'); }, 1600);
+      });
+    });
+  });
+</script>
+</body>
+</html>

@@ -13,11 +13,15 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=75">
+<link rel="stylesheet" href="css/app.css?v=76">
 <!-- POLIMENTO: camada de acabamento (contraste, foco de teclado, sombras
      padronizadas, alvo de toque no celular). Só acabamento — não muda layout.
      PARA DESFAZER TUDO: apague só esta linha de baixo. -->
 <link rel="stylesheet" href="css/polimento.css?v=1">
+<!-- CAPA: escolha dela em 25/07 — "Painel de vidro" no computador e "Modo loja"
+     no celular. É UMA capa só; quem troca a cara é o tamanho da tela.
+     PARA VOLTAR AO DE ANTES: apague só esta linha de baixo. -->
+<link rel="stylesheet" href="css/capa.css?v=76">
 </head>
 <body>
 <div class="app">
@@ -60,6 +64,9 @@
             <button class="btn ghost btn-round" title="Ligar/desligar a edição dos textos desta tela (lápis)" aria-label="Editar os textos" onclick="toggleModoEdicao()">✎</button>
             <span id="backup-top" class="backup-top"></span>
           </div>
+          <!-- etiquetas com os números do momento (aparecem no computador; no celular
+               o espaço é da busca e do botão de registrar) -->
+          <div class="home-chips" id="home-chips"></div>
         </div>
         <div class="placeholder-cards" id="home-cards"></div>
       </div>
@@ -91,6 +98,8 @@
               <option value="pend">Mais pendentes primeiro</option>
             </select>
           </div>
+          <!-- MODO LOJA (só celular): a ação mais usada dela, a um toque -->
+          <div class="capa-acao-cel" id="capa-acao-cel"></div>
           <div class="form-wrap" id="empresa-form" style="display:none;margin-bottom:14px;max-width:none">
             <form onsubmit="addEmpresa(event)">
               <div class="grid2">
@@ -271,20 +280,20 @@
   </div>
 </div>
 
-<script src="js/app.js?v=75"></script>
-<script src="js/docxlite.js?v=75"></script>
-<script src="js/dg.js?v=75"></script>
-<script src="js/pdflite.js?v=75"></script>
-<script src="js/ck.js?v=75"></script>
-<script src="js/ck-modelo2.js?v=75"></script>
-<script src="js/arquivos.js?v=75"></script>
-<script src="js/cronometro.js?v=75"></script>
-<script src="js/pdf-abas.js?v=75"></script>
-<script src="js/configs.js?v=75"></script>
-<script src="js/nc.js?v=75"></script>
-<script src="js/ck-qualidade.js?v=75"></script>
-<script src="js/ppr.js?v=75"></script>
-<script src="js/ind.js?v=75"></script>
-<script src="js/sync.js?v=75"></script>
+<script src="js/app.js?v=76"></script>
+<script src="js/docxlite.js?v=76"></script>
+<script src="js/dg.js?v=76"></script>
+<script src="js/pdflite.js?v=76"></script>
+<script src="js/ck.js?v=76"></script>
+<script src="js/ck-modelo2.js?v=76"></script>
+<script src="js/arquivos.js?v=76"></script>
+<script src="js/cronometro.js?v=76"></script>
+<script src="js/pdf-abas.js?v=76"></script>
+<script src="js/configs.js?v=76"></script>
+<script src="js/nc.js?v=76"></script>
+<script src="js/ck-qualidade.js?v=76"></script>
+<script src="js/ppr.js?v=76"></script>
+<script src="js/ind.js?v=76"></script>
+<script src="js/sync.js?v=76"></script>
 </body>
 </html>

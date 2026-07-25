@@ -1,0 +1,310 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BIBLIOTECA DE PEÇAS — Central de Demandas NP
+   ───────────────────────────────────────────────────────────────────
+   Todas as classes começam com "bd-" para NUNCA brigar com o CSS que
+   o site já tem. Você pode colar este arquivo em qualquer site seu.
+
+   Como usar: no <head> da página, adicione a linha
+       <link rel="stylesheet" href="pecas.css">
+   e depois copie o pedaço de HTML da peça que quiser do catálogo.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ─── suas cores (as mesmas do banco-demandas) ─── */
+  --bd-verde:#1d6b57;        /* cor principal */
+  --bd-verde-escuro:#155244; /* quando o mouse aperta */
+  --bd-verde-claro:#e8f5f0;  /* fundos suaves */
+  --bd-verde-vivo:#2a9d8a;   /* degradês */
+
+  /* ─── cores de aviso ─── */
+  --bd-ok:#17b26a;      --bd-ok-fundo:#ecfdf3;   --bd-ok-borda:#abefc6;   --bd-ok-texto:#067647;
+  --bd-atencao:#f59e0b; --bd-atencao-fundo:#fffaeb; --bd-atencao-borda:#fedf89; --bd-atencao-texto:#b54708;
+  --bd-erro:#f04438;    --bd-erro-fundo:#fef3f2;  --bd-erro-borda:#fecdca;  --bd-erro-texto:#b42318;
+  --bd-info:#1668b8;    --bd-info-fundo:#eff8ff;  --bd-info-borda:#b2ddff;  --bd-info-texto:#175cd3;
+
+  /* ─── tons de cinza (escada profissional, não invente outros) ─── */
+  --bd-c25:#fcfcfd; --bd-c50:#f9fafb; --bd-c100:#f2f4f7; --bd-c200:#eaecf0;
+  --bd-c300:#d0d5dd; --bd-c400:#98a2b3; --bd-c500:#667085; --bd-c600:#475467;
+  --bd-c700:#344054; --bd-c900:#101828;
+
+  --bd-texto:#2d2e3a; --bd-apagado:#8a8b96; --bd-borda:#e6e7eb;
+
+  /* ─── sombras (só estas 3, nunca invente) ─── */
+  --bd-sombra1:0 1px 2px rgba(16,24,40,.05);
+  --bd-sombra2:0 1px 3px rgba(16,24,40,.1),0 1px 2px rgba(16,24,40,.06);
+  --bd-sombra3:0 4px 8px -2px rgba(16,24,40,.1),0 2px 4px -2px rgba(16,24,40,.06);
+  --bd-sombra4:0 12px 16px -4px rgba(16,24,40,.08),0 4px 6px -2px rgba(16,24,40,.03);
+
+  /* ─── espaçamento: sempre múltiplo de 4 ─── */
+  --bd-r-p:8px; --bd-r-m:10px; --bd-r-g:14px; --bd-r-gg:18px; /* cantos arredondados */
+
+  /* ─── velocidade das animações (suave, nunca chamativa) ─── */
+  --bd-rapido:.14s cubic-bezier(.4,0,.2,1);
+  --bd-normal:.22s cubic-bezier(.4,0,.2,1);
+  --bd-suave:.32s cubic-bezier(.2,.8,.3,1);
+}
+
+/* Respeita quem desligou animações no sistema (regra de acessibilidade) */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* Contorno de foco — para quem navega por teclado. NUNCA remova. */
+.bd-btn:focus-visible,.bd-campo:focus-visible,.bd-aba:focus-visible,
+.bd-check:focus-visible,.bd-switch input:focus-visible + .bd-switch-tr{
+  outline:2px solid var(--bd-verde);outline-offset:2px}
+
+
+/* ══════════════════════ 1. BOTÕES ══════════════════════ */
+.bd-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  font:inherit;font-size:13.5px;font-weight:560;line-height:1;
+  padding:10px 16px;border-radius:var(--bd-r-m);border:1px solid transparent;
+  cursor:pointer;white-space:nowrap;user-select:none;
+  transition:background var(--bd-rapido),border-color var(--bd-rapido),
+             box-shadow var(--bd-rapido),transform var(--bd-rapido),color var(--bd-rapido);
+}
+.bd-btn:active{transform:scale(.975)}
+.bd-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* principal — a ação mais importante da tela. Só UM por tela. */
+.bd-btn-principal{background:var(--bd-verde);color:#fff;box-shadow:var(--bd-sombra1)}
+.bd-btn-principal:hover:not(:disabled){background:var(--bd-verde-escuro);box-shadow:var(--bd-sombra2)}
+
+/* secundário — ações normais */
+.bd-btn-secundario{background:#fff;color:var(--bd-c700);border-color:var(--bd-c300);box-shadow:var(--bd-sombra1)}
+.bd-btn-secundario:hover:not(:disabled){background:var(--bd-c50);border-color:var(--bd-c400)}
+
+/* fantasma — ações discretas, sem moldura */
+.bd-btn-fantasma{background:transparent;color:var(--bd-c600)}
+.bd-btn-fantasma:hover:not(:disabled){background:var(--bd-c100);color:var(--bd-c900)}
+
+/* suave — destaque leve, na cor da casa */
+.bd-btn-suave{background:var(--bd-verde-claro);color:var(--bd-verde)}
+.bd-btn-suave:hover:not(:disabled){background:#d9ede5}
+
+/* perigo — apagar, excluir. Use pouco. */
+.bd-btn-perigo{background:var(--bd-erro);color:#fff;box-shadow:var(--bd-sombra1)}
+.bd-btn-perigo:hover:not(:disabled){background:#b42318}
+
+/* tamanhos */
+.bd-btn-p{padding:7px 12px;font-size:12.5px;border-radius:var(--bd-r-p)}
+.bd-btn-g{padding:13px 22px;font-size:15px;border-radius:var(--bd-r-g)}
+.bd-btn-redondo{padding:0;width:38px;height:38px;border-radius:50%}
+.bd-btn-largo{width:100%}
+
+/* carregando — a rodinha */
+.bd-btn-carregando{color:transparent !important;pointer-events:none;position:relative}
+.bd-btn-carregando::after{
+  content:"";position:absolute;width:15px;height:15px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:bd-girar .6s linear infinite}
+.bd-btn-secundario.bd-btn-carregando::after,
+.bd-btn-fantasma.bd-btn-carregando::after{border-color:var(--bd-c300);border-top-color:var(--bd-c600)}
+@keyframes bd-girar{to{transform:rotate(360deg)}}
+
+
+/* ══════════════════════ 2. FORMULÁRIOS ══════════════════════ */
+.bd-grupo{display:flex;flex-direction:column;gap:6px;margin-bottom:17px}
+.bd-rotulo{font-size:13px;font-weight:560;color:var(--bd-c700)}
+.bd-rotulo .bd-obrig{color:var(--bd-erro);margin-left:2px}
+
+.bd-campo{
+  width:100%;font:inherit;font-size:14px;color:var(--bd-texto);
+  padding:10px 13px;border:1px solid var(--bd-c300);border-radius:var(--bd-r-m);
+  background:#fff;box-shadow:var(--bd-sombra1);
+  transition:border-color var(--bd-rapido),box-shadow var(--bd-rapido);
+}
+.bd-campo::placeholder{color:var(--bd-c400)}
+.bd-campo:hover:not(:disabled){border-color:var(--bd-c400)}
+.bd-campo:focus{outline:0;border-color:var(--bd-verde);box-shadow:0 0 0 3px rgba(29,107,87,.14)}
+.bd-campo:disabled{background:var(--bd-c50);color:var(--bd-c400);cursor:not-allowed}
+textarea.bd-campo{resize:vertical;min-height:88px;line-height:1.55}
+select.bd-campo{
+  appearance:none;cursor:pointer;padding-right:38px;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:17px}
+
+/* campo com erro */
+.bd-campo-erro{border-color:var(--bd-erro)}
+.bd-campo-erro:focus{border-color:var(--bd-erro);box-shadow:0 0 0 3px rgba(240,68,56,.14)}
+.bd-msg-erro{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--bd-erro-texto)}
+.bd-ajuda{font-size:12.5px;color:var(--bd-c500)}
+
+/* campo com ícone dentro (ex.: busca) */
+.bd-campo-ico{position:relative}
+.bd-campo-ico .bd-ico-esq{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--bd-c400);font-size:15px;pointer-events:none}
+.bd-campo-ico .bd-campo{padding-left:37px}
+
+/* caixinha de marcar */
+.bd-check-linha{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+.bd-check{width:17px;height:17px;flex:none;margin-top:1px;accent-color:var(--bd-verde);cursor:pointer}
+.bd-check-txt{font-size:13.5px;color:var(--bd-c700);line-height:1.45}
+
+/* chavinha liga/desliga */
+.bd-switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer}
+.bd-switch input{position:absolute;opacity:0;width:0;height:0}
+.bd-switch-tr{width:40px;height:22px;border-radius:99px;background:var(--bd-c300);
+  position:relative;flex:none;transition:background var(--bd-normal)}
+.bd-switch-tr::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;
+  border-radius:50%;background:#fff;box-shadow:var(--bd-sombra2);transition:transform var(--bd-normal)}
+.bd-switch input:checked + .bd-switch-tr{background:var(--bd-verde)}
+.bd-switch input:checked + .bd-switch-tr::after{transform:translateX(18px)}
+
+
+/* ══════════════════════ 3. SELOS E AVISOS ══════════════════════ */
+.bd-selo{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+  padding:4px 9px;border-radius:99px;border:1px solid;white-space:nowrap}
+.bd-selo i{width:5px;height:5px;border-radius:50%;display:block;flex:none}
+.bd-selo-ok{background:var(--bd-ok-fundo);color:var(--bd-ok-texto);border-color:var(--bd-ok-borda)}
+.bd-selo-ok i{background:var(--bd-ok)}
+.bd-selo-atencao{background:var(--bd-atencao-fundo);color:var(--bd-atencao-texto);border-color:var(--bd-atencao-borda)}
+.bd-selo-atencao i{background:var(--bd-atencao)}
+.bd-selo-erro{background:var(--bd-erro-fundo);color:var(--bd-erro-texto);border-color:var(--bd-erro-borda)}
+.bd-selo-erro i{background:var(--bd-erro)}
+.bd-selo-info{background:var(--bd-info-fundo);color:var(--bd-info-texto);border-color:var(--bd-info-borda)}
+.bd-selo-info i{background:var(--bd-info)}
+.bd-selo-neutro{background:var(--bd-c100);color:var(--bd-c700);border-color:var(--bd-c200)}
+.bd-selo-neutro i{background:var(--bd-c500)}
+
+/* faixa de aviso */
+.bd-aviso{display:flex;gap:11px;padding:13px 15px;border-radius:var(--bd-r-g);
+  border:1px solid;font-size:13.4px;line-height:1.5}
+.bd-aviso-ico{font-size:16px;line-height:1.3;flex:none}
+.bd-aviso b{display:block;margin-bottom:2px;font-weight:600}
+.bd-aviso-ok{background:var(--bd-ok-fundo);border-color:var(--bd-ok-borda);color:var(--bd-ok-texto)}
+.bd-aviso-atencao{background:var(--bd-atencao-fundo);border-color:var(--bd-atencao-borda);color:var(--bd-atencao-texto)}
+.bd-aviso-erro{background:var(--bd-erro-fundo);border-color:var(--bd-erro-borda);color:var(--bd-erro-texto)}
+.bd-aviso-info{background:var(--bd-info-fundo);border-color:var(--bd-info-borda);color:var(--bd-info-texto)}
+
+
+/* ══════════════════════ 4. CARTÕES ══════════════════════ */
+.bd-card{background:#fff;border:1px solid var(--bd-borda);border-radius:var(--bd-r-gg);
+  box-shadow:var(--bd-sombra1);overflow:hidden}
+.bd-card-corpo{padding:19px}
+.bd-card-topo{padding:16px 19px;border-bottom:1px solid var(--bd-c100)}
+.bd-card-rodape{padding:14px 19px;border-top:1px solid var(--bd-c100);background:var(--bd-c25);
+  display:flex;gap:9px;justify-content:flex-end}
+.bd-card-tit{font-size:15.5px;font-weight:620;letter-spacing:-.2px;color:var(--bd-c900)}
+.bd-card-sub{font-size:12.8px;color:var(--bd-c500);margin-top:3px}
+
+/* cartão clicável — sobe de leve */
+.bd-card-clique{cursor:pointer;transition:transform var(--bd-suave),box-shadow var(--bd-suave),border-color var(--bd-suave)}
+.bd-card-clique:hover{transform:translateY(-3px);box-shadow:var(--bd-sombra4);border-color:var(--bd-c300)}
+
+/* faixa colorida no topo do cartão */
+.bd-card-faixa{height:5px;width:100%;display:block;
+  background:linear-gradient(90deg,#0f5b52,var(--bd-verde-vivo) 60%,#5fc9a8)}
+
+/* ícone em quadradinho */
+.bd-ico-caixa{width:44px;height:44px;border-radius:12px;flex:none;display:flex;
+  align-items:center;justify-content:center;font-size:21px;
+  background:linear-gradient(140deg,var(--bd-verde-claro),#d3ece2);box-shadow:inset 0 1px 0 #fff}
+
+
+/* ══════════════════════ 5. NÚMEROS DO PAINEL (KPI) ══════════════════════ */
+.bd-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px}
+.bd-kpi{background:#fff;border:1px solid var(--bd-borda);border-radius:var(--bd-r-gg);
+  padding:18px 19px;box-shadow:var(--bd-sombra1)}
+.bd-kpi-topo{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bd-kpi-nome{font-size:12.6px;font-weight:560;color:var(--bd-c500);
+  text-transform:uppercase;letter-spacing:.5px}
+.bd-kpi-num{font-size:30px;font-weight:680;letter-spacing:-1.1px;color:var(--bd-c900);
+  margin-top:11px;line-height:1;font-variant-numeric:tabular-nums}
+.bd-kpi-var{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;
+  font-weight:600;margin-top:9px}
+.bd-kpi-sobe{color:var(--bd-ok-texto)}
+.bd-kpi-desce{color:var(--bd-erro-texto)}
+.bd-kpi-obs{font-size:12.3px;color:var(--bd-c400);margin-left:5px;font-weight:400}
+
+/* barrinha de progresso */
+.bd-barra{height:7px;background:var(--bd-c100);border-radius:99px;overflow:hidden;margin:13px 0 7px}
+.bd-barra span{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#17756a,var(--bd-verde-vivo));
+  transition:width var(--bd-suave)}
+.bd-barra-legenda{display:flex;justify-content:space-between;font-size:11.8px;color:var(--bd-c400)}
+
+
+/* ══════════════════════ 6. TABELA ══════════════════════ */
+.bd-tab-caixa{border:1px solid var(--bd-borda);border-radius:var(--bd-r-gg);overflow:hidden;
+  background:#fff;box-shadow:var(--bd-sombra1)}
+.bd-tab-rolagem{overflow-x:auto}
+.bd-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:13.4px;min-width:520px}
+.bd-tab thead th{background:var(--bd-c50);text-align:left;padding:11px 16px;
+  font-size:11.8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--bd-c500);border-bottom:1px solid var(--bd-c200);white-space:nowrap}
+.bd-tab tbody td{padding:14px 16px;border-bottom:1px solid var(--bd-c100);color:var(--bd-c600)}
+.bd-tab tbody tr:last-child td{border-bottom:0}
+.bd-tab tbody tr{transition:background var(--bd-rapido)}
+.bd-tab tbody tr:hover{background:var(--bd-c25)}
+.bd-tab td:first-child{font-weight:560;color:var(--bd-c900)}
+.bd-tab .bd-num{text-align:right;font-variant-numeric:tabular-nums}
+
+
+/* ══════════════════════ 7. ABAS ══════════════════════ */
+.bd-abas{display:flex;gap:3px;border-bottom:1px solid var(--bd-c200);overflow-x:auto}
+.bd-aba{background:none;border:0;font:inherit;font-size:13.6px;font-weight:560;
+  color:var(--bd-c500);padding:11px 15px;cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color var(--bd-rapido),border-color var(--bd-rapido)}
+.bd-aba:hover{color:var(--bd-c700)}
+.bd-aba-ativa{color:var(--bd-verde);border-bottom-color:var(--bd-verde)}
+.bd-aba-cont{display:inline-flex;align-items:center;justify-content:center;min-width:19px;
+  height:19px;padding:0 5px;margin-left:6px;border-radius:99px;background:var(--bd-c100);
+  font-size:11px;font-weight:600;color:var(--bd-c600)}
+.bd-aba-ativa .bd-aba-cont{background:var(--bd-verde-claro);color:var(--bd-verde)}
+
+
+/* ══════════════════════ 8. TELA VAZIA ══════════════════════ */
+.bd-vazio{text-align:center;padding:52px 24px;max-width:400px;margin:0 auto}
+.bd-vazio-ico{width:56px;height:56px;border-radius:50%;background:var(--bd-c100);
+  display:flex;align-items:center;justify-content:center;font-size:25px;margin:0 auto 17px}
+.bd-vazio-tit{font-size:15.5px;font-weight:620;color:var(--bd-c900);margin-bottom:6px}
+.bd-vazio-txt{font-size:13.4px;color:var(--bd-c500);line-height:1.55;margin-bottom:19px}
+
+
+/* ══════════════════════ 9. CARREGANDO (esqueleto) ══════════════════════ */
+.bd-esq{background:linear-gradient(90deg,var(--bd-c100) 25%,var(--bd-c200) 37%,var(--bd-c100) 63%);
+  background-size:400% 100%;animation:bd-brilho 1.4s ease infinite;border-radius:6px}
+@keyframes bd-brilho{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.bd-esq-linha{height:12px;margin-bottom:9px}
+.bd-esq-tit{height:17px;width:52%;margin-bottom:14px}
+.bd-esq-circ{width:44px;height:44px;border-radius:50%}
+
+
+/* ══════════════════════ 10. JANELA (modal) ══════════════════════ */
+.bd-fundo{position:fixed;inset:0;background:rgba(16,24,40,.55);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;
+  animation:bd-aparecer var(--bd-normal)}
+@keyframes bd-aparecer{from{opacity:0}to{opacity:1}}
+.bd-janela{background:#fff;border-radius:var(--bd-r-gg);width:100%;max-width:470px;
+  box-shadow:0 24px 48px -12px rgba(16,24,40,.25);overflow:hidden;
+  animation:bd-subir var(--bd-suave)}
+@keyframes bd-subir{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.bd-janela-topo{padding:20px 22px 0;display:flex;gap:13px;align-items:flex-start}
+.bd-janela-corpo{padding:15px 22px 21px}
+.bd-janela-rodape{padding:15px 22px;background:var(--bd-c25);border-top:1px solid var(--bd-c100);
+  display:flex;gap:9px;justify-content:flex-end}
+.bd-janela-x{margin-left:auto;background:none;border:0;font-size:19px;color:var(--bd-c400);
+  cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+.bd-janela-x:hover{background:var(--bd-c100);color:var(--bd-c700)}
+
+
+/* ══════════════════════ 11. DICA FLUTUANTE (tooltip) ══════════════════════ */
+.bd-dica{position:relative;display:inline-flex}
+.bd-dica::after{content:attr(data-dica);position:absolute;bottom:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);background:var(--bd-c900);color:#fff;font-size:12px;font-weight:500;
+  padding:6px 10px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;
+  transition:opacity var(--bd-rapido);z-index:50}
+.bd-dica:hover::after{opacity:1}
+
+
+/* ══════════════════════ 12. CELULAR ══════════════════════ */
+@media (max-width:640px){
+  .bd-kpis{grid-template-columns:1fr}
+  .bd-btn{padding:11px 16px}          /* alvo de toque maior */
+  .bd-janela-rodape{flex-direction:column-reverse}
+  .bd-janela-rodape .bd-btn{width:100%}
+  .bd-card-rodape{flex-direction:column-reverse}
+  .bd-card-rodape .bd-btn{width:100%}
+}
