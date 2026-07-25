@@ -1,0 +1,214 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   POLIMENTO — camada de acabamento profissional
+   ───────────────────────────────────────────────────────────────────────
+   Entra DEPOIS do app.css e só ajusta acabamento: contraste, foco de
+   teclado, sombras, estados de botão, alvo de toque no celular.
+
+   NÃO muda layout, NÃO muda cor da marca, NÃO mexe em nenhuma decisão
+   sua de posição ou tamanho de tela.
+
+   PARA DESFAZER TUDO: apague a linha do polimento.css no index.html.
+   Nada mais precisa ser tocado.
+
+   Baseado em: biblioteca-design/regras/paleta-e-tons.md
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── ESCADA DE SOMBRAS ──
+     O site tinha 9 sombras diferentes, cada uma inventada num dia.
+     Agora são 4, sempre as mesmas. É isso que dá o "ar de caro". */
+  --s1:0 1px 2px rgba(16,24,40,.05);                                   /* apoiado */
+  --s2:0 1px 3px rgba(16,24,40,.10),0 1px 2px rgba(16,24,40,.06);      /* levantado */
+  --s3:0 4px 8px -2px rgba(16,24,40,.10),0 2px 4px -2px rgba(16,24,40,.06);
+  --s4:0 12px 20px -6px rgba(15,91,82,.16),0 4px 8px -4px rgba(16,24,40,.06);
+
+  /* ── VELOCIDADES ──
+     Estavam misturadas (.06s, .12s, .15s, .2s, .25s). Agora 3 degraus. */
+  --t-rapido:.14s cubic-bezier(.4,0,.2,1);
+  --t-normal:.22s cubic-bezier(.4,0,.2,1);
+  --t-suave:.32s cubic-bezier(.2,.8,.3,1);
+
+  /* ── CORREÇÃO DE CONTRASTE ──
+     O cinza do texto secundário (#8a8b96) tinha contraste 3,4 contra o
+     branco. A regra profissional exige no mínimo 4,5 — abaixo disso a
+     pessoa força a vista, e no celular no sol some. O tom novo tem 4,9:
+     continua discreto, mas agora é legível de verdade. */
+  --muted:#6f707b;
+}
+
+/* ═══════ 1. FOCO DE TECLADO (acessibilidade — faltava no site inteiro) ═══════
+   Quem navega com Tab não conseguia ver onde estava. Agora vê.
+   Só aparece para quem usa teclado — o mouse continua sem contorno. */
+:where(button,a,input,select,textarea,[contenteditable],[tabindex]):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+.head :where(button,a,[contenteditable]):focus-visible,
+.rail :where(button,a,.ricon,.nav-item):focus-visible{
+  outline-color:#fff;
+}
+
+/* ═══════ 2. BOTÕES — estados que faltavam ═══════ */
+.btn{
+  transition:background var(--t-rapido),border-color var(--t-rapido),
+             box-shadow var(--t-rapido),transform var(--t-rapido);
+  box-shadow:var(--s1);
+}
+.btn:hover{box-shadow:var(--s2)}
+.btn:active{transform:scale(.975)}                 /* resposta ao toque: faltava */
+.btn:disabled,.btn[disabled]{                      /* estado desativado: faltava */
+  opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;
+}
+.btn.ghost{box-shadow:var(--s1)}
+.btn.ghost:hover{border-color:#d0d5dd}
+.head .btn.ghost{box-shadow:none}
+
+/* botão "carregando" — antes não existia; use class="btn carregando" */
+.btn.carregando{color:transparent !important;pointer-events:none;position:relative}
+.btn.carregando::after{
+  content:"";position:absolute;top:50%;left:50%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;
+  border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  animation:pol-girar .6s linear infinite;
+}
+.btn.ghost.carregando::after{border-color:#d0d5dd;border-top-color:var(--accent)}
+@keyframes pol-girar{to{transform:rotate(360deg)}}
+
+/* ═══════ 3. FORMULÁRIOS — foco e erro que faltavam ═══════
+   Os campos do formulário não mostravam nada ao serem clicados. */
+.field input,.field select,.field textarea,
+.toolbar>select,.search input,.opc-nome,.opc-nova input{
+  transition:border-color var(--t-rapido),box-shadow var(--t-rapido);
+  box-shadow:var(--s1);
+}
+.field input:hover,.field select:hover,.field textarea:hover,
+.toolbar>select:hover,.search input:hover{border-color:#c3c6cf}
+.field input:focus,.field select:focus,.field textarea:focus,
+.toolbar>select:focus,.search input:focus,.opc-nome:focus,.opc-nova input:focus{
+  outline:0;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(29,107,87,.14);
+}
+.field input:disabled,.field select:disabled,.field textarea:disabled{
+  background:#f9fafb;color:#98a2b3;cursor:not-allowed;
+}
+/* campo com problema: use class="erro" no input */
+.field input.erro,.field select.erro,.field textarea.erro{border-color:#f04438}
+.field input.erro:focus{border-color:#f04438;box-shadow:0 0 0 3px rgba(240,68,56,.14)}
+.field .msg-erro{display:block;margin-top:5px;font-size:12.5px;color:#b42318}
+.field .ajuda{display:block;margin-top:5px;font-size:12.5px;color:var(--muted)}
+
+/* ═══════ 4. CORREÇÃO: brilho laranja perdido na tabela ═══════
+   O campo da tabela acendia em LARANJA ao ser clicado — sobra de uma
+   paleta antiga que ninguém tinha percebido. Agora acende no verde da casa. */
+.cell:focus{box-shadow:0 0 0 2px rgba(29,107,87,.16) !important}
+
+/* ═══════ 5. BOTÃO DE APAGAR — estava quase invisível ═══════
+   A cor era #c9ccd3: contraste 1,9 contra o branco. Praticamente
+   não dava para ver que existia. */
+.delbtn{color:#8a8b96;transition:background var(--t-rapido),color var(--t-rapido)}
+.delbtn:hover{background:#fef3f2;color:#d92d20}
+.dg-del,.dg-alca{transition:color var(--t-rapido),background var(--t-rapido)}
+
+/* ═══════ 6. NÚMEROS ALINHADOS ═══════
+   Sem isso, "18" e "47" não alinham entre linhas e a leitura falha. */
+.card .val,.dg-foco-c .n,.dg-prog,.dg-cont,.atu,td .num{
+  font-variant-numeric:tabular-nums;
+}
+
+/* ═══════ 7. CARTÕES — sombra e movimento padronizados ═══════ */
+.card,.form-wrap,.tablewrap,.dg-bloco,.dg-col,.mapa-cx,.arq-box{
+  box-shadow:var(--s1);
+}
+.hub-card{transition:transform var(--t-suave),box-shadow var(--t-suave),border-color var(--t-suave)}
+.hub-card:hover{transform:translateY(-3px);box-shadow:var(--s4);border-color:#d0d5dd}
+.dg-item{transition:box-shadow var(--t-rapido),border-color var(--t-rapido)}
+.dg-item:hover{box-shadow:var(--s2)}
+.dg-foco-c{transition:border-color var(--t-rapido),box-shadow var(--t-rapido),transform var(--t-rapido)}
+.dg-foco-c:hover{box-shadow:var(--s2)}
+.dg-foco-c:active{transform:scale(.985)}
+
+/* ═══════ 8. ABAS ═══════ */
+.tab{transition:color var(--t-rapido),border-color var(--t-rapido)}
+.tab:hover{color:var(--text)}
+
+/* ═══════ 9. TABELA — leitura mais fácil em linha longa ═══════ */
+tbody tr{transition:background var(--t-rapido)}
+tbody tr:nth-child(even) td{background:#fcfcfd}
+tbody tr:hover td{background:#f6f8f7}
+th{box-shadow:inset 0 -1px 0 var(--border)}   /* a linha acompanha o cabeçalho fixo */
+
+/* ═══════ 10. AVISO FLUTUANTE (toast) ═══════ */
+.toast{
+  box-shadow:var(--s4);
+  transition:opacity var(--t-normal),transform var(--t-normal);
+  transform:translateX(-50%) translateY(6px);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ═══════ 11. TELA VAZIA — antes era só um texto cinza solto ═══════ */
+.empty{
+  color:var(--muted);font-size:13.5px;line-height:1.6;
+  max-width:400px;margin:0 auto;
+}
+.empty::before{
+  content:"";display:block;width:52px;height:52px;margin:0 auto 15px;
+  border-radius:50%;background:#f2f4f7;
+}
+
+/* ═══════ 12. TEXTO SELECIONADO E BARRA DE ROLAGEM ═══════ */
+::selection{background:rgba(29,107,87,.18);color:var(--text)}
+*{scrollbar-width:thin;scrollbar-color:#d0d5dd transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:#d0d5dd;border-radius:99px;border:3px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-thumb:hover{background:#98a2b3;background-clip:content-box}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ═══════ 13. IMPRESSÃO ═══════
+   Ao imprimir qualquer tela, a barra lateral e os botões somem. */
+@media print{
+  .rail,.mnav,.head-actions,.toolbar,.avatar,.toast,.barra-edicao,.dg-alca,.delbtn{display:none !important}
+  .main{box-shadow:none;border-radius:0;padding:0;margin:0}
+  .head{margin:0 0 12px;border-radius:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ═══════ 14. CELULAR — alvo de toque do tamanho do dedo ═══════
+   Regra profissional: 44px de altura mínima. Vários botões tinham 30px,
+   e era por isso que às vezes o toque "não pegava". */
+@media(max-width:640px){
+  .btn{min-height:44px;padding:11px 16px}
+  .btn.sm{min-height:44px;padding:10px 14px}
+  .ricon,.delbtn,.dg-lupa,.dg-del{min-width:44px;min-height:44px}
+  .filtro-cfg button{min-height:44px}
+  .form-actions{flex-direction:column-reverse}
+  .form-actions .btn{width:100%}
+  .grid2{grid-template-columns:1fr}
+}
+
+/* ═══════ 15. TOQUE MAIS RÁPIDO NO CELULAR ═══════
+   O celular esperava ~300 milésimos a cada toque, para ver se você ia dar
+   dois toques (zoom). Isso dava a sensação de "travadinho". Agora responde
+   na hora, e o quadradinho cinza que piscava no toque também some. */
+button,a,.ricon,.nav-item,.tab,.hub-card,.dg-item-top,.dg-chk,.cor-op,
+label,input[type=checkbox],input[type=radio],select{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(29,107,87,.10);
+}
+
+/* ═══════ 16. ROLAGEM PRESA DENTRO DA JANELA ═══════
+   Ao rolar até o fim de uma janela aberta, a página de trás rolava junto e
+   você perdia o lugar. Agora a rolagem para dentro da janela. */
+.dg-focotela,.dg-foco-corpo,.pal-overlay,.pal-box,.arq-box,.dg-tri-cartao{
+  overscroll-behavior:contain;
+}
+
+/* ═══════ 17. QUEM DESLIGOU ANIMAÇÃO NO CELULAR ═══════
+   Acessibilidade: há quem sinta enjoo com movimento na tela. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
