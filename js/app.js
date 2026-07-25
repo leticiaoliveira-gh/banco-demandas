@@ -1431,7 +1431,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.12";
+const APP_VERSAO="9.13";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
 }
@@ -1459,6 +1459,18 @@ function initAtalhos(){
    Cada item tem passo a passo curto (o que clicar). O acesso é pela Capa,
    pelo mapa do site e pelo menu ⋯. Escrito com base no fluxo real do dia. */
 const COMO_FACO=[
+  {k:"bot-registrar",titulo:"Registrar uma ocorrência pelo Telegram (bot da loja)",passos:[
+    "Abra a conversa da loja no Telegram: NP Cabo Frio ou NP Arraial do Cabo.",
+    "Mande foto, texto ou áudio — em mensagens separadas, na ordem que quiser. Tudo entra no MESMO registro.",
+    "Na primeira vez do dia, toque em 📍 Escolher a área → piso → área. Ela fica marcada para os próximos registros.",
+    "Confira a linha \"➡ Vai para\": Manutenções ou Relatório de NC. Se o bot errou, toque em ↔ Mudar.",
+    "Toque em ✅ Concluir registro. Ele sobe para o site sozinho (ou espera a internet voltar, sem perder nada)."
+  ]},
+  {k:"bot-area",titulo:"Trocar de área ou de piso no bot do Telegram",passos:[
+    "Para outra área do MESMO piso: digite /area e envie. Toque na área nova.",
+    "Para trocar de piso: digite /piso e envie.",
+    "Se tiver registro em aberto, o bot pede para tocar ✅ Concluir primeiro — depois ele mesmo abre a lista da próxima área."
+  ]},
   {k:"criar-empresa",titulo:"Criar uma empresa nova",passos:[
     "Na Capa, aperte o botão + Nova empresa (ao lado do título Empresas).",
     "Escreva o nome e um código curto de 2 a 4 letras (ex.: BZ).",
@@ -1539,6 +1551,15 @@ function comoFacoLista(){
   const linhas=COMO_FACO.map(x=>`<li><a onclick="comoFaco('${x.k}')" style="cursor:pointer;color:#0f5b52;text-decoration:underline">${esc(x.titulo)}</a></li>`).join("");
   ncModal(`<h2 style="margin-bottom:4px">❓ Como faço para...</h2>
     <p class="desc">Passo a passo curto para as coisas mais comuns do dia.</p>
+    <div class="mapa-cx" style="margin-bottom:10px"><h3>📅 O caminho do meu dia</h3>
+      <ol style="line-height:1.8;padding-left:22px;margin:4px 0">
+        <li><b>Na loja</b> — viu algo errado? Registra pelo bot do Telegram da loja (foto/texto/áudio; a área fica marcada).</li>
+        <li><b>Na loja</b> — checklist do dia na aba Checklists (se faltar algo, o botão "ir direto ao que falta" te leva).</li>
+        <li><b>No escritório</b> — abrir Relatório de NC e Manutenções, completar o que chegou do bot (urgência, quem resolve, prazo).</li>
+        <li><b>Entregar</b> — 🖨 resumo para a gerência e 📱 enviar no WhatsApp.</li>
+        <li><b>De vez em quando</b> — conferir a sincronização verde na Capa. O resto é automático.</li>
+      </ol>
+      <p class="mapa-nota">Só isso é o dia a dia. Todo o resto do site é configuração — não precisa decorar.</p></div>
     <ul style="line-height:1.9;padding-left:20px">${linhas}</ul>
     <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
 }
