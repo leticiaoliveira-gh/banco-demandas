@@ -157,7 +157,52 @@ Relatórios — qual caminho usar:
 
 ---
 
-## 6. CONTEXTO DO PROJETO
+## 6. MODO VERBOSO DE DEBUG — regra fixa, vale sempre
+
+Sempre que usar **qualquer ferramenta visual** (Playwright, chrome-devtools ou
+equivalente) para testar o site — especialmente fluxos de WhatsApp — **imprimir
+cada passo na resposta**, sem resumir nem pular:
+
+| O que mostrar | Exemplo |
+|---|---|
+| Ferramenta chamada | `click_element("#btn-zap")` |
+| Resultado | `✓ clicou` ou `✗ timeout 5s — elemento não encontrado` |
+| Estado da tela | `→ janela de compartilhar abriu` ou `→ tela ficou igual` |
+| Console do navegador | `⚠ TypeError: navigator.share is not a function` |
+
+**Regras fixas do modo verboso:**
+
+1. **Sempre ativo** — não precisa pedir. Vale em toda sessão que abrir este
+   repositório.
+2. **Uma linha por ferramenta chamada**, no formato:
+   `[PASSO N] ferramenta(args) → resultado (Xms)`
+3. Se a ferramenta **travar** (sem resposta em 10s), registrar:
+   `[PASSO N] ⏱ TRAVOU — ferramenta(args) sem resposta após 10s`
+4. Se **falhar**, registrar o erro completo:
+   `[PASSO N] ✗ FALHOU — ferramenta(args): mensagem de erro`
+5. No final, imprimir um **resumo de saúde**:
+   ```
+   ── resumo debug ──
+   Total de passos: 12
+   ✓ OK:      10
+   ✗ Falhou:   1  ← click_element("#btn-zap") — elemento não visível
+   ⏱ Travou:   1  ← navigate(url) — timeout
+   ```
+6. Para fluxos de **WhatsApp** especificamente, verificar e reportar:
+   - `navigator.share` disponível? (só funciona em HTTPS + celular)
+   - `navigator.canShare({files:[...]})` retorna `true`?
+   - O PDF foi gerado (`pdfURL` não vazio)?
+   - `window.open` para WhatsApp Web executou?
+   - Algum erro no console durante o fluxo?
+7. **Nunca silenciar erro** — se algo falhou ou travou, TEM que aparecer na
+   resposta, mesmo que o resto tenha funcionado.
+8. Se não houver ferramenta visual disponível na sessão (ex.: sessão sem
+   Playwright), dizer explicitamente: "Ferramentas visuais indisponíveis nesta
+   sessão — não foi possível testar no navegador."
+
+---
+
+## 7. CONTEXTO DO PROJETO
 
 - Histórico e decisões: `CONTINUIDADE.md` (é a memória entre conversas).
 - Dados dela ficam no repositório **privado** `banco-demandas-dados`. Este
