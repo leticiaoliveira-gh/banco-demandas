@@ -1,0 +1,112 @@
+/* ═══════════════════════════════════════════════════════════════════
+   MNT 28.07.26 — Manutenção e Infraestrutura
+   Cabeçalho no mesmo desenho do modelo de relatório da biblioteca
+   (biblioteca/relatorio.css, classes rel-capa) e lista agrupada por
+   piso → área, sem repetir o nome da área linha a linha.
+   Cores: só as do site (#1d6b57 / #155244 / #e8f5f0 / #2a9d8a).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────── cabeçalho ─────────── */
+.m28-capa{
+  background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
+  color:#fff;border-radius:14px;padding:24px 26px;margin-bottom:16px;
+}
+.m28-capa-et{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.6px;
+  color:rgba(255,255,255,.78);margin-bottom:6px;
+}
+.m28-capa h1{font-size:27px;font-weight:700;letter-spacing:-.5px;line-height:1.2;margin:0;color:#fff;text-wrap:balance}
+.m28-capa-sub{font-size:14px;color:rgba(255,255,255,.92);margin-top:5px}
+.m28-capa-linha{
+  display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.25);
+}
+.m28-capa-i .rot{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.7)}
+.m28-capa-i .val{font-size:13.5px;font-weight:600;margin-top:3px}
+
+/* ─────────── resumo em números ─────────── */
+/* A peça vem PRONTA da biblioteca (.bd-kpis / .bd-kpi, em biblioteca/pecas.css).
+   Aqui só o espaçamento da aba e a cor dos dois números que precisam gritar. */
+.m28-nums{margin-bottom:16px}
+.m28-nums .bd-kpi-num.m28-pend{color:#b3730a}
+.m28-nums .bd-kpi-num.m28-ok{color:#067647}
+
+/* Nome de área é comprido ("CORREDOR DE ENTRADA - INTERNO (teto, parede e piso)").
+   Sem estas duas linhas a caixa de escolha estica e empurra a página inteira
+   para o lado no celular — rolagem lateral, que aqui não pode existir. */
+.m28-barra{flex-wrap:wrap}
+.m28-barra select{max-width:100%;min-width:0;text-overflow:ellipsis}
+
+/* ─────────── grupos: piso e área ─────────── */
+.m28-piso{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  font-size:15px;font-weight:700;color:#155244;letter-spacing:.4px;text-transform:uppercase;
+  border-bottom:2px solid #1d6b57;padding-bottom:7px;margin:22px 0 4px;
+}
+.m28-area{
+  background:#e8f5f0;border-left:3px solid #1d6b57;border-radius:0 8px 8px 0;
+  padding:9px 12px;margin-top:12px;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;
+}
+.m28-area-nome{font-size:13.5px;font-weight:700;color:#155244;flex:1;min-width:0}
+.m28-count{font-size:11.5px;font-weight:600;color:#5c5d68;white-space:nowrap}
+
+/* cabeçalho das 3 colunas — repete em cada área, para não se perder na rolagem */
+.m28-tab-cab{
+  flex-basis:100%;display:grid;grid-template-columns:52px 1fr 27% 92px;gap:10px;
+  margin-top:7px;padding-top:7px;border-top:1px solid rgba(21,82,68,.16);
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#4a6b62;
+}
+.m28-tab-cab span:first-child{text-align:center}
+
+/* ─────────── cada serviço ─────────── */
+/* são mais de 100 linhas: o navegador só desenha as que estão à vista.
+   contain-intrinsic-size reserva a altura, para a barra de rolagem não pular. */
+.m28-item{
+  display:grid;grid-template-columns:52px 1fr 27% 92px;gap:10px;align-items:start;
+  padding:10px 12px;border-bottom:1px solid #eceded;background:#fff;
+  content-visibility:auto;contain-intrinsic-size:auto 52px;
+}
+.m28-item:hover{background:#fafbfa}
+.m28-item.feito .m28-fazer{color:#7a7b85;text-decoration:line-through}
+.m28-fazer{font-size:13.8px;color:#2d2e3a;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+.m28-obs{font-size:12.5px;color:#5c5d68;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+.m28-vaziotxt{color:#b4b5bd}
+.m28-origem{
+  display:inline-block;margin-left:7px;font-size:10.5px;font-weight:600;color:#5c5d68;
+  background:#f1f1f3;border:1px solid #e2e3e7;border-radius:99px;padding:1px 8px;white-space:nowrap;
+}
+
+/* caixa de marcar: alvo de 44px no celular (regra fixa do site) */
+.m28-check{
+  width:30px;height:30px;min-height:30px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+  border:2px solid #a9aab3;border-radius:7px;background:#fff;cursor:pointer;
+  font-size:17px;font-weight:700;color:#067647;line-height:1;padding:0;
+  transition:border-color .15s ease,background .15s ease;
+}
+.m28-check:hover{border-color:#1d6b57}
+.m28-check[aria-checked="true"]{border-color:#067647;background:#ecfdf3}
+.m28-acts{display:flex;gap:4px;justify-content:flex-end;align-items:center}
+
+.m28-vazio{
+  border:1px dashed #d7d8dd;border-radius:12px;padding:28px 20px;text-align:center;
+  color:#5c5d68;font-size:13.5px;background:#fafbfa;
+}
+
+/* ─────────── celular e tablet ─────────── */
+@media (max-width:820px){
+  /* busca ocupa a linha toda; as escolhas dividem a linha de baixo */
+  .m28-barra .search{flex:1 1 100%}
+  .m28-barra select{flex:1 1 46%}
+  .m28-capa{padding:20px;border-radius:12px}
+  .m28-capa h1{font-size:22px}
+  .m28-capa-linha{gap:16px}
+  /* a folha vira lista: cada serviço ocupa a largura toda */
+  .m28-tab-cab{display:none}
+  .m28-item{grid-template-columns:44px 1fr;grid-template-areas:"check fazer" ". obs" ". acts";row-gap:6px;padding:12px 4px}
+  .m28-check{grid-area:check;width:44px;height:44px;min-height:44px}
+  .m28-fazer{grid-area:fazer;font-size:14.5px;padding-top:11px}
+  .m28-obs{grid-area:obs}
+  .m28-acts{grid-area:acts;justify-content:flex-start}
+  .m28-area{border-radius:0 6px 6px 0}
+}

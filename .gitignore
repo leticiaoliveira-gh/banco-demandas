@@ -7,6 +7,11 @@ PROMPT-PROXIMO-CHAT.md
 banco.json
 *.bak
 
+# Cargas de dados reais das lojas (itens de manutencao, NC, checklist).
+# Entram no site UMA vez e passam a viver no banco dela + repo privado.
+# NUNCA versionar: este repositorio e publico.
+dados/
+
 # Ambiente
 .DS_Store
 Thumbs.db

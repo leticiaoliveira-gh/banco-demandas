@@ -200,7 +200,7 @@ const ICO={
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","ck","ckq","nc","list","ind","add"];
+const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","ind","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
@@ -229,6 +229,15 @@ const TABS={
       icone:ICO.mnt,cor:"#b3730a",corFundo:"#fdf0e0",hub:true,
       subtitle:n=>(EXECUTORES.length?EXECUTORES.map(e=>e.funcao+" ("+e.nome+")").join(" e "):"Manutenções e Elétrica")+" — "+n,
       onShow(){configTableTab("mnt");}},
+  /* MNT 28.07.26 (28/07): folha SÓ de manutenção — obra, conserto, pintura,
+     troca, instalação e limpeza pesada. Nasceu porque a folha antiga misturava
+     qualidade com manutenção e 180 itens de manipulador de alimento chegavam à
+     mão de quem conserta. Aba nova, ao lado; a antiga continua intacta. */
+  mnt28:{label:"MNT 28.07.26",tipo:"mnt28",panel:"tab-mnt28",
+      icone:ICO.mnt,cor:"#155244",corFundo:"#e8f5f0",hub:true,
+      subtitle:n=>"Manutenção e Infraestrutura — "+n,
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="mnt28";if(typeof renderMnt28==="function")renderMnt28();}},
   ind:{label:"Indicadores",tipo:null,panel:"tab-ind",
       icone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="12" width="3.4" height="7" rx="1"/><rect x="10.3" y="7" width="3.4" height="12" rx="1"/><rect x="15.6" y="10" width="3.4" height="9" rx="1"/></svg>',
       cor:"#0e7490",corFundo:"#e2f1f5",hub:true,
@@ -1506,7 +1515,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.20";
+const APP_VERSAO="9.21";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
 }

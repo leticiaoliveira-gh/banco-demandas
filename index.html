@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=83">
+<link rel="stylesheet" href="css/app.css?v=84">
 <!-- POLIMENTO: camada de acabamento (contraste, foco de teclado, sombras
      padronizadas, alvo de toque no celular). Só acabamento — não muda layout.
      PARA DESFAZER TUDO: apague só esta linha de baixo. -->
@@ -23,9 +23,11 @@
      toque de 44px. PARA VOLTAR AO DE ANTES: apague só esta linha de baixo. -->
 <!-- PEÇAS PRONTAS da biblioteca de design (classes bd-*). É daqui que sai todo
      visual novo — nada é construído do zero. Catálogo em /catalogo/ -->
-<link rel="stylesheet" href="biblioteca/pecas.css?v=83">
-<link rel="stylesheet" href="biblioteca/graficos.css?v=83">
-<link rel="stylesheet" href="css/aparencia.css?v=83">
+<link rel="stylesheet" href="biblioteca/pecas.css?v=84">
+<link rel="stylesheet" href="biblioteca/graficos.css?v=84">
+<link rel="stylesheet" href="css/aparencia.css?v=84">
+<!-- MNT 28.07.26: cabeçalho do relatório e lista agrupada por piso → área -->
+<link rel="stylesheet" href="css/mnt28.css?v=84">
 </head>
 <body>
 <div class="app">
@@ -231,6 +233,9 @@
       </div>
     </div>
 
+    <!-- MNT 28.07.26: manutenção e infraestrutura, só obra/conserto (js/mnt28.js) -->
+    <div id="tab-mnt28" class="tab-panel" style="display:none"></div>
+
     <div id="tab-ind" class="tab-panel" style="display:none"></div>
 
     <div id="tab-add" class="tab-panel" style="display:none">
@@ -287,20 +292,26 @@
   </div>
 </div>
 
-<script src="js/app.js?v=83"></script>
-<script src="js/docxlite.js?v=83"></script>
-<script src="js/dg.js?v=83"></script>
-<script src="js/pdflite.js?v=83"></script>
-<script src="js/ck.js?v=83"></script>
-<script src="js/ck-modelo2.js?v=83"></script>
-<script src="js/arquivos.js?v=83"></script>
-<script src="js/cronometro.js?v=83"></script>
-<script src="js/pdf-abas.js?v=83"></script>
-<script src="js/configs.js?v=83"></script>
-<script src="js/nc.js?v=83"></script>
-<script src="js/ck-qualidade.js?v=83"></script>
-<script src="js/ppr.js?v=83"></script>
-<script src="js/ind.js?v=83"></script>
-<script src="js/sync.js?v=83"></script>
+<script src="js/app.js?v=84"></script>
+<script src="js/docxlite.js?v=84"></script>
+<script src="js/dg.js?v=84"></script>
+<script src="js/pdflite.js?v=84"></script>
+<script src="js/ck.js?v=84"></script>
+<script src="js/ck-modelo2.js?v=84"></script>
+<script src="js/arquivos.js?v=84"></script>
+<script src="js/cronometro.js?v=84"></script>
+<script src="js/pdf-abas.js?v=84"></script>
+<script src="js/configs.js?v=84"></script>
+<script src="js/nc.js?v=84"></script>
+<script src="js/ck-qualidade.js?v=84"></script>
+<script src="js/ppr.js?v=84"></script>
+<script src="js/ind.js?v=84"></script>
+<!-- CARGA DA ABA MNT 28.07.26 — dados reais da loja, por isso mora FORA do
+     repositório público (a pasta dados/ está no .gitignore). No site publicado
+     este arquivo não existe e o navegador simplesmente ignora a linha: os itens
+     já chegaram pela sincronização. Sem ?v= de propósito — não entra no sw.js. -->
+<script src="dados/mnt28-carga.js"></script>
+<script src="js/mnt28.js?v=84"></script>
+<script src="js/sync.js?v=84"></script>
 </body>
 </html>
