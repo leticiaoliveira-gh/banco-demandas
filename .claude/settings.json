@@ -13,6 +13,35 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "statusMessage": "Guardiao do offline conferindo...",
+            "timeout": 45,
+            "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\guardiao-offline.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s; exit $LASTEXITCODE }"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "if": "Bash(git commit*)",
+            "statusMessage": "Guardiao da versao conferindo antes de publicar...",
+            "timeout": 45,
+            "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\guardiao-versao.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s; exit $LASTEXITCODE }"
+          }
+        ]
+      }
     ]
   }
 }

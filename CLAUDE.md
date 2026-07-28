@@ -164,3 +164,20 @@ Relatórios — qual caminho usar:
   repositório é **público**: nenhum dado real entra aqui.
 - Duas sessões no mesmo repositório dão conflito de versão. Antes de publicar:
   `git pull` e conferir o número **dentro** do app, não só a mensagem do commit.
+
+---
+
+## 7. OS GUARDIÕES (rodam sozinhos — 28/07)
+
+| Quem | Quando | O que barra |
+|---|---|---|
+| `ferramentas\sincronizar-biblioteca.ps1` | início de toda sessão | traz a biblioteca nova e sobe o cache sozinho |
+| `ferramentas\guardiao-offline.ps1` | depois de cada Write/Edit | arquivo ligado no index que ficou fora da lista `SHELL` do sw.js, `?v=` desalinhado do `CACHE`, arquivo solto que ninguém usa |
+| `ferramentas\guardiao-versao.ps1` | antes de cada `git commit` | `APP_VERSAO`, `CACHE`, `?v=` e `status.json` contando versões diferentes |
+| subagente **revisor-do-site** (`.claude/agents/`) | antes de publicar mudança de tela | navegador de verdade, 375/768px, 44px, peças da biblioteca, regras de gráfico, offline, privacidade |
+
+Os três scripts saem com **código 2** quando acham problema — o Claude Code
+mostra o aviso e devolve para corrigir. Não alteram nada sozinhos.
+
+Para chamar o revisor: peça o subagente `revisor-do-site` antes do commit de
+qualquer mudança visual.

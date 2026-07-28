@@ -14,3 +14,6 @@ Thumbs.db
 # ...mas o hook que sincroniza a biblioteca PRECISA sobreviver a uma troca de
 # computador (nao tem segredo nenhum dentro dele):
 !.claude/settings.json
+!.claude/agents/
+!.claude/agents/*
+!.claude/launch.json
