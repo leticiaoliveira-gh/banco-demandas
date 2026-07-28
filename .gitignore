@@ -17,3 +17,5 @@ Thumbs.db
 !.claude/agents/
 !.claude/agents/*
 !.claude/launch.json
+!.claude/skills/
+!.claude/skills/**
