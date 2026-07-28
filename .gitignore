@@ -10,12 +10,13 @@ banco.json
 # Ambiente
 .DS_Store
 Thumbs.db
-.claude/
-# ...mas o hook que sincroniza a biblioteca PRECISA sobreviver a uma troca de
-# computador (nao tem segredo nenhum dentro dele):
+
+# Pasta tecnica: guardamos so o que precisa viajar com o projeto
+# (o que faz as regras de design rodarem sozinhas em qualquer computador).
+# ATENCAO: tem de ser ".claude/*" e nao ".claude/" — com a barra o git nem olha
+# dentro da pasta e as excecoes abaixo nao funcionam.
+.claude/*
 !.claude/settings.json
-!.claude/agents/
-!.claude/agents/*
 !.claude/launch.json
+!.claude/agents/
 !.claude/skills/
-!.claude/skills/**
