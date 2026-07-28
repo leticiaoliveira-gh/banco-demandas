@@ -1515,7 +1515,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.21";
+const APP_VERSAO="9.22";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
 }

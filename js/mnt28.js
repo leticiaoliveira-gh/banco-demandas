@@ -42,13 +42,42 @@ function m28Ordem(){
   const c=window.MNT28_CARGA;
   return (c&&c.ordemAreas)||null;
 }
-function m28Cab(){
+function m28Cab(itens){
   const c=window.MNT28_CARGA||{};
-  return Object.assign({},M28_CAB||{},
-    c.periodo?{periodo:c.periodo,rt:c.rt,emitidoEm:c.emitidoEm,executor:c.executor}:{});
+  const cab=Object.assign({},M28_CAB||{},
+    c.periodo?{periodo:c.periodo,rt:c.rt,crn:c.crn,emitidoEm:c.emitidoEm,executor:c.executor}:{});
+  /* Se ela importar num aparelho novo, o período e a RT ainda não estão
+     gravados. Em vez de mostrar um traço, montamos a partir do que os próprios
+     serviços dizem e do nome que ela já cadastrou na capa. Nunca fica vazio. */
+  if(!cab.periodo&&itens&&itens.length){
+    const datas=itens.map(d=>d.relato).filter(Boolean).sort();
+    cab.periodo=datas.length
+      ? (datas[0]===datas[datas.length-1]
+          ? "Levantamento de "+brDate(datas[0])
+          : "Levantamento de "+brDate(datas[0])+" a "+brDate(datas[datas.length-1]))
+      : "Levantamento em andamento";
+  }
+  if(!cab.rt)cab.rt=RT_INFO||RT_DEFAULT;
+  if(!cab.executor&&itens)cab.executor=(itens.find(d=>d.executor)||{}).executor||"";
+  return cab;
 }
-function m28PosPiso(p){const o=m28Ordem();if(!o)return 0;const k=Object.keys(o);const i=k.indexOf(p);return i<0?99:i;}
-function m28PosArea(p,a){const o=m28Ordem();if(!o||!o[p])return 0;const i=o[p].indexOf(a);return i<0?999:i;}
+/* Ordem do piso: pela lista oficial se existir; senão alfabética ("1º PISO"
+   antes de "2º PISO"), que dá o mesmo resultado. Nunca fica sem ordem. */
+function m28PosPiso(p){
+  const o=m28Ordem();
+  if(o){const i=Object.keys(o).indexOf(p);if(i>=0)return i;}
+  return 500+String(p||"").localeCompare("");
+}
+function m28PosArea(p,a){const o=m28Ordem();if(!o||!o[p])return 999;const i=o[p].indexOf(a);return i<0?999:i;}
+/* Cada serviço carrega o número da própria posição (campo "ordem"), calculado
+   a partir da lista oficial de áreas. É o que faz a folha continuar na ordem
+   certa mesmo se ela importar o arquivo num aparelho novo, sem mais nada. */
+function m28Comparar(a,b){
+  return m28PosPiso(a.piso)-m28PosPiso(b.piso)
+    ||((a.ordem??1e9)-(b.ordem??1e9))
+    ||m28PosArea(a.piso,a.area)-m28PosArea(b.piso,b.area)
+    ||String(a.area||"").localeCompare(String(b.area||""));
+}
 
 /* =====================================================================
    CARGA ÚNICA — os 106 serviços revisados por ela em 28/07/2026
@@ -92,7 +121,7 @@ async function renderMnt28(){
   await m28Config();
   await m28CargaInicial();
   const itens=m28Itens();
-  const c=m28Cab();
+  const c=m28Cab(itens);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   const exec=(itens.find(d=>d.executor)||{}).executor||c.executor||"";
   const total=itens.length,feitos=itens.filter(d=>d.feito).length;
@@ -165,9 +194,7 @@ function m28RenderLista(){
       +'Limpe a busca ou escolha “Todos” para ver a folha inteira.</div>';
     return;
   }
-  rows.sort((a,b)=>m28PosPiso(a.piso)-m28PosPiso(b.piso)
-    ||m28PosArea(a.piso,a.area)-m28PosArea(b.piso,b.area)
-    ||((a.ordem??1e9)-(b.ordem??1e9)));
+  rows.sort(m28Comparar);
 
   const nPiso={},nArea={},fArea={};
   for(const d of rows){
@@ -271,11 +298,9 @@ function m28Imprimir(){
   if(M28F.piso)rows=rows.filter(d=>d.piso===M28F.piso);
   if(M28F.area)rows=rows.filter(d=>d.area===M28F.area);
   if(!rows.length){alert("Nenhum serviço para imprimir com os filtros atuais.");return;}
-  rows.sort((a,b)=>m28PosPiso(a.piso)-m28PosPiso(b.piso)
-    ||m28PosArea(a.piso,a.area)-m28PosArea(b.piso,b.area)
-    ||((a.ordem??1e9)-(b.ordem??1e9)));
+  rows.sort(m28Comparar);
 
-  const c=m28Cab();
+  const c=m28Cab(rows);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   const exec=(rows.find(d=>d.executor)||{}).executor||c.executor||"";
   const feitos=rows.filter(d=>d.feito).length;
