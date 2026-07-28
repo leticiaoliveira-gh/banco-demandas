@@ -11,3 +11,6 @@ banco.json
 .DS_Store
 Thumbs.db
 .claude/
+# ...mas o hook que sincroniza a biblioteca PRECISA sobreviver a uma troca de
+# computador (nao tem segredo nenhum dentro dele):
+!.claude/settings.json

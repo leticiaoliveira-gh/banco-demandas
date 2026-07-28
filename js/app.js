@@ -787,7 +787,7 @@ async function renderHome(){
    const done=vivos.filter(d=>d.loja===emp.code&&isConcluido(d)).length;
    /* VISUAL v9.15 (escolha dela: vidro no computador, modo loja no celular).
       Os dois desenhos leem os MESMOS dados desta linha — quem troca de cara é só
-      o CSS (css/capa.css). Nada de tela duplicada. */
+      o CSS (css/aparencia.css). Nada de tela duplicada. */
    const urg=vivos.filter(d=>d.loja===emp.code&&d.tipo==="nc"&&d.urgencia==="URGENTE"&&isPendente(d)).length;
    const tot=pend+done, pct=tot?Math.round(done/tot*100):0;
    html+=`<div class="store-row" data-code="${esc(emp.code)}"${urg?' data-urg="1"':""}${emp.ativa?"":' data-off="1"'}>
@@ -1506,7 +1506,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.19";
+const APP_VERSAO="9.20";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
 }

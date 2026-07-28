@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "statusMessage": "Sincronizando a biblioteca de design...",
+            "timeout": 60,
+            "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\sincronizar-biblioteca.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s } else { Write-Output 'Aviso: abra a sessao dentro da pasta do banco-demandas para a biblioteca sincronizar sozinha.' }"
+          }
+        ]
+      }
+    ]
+  }
+}
