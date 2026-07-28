@@ -62,18 +62,25 @@ function m28Cab(itens){
   return cab;
 }
 /* Ordem do piso: pela lista oficial se existir; senão alfabética ("1º PISO"
-   antes de "2º PISO"), que dá o mesmo resultado. Nunca fica sem ordem. */
-function m28PosPiso(p){
+   antes de "2º PISO"), que dá o mesmo resultado. Nunca fica sem ordem.
+   CUIDADO (defeito real, pego no teste do site publicado em 28/07): isto TEM
+   de comparar os dois pisos entre si. Uma versão anterior devolvia o mesmo
+   número para todos os pisos quando a lista oficial não estava no banco, os
+   pisos empatavam e a folha saía com "1º PISO" aparecendo duas vezes. */
+function m28CmpPiso(a,b){
   const o=m28Ordem();
-  if(o){const i=Object.keys(o).indexOf(p);if(i>=0)return i;}
-  return 500+String(p||"").localeCompare("");
+  if(o){const k=Object.keys(o),ia=k.indexOf(a),ib=k.indexOf(b);
+    if(ia>=0&&ib>=0)return ia-ib;
+    if(ia>=0)return -1;
+    if(ib>=0)return 1;}
+  return String(a||"").localeCompare(String(b||""),"pt-BR",{numeric:true});
 }
 function m28PosArea(p,a){const o=m28Ordem();if(!o||!o[p])return 999;const i=o[p].indexOf(a);return i<0?999:i;}
 /* Cada serviço carrega o número da própria posição (campo "ordem"), calculado
    a partir da lista oficial de áreas. É o que faz a folha continuar na ordem
    certa mesmo se ela importar o arquivo num aparelho novo, sem mais nada. */
 function m28Comparar(a,b){
-  return m28PosPiso(a.piso)-m28PosPiso(b.piso)
+  return m28CmpPiso(a.piso,b.piso)
     ||((a.ordem??1e9)-(b.ordem??1e9))
     ||m28PosArea(a.piso,a.area)-m28PosArea(b.piso,b.area)
     ||String(a.area||"").localeCompare(String(b.area||""));
@@ -127,7 +134,7 @@ async function renderMnt28(){
   const total=itens.length,feitos=itens.filter(d=>d.feito).length;
   const areas=[...new Set(itens.map(d=>d.area))];
   const pisos=[...new Set(itens.map(d=>d.piso))]
-    .sort((a,b)=>m28PosPiso(a)-m28PosPiso(b));
+    .sort(m28CmpPiso);
 
   const capa=`<div class="m28-capa">
     <div class="m28-capa-et">Relatório de manutenção</div>
@@ -254,7 +261,7 @@ async function m28Excluir(id){
 }
 async function m28Novo(){
   const itens=m28Itens();
-  const pisos=[...new Set(itens.map(d=>d.piso))].sort((a,b)=>m28PosPiso(a)-m28PosPiso(b));
+  const pisos=[...new Set(itens.map(d=>d.piso))].sort(m28CmpPiso);
   const piso=prompt("Em qual piso?\n\n"+pisos.join("\n"),M28F.piso||pisos[0]||"1º PISO");
   if(piso===null)return;
   const doPiso=[...new Set(itens.filter(d=>d.piso===piso.trim()).map(d=>d.area))].sort();
