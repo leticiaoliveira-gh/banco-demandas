@@ -57,20 +57,37 @@ if ($maisNovo) {
   }
 }
 
-# ── DEF-3 · A DATA DA PUBLICAÇÃO DEIXA DE SER DIGITADA À MÃO (29/07) ──
-# APP_DATA é o "atualizado em <data>" que ela lê no rodapé da capa. Era digitado
-# à mão: bastava esquecer e a capa passava a mentir a data para ela.
-# Não é decisão de ninguém — é só o carimbo do relógio. Então o guardião carimba
-# sozinho, aqui, um instante antes do commit, e avisa que carimbou.
-# É o ÚNICO campo que ele altera; todo o resto ele só confere e barra.
+# ── DEF-3 · A DATA DA PUBLICAÇÃO (29/07) ──
+# TENTATIVA QUE DEU ERRADO, registrada para ninguém repetir: eu fiz este guardião
+# CARIMBAR o APP_DATA sozinho antes do commit. Ele quebrou o site publicado.
+# Motivo: no Windows PowerShell 5.1, "Get-Content -Raw" lê o arquivo na codificação
+# do sistema, não em UTF-8. Os acentos do js/app.js voltavam errados e eram gravados
+# assim — a cada commit piorava (16 palavras quebradas viraram 483) e a capa dela
+# apareceu cheia de rabisco no lugar de "ç" e "ã".
+# REGRA: este guardião NÃO ESCREVE em arquivo nenhum. Ele só confere e barra.
+# Se um dia o carimbo automático voltar, tem de ler e gravar em UTF-8 explícito
+# e ser testado com uma palavra acentuada ANTES de publicar.
+# Por ora o APP_DATA é conferido abaixo, e quem o atualiza é quem publica.
 if ($ver.Success) {
-  $raw     = Get-Content $appjs -Raw
-  $dataAgora = (Get-Date).ToString('dd/MM/yyyy') + ' · ' + (Get-Date).ToString('HH:mm')
-  $mData   = [regex]::Match($raw, 'APP_DATA\s*=\s*"([^"]*)"')
-  if ($mData.Success -and $mData.Groups[1].Value -ne $dataAgora) {
-    $novo = [regex]::Replace($raw, 'APP_DATA\s*=\s*"[^"]*"', 'APP_DATA="' + $dataAgora + '"')
-    [System.IO.File]::WriteAllText($appjs, $novo, (New-Object System.Text.UTF8Encoding $false))
-    Write-Output "Data da publicacao carimbada sozinha: $dataAgora (antes: $($mData.Groups[1].Value))"
+  $raw   = [System.IO.File]::ReadAllText($appjs, [System.Text.Encoding]::UTF8)
+  $mData = [regex]::Match($raw, 'APP_DATA\s*=\s*"([^"]*)"')
+  $hoje  = (Get-Date).ToString('dd/MM/yyyy')
+  if ($mData.Success -and -not $mData.Groups[1].Value.StartsWith($hoje)) {
+    $problemas += "o APP_DATA ainda diz '$($mData.Groups[1].Value)' mas hoje e $hoje - atualize a data no js/app.js, senao a capa mente a data para ela"
+  }
+}
+
+# ── ACENTO QUEBRADO (mojibake) — nunca mais publicar rabisco ──
+# Nasceu do erro acima. Se algum arquivo do site voltar com acento quebrado,
+# este guardião barra o commit ANTES de a Lê ver a capa cheia de rabisco.
+# A marca do acento quebrado e a sequencia de bytes C3 83 (o "A-til" seguido de
+# outro acentuado). Comparamos por NUMERO do caractere, nunca escrevendo o
+# caractere no script - senao o proprio guardiao quebraria, como ja quebrou.
+$marca = [string][char]0x00C3 + [string][char]0x0083
+foreach ($alvo in @($appjs, $index, $swjs)) {
+  $txt = [System.IO.File]::ReadAllText($alvo, [System.Text.Encoding]::UTF8)
+  if ($txt.Contains($marca)) {
+    $problemas += "acento quebrado (mojibake) em $(Split-Path $alvo -Leaf) - alguma ferramenta gravou o arquivo na codificacao errada; restaure do git e refaca a edicao"
   }
 }
 
