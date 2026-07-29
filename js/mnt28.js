@@ -107,6 +107,9 @@ async function m28CargaInicial(){
     if(jaTem.has(it.uid))continue;
     const o={uid:it.uid,mod:nowISO(),tipo:"mnt28",loja:c.loja,
       piso:it.piso,area:it.area,fazer:it.fazer,obs:it.obs||"",
+      /* a data que ELA anotou na planilha — é o que mostra há quanto tempo
+         o serviço está parado. Sem data na planilha, fica em branco. */
+      dataRegistro:it.dataRegistro||"",fotos:[],
       origem:it.origem||"",executor:c.executor||"",feito:false,
       ordem:it.ordem,relato:c.emitidoEm||today(),criado:"carga:"+c.cargaId};
     const id=await putItem(o);o.id=id;DATA.push(o);novos.push(o);
@@ -136,15 +139,22 @@ async function renderMnt28(){
   const pisos=[...new Set(itens.map(d=>d.piso))]
     .sort(m28CmpPiso);
 
+  /* CABEÇALHO COMPACTO (pedido dela, 29/07): o subtítulo saiu, e a
+     identificação virou duas linhas — nome e cargo em cima, CRN embaixo. */
   const capa=`<div class="m28-capa">
-    <div class="m28-capa-et">Relatório de manutenção</div>
-    <h1>Manutenção e Infraestrutura</h1>
-    <div class="m28-capa-sub">Obras, consertos e instalações${exec?" — "+esc(exec):""}</div>
+    <div class="m28-capa-topo">
+      <div>
+        <div class="m28-capa-et">Relatório de manutenção</div>
+        <h1>Manutenção e Infraestrutura${exec?' <span class="m28-exec">'+esc(exec)+'</span>':""}</h1>
+      </div>
+      <div class="m28-capa-rt">
+        <div class="nome">${esc(c.rt||RT_INFO||RT_DEFAULT)}</div>
+        ${c.crn?`<div class="crn">${esc(c.crn)}</div>`:""}
+      </div>
+    </div>
     <div class="m28-capa-linha">
-      <div class="m28-capa-i"><div class="rot">Unidade</div><div class="val">${esc(loja)}</div></div>
-      <div class="m28-capa-i"><div class="rot">Período</div><div class="val">${esc(c.periodo||"—")}</div></div>
-      <div class="m28-capa-i"><div class="rot">Emitido em</div><div class="val">${brDate(c.emitidoEm||today())}</div></div>
-      <div class="m28-capa-i"><div class="rot">Responsável técnica</div><div class="val">${esc((c.rt||RT_INFO||RT_DEFAULT)+(c.crn?" · "+c.crn:""))}</div></div>
+      <div class="m28-capa-i"><span class="rot">Unidade</span><span class="val">${esc(loja)}</span></div>
+      <div class="m28-capa-i"><span class="rot">Emitido em</span><span class="val">${brDate(c.emitidoEm||today())}</span></div>
     </div></div>`;
 
   /* painel de números: peça PRONTA da biblioteca (bd-kpis / bd-kpi), nada do zero */
@@ -216,23 +226,65 @@ function m28RenderLista(){
       html+=`<div class="m28-piso">${esc(piso||"Sem piso")}<span class="m28-count">${nPiso[d.piso]} ${nPiso[d.piso]===1?"serviço":"serviços"}</span></div>`;}
     if(d.area!==area){area=d.area;const k=d.piso+"|"+d.area;
       const f=fArea[k]||0,n=nArea[k];
-      html+=`<div class="m28-area"><span class="m28-area-nome">${esc(area)}</span>`
+      html+=`<div class="m28-area" data-piso="${esc(d.piso)}" data-area="${esc(area)}"><span class="m28-area-nome">${esc(area)}</span>`
         +`<span class="m28-count">${f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")}</span>`
-        +`<div class="m28-tab-cab"><span>Feito</span><span>O que fazer</span><span>Observações</span></div></div>`;}
+        +`<div class="m28-tab-cab"><span>Foi feito?</span><span>O que fazer?</span><span>Desde quando</span><span>Observações</span></div></div>`;}
+    if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
+    const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
+        onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
     html+=`<div class="m28-item${d.feito?" feito":""}" data-id="${d.id}">
       <button class="m28-check" role="checkbox" aria-checked="${d.feito?"true":"false"}"
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
       <div class="m28-fazer">${esc(d.fazer||"")}
-        ${d.origem?`<span class="m28-origem">${esc(d.origem)}</span>`:""}</div>
+        ${d.origem?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
+        ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
+      <div class="m28-desde">${m28Desde(d)}</div>
       <div class="m28-obs">${d.obs?esc(d.obs):'<span class="m28-vaziotxt">—</span>'}</div>
       <div class="m28-acts">
-        <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar o texto ou a observação deste serviço">✎</button>
+        <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;
   }
   el.innerHTML=html;
+}
+
+/* ===== DESDE QUANDO ESTÁ PARADO =====
+   A data sozinha ("30/01/2025") não diz nada a quem lê. O tempo diz.
+   Mostramos os dois: a data prova, o tempo cobra. Sem data = em branco,
+   como ela pediu (nunca inventar data que a planilha não tem). */
+function m28Meses(iso){
+  if(!iso)return null;
+  const [a,m,dd]=iso.split("-").map(Number);
+  if(!a)return null;
+  const hoje=new Date(), quando=new Date(a,(m||1)-1,dd||1);
+  return (hoje.getFullYear()-quando.getFullYear())*12+(hoje.getMonth()-quando.getMonth());
+}
+function m28TempoTexto(meses){
+  if(meses===null||meses<0)return "";
+  if(meses<1)return "este mês";
+  if(meses<12)return "há "+meses+" "+(meses===1?"mês":"meses");
+  const anos=Math.floor(meses/12), resto=meses%12;
+  let t="há "+anos+" "+(anos===1?"ano":"anos");
+  if(resto)t+=" e "+resto+" "+(resto===1?"mês":"meses");
+  return t;
+}
+function m28Desde(d){
+  if(!d.dataRegistro)return '<span class="m28-vaziotxt">—</span>';
+  const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
+  const grave=meses!==null&&meses>=12;      /* 1 ano ou mais: destaque */
+  return `<span class="m28-data">${brDate(d.dataRegistro)}</span>`
+    +(tempo?`<span class="m28-tempo${grave?" grave":""}">${tempo}</span>`:"");
+}
+function m28VerFoto(id,i){
+  const d=DATA.find(x=>x.id===id);if(!d||!d.fotos||!d.fotos[i])return;
+  const w=window.open("");
+  if(!w){toast("O navegador bloqueou a janela da foto.");return;}
+  w.document.write(`<title>Foto do serviço</title>
+    <body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh">
+    <img src="${d.fotos[i]}" style="max-width:100%;max-height:100vh" alt="Foto do serviço"></body>`);
+  w.document.close();
 }
 
 /* ---- ações (tudo passa por putItem: o desfazer do site pega) ---- */
@@ -242,15 +294,116 @@ async function m28Marcar(id){
   await putItem(d);dataChanged();
   m28AtualizarTopo();m28RenderLista();
 }
-async function m28Editar(id){
+/* ===== EDITAR NA PRÓPRIA TELA =====
+   Antes isto abria a janelinha cinza do navegador (o prompt). Ela odiou, com
+   razão: some o resto da tela, não dá para escolher a área numa lista e não
+   dá para pôr foto. Agora o serviço vira um formulário no lugar dele mesmo,
+   com as peças da biblioteca (bd-campo, bd-rotulo, bd-btn). */
+let M28_EDITANDO=null;
+function m28Editar(id){
+  M28_EDITANDO=(M28_EDITANDO===id)?null:id;
+  m28RenderLista();
+  if(M28_EDITANDO){
+    const c=document.querySelector('.m28-form textarea');
+    if(c){c.focus();c.setSelectionRange(c.value.length,c.value.length);}
+  }
+}
+/* piso e área saem da lista que ELA já cadastrou na empresa — nunca digitados */
+function m28ListaAreas(){
+  const cad=(typeof AREAS_ALL!=="undefined"&&AREAS_ALL[currentStore])||[];
+  const por={};
+  for(const a of cad){const p=(a.piso||"Sem piso").trim();(por[p]=por[p]||[]).push(a.nome);}
+  /* o que já é usado nesta folha entra também, para nada ficar órfão */
+  for(const d of m28Itens()){
+    const p=(d.piso||"Sem piso").trim();
+    por[p]=por[p]||[];
+    if(!por[p].includes(d.area))por[p].push(d.area);
+  }
+  return por;
+}
+function m28FormHTML(d){
+  const por=m28ListaAreas();
+  const pisos=Object.keys(por).sort(m28CmpPiso);
+  const pisoAtual=pisos.includes(d.piso)?d.piso:(pisos[0]||d.piso);
+  const opPiso=pisos.map(p=>`<option value="${esc(p)}"${p===d.piso?" selected":""}>${esc(p)}</option>`).join("");
+  const opArea=(por[pisoAtual]||[]).sort().map(a=>`<option value="${esc(a)}"${a===d.area?" selected":""}>${esc(a)}</option>`).join("");
+  const fotos=(d.fotos||[]).map((f,i)=>`<span class="m28-thumb"><img src="${f}" width="64" height="64" alt="Foto ${i+1} deste serviço">
+      <button type="button" onclick="m28TirarFoto(${d.id},${i})" aria-label="Remover a foto ${i+1}" title="Remover">×</button></span>`).join("");
+  return `<div class="m28-form" data-id="${d.id}">
+    <div class="bd-grupo">
+      <label class="bd-rotulo" for="m28f-fazer">O que fazer?</label>
+      <textarea class="bd-campo" id="m28f-fazer" rows="3"
+        placeholder="Escreva o problema e a correção na mesma frase…">${esc(d.fazer||"")}</textarea>
+    </div>
+    <div class="m28-form-linha">
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="m28f-piso">Piso</label>
+        <select class="bd-campo" id="m28f-piso" onchange="m28TrocouPiso(${d.id})">${opPiso}</select>
+      </div>
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="m28f-area">Área</label>
+        <select class="bd-campo" id="m28f-area">${opArea}</select>
+      </div>
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="m28f-data">Desde quando</label>
+        <input class="bd-campo" type="date" id="m28f-data" value="${esc(d.dataRegistro||"")}">
+        <span class="bd-ajuda">Sem data? Deixe vazio.</span>
+      </div>
+    </div>
+    <div class="bd-grupo">
+      <label class="bd-rotulo" for="m28f-obs">Observações</label>
+      <textarea class="bd-campo" id="m28f-obs" rows="2"
+        placeholder="Recado ou lembrete sobre este serviço…">${esc(d.obs||"")}</textarea>
+    </div>
+    <div class="bd-grupo">
+      <span class="bd-rotulo">Fotos</span>
+      <div class="m28-thumbs">${fotos}
+        <label class="m28-addfoto" title="Acrescentar foto deste serviço" tabindex="0"
+          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input').click();}">＋ Foto
+          <input type="file" accept="image/*" capture="environment" multiple
+            onchange="m28PorFoto(event,${d.id})" class="m28-oculto"></label>
+      </div>
+    </div>
+    <div class="m28-form-acoes">
+      <button class="bd-btn bd-btn-principal" onclick="m28Salvar(${d.id})">Salvar</button>
+      <button class="bd-btn bd-btn-fantasma" onclick="m28Editar(${d.id})">Cancelar</button>
+    </div>
+  </div>`;
+}
+function m28TrocouPiso(id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
-  const t=prompt("O que fazer (aparece na folha do executor):",d.fazer||"");
-  if(t===null)return;
-  const o=prompt("Observações (fica na coluna do lado; pode deixar vazio):",d.obs||"");
-  if(o===null)return;
-  d.fazer=t.trim();d.obs=o.trim();d.mod=nowISO();
+  const p=document.getElementById("m28f-piso").value;
+  const sel=document.getElementById("m28f-area");
+  const lista=(m28ListaAreas()[p]||[]).sort();
+  sel.innerHTML=lista.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");
+}
+async function m28Salvar(id){
+  const d=DATA.find(x=>x.id===id);if(!d)return;
+  const fazer=document.getElementById("m28f-fazer").value.trim();
+  if(!fazer){toast("Escreva o que precisa ser feito.");return;}
+  d.fazer=fazer;
+  d.obs=document.getElementById("m28f-obs").value.trim();
+  d.piso=document.getElementById("m28f-piso").value;
+  d.area=document.getElementById("m28f-area").value;
+  d.dataRegistro=document.getElementById("m28f-data").value||"";
+  d.mod=nowISO();
   await putItem(d);dataChanged();
-  m28RenderLista();toast("Serviço atualizado ✓");
+  M28_EDITANDO=null;m28RenderLista();toast("Serviço atualizado ✓");
+}
+async function m28PorFoto(ev,id){
+  const d=DATA.find(x=>x.id===id);if(!d)return;
+  d.fotos=d.fotos||[];
+  for(const f of ev.target.files){
+    const img=await ncComprimir(f);        /* reaproveita o compressor da aba de NC */
+    if(img)d.fotos.push(img);
+  }
+  ev.target.value="";
+  d.mod=nowISO();await putItem(d);dataChanged();m28RenderLista();
+}
+async function m28TirarFoto(id,i){
+  const d=DATA.find(x=>x.id===id);if(!d||!d.fotos)return;
+  d.fotos.splice(i,1);d.mod=nowISO();
+  await putItem(d);dataChanged();m28RenderLista();
 }
 async function m28Excluir(id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
@@ -259,25 +412,23 @@ async function m28Excluir(id){
   await putItem(d);dataChanged();
   m28AtualizarTopo();m28RenderLista();toast("Serviço excluído");
 }
+/* Serviço novo nasce em branco e JÁ ABRE o formulário na tela, com piso e
+   área escolhidos na lista dela — nunca digitados. */
 async function m28Novo(){
   const itens=m28Itens();
-  const pisos=[...new Set(itens.map(d=>d.piso))].sort(m28CmpPiso);
-  const piso=prompt("Em qual piso?\n\n"+pisos.join("\n"),M28F.piso||pisos[0]||"1º PISO");
-  if(piso===null)return;
-  const doPiso=[...new Set(itens.filter(d=>d.piso===piso.trim()).map(d=>d.area))].sort();
-  const area=prompt("Em qual área?\n\n"+(doPiso.join("\n")||"(nenhuma área ainda neste piso)"),M28F.area||doPiso[0]||"");
-  if(area===null)return;
-  const fazer=prompt("O que fazer? Escreva o problema e a correção na mesma frase.","");
-  if(fazer===null||!fazer.trim())return;
-  const obs=prompt("Observações (pode deixar vazio):","");
-  if(obs===null)return;
+  const por=m28ListaAreas();
+  const pisos=Object.keys(por).sort(m28CmpPiso);
+  const piso=M28F.piso||pisos[0]||"1º PISO";
+  const area=M28F.area||(por[piso]||[])[0]||"";
   const o={uid:newUid(),mod:nowISO(),tipo:"mnt28",loja:currentStore,
-    piso:piso.trim(),area:area.trim(),fazer:fazer.trim(),obs:obs.trim(),
+    piso,area,fazer:"",obs:"",dataRegistro:"",fotos:[],
     origem:"",executor:(itens.find(d=>d.executor)||{}).executor||"",
-    feito:false,ordem:(m28PosArea(piso.trim(),area.trim())*1000)+999,
+    feito:false,ordem:(m28PosArea(piso,area)*1000)+999,
     relato:today(),criado:"manual"};
   const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
-  m28AtualizarTopo();m28RenderLista();toast("Serviço acrescentado ✓");
+  M28_EDITANDO=id;
+  m28AtualizarTopo();m28RenderLista();
+  const c=document.querySelector('.m28-form textarea');if(c)c.focus();
 }
 /* só os números do topo — evita redesenhar a folha inteira a cada toque */
 function m28AtualizarTopo(){
@@ -311,89 +462,153 @@ function m28Imprimir(){
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   const exec=(rows.find(d=>d.executor)||{}).executor||c.executor||"";
   const feitos=rows.filter(d=>d.feito).length;
-  const areas=[...new Set(rows.map(d=>d.area))];
+  const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
+  const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
 
-  let corpo="",piso=null,area=null;
+  /* blocos soltos; quem monta as folhas é o paginador no fim do documento */
   const nArea={};for(const d of rows){const k=d.piso+"|"+d.area;nArea[k]=(nArea[k]||0)+1;}
+  let blocos="",piso=null,area=null;
   for(const d of rows){
-    if(d.piso!==piso){
-      if(area!==null)corpo+="</tbody></table>";
-      if(piso!==null)corpo+="</section>";
-      piso=d.piso;area=null;
-      corpo+=`<section><h2>${esc(piso||"Sem piso")}</h2>`;
-    }
-    if(d.area!==area){
-      if(area!==null)corpo+="</tbody></table>";
-      area=d.area;
-      corpo+=`<div class="ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>
-        <table><thead><tr><th class="c">Feito</th><th>O que fazer</th><th class="o">Observações</th></tr></thead><tbody>`;
-    }
-    corpo+=`<tr><td class="c"><span class="bx">${d.feito?"✓":""}</span></td>
-      <td>${esc(d.fazer||"")}</td>
-      <td class="o">${esc(d.obs||"")}</td></tr>`;
+    if(d.piso!==piso){piso=d.piso;area=null;
+      blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
+    if(d.area!==area){area=d.area;
+      blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
+        +`<div class="bl cab"><span class="c">Foi feito?</span><span class="f">O que fazer?</span>`
+        +`<span class="q">Desde quando</span><span class="o">Observações</span></div>`;}
+    const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
+    const desde=d.dataRegistro
+      ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
+    blocos+=`<div class="bl li"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
+      +`<span class="f">${esc(d.fazer||"")}</span><span class="q">${desde}</span>`
+      +`<span class="o">${esc(d.obs||"")}</span></div>`;
   }
-  if(area!==null)corpo+="</tbody></table>";
-  if(piso!==null)corpo+="</section>";
+  const cabecalho=`<div class="capa">
+      <div><div class="et">Relatório de manutenção</div>
+        <h1>Manutenção e Infraestrutura${exec?`<span>${esc(exec)}</span>`:""}</h1></div>
+      <div class="rt"><b>${esc(rt)}</b>${crn?`<i>${esc(crn)}</i>`:""}</div>
+      <div class="un"><div><span>Unidade</span>${esc(loja)}</div>
+        <div><span>Emitido em</span>${brDate(today())}</div></div>
+    </div>
+    <div class="nums">
+      <div class="num"><span>Serviços</span><b>${rows.length}</b></div>
+      <div class="num"><span>A fazer</span><b>${rows.length-feitos}</b></div>
+      <div class="num"><span>Feitos</span><b>${feitos}</b></div>
+      <div class="num"><span>Áreas</span><b>${nAreas}</b></div>
+    </div>`;
+  const titulo="Manutenção e Infraestrutura — "+loja;
 
   const w=window.open("");
   if(!w){alert("O navegador bloqueou a janela de impressão. Libere as janelas para este site e tente de novo.");return;}
-  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-  <title>Manutenção e Infraestrutura — ${esc(loja)}</title><style>
-  @page{margin:13mm}
+  const ESTILO=`
+  @page{size:A4;margin:0}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#344054;font-size:11.5px;line-height:1.5}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:#344054;font-size:10.6px;line-height:1.42;background:#e9ebee}
+  .folha{width:210mm;height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
+    position:relative;box-shadow:0 4px 18px rgba(16,24,40,.14);overflow:hidden}
+  .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
   .capa{background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);color:#fff;
-    padding:20px 22px;border-radius:10px;margin-bottom:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .et{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.6px;color:rgba(255,255,255,.75);margin-bottom:5px}
-  .capa h1{font-size:23px;font-weight:700;letter-spacing:-.4px;line-height:1.2}
-  .sub{font-size:12.5px;color:rgba(255,255,255,.9);margin-top:4px}
-  .linha{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25)}
-  .linha .rot{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.68)}
-  .linha .val{font-size:12px;font-weight:600;margin-top:2px}
-  .nums{display:flex;gap:9px;margin-bottom:18px}
-  .num{flex:1;border:1px solid #eaecf0;border-radius:9px;padding:9px 11px;background:#f9fafb}
-  .num .rot{font-size:8.4px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#667085}
-  .num .val{font-size:19px;font-weight:700;color:#101828;line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums}
-  section{margin-bottom:16px;break-inside:auto}
-  section h2{font-size:12.5px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
-    border-bottom:2px solid #1d6b57;padding-bottom:5px;margin-bottom:9px;break-after:avoid}
+    padding:13px 16px;border-radius:8px;margin-bottom:11px;display:flex;flex-wrap:wrap;
+    justify-content:space-between;align-items:flex-start;gap:14px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.75)}
+  .capa h1{font-size:19px;font-weight:700;letter-spacing:-.3px;line-height:1.15;margin-top:2px}
+  .capa h1 span{font-size:12px;font-weight:500;color:rgba(255,255,255,.9);display:block;margin-top:1px}
+  .rt{text-align:right;font-size:10px;line-height:1.35;flex:none}
+  .rt b{display:block;font-weight:600}
+  .rt i{font-style:normal;color:rgba(255,255,255,.82);font-size:9px}
+  .un{display:flex;gap:22px;margin-top:9px;padding-top:8px;font-size:9.6px;flex-basis:100%;
+    border-top:1px solid rgba(255,255,255,.25)}
+  .un span{color:rgba(255,255,255,.7);text-transform:uppercase;font-size:8px;letter-spacing:.8px;margin-right:5px}
+  .nums{display:flex;gap:7px;margin-bottom:10px}
+  .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:6px 9px;background:#f9fafb;text-align:center}
+  .num span{display:block;font-size:7.8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}
+  .num b{font-size:16px;color:#101828;font-variant-numeric:tabular-nums}
+  h2{font-size:11.5px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
+    border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:7px 0 2px}
   .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
-    border-left:3px solid #1d6b57;padding:5px 9px;margin-top:11px;font-size:11.5px;font-weight:700;
-    color:#155244;break-after:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ar b{font-weight:600;color:#667085;font-size:10px}
-  table{width:100%;border-collapse:collapse;break-inside:auto}
-  th{text-align:left;font-size:8.6px;text-transform:uppercase;letter-spacing:.5px;color:#667085;
-    border-bottom:1px solid #eaecf0;padding:5px 7px;font-weight:600}
-  td{padding:7px;border-bottom:1px solid #f2f4f7;vertical-align:top}
-  tr{break-inside:avoid}
-  .c{width:42px;text-align:center}
-  .o{width:29%;color:#667085;font-size:10.5px}
-  .bx{display:inline-block;width:14px;height:14px;border:1.5px solid #667085;border-radius:3px;
-    line-height:12px;font-size:11px;color:#067647;font-weight:700}
-  .rod{margin-top:16px;padding-top:9px;border-top:1px solid #eaecf0;font-size:9px;color:#667085;
-    display:flex;justify-content:space-between}
-  .noprint{margin-bottom:14px}
-  @media print{.noprint{display:none}}
-  </style></head><body>
-  <div class="noprint"><button onclick="print()" style="padding:11px 16px;cursor:pointer;font-size:13px;border-radius:8px;border:1px solid #1d6b57;background:#1d6b57;color:#fff">🖨 Imprimir / Salvar PDF</button></div>
-  <div class="capa">
-    <div class="et">Relatório de manutenção</div>
-    <h1>Manutenção e Infraestrutura</h1>
-    <div class="sub">Obras, consertos e instalações${exec?" — "+esc(exec):""}</div>
-    <div class="linha">
-      <div><div class="rot">Unidade</div><div class="val">${esc(loja)}</div></div>
-      <div><div class="rot">Período</div><div class="val">${esc(c.periodo||"—")}</div></div>
-      <div><div class="rot">Emitido em</div><div class="val">${brDate(today())}</div></div>
-      <div><div class="rot">Responsável técnica</div><div class="val">${esc((c.rt||RT_INFO||RT_DEFAULT)+(c.crn?" · "+c.crn:""))}</div></div>
-    </div></div>
-  <div class="nums">
-    <div class="num"><div class="rot">Serviços</div><div class="val">${rows.length}</div></div>
-    <div class="num"><div class="rot">A fazer</div><div class="val">${rows.length-feitos}</div></div>
-    <div class="num"><div class="rot">Feitos</div><div class="val">${feitos}</div></div>
-    <div class="num"><div class="rot">Áreas</div><div class="val">${areas.length}</div></div>
-  </div>
-  ${corpo}
-  <div class="rod"><span>Manutenção e Infraestrutura · ${esc(loja)}</span><span>Documento gerado em ${brDate(today())}</span></div>
-  </body></html>`);
-  w.document.close();
+    border-left:3px solid #1d6b57;padding:4px 8px;margin-top:6px;font-size:10.6px;font-weight:700;
+    color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ar b{font-weight:600;color:#667085;font-size:9px}
+  .cab,.li{display:grid;grid-template-columns:48px 1fr 76px 23%;gap:8px;padding:4px 8px}
+  .cab{font-size:7.9px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;
+    border-bottom:1px solid #eaecf0}
+  .cab .c,.li .c{text-align:center}
+  .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:10.6px}
+  .li .o{color:#667085;font-size:9.6px}
+  .li .q{font-size:9.2px;color:#667085}
+  .li .q b{display:block;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
+  .li .q i{font-style:normal;display:block;font-size:8.8px}
+  .li .q i.grave{color:#b42318;font-weight:600}
+  .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
+    line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
+  .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:space-between;
+    font-size:8.4px;color:#667085;border-top:1px solid #eaecf0;padding-top:5px}
+  .aviso{width:210mm;margin:14px auto;background:#fffaeb;border:1px solid #fedf89;color:#b54708;
+    border-radius:8px;padding:12px 15px;font-size:12.5px;line-height:1.5}
+  .aviso b{color:#93370d}
+  .aviso button{margin-top:10px;padding:12px 18px;cursor:pointer;font-size:13.5px;border-radius:8px;
+    border:0;background:#1d6b57;color:#fff;font-weight:600}
+  @media print{.aviso{display:none}body{background:#fff}
+    .folha{box-shadow:none;margin:0;break-after:page}.folha:last-child{break-after:auto}}`;
+
+  /* O paginador: monta folha por folha, medindo, para a numeração ser NOSSA.
+     Assim ela pode desligar o cabeçalho/rodapé do navegador (que traz a data,
+     a hora e o "about:blank" que ela detesta) sem perder o número da página. */
+  const PAGINADOR=`(function(){
+    var alvo=document.getElementById("alvo");
+    var caixa=document.createElement("div");
+    caixa.innerHTML=window.__BLOCOS;
+    var fila=Array.prototype.slice.call(caixa.children);
+    function novaFolha(primeira){
+      var f=document.createElement("div");
+      f.className="folha";
+      f.innerHTML='<div class="topo">'+window.__TITULO+'</div>'
+        +(primeira?window.__CABECALHO:"")+'<div class="corpo"></div>';
+      alvo.appendChild(f);
+      return f;
+    }
+    var folha=novaFolha(true), corpo=folha.querySelector(".corpo");
+    function estourou(){
+      var f=folha.getBoundingClientRect(), c=corpo.getBoundingClientRect();
+      return (c.bottom-f.top) > (f.height-58);
+    }
+    for(var i=0;i<fila.length;i++){
+      corpo.appendChild(fila[i]);
+      if(estourou()){
+        corpo.removeChild(fila[i]);
+        var volta=[];
+        while(corpo.lastChild && /(piso|ar|cab)/.test(corpo.lastChild.className||"")){
+          volta.unshift(corpo.lastChild); corpo.removeChild(corpo.lastChild);
+        }
+        folha=novaFolha(false); corpo=folha.querySelector(".corpo");
+        for(var v=0;v<volta.length;v++) corpo.appendChild(volta[v]);
+        corpo.appendChild(fila[i]);
+      }
+    }
+    var folhas=alvo.querySelectorAll(".folha");
+    for(var k=0;k<folhas.length;k++){
+      var pe=document.createElement("div");
+      pe.className="pe";
+      pe.innerHTML='<span>'+window.__TITULO+'</span><span>'+(k+1)+' / '+folhas.length+'</span>';
+      folhas[k].appendChild(pe);
+    }
+  })();`;
+
+  const doc=w.document;
+  doc.open();
+  doc.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'
+    +esc(titulo)+'</title><style>'+ESTILO+'</style></head><body>'
+    +'<div class="aviso"><b>Antes de imprimir ou salvar em PDF:</b> na caixa que abrir, '
+    +'abra <b>Mais definições</b> e <b>desmarque “Cabeçalhos e rodapés”</b>. '
+    +'Isso tira a data, a hora e o “about:blank”. A numeração das páginas é nossa '
+    +'e continua aparecendo embaixo.<br>'
+    +'<button onclick="print()">🖨 Imprimir / Salvar PDF</button></div>'
+    +'<div id="alvo"></div></body></html>');
+  doc.close();
+  /* passa os dados por variável (nada de montar script dentro de string) */
+  w.__BLOCOS=blocos; w.__CABECALHO=cabecalho; w.__TITULO=titulo;
+  const s=doc.createElement("script");
+  s.textContent=PAGINADOR;
+  doc.body.appendChild(s);
 }

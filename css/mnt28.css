@@ -6,23 +6,30 @@
    Cores: só as do site (#1d6b57 / #155244 / #e8f5f0 / #2a9d8a).
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ─────────── cabeçalho ─────────── */
+/* ─────────── cabeçalho (COMPACTO — pedido dela em 29/07) ───────────
+   Estava ocupando um terço da tela. O subtítulo saiu, a identificação dela
+   virou duas linhas (nome em cima, CRN embaixo) e sobraram só Unidade e
+   Emitido em. O período saiu daqui e será resolvido depois. */
 .m28-capa{
   background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
-  color:#fff;border-radius:14px;padding:24px 26px;margin-bottom:16px;
+  color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:14px;
 }
+.m28-capa-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
 .m28-capa-et{
-  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.6px;
-  color:rgba(255,255,255,.78);margin-bottom:6px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  color:rgba(255,255,255,.75);
 }
-.m28-capa h1{font-size:27px;font-weight:700;letter-spacing:-.5px;line-height:1.2;margin:0;color:#fff;text-wrap:balance}
-.m28-capa-sub{font-size:14px;color:rgba(255,255,255,.92);margin-top:5px}
+.m28-capa h1{font-size:22px;font-weight:700;letter-spacing:-.4px;line-height:1.2;margin:2px 0 0;color:#fff;text-wrap:balance}
+.m28-exec{font-size:14px;font-weight:500;color:rgba(255,255,255,.9);display:block;margin-top:2px}
+.m28-capa-rt{text-align:right;font-size:12.5px;line-height:1.35;flex:none}
+.m28-capa-rt .nome{font-weight:600}
+.m28-capa-rt .crn{font-size:11.5px;color:rgba(255,255,255,.82)}
 .m28-capa-linha{
-  display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;padding-top:14px;
-  border-top:1px solid rgba(255,255,255,.25);
+  display:flex;flex-wrap:wrap;gap:22px;margin-top:11px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.25);font-size:12.5px;
 }
-.m28-capa-i .rot{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.7)}
-.m28-capa-i .val{font-size:13.5px;font-weight:600;margin-top:3px}
+.m28-capa-i .rot{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.7);margin-right:6px}
+.m28-capa-i .val{font-weight:600}
 
 /* ─────────── resumo em números ─────────── */
 /* A peça vem PRONTA da biblioteca (.bd-kpis / .bd-kpi, em biblioteca/pecas.css).
@@ -53,7 +60,7 @@
 
 /* cabeçalho das 3 colunas — repete em cada área, para não se perder na rolagem */
 .m28-tab-cab{
-  flex-basis:100%;display:grid;grid-template-columns:52px 1fr 27% 92px;gap:10px;
+  flex-basis:100%;display:grid;grid-template-columns:56px 1fr 96px 22% 92px;gap:10px;
   margin-top:7px;padding-top:7px;border-top:1px solid rgba(21,82,68,.16);
   font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#4a6b62;
 }
@@ -63,7 +70,7 @@
 /* são mais de 100 linhas: o navegador só desenha as que estão à vista.
    contain-intrinsic-size reserva a altura, para a barra de rolagem não pular. */
 .m28-item{
-  display:grid;grid-template-columns:52px 1fr 27% 92px;gap:10px;align-items:start;
+  display:grid;grid-template-columns:56px 1fr 96px 22% 92px;gap:10px;align-items:start;
   padding:10px 12px;border-bottom:1px solid #eceded;background:#fff;
   content-visibility:auto;contain-intrinsic-size:auto 52px;
 }
@@ -88,6 +95,49 @@
 .m28-check[aria-checked="true"]{border-color:#067647;background:#ecfdf3}
 .m28-acts{display:flex;gap:4px;justify-content:flex-end;align-items:center}
 
+/* ─────────── desde quando está parado ───────────
+   A data prova; o tempo cobra. Passou de um ano, fica vermelho — é o que
+   dá ao Sr. João a noção de há quanto tempo aquilo espera. */
+.m28-desde{font-size:12px;color:#5c5d68;line-height:1.35}
+.m28-desde .m28-data{display:block;font-weight:600;color:#2d2e3a;font-variant-numeric:tabular-nums}
+.m28-desde .m28-tempo{display:block;font-size:11.5px}
+.m28-desde .m28-tempo.grave{color:#b42318;font-weight:600}
+
+/* ─────────── fotos ─────────── */
+.m28-fotos{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.m28-foto{width:56px;height:56px;object-fit:cover;border-radius:7px;border:1px solid #e2e3e7;cursor:pointer}
+.m28-thumbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.m28-thumb{position:relative;display:inline-block}
+.m28-thumb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e2e3e7;display:block}
+.m28-thumb button{
+  position:absolute;top:-7px;right:-7px;width:22px;height:22px;min-height:22px;border-radius:50%;
+  border:1px solid #e2e3e7;background:#fff;color:#b42318;font-size:14px;line-height:1;cursor:pointer;padding:0;
+}
+/* o × é pequeno de propósito (fica sobre a foto), mas a área que responde ao
+   dedo é de 44px — sem isso ninguém acerta no celular */
+.m28-thumb button::before{content:"";position:absolute;top:-11px;right:-11px;bottom:-11px;left:-11px}
+.m28-addfoto{
+  display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:64px;padding:0 12px;
+  border:1.5px dashed #b9bac2;border-radius:8px;color:#5c5d68;font-size:13px;font-weight:600;
+  cursor:pointer;background:#fafbfa;
+}
+.m28-addfoto:hover{border-color:#1d6b57;color:#1d6b57}
+
+/* ─────────── formulário na própria tela (nada de janelinha do navegador) ───────────
+   Usa as peças prontas da biblioteca: bd-grupo, bd-rotulo, bd-campo, bd-btn. */
+.m28-form{
+  border:1px solid #cfe3db;border-left:3px solid #1d6b57;border-radius:10px;
+  background:#fbfdfc;padding:16px 16px 14px;margin:8px 0;
+}
+.m28-form-linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.m28-form-acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
+.m28-form textarea{resize:vertical;min-height:62px;font-family:inherit}
+/* lista suspensa nativa: sem estas duas linhas ela fica preta no Windows escuro */
+.m28-form select.bd-campo{background-color:#fff;color:#2d2e3a;color-scheme:light}
+/* o campo de arquivo fica escondido, mas continua alcançável pelo teclado */
+.m28-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.m28-addfoto:focus-visible{outline:2px solid #1d6b57;outline-offset:2px}
+
 .m28-vazio{
   border:1px dashed #d7d8dd;border-radius:12px;padding:28px 20px;text-align:center;
   color:#5c5d68;font-size:13.5px;background:#fafbfa;
@@ -103,10 +153,19 @@
   .m28-capa-linha{gap:16px}
   /* a folha vira lista: cada serviço ocupa a largura toda */
   .m28-tab-cab{display:none}
-  .m28-item{grid-template-columns:44px 1fr;grid-template-areas:"check fazer" ". obs" ". acts";row-gap:6px;padding:12px 4px}
+  .m28-item{grid-template-columns:44px 1fr;
+    grid-template-areas:"check fazer" ". desde" ". obs" ". acts";row-gap:6px;padding:12px 4px}
   .m28-check{grid-area:check;width:44px;height:44px;min-height:44px}
   .m28-fazer{grid-area:fazer;font-size:14.5px;padding-top:11px}
+  .m28-desde{grid-area:desde;display:flex;gap:8px;align-items:baseline}
+  .m28-desde .m28-data,.m28-desde .m28-tempo{display:inline}
   .m28-obs{grid-area:obs}
   .m28-acts{grid-area:acts;justify-content:flex-start}
   .m28-area{border-radius:0 6px 6px 0}
+  .m28-form-linha{grid-template-columns:1fr}
+  /* dedo, não mouse: campo e botão do formulário também com 44px */
+  .m28-form .bd-campo{min-height:44px;font-size:16px}   /* 16px evita o zoom do iPhone */
+  .m28-form textarea.bd-campo{min-height:76px}
+  .m28-form .bd-btn{min-height:44px;flex:1}
+  .m28-thumb button{width:30px;height:30px;min-height:30px;top:-9px;right:-9px;font-size:16px}
 }
