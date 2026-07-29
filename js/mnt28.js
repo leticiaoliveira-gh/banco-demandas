@@ -136,7 +136,9 @@ async function m28CargaInicial(){
       piso:it.piso,area:it.area,fazer:it.fazer,obs:it.obs||"",
       /* a data que ELA anotou na planilha — é o que mostra há quanto tempo
          o serviço está parado. Sem data na planilha, fica em branco. */
-      dataRegistro:it.dataRegistro||"",fotos:[],
+      /* 29/07: a carga passou a trazer FOTO junto do serviço (as que ela tirou na
+         visita). Antes isto era fotos:[] fixo e toda foto da carga era descartada. */
+      dataRegistro:it.dataRegistro||"",fotos:Array.isArray(it.fotos)?it.fotos.slice():[],
       origem:it.origem||"",executor:c.executor||"",feito:false,
       ordem:it.ordem,relato:c.emitidoEm||today(),criado:"carga:"+c.cargaId};
     const id=await putItem(o);o.id=id;DATA.push(o);novos.push(o);
