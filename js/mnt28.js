@@ -133,7 +133,7 @@ async function m28CargaInicial(){
   for(const it of c.itens){
     if(jaTem.has(it.uid))continue;
     const o={uid:it.uid,mod:nowISO(),tipo:"mnt28",loja:c.loja,
-      piso:it.piso,area:it.area,fazer:it.fazer,obs:it.obs||"",
+      piso:it.piso,area:it.area,fazer:it.fazer,obs:it.obs||"",nota:it.nota||"",
       /* a data que ELA anotou na planilha — é o que mostra há quanto tempo
          o serviço está parado. Sem data na planilha, fica em branco. */
       /* 29/07: a carga passou a trazer FOTO junto do serviço (as que ela tirou na
@@ -203,6 +203,7 @@ async function renderMnt28(){
     ${kpi("Pisos",pisos.length,pisos.join(" e ")||"—")}
   </div>`;
 
+  const nVer=m28QtdVerificar();
   const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>${esc(p)}</option>`).join("");
   const opArea=areas.sort().map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>${esc(a)}</option>`).join("");
   const barra=`<div class="toolbar m28-barra">
@@ -219,6 +220,8 @@ async function renderMnt28(){
       <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Só os feitos</option>
     </select>
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
+    ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
+      title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">🔒 Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
     <button class="btn ghost sm" onclick="m28Imprimir()" title="Abrir a folha pronta para imprimir ou salvar em PDF">🖨 Imprimir / PDF</button>
   </div>`;
 
@@ -236,7 +239,7 @@ function m28RenderLista(){
     if(M28F.area&&d.area!==M28F.area)return false;
     if(M28F.ver==="fazer"&&d.feito)return false;
     if(M28F.ver==="feitos"&&!d.feito)return false;
-    if(q&&!((d.fazer||"")+" "+(d.obs||"")+" "+(d.area||"")+" "+(d.piso||"")).toLowerCase().includes(q))return false;
+    if(q&&!((d.fazer||"")+" "+(d.obs||"")+" "+(d.nota||"")+" "+(d.area||"")+" "+(d.piso||"")).toLowerCase().includes(q))return false;
     return true;});
 
   if(!rows.length){
@@ -261,7 +264,7 @@ function m28RenderLista(){
       const f=fArea[k]||0,n=nArea[k];
       html+=`<div class="m28-area" data-piso="${esc(d.piso)}" data-area="${esc(area)}"><span class="m28-area-nome">${esc(area)}</span>`
         +`<span class="m28-count">${f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")}</span>`
-        +`<div class="m28-tab-cab"><span>Foi feito?</span><span>O que fazer?</span><span>Data registro</span><span>Observações</span></div></div>`;}
+        +`<div class="m28-tab-cab"><span>Foi feito?</span><span>O que fazer?</span><span>Data registro</span><span>Recado · lembrete</span></div></div>`;}
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
@@ -274,13 +277,48 @@ function m28RenderLista(){
         ${d.origem?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
         ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
-      <div class="m28-obs">${d.obs?esc(d.obs):'<span class="m28-vaziotxt">—</span>'}</div>
+      ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
+            conserta; o LEMBRETE é só dela e nunca é impresso. Antes havia
+            uma só, e o que ela anotava para si saía impresso para o Sr. João.
+            O selo escrito ("só eu vejo") acompanha a cor — cor nunca sozinha. */""}
+      <div class="m28-obs">${d.obs?m28Texto(d.obs):(d.nota?"":'<span class="m28-vaziotxt">—</span>')}
+        ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
       <div class="m28-acts">
         <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;
   }
   el.innerHTML=html;
+}
+
+/* ===== "VERIFICAR" GANHA SELO ESCRITO (29/07) =====
+   "VERIFICAR" não é dúvida do site: é lembrete dela de conferir na loja, e
+   NUNCA se apaga. Estava escondido no meio do texto cinza. Agora vira um selo
+   com a PALAVRA escrita — vermelho ajuda, mas quem informa é a palavra, porque
+   cor sozinha não pode ser a única forma de dizer algo (e há quem não a veja). */
+function m28Texto(t){
+  const s=esc(t||"");
+  return s.replace(/^\s*VERIFICAR\b[\s:—-]*/i,'<span class="m28-verificar">Verificar</span>');
+}
+/* Quantos recados impressos ainda são, na verdade, lembrete dela */
+function m28QtdVerificar(){
+  return m28Itens().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||"")).length;
+}
+/* Um clique só: leva todos esses para "meu lembrete", que não é impresso.
+   Não faço isso sozinho porque é texto dela — mas deixo a um toque. */
+async function m28MoverVerificar(){
+  const alvos=m28Itens().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||""));
+  if(!alvos.length)return;
+  if(!confirm("Mover "+alvos.length+" observação(ões) que começam com VERIFICAR para \"Meu lembrete\"?\n\n"
+    +"Elas continuam na tela para você, com o cadeado, e deixam de sair impressas na folha do executor.\n"
+    +"Nada é apagado — dá para voltar pelo lápis a qualquer momento."))return;
+  for(const d of alvos){
+    d.nota=(d.nota?d.nota+" · ":"")+d.obs;
+    d.obs="";d.mod=nowISO();
+    await putItem(d);
+  }
+  dataChanged();renderMnt28();
+  toast(alvos.length+" passaram para o seu lembrete ✓");
 }
 
 /* ===== DESDE QUANDO ESTÁ PARADO =====
@@ -383,10 +421,19 @@ function m28FormHTML(d){
         <span class="bd-ajuda">Sem data? Deixe vazio.</span>
       </div>
     </div>
-    <div class="bd-grupo">
-      <label class="bd-rotulo" for="m28f-obs">Observações</label>
-      <textarea class="bd-campo" id="m28f-obs" rows="2"
-        placeholder="Recado ou lembrete sobre este serviço…">${esc(d.obs||"")}</textarea>
+    <div class="m28-form-linha">
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="m28f-obs">Recado para quem vai executar</label>
+        <textarea class="bd-campo" id="m28f-obs" rows="2"
+          placeholder="Ex.: usar tinta epóxi, própria para área úmida.">${esc(d.obs||"")}</textarea>
+        <span class="bd-ajuda">Isto <b>sai impresso</b> na folha dele.</span>
+      </div>
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="m28f-nota">Meu lembrete 🔒</label>
+        <textarea class="bd-campo" id="m28f-nota" rows="2"
+          placeholder="Ex.: VERIFICAR — confirmar na loja se ainda existe.">${esc(d.nota||"")}</textarea>
+        <span class="bd-ajuda">Só você vê. <b>Nunca é impresso.</b></span>
+      </div>
     </div>
     <div class="bd-grupo">
       <span class="bd-rotulo">Fotos</span>
@@ -416,6 +463,7 @@ async function m28Salvar(id){
   if(!fazer){toast("Escreva o que precisa ser feito.");return;}
   d.fazer=fazer;
   d.obs=document.getElementById("m28f-obs").value.trim();
+  d.nota=document.getElementById("m28f-nota").value.trim();
   d.piso=document.getElementById("m28f-piso").value;
   d.area=document.getElementById("m28f-area").value;
   d.dataRegistro=document.getElementById("m28f-data").value||"";
@@ -454,7 +502,7 @@ async function m28Novo(){
   const piso=M28F.piso||pisos[0]||"1º PISO";
   const area=M28F.area||(por[piso]||[])[0]||"";
   const o={uid:newUid(),mod:nowISO(),tipo:"mnt28",loja:currentStore,
-    piso,area,fazer:"",obs:"",dataRegistro:"",fotos:[],
+    piso,area,fazer:"",obs:"",nota:"",dataRegistro:"",fotos:[],
     origem:"",executor:(itens.find(d=>d.executor)||{}).executor||"",
     feito:false,ordem:(m28PosArea(piso,area)*1000)+999,
     relato:today(),criado:"manual"};
@@ -507,7 +555,9 @@ function m28Imprimir(){
     if(d.area!==area){area=d.area;
       blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
         +`<div class="bl cab"><span class="c">Foi feito?</span><span class="f">O que fazer?</span>`
-        +`<span class="q">Data registro</span><span class="o">Observações</span></div>`;}
+        /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
+           não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
+        +`<span class="q">Data registro</span><span class="o">Recado</span></div>`;}
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
@@ -521,7 +571,10 @@ function m28Imprimir(){
         ${exec?`<div class="ex"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}</div>
       <div class="rt"><b>${esc(rt)}</b><i>${esc(c.cargo||"Nutricionista UAN / RT")}${crn?" · "+esc(crn):""}</i></div>
       <div class="un"><div><span>Unidade</span>${esc(loja)}</div>
-        <div><span>Emitido em</span>${brDate(today())}</div></div>
+        ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
+             ela trocava pelo lápis aparecia certa na tela e voltava para a data
+             de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
+        <div><span>Emitido em</span>${brDate(c.emitidoEm||today())}</div></div>
     </div>
     <div class="nums">
       <div class="num"><span>Serviços</span><b>${rows.length}</b></div>

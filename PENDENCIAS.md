@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 29/07/2026 (v9.26) · este arquivo é a memória entre conversas
+### atualizado em 29/07/2026 (v9.27) · este arquivo é a memória entre conversas
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -22,6 +22,20 @@
 | T5 | 15 dúvidas da folha resolvidas com ela · rodapé frontal movido para AÇOUGUE – VENDAS |
 | T6 | As 9 configurações de design conferidas uma a uma |
 | T7 | 5 itens de elétrica **sinalizados ao Matheus** e não incluídos |
+
+## ✅ FEITO EM 29/07 (v9.27) — os 4 defeitos que não dependiam dela
+
+| Cód | O que | Como conferi |
+|---|---|---|
+| **DEF-5** | **A data de emissão que ela edita agora vai para a folha impressa.** A tela mostrava a data trocada, a folha voltava para a data de hoje (`js/mnt28.js` usava `today()` na impressão) | pus 15/06/2026 e a folha saiu 15/06/2026 |
+| **F-1** | **Separado o que imprime do que é só dela.** São duas caixas agora: *Recado para quem vai executar* (sai na folha) e *Meu lembrete 🔒* (nunca é impresso). Botão de um clique na barra: **"🔒 Tirar 9 'VERIFICAR' da folha impressa"** — não movi sozinho porque é texto dela | gravei um lembrete e ele não apareceu na folha gerada |
+| **F-2** | **"VERIFICAR" virou selo escrito**, vermelho **com a palavra** (cor nunca sozinha). Os 9 aparecem na tela | 9 selos desenhados |
+| **DEF-7** | **Chavinha Ativa/Inativa**: o desenho continua igual, mas a área que aceita o dedo foi de 20px para **44px**. Ganhou também foco de teclado. Mesmo problema no lápis da data (16px → 44px de toque) | medido: 44×44 |
+| **DEF-8** | **Tablet agora conta como dedo.** A regra dos 44px morria em 640px de largura; passou a valer por **tipo de toque** (`pointer:coarse`), então vale em celular, tablet e qualquer tela sensível ao toque | regra lida no navegador |
+
+Conferido em navegador de verdade, 375px e 768px: **zero erro no console**, zero rolagem
+lateral, 121 serviços na tela. **Está em v9.27 aqui no computador — NÃO foi publicado**,
+porque publicar é pedido dela.
 
 ---
 
@@ -47,8 +61,8 @@
 | Cód | O que |
 |---|---|
 | **DOC-1..8** | Atualizar os 3 documentos + `CONTINUIDADE.md`, gerar PDFs, preencher os 2 blocos vazios do **Notion** e marcar as caixinhas prontas. Incluir o **Telegram** (TEL-11), que ela mandou e não entrou em nenhum |
-| **F-1** | Separar **"Recado para o Sr. João"** (imprime) de **"Meu lembrete"** (só ela vê). Hoje as observações dela **saem impressas na folha dele** |
-| **F-2** | "VERIFICAR" em **vermelho com selo escrito** (cor nunca sozinha) |
+| ~~F-1~~ | ✅ feito em v9.27 |
+| ~~F-2~~ | ✅ feito em v9.27 |
 | **F-3** | Painel de configuração da aba MNT |
 | **F-4** | Folha sair em **Word e WhatsApp** |
 | **F-5** | Trazer ID e Anotações da planilha |
@@ -59,9 +73,9 @@
 | **DEF-1** | Qualidade/BPF: a migração troca o uid das perguntas e grava a trava com `metaSet`. Plano pronto em `~/.claude/plans/attach-wobbly-turtle.md` |
 | **DEF-2 / AR-3** | Áreas gravadas com `metaSet` (local) em vez de `metaSetU` — **o que ela cadastra no PC pode não chegar no celular** |
 | **DEF-3 / NOT-1** | `APP_DATA` digitado à mão — publicar e esquecer = data errada. Automatizar na publicação |
-| **DEF-5** | **A data de emissão que ela edita é ignorada na impressão** (`js/mnt28.js:522` usa `today()`) |
-| **DEF-7** | Chavinha Ativa/Inativa com **20px** de toque — o `polimento.css` não cobre `label.switch` |
-| **DEF-8** | A regra dos 44px morre acima de 640px: no tablet, 5 botões da capa ficam entre 25 e 37px |
+| ~~DEF-5~~ | ✅ feito em v9.27 |
+| ~~DEF-7~~ | ✅ feito em v9.27 |
+| ~~DEF-8~~ | ✅ feito em v9.27 |
 | **DEF-4 / SB-7** | A biblioteca de design **só existe neste computador** — subir para repositório privado |
 | **AR-2** | Áreas nascerem junto com a empresa (`addEmpresa` só grava nome e sigla) |
 | **AR-4/5** | Padrão de nome das câmaras · padronização dos 622 textos e mover item de aba errada |

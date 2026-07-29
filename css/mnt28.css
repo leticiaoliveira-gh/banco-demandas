@@ -100,6 +100,26 @@
 .m28-fazer{font-size:13.8px;color:#2d2e3a;line-height:1.5;min-width:0;overflow-wrap:anywhere}
 .m28-obs{font-size:12.5px;color:#5c5d68;line-height:1.5;min-width:0;overflow-wrap:anywhere}
 .m28-vaziotxt{color:#b4b5bd}
+
+/* ─────────── recado impresso × lembrete só dela (29/07) ───────────
+   Duas coisas diferentes que antes moravam na mesma caixa: o RECADO vai
+   impresso na folha de quem conserta; o LEMBRETE é dela e nunca é impresso.
+   O cadeado e as palavras "só eu vejo" dizem isso — a cor sozinha nunca
+   basta (regra fixa do site). */
+.m28-nota{
+  margin-top:6px;padding:6px 9px;border-radius:7px;
+  background:#f6f4ff;border-left:3px solid #7b5cff;color:#4a4560;font-size:12px;line-height:1.45;
+}
+.m28-nota-selo{
+  display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  color:#5a3fd6;margin-bottom:2px;
+}
+/* "VERIFICAR" é dúvida a confirmar na loja — nunca se apaga, e agora se vê */
+.m28-verificar{
+  display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
+  background:#fef3f2;border:1px solid #fecdca;color:#b42318;
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
+}
 .m28-origem{
   display:inline-block;margin-left:7px;font-size:10.5px;font-weight:600;color:#5c5d68;
   background:#f1f1f3;border:1px solid #e2e3e7;border-radius:99px;padding:1px 8px;white-space:nowrap;
