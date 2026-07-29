@@ -1,6 +1,6 @@
 ﻿/* Service worker â€” network-first com fallback em cache: o app abre offline
    e atualiza sozinho quando hÃ¡ internet. Bump da versÃ£o a cada deploy. */
-const CACHE = "np-demandas-v94";
+const CACHE = "np-demandas-v95";
 /* ATENCAO: "dados/mnt28-carga.js" NAO entra aqui de proposito. E o arquivo com
    os dados reais da loja, existe so no computador dela e nao vai para o
    repositorio publico. Se entrasse nesta lista, o cache inteiro falharia no
@@ -17,7 +17,14 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
     .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+    .then(() => self.clients.claim())
+    /* AVISAR A TELA QUE JA ESTA ABERTA (29/07)
+       Faltava isto: a versao nova chegava e ficava guardada, mas a tela aberta
+       continuava rodando a ANTIGA que ja estava na memoria. No celular dela o
+       app fica dias sem fechar de verdade, entao ela via a versao velha e
+       parecia que a mudanca "nao foi". Agora a propria tela se recarrega. */
+    .then(() => self.clients.matchAll({ type: "window" }))
+    .then(cs => cs.forEach(c => c.postMessage({ tipo: "versaoNova", cache: CACHE }))));
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET" || !e.request.url.startsWith(self.location.origin)) return;

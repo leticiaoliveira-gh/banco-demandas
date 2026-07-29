@@ -1524,11 +1524,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.31";
+const APP_VERSAO="9.32";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="29/07/2026 · 10:55";
+const APP_DATA="29/07/2026 · 11:20";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
@@ -1766,6 +1766,23 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  atalhoRapido();          /* ?rapido=CF abre direto no registro de NC daquela loja */
  if(window.syncInit)syncInit();
  /* PWA: service worker só em https (GitHub Pages); no file:// é ignorado */
- if("serviceWorker" in navigator&&location.protocol==="https:")
+ if("serviceWorker" in navigator&&location.protocol==="https:"){
    navigator.serviceWorker.register("sw.js").catch(()=>{});
+   /* ===== A TELA SE ATUALIZA SOZINHA (29/07) =====
+      O QUE ACONTECIA: a versão nova chegava no aparelho e ficava guardada, mas a
+      tela que já estava aberta continuava rodando a versão ANTIGA, que estava na
+      memória. No celular dela o app fica dias sem fechar de verdade — então ela
+      via o site velho e parecia que a mudança "não foi". Era só isso.
+      AGORA: assim que a versão nova entra, ela avisa a tela e a tela se recarrega.
+      A trava de uma vez por versão existe para nunca entrar em laço de recarregar. */
+   navigator.serviceWorker.addEventListener("message",ev=>{
+     const m=ev.data||{};
+     if(m.tipo!=="versaoNova"||!m.cache)return;
+     try{
+       if(sessionStorage.getItem("recarregou_"+m.cache))return;
+       sessionStorage.setItem("recarregou_"+m.cache,"1");
+     }catch(e){}
+     location.reload();
+   });
+ }
 })();
