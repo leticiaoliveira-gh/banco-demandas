@@ -52,6 +52,36 @@ function m28Titulo(c){
   const mes=M28_MESES[m]||"";
   return "Relatório MNT — Mês: "+(mes?mes.toUpperCase():"—");
 }
+/* ===== O NOME E A LINHA DE BAIXO — DELA, EDITÁVEIS (29/07) =====
+   Antes o nome vinha do texto livre dos "seus dados" (que já trazia a palavra
+   Nutricionista dentro) e a linha de baixo era montada de novo a partir de cargo
+   e CRN: a mesma informação aparecia duas vezes na folha dela.
+   Agora são dois campos, guardados no cabeçalho da aba e trocados pelo lápis.
+   Se ela ainda não trocou nada, vale o que ela pediu em 29/07. */
+const M28_RT_LINHA="Nutricionista de Produção – RT · CRN-4: 22103217";
+/* do texto livre antigo, aproveita só a primeira parte (antes da vírgula ou do
+   travessão) — que é onde o nome dela está. Nunca fica vazio. */
+function m28RtNome(c){
+  if(c&&c.rtNome)return c.rtNome;
+  const bruto=String((c&&c.rt)||RT_INFO||"").trim();
+  if(!bruto)return RT_DEFAULT;
+  return bruto.split(/[,–—]|\s-\s/)[0].trim()||bruto;
+}
+function m28RtLinha(c){
+  return (c&&c.rtLinha!==undefined&&c.rtLinha!==null)?c.rtLinha:M28_RT_LINHA;
+}
+async function m28TrocarRt(qual){
+  await m28Config();
+  const ehNome=qual==="nome";
+  const atual=ehNome?m28RtNome(m28Cab(m28Itens())):m28RtLinha(m28Cab(m28Itens()));
+  const v=prompt(ehNome
+      ?"Seu nome, como deve sair na folha:"
+      :"A linha de baixo (cargo e registro), como deve sair na folha:",atual);
+  if(v===null)return;                       /* cancelou: não mexe em nada */
+  M28_CAB=Object.assign({},M28_CAB||{},ehNome?{rtNome:v.trim()}:{rtLinha:v.trim()});
+  await metaSetU("mnt28Cabecalho",M28_CAB); /* metaSetU: o desfazer pega */
+  dataChanged();renderMnt28();toast(ehNome?"Nome atualizado ✓":"Linha atualizada ✓");
+}
 async function m28TrocarEmissao(){
   await m28Config();
   const atual=(M28_CAB&&M28_CAB.emitidoEm)||today();
@@ -179,9 +209,15 @@ async function renderMnt28(){
         <h1>${esc(m28Titulo(c))}</h1>
         ${exec?`<div class="m28-exec"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}
       </div>
+      ${/* 29/07: a informação de nutricionista aparecia DUAS VEZES — uma dentro do
+            nome (o texto livre que ela digitou nos "seus dados") e outra na linha de
+            baixo, montada de cargo + CRN. Agora é uma coisa só: NOME em cima, UMA
+            linha embaixo — e as duas ela edita pelo lápis, sem código. */""}
       <div class="m28-capa-rt">
-        <div class="nome">${esc(c.rt||RT_INFO||RT_DEFAULT)}</div>
-        <div class="crn">${esc(c.cargo||"Nutricionista UAN / RT")}${c.crn?" · "+esc(c.crn):""}</div>
+        <div class="nome">${esc(m28RtNome(c))}
+          <button class="m28-lapis" onclick="m28TrocarRt('nome')" title="Trocar o seu nome" aria-label="Trocar o seu nome">✎</button></div>
+        <div class="crn">${esc(m28RtLinha(c))}
+          <button class="m28-lapis" onclick="m28TrocarRt('linha')" title="Trocar o cargo e o registro" aria-label="Trocar o cargo e o registro">✎</button></div>
       </div>
     </div>
     <div class="m28-capa-linha">
@@ -569,7 +605,9 @@ function m28Imprimir(){
       <div><div class="et">Relatório de manutenção</div>
         <h1>${esc(m28Titulo(c))}</h1>
         ${exec?`<div class="ex"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}</div>
-      <div class="rt"><b>${esc(rt)}</b><i>${esc(c.cargo||"Nutricionista UAN / RT")}${crn?" · "+esc(crn):""}</i></div>
+      ${/* mesma correção da tela: nome em cima, UMA linha embaixo — sem repetir
+           a informação de nutricionista, como estava saindo antes */""}
+      <div class="rt"><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
       <div class="un"><div><span>Unidade</span>${esc(loja)}</div>
         ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
