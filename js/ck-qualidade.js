@@ -348,22 +348,59 @@ async function ckqMigrarPerguntasReais(){
   if(!DATA.some(d=>!d.deleted&&d.tipo==="ckqm"&&d.chavePronta))return;
   if(await metaGet("mig_ckq_real_v1"))return;
   let mudou=0;HIST_LIGADO=false;
+  /* ===== DEF-1 · A MIGRAÇÃO PAROU DE TROCAR O CRACHÁ DAS PERGUNTAS (29/07) =====
+     Cada resposta dela é guardada pelo CRACHÁ (uid) da pergunta, nunca pela
+     posição. Esta migração reconstruía as perguntas dando CRACHÁ NOVO a todas —
+     e resposta cujo crachá sumiu vira resposta órfã: some da inspeção dela.
+     Não chegou a acontecer (a trava de "já respondido" segurou), mas o risco era
+     real: num aparelho recém-limpo, esta função roda ANTES de a sincronização
+     trazer as inspeções — ela não vê preenchimento nenhum, acha que pode mexer,
+     e troca os crachás. Agora o crachá antigo é reaproveitado. */
+  const chaveTitulo=t=>String(t||"").toLowerCase().replace(/\s+/g," ").trim();
   try{
     for(const m of DATA){
       if(m.deleted||m.tipo!=="ckqm"||!m.chavePronta)continue;
       const pk=CKQ_PACOTES.find(p=>p.chave===m.chavePronta);if(!pk)continue;
-      const respondido=DATA.some(d=>!d.deleted&&d.tipo==="ckqp"&&d.modeloUid===m.uid);
+      /* trava endurecida: além do uid do modelo, vale o título e a chave pronta —
+         se o uid do modelo tiver mudado alguma vez, a inspeção dela ainda é achada */
+      const respondido=DATA.some(d=>!d.deleted&&d.tipo==="ckqp"&&(
+        d.modeloUid===m.uid||
+        (d.modeloTitulo&&m.titulo&&chaveTitulo(d.modeloTitulo)===chaveTitulo(m.titulo))||
+        (d.chavePronta&&d.chavePronta===m.chavePronta)));
       if(respondido)continue;                 /* inspeção feita = não mexer */
-      m.perguntas=pk.perguntas.map((r,i)=>({
-        uid:newUid(),ordem:i,
-        titulo:r[0]||"",descricao:r[1]||"",secao:r[2]||"",
-        escopoP:r[3]||"",escopoS:r[4]||"",
-        tipoResp:r[5]||"simnao",coment:r[6]||"opcional",foto:r[7]||"opcional",
-        peso:Number(r[8])||0,escopoDest:r[9]||"",
-        acaoPadrao:r[10]||"",baseLegal:r[11]||""
-      }));
+      /* mapa dos crachás que já existem, por posição e por título */
+      const antigas=Array.isArray(m.perguntas)?m.perguntas:[];
+      const porOrdem=new Map(),porTitulo=new Map();
+      antigas.forEach((q,i)=>{
+        if(!q||!q.uid)return;
+        porOrdem.set(q.ordem!=null?q.ordem:i,q.uid);
+        const t=chaveTitulo(q.titulo);if(t&&!porTitulo.has(t))porTitulo.set(t,q.uid);
+      });
+      const usados=new Set();
+      const novas=pk.perguntas.map((r,i)=>{
+        const t=chaveTitulo(r[0]);
+        /* o título manda mais que a posição: se ela reordenou, o crachá segue a pergunta */
+        let uid=porTitulo.get(t);
+        if(!uid||usados.has(uid))uid=porOrdem.get(i);
+        if(!uid||usados.has(uid))uid=newUid();   /* só aqui nasce crachá novo */
+        usados.add(uid);
+        return {uid,ordem:i,
+          titulo:r[0]||"",descricao:r[1]||"",secao:r[2]||"",
+          escopoP:r[3]||"",escopoS:r[4]||"",
+          tipoResp:r[5]||"simnao",coment:r[6]||"opcional",foto:r[7]||"opcional",
+          peso:Number(r[8])||0,escopoDest:r[9]||"",
+          acaoPadrao:r[10]||"",baseLegal:r[11]||""};
+      });
+      /* não regravar à toa: carimbar "mod" sem nada ter mudado só faz a
+         sincronização trabalhar e assusta quem vai conferir o banco depois */
+      if(JSON.stringify(antigas)===JSON.stringify(novas))continue;
+      m.perguntas=novas;
       m.mod=nowISO();await putItem(m);mudou++;
     }
+    /* A trava é LOCAL e continua local, de propósito: ela não entra no envelope
+       da sincronização, então cada aparelho roda a migração uma vez. Isso deixou
+       de ser um problema — com o crachá preservado acima, rodar de novo não
+       machuca nada; e, se nada mudar, nem regrava. */
     await metaSet("mig_ckq_real_v1",nowISO());
   }finally{HIST_LIGADO=true;}
   if(mudou)dataChanged();

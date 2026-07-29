@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 29/07/2026 (v9.27) · este arquivo é a memória entre conversas
+### atualizado em 29/07/2026 (v9.29) · este arquivo é a memória entre conversas
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -71,9 +71,9 @@ porque publicar é pedido dela.
 | **F-8** | Portão: **não vira "orçar"** — serviço + ideia técnica na observação |
 | **SJ-1** | Revisar os 121 serviços como **PhD em soluções** (padrão por trás: toda a ferrugem de Arraial é 1 problema — maresia — com 30 sintomas) |
 | **SJ-3** | Folha do **Matheus** (37 de elétrica + os 5 sinalizados hoje) |
-| **DEF-1** | Qualidade/BPF: a migração troca o uid das perguntas e grava a trava com `metaSet`. Plano pronto em `~/.claude/plans/attach-wobbly-turtle.md` |
-| **DEF-2 / AR-3** | Áreas gravadas com `metaSet` (local) em vez de `metaSetU` — **o que ela cadastra no PC pode não chegar no celular** |
-| **DEF-3 / NOT-1** | `APP_DATA` digitado à mão — publicar e esquecer = data errada. Automatizar na publicação |
+| ~~DEF-1~~ | ✅ feito em v9.28. Provado no navegador: **0 crachás trocados** em 12 modelos / 161 perguntas, e 0 modelos regravados à toa. Correção do plano: trocar por `metaSetU` **não** faria a trava viajar (essa chave não entra no envelope da sincronização) — o que resolve é preservar o crachá, e isso está feito |
+| ~~DEF-2 / AR-3~~ | ✅ feito em v9.29. **O diagnóstico estava errado:** conferi no navegador e as áreas **chegam** no celular (entram no envelope e o `areasMod` sobe). O defeito real era pior: área apagada **não tinha Ctrl+Z**. Agora volta, e a seta diz "as áreas" |
+| ~~DEF-3 / NOT-1~~ | ✅ feito. O guardião de versão **carimba a data sozinho** um instante antes do commit e avisa que carimbou |
 | ~~DEF-5~~ | ✅ feito em v9.27 |
 | ~~DEF-7~~ | ✅ feito em v9.27 |
 | ~~DEF-8~~ | ✅ feito em v9.27 |

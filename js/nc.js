@@ -20,7 +20,17 @@ async function ncAreas(code){
  NC_AREAS[code]=v||[];
  return NC_AREAS[code];
 }
-async function ncSaveAreas(code){await metaSet("areas_"+code,NC_AREAS[code]||[]);AREAS_ALL[code]=NC_AREAS[code]||[];AREAS_MOD=nowISO();await metaSet("areasMod",AREAS_MOD);dataChanged();}
+/* ===== DEF-2 · O DESFAZER PASSOU A CONHECER AS ÁREAS (29/07) =====
+   O que a pendência dizia — "o que ela cadastra no PC pode não chegar no
+   celular" — foi CONFERIDO no navegador e NÃO acontece: a lista entra no
+   envelope da sincronização e o areasMod sobe certinho.
+   O defeito real era outro, e pior: as áreas gravavam com metaSet, que o
+   Ctrl+Z não enxerga. Ela apagava uma área por engano e NÃO TINHA COMO
+   VOLTAR — e área apagada leva junto o vínculo de tudo que estava nela.
+   Agora a lista grava por metaSetU e entra no mesmo histórico do resto.
+   (o carimbo de hora continua em metaSet de propósito: é só relógio, não é
+   decisão dela, e desfazer um relógio faria a sincronização se perder) */
+async function ncSaveAreas(code){await metaSetU("areas_"+code,NC_AREAS[code]||[]);AREAS_ALL[code]=NC_AREAS[code]||[];AREAS_MOD=nowISO();await metaSet("areasMod",AREAS_MOD);dataChanged();}
 function ncPisos(areas){const seen=[];for(const a of areas)if(!seen.includes(a.piso))seen.push(a.piso);return seen;}
 
 /* ---- classificação automática de urgência ----
