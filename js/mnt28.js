@@ -42,10 +42,37 @@ function m28Ordem(){
   const c=window.MNT28_CARGA;
   return (c&&c.ordemAreas)||null;
 }
+/* Título com o mês por extenso, tirado da data de emissão. Ela troca a data
+   e o título acompanha sozinho — não precisa reescrever nada. */
+const M28_MESES=["janeiro","fevereiro","março","abril","maio","junho",
+  "julho","agosto","setembro","outubro","novembro","dezembro"];
+function m28Titulo(c){
+  const iso=(c&&c.emitidoEm)||today();
+  const m=Number(String(iso).split("-")[1])-1;
+  const mes=M28_MESES[m]||"";
+  return "Relatório MNT — Mês: "+(mes?mes.toUpperCase():"—");
+}
+async function m28TrocarEmissao(){
+  await m28Config();
+  const atual=(M28_CAB&&M28_CAB.emitidoEm)||today();
+  const v=prompt("Data de emissão do relatório (dia/mês/ano):",brDate(atual));
+  if(v===null)return;
+  const p=v.trim().split(/[\/\-.]/);
+  if(p.length!==3){toast("Escreva assim: 29/07/2026");return;}
+  const [d,m,a]=p.map(x=>x.trim());
+  const iso=`${a.length===2?"20"+a:a}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  if(isNaN(new Date(iso).getTime())){toast("Data não reconhecida. Escreva assim: 29/07/2026");return;}
+  M28_CAB=Object.assign({},M28_CAB||{},{emitidoEm:iso});
+  await metaSetU("mnt28Cabecalho",M28_CAB);
+  dataChanged();renderMnt28();toast("Data de emissão atualizada ✓");
+}
 function m28Cab(itens){
   const c=window.MNT28_CARGA||{};
-  const cab=Object.assign({},M28_CAB||{},
-    c.periodo?{periodo:c.periodo,rt:c.rt,crn:c.crn,emitidoEm:c.emitidoEm,executor:c.executor}:{});
+  /* a carga entra só como base; O QUE ELA EDITOU VENCE — por isso M28_CAB
+     vem por último. Sem isso, a data que ela trocou voltaria sozinha. */
+  const cab=Object.assign({},
+    c.periodo?{periodo:c.periodo,rt:c.rt,crn:c.crn,cargo:c.cargo,emitidoEm:c.emitidoEm,executor:c.executor}:{},
+    M28_CAB||{});
   /* Se ela importar num aparelho novo, o período e a RT ainda não estão
      gravados. Em vez de mostrar um traço, montamos a partir do que os próprios
      serviços dizem e do nome que ela já cadastrou na capa. Nunca fica vazio. */
@@ -139,22 +166,26 @@ async function renderMnt28(){
   const pisos=[...new Set(itens.map(d=>d.piso))]
     .sort(m28CmpPiso);
 
-  /* CABEÇALHO COMPACTO (pedido dela, 29/07): o subtítulo saiu, e a
-     identificação virou duas linhas — nome e cargo em cima, CRN embaixo. */
+  /* CABEÇALHO COMPACTO (29/07): título com o mês da emissão, que se atualiza
+     sozinho — mas a data continua editável por ela (o lápis ao lado).
+     A identificação segue o desenho de assinatura que ela desenhou à mão:
+     nome centralizado em cima, cargo e registro na linha de baixo. */
   const capa=`<div class="m28-capa">
     <div class="m28-capa-topo">
       <div>
         <div class="m28-capa-et">Relatório de manutenção</div>
-        <h1>Manutenção e Infraestrutura${exec?' <span class="m28-exec">'+esc(exec)+'</span>':""}</h1>
+        <h1>${esc(m28Titulo(c))}</h1>
+        ${exec?`<div class="m28-exec"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}
       </div>
       <div class="m28-capa-rt">
         <div class="nome">${esc(c.rt||RT_INFO||RT_DEFAULT)}</div>
-        ${c.crn?`<div class="crn">${esc(c.crn)}</div>`:""}
+        <div class="crn">${esc(c.cargo||"Nutricionista UAN / RT")}${c.crn?" · "+esc(c.crn):""}</div>
       </div>
     </div>
     <div class="m28-capa-linha">
       <div class="m28-capa-i"><span class="rot">Unidade</span><span class="val">${esc(loja)}</span></div>
-      <div class="m28-capa-i"><span class="rot">Emitido em</span><span class="val">${brDate(c.emitidoEm||today())}</span></div>
+      <div class="m28-capa-i"><span class="rot">Emitido em</span><span class="val">${brDate(c.emitidoEm||today())}</span>
+        <button class="m28-lapis" onclick="m28TrocarEmissao()" title="Trocar a data de emissão" aria-label="Trocar a data de emissão">✎</button></div>
     </div></div>`;
 
   /* painel de números: peça PRONTA da biblioteca (bd-kpis / bd-kpi), nada do zero */
@@ -228,7 +259,7 @@ function m28RenderLista(){
       const f=fArea[k]||0,n=nArea[k];
       html+=`<div class="m28-area" data-piso="${esc(d.piso)}" data-area="${esc(area)}"><span class="m28-area-nome">${esc(area)}</span>`
         +`<span class="m28-count">${f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")}</span>`
-        +`<div class="m28-tab-cab"><span>Foi feito?</span><span>O que fazer?</span><span>Desde quando</span><span>Observações</span></div></div>`;}
+        +`<div class="m28-tab-cab"><span>Foi feito?</span><span>O que fazer?</span><span>Data registro</span><span>Observações</span></div></div>`;}
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
@@ -345,7 +376,7 @@ function m28FormHTML(d){
         <select class="bd-campo" id="m28f-area">${opArea}</select>
       </div>
       <div class="bd-grupo">
-        <label class="bd-rotulo" for="m28f-data">Desde quando</label>
+        <label class="bd-rotulo" for="m28f-data">Data do registro</label>
         <input class="bd-campo" type="date" id="m28f-data" value="${esc(d.dataRegistro||"")}">
         <span class="bd-ajuda">Sem data? Deixe vazio.</span>
       </div>
@@ -474,7 +505,7 @@ function m28Imprimir(){
     if(d.area!==area){area=d.area;
       blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
         +`<div class="bl cab"><span class="c">Foi feito?</span><span class="f">O que fazer?</span>`
-        +`<span class="q">Desde quando</span><span class="o">Observações</span></div>`;}
+        +`<span class="q">Data registro</span><span class="o">Observações</span></div>`;}
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
@@ -484,8 +515,9 @@ function m28Imprimir(){
   }
   const cabecalho=`<div class="capa">
       <div><div class="et">Relatório de manutenção</div>
-        <h1>Manutenção e Infraestrutura${exec?`<span>${esc(exec)}</span>`:""}</h1></div>
-      <div class="rt"><b>${esc(rt)}</b>${crn?`<i>${esc(crn)}</i>`:""}</div>
+        <h1>${esc(m28Titulo(c))}</h1>
+        ${exec?`<div class="ex"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}</div>
+      <div class="rt"><b>${esc(rt)}</b><i>${esc(c.cargo||"Nutricionista UAN / RT")}${crn?" · "+esc(crn):""}</i></div>
       <div class="un"><div><span>Unidade</span>${esc(loja)}</div>
         <div><span>Emitido em</span>${brDate(today())}</div></div>
     </div>
@@ -514,7 +546,11 @@ function m28Imprimir(){
   .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.75)}
   .capa h1{font-size:19px;font-weight:700;letter-spacing:-.3px;line-height:1.15;margin-top:2px}
   .capa h1 span{font-size:12px;font-weight:500;color:rgba(255,255,255,.9);display:block;margin-top:1px}
-  .rt{text-align:right;font-size:10px;line-height:1.35;flex:none}
+  .rt{text-align:center;font-size:10px;line-height:1.4;flex:none;min-width:190px;
+    padding-top:2px;border-top:1px solid rgba(255,255,255,.3)}
+  .ex{font-size:10.5px;color:rgba(255,255,255,.92);margin-top:4px}
+  .ex span{display:block;font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;
+    color:rgba(255,255,255,.62)}
   .rt b{display:block;font-weight:600}
   .rt i{font-style:normal;color:rgba(255,255,255,.82);font-size:9px}
   .un{display:flex;gap:22px;margin-top:9px;padding-top:8px;font-size:9.6px;flex-basis:100%;
@@ -527,10 +563,10 @@ function m28Imprimir(){
   h2{font-size:11.5px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
     border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:7px 0 2px}
   .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
-    border-left:3px solid #1d6b57;padding:4px 8px;margin-top:6px;font-size:10.6px;font-weight:700;
+    border-left:3px solid #1d6b57;padding:4px 8px;margin-top:14px;font-size:10.6px;font-weight:700;
     color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .ar b{font-weight:600;color:#667085;font-size:9px}
-  .cab,.li{display:grid;grid-template-columns:48px 1fr 76px 23%;gap:8px;padding:4px 8px}
+  .cab,.li{display:grid;grid-template-columns:46px 1fr 66px 18%;gap:8px;padding:4px 8px}
   .cab{font-size:7.9px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;
     border-bottom:1px solid #eaecf0}
   .cab .c,.li .c{text-align:center}

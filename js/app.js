@@ -804,22 +804,24 @@ async function renderHome(){
         onpointerdown="capaArrIni(event,'${emp.code}')">⠿</span>`:""}
      <div class="store-info">
        <div class="store-title">${esc(emp.name)} (${esc(emp.code)})</div>
-       <div class="store-sub">${pend} pendente${pend===1?"":"s"} · ${done} concluído${done===1?"":"s"}${
-         urg?` · <b class="sr-urg">${urg} urgente${urg===1?"":"s"}</b>`:""}</div>
-       ${tot?`<div class="sr-prog">
-         <div class="sr-barra"><i style="width:${pct}%"></i></div>
-         <div class="sr-legenda"><span>${done} de ${tot} resolvidas</span><span>${pct}%</span></div>
-       </div>`:""}
+       ${/* 29/07: a contagem "X pendentes · Y concluídos" e a barrinha saíram
+            daqui a pedido dela (marcou de rosa na folha impressa). Os números
+            continuam existindo — moram nas etiquetas do topo e nos Indicadores.
+            PARA VOLTAR: é só devolver as duas linhas que estavam aqui. */""}
+       ${urg?`<div class="store-sub"><b class="sr-urg">${urg} urgente${urg===1?"":"s"}</b></div>`:""}
      </div>
+     ${/* ORDEM (29/07, pedido dela): lápis e lixeira primeiro, e a chavinha
+          Ativa/Inativa COLADA no ▶ Iniciar — é a dupla que ela usa junto,
+          então a mão vai a um lugar só. */""}
+     <button class="btn ghost sm" title="Renomear empresa" onclick="renameEmpresa('${emp.code}')">✎</button>
+     <button class="btn ghost sm" title="Excluir empresa" onclick="removeEmpresa('${emp.code}')">🗑</button>
      <div class="store-toggle-wrap">
        <label class="switch" title="Ativar/desativar empresa"><input type="checkbox" aria-label="Ativar ou desativar empresa" ${emp.ativa?"checked":""} onchange="onToggleEmpresa('${emp.code}',this.checked)"><span class="slider"></span></label>
        <span class="store-toggle-label ${emp.ativa?"on":"off"}">${emp.ativa?"Ativa":"Inativa"}</span>
      </div>
-     <button class="btn ghost sm" title="Renomear empresa" onclick="renameEmpresa('${emp.code}')">✎</button>
-     <button class="btn ghost sm" title="Excluir empresa" onclick="removeEmpresa('${emp.code}')">🗑</button>
      ${emp.ativa
        ?`<button class="btn iniciar" onclick="enterStore('${emp.code}')">Iniciar →</button>`
-       :`<span class="btn iniciar off" title="Ative a empresa no botão ao lado para poder entrar">🔒</span>`}
+       :`<span class="btn iniciar off" title="Ative a empresa na chavinha ao lado para poder entrar">🔒</span>`}
    </div>`;
  }
  document.getElementById("store-list").innerHTML=html;
@@ -1515,9 +1517,21 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.24";
+const APP_VERSAO="9.25";
+/* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
+   saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
+   VERSÃO: cada mexida no site sobe esse número. */
+const APP_DATA="29/07/2026 · 02:10";
 function carimbarVersao(){
-  document.querySelectorAll("[data-versao]").forEach(el=>{el.textContent="v"+APP_VERSAO;});
+  document.querySelectorAll("[data-versao]").forEach(el=>{
+    el.textContent="v"+APP_VERSAO;
+    el.title="Versão do site "+APP_VERSAO+" — publicada em "+APP_DATA;
+  });
+  /* a data só aparece por extenso onde há espaço (rodapé da capa) */
+  document.querySelectorAll("[data-versao-data]").forEach(el=>{
+    el.textContent="v"+APP_VERSAO+" · atualizado em "+APP_DATA;
+    el.title="O “v” é de versão: cada mexida no site sobe esse número.";
+  });
 }
 function initAtalhos(){
  document.addEventListener("keydown",e=>{
