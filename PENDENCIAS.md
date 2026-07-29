@@ -60,7 +60,8 @@ porque publicar é pedido dela.
 
 | Cód | O que |
 |---|---|
-| **DOC-1..8** | Atualizar os 3 documentos + `CONTINUIDADE.md`, gerar PDFs, preencher os 2 blocos vazios do **Notion** e marcar as caixinhas prontas. Incluir o **Telegram** (TEL-11), que ela mandou e não entrou em nenhum |
+| ~~DOC-1..8~~ | ✅ feito em 29/07 (v9.27): `PENDENCIAS.md`, `status.json` e `CONTINUIDADE.md` (estava parado em 19/07) atualizados. No **Notion** (página "2.0 PROJETO SITE (CENTRAL TRABALHO) > Claude CODE"): os **2 blocos vazios preenchidos** (AUDITORIA e PROMPT PARA A CONVERSA NOVA), seção **"0 · JÁ FEITO"** com as caixinhas marcadas, seção **"0.1 · DECISÕES QUE SÓ ELA PODE TOMAR"** e STATUS de "Não iniciado" → "Em andamento". **Falta só o PDF dos documentos** — e o TEL-11 abaixo |
+| **TEL-11** | ❓ **preciso dela:** o Telegram entrou na AUDITORIA como frente ("2 bots no ar, falta testar áudio e ronda") e nos passos do plano, mas **não sei o que exatamente ela mandou sobre Telegram** que não entrou em nenhum documento. Ela precisa reenviar ou dizer onde está |
 | ~~F-1~~ | ✅ feito em v9.27 |
 | ~~F-2~~ | ✅ feito em v9.27 |
 | **F-3** | Painel de configuração da aba MNT |
