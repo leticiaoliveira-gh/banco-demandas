@@ -57,6 +57,23 @@ if ($maisNovo) {
   }
 }
 
+# ── DEF-3 · A DATA DA PUBLICAÇÃO DEIXA DE SER DIGITADA À MÃO (29/07) ──
+# APP_DATA é o "atualizado em <data>" que ela lê no rodapé da capa. Era digitado
+# à mão: bastava esquecer e a capa passava a mentir a data para ela.
+# Não é decisão de ninguém — é só o carimbo do relógio. Então o guardião carimba
+# sozinho, aqui, um instante antes do commit, e avisa que carimbou.
+# É o ÚNICO campo que ele altera; todo o resto ele só confere e barra.
+if ($ver.Success) {
+  $raw     = Get-Content $appjs -Raw
+  $dataAgora = (Get-Date).ToString('dd/MM/yyyy') + ' · ' + (Get-Date).ToString('HH:mm')
+  $mData   = [regex]::Match($raw, 'APP_DATA\s*=\s*"([^"]*)"')
+  if ($mData.Success -and $mData.Groups[1].Value -ne $dataAgora) {
+    $novo = [regex]::Replace($raw, 'APP_DATA\s*=\s*"[^"]*"', 'APP_DATA="' + $dataAgora + '"')
+    [System.IO.File]::WriteAllText($appjs, $novo, (New-Object System.Text.UTF8Encoding $false))
+    Write-Output "Data da publicacao carimbada sozinha: $dataAgora (antes: $($mData.Groups[1].Value))"
+  }
+}
+
 if ($problemas) {
   Write-Output "=== GUARDIAO DA VERSAO — NAO PUBLIQUE AINDA ==="
   foreach ($p in $problemas) { Write-Output "  ! $p" }
