@@ -181,3 +181,28 @@ mostra o aviso e devolve para corrigir. Não alteram nada sozinhos.
 
 Para chamar o revisor: peça o subagente `revisor-do-site` antes do commit de
 qualquer mudança visual.
+
+---
+
+## 8. CELULAR SEMPRE LIGADO (não pedir mais para sincronizar)
+
+Não é mais preciso digitar `/remote-control wpp ia` em cada conversa. Isso é
+configuração do Claude no PC (`%USERPROFILE%\.claude\settings.json`), ligada
+uma única vez por:
+
+```
+powershell -ExecutionPolicy Bypass -File ferramentas\ligar-celular-sempre.ps1
+```
+
+O que fica ligado (as mesmas opções do `/config`):
+
+| Chave | No `/config` aparece como | Efeito |
+|---|---|---|
+| `remoteControlAtStartup` | Enable Remote Control for all sessions | toda conversa nova no PC já nasce espelhada no celular |
+| `inputNeededNotifEnabled` | Push when actions required | notificação no celular quando o Claude pede autorização |
+| `agentPushNotifEnabled` | Push when Claude decides | notificação quando termina tarefa demorada |
+| `env.CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` | — | as sessões aparecem como `wpp ia-...` no celular |
+
+Vale só para o **Claude Code no PC** (terminal e VS Code) — não para o chat do
+claude.ai nem para o Cowork. O PC precisa ficar ligado e com o Claude aberto:
+o celular é uma janela para a conversa que roda na máquina dela.
