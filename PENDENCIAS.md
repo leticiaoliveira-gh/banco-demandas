@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 30/07/2026 (v9.38) · este arquivo é a memória entre conversas
+### atualizado em 30/07/2026 (v9.39) · este arquivo é a memória entre conversas
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -38,6 +38,30 @@ lateral, 121 serviços na tela. **Está em v9.27 aqui no computador — NÃO foi
 porque publicar é pedido dela.
 
 ---
+
+
+## 🟠 APROVADO POR ELA EM 30/07 — aplicar LOGO APÓS a recuperação da tarde de 29/07
+
+> Renomear área mexe em todos os serviços da área (1º piso!) e atropelaria o que
+> está preso no PC do trabalho. Por isso espera. **Ela também não deve usar o
+> lápis de renomear nas áreas do 1º piso até lá.**
+
+| O que | Decidido |
+|---|---|
+| CORREDOR DE ENTRADA - INTERNO (1º piso) | vira **"Corredor - Acesso Interno"** |
+| CÂMARA: FLV | vira **CÂMARA: FRUTAS, LEGUMES E VERDURAS (FLV)** |
+| CÂMARA: C&A | vira **CÂMARA: CARNES E AVES (C&A)** |
+| CÂMARA: F&L (LATICÍNIOS) | vira **CÂMARA: FRIOS E LATICÍNIOS (F&L)** |
+| CÂMARA: HORTIFRUTI | **mantém** (decisão dela) |
+| Proposta SJ-1 (maresia etc.) | aguarda o OK dela e a mesma recuperação |
+
+## 🔵 ESCOLHIDO POR ELA EM 30/07 — próxima construção
+
+Layouts: **NC na opção C** (desenho da folha do Sr. João: colunas-pergunta, tempo
+em vermelho) e **Manutenções na opção B** (folha por executor — casa com SJ-3, a
+folha do Matheus). Ver `modelos/layouts.html`.
+
+Fotos do mercado (Folha 2): ela vai reunir e mandar; inserir nos relatórios.
 
 ## 🔴 EM ABERTO — na ordem em que uma destrava a outra
 
