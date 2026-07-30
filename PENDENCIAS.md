@@ -83,7 +83,7 @@ porque publicar é pedido dela.
 | **NOT-2/3** | Backup automático que sobrevive a trocar de PC · página com os modelos antigos de card |
 | **AUD-10/11/12** | Layout da aba de NC · layout da aba Manutenções · palavras de urgência editáveis pela tela |
 | **AUD-16/17** | Responder "no celular precisa de backup?" · configurações atreladas ao login |
-| **SKILL-14** | Virar **skill** o "PhD em soluções" (hoje é só memória — por isso não pegou nos 121) |
+| ~~SKILL-14~~ | ✅ feito em 30/07. Virou a skill `phd-em-solucoes` (`~/.claude/skills/`). Como memória ela só era *lembrada*; como skill ela **dispara sozinha** sempre que eu for entregar levantamento, lista, achado, NC, serviço de manutenção ou ação corretiva — que é exatamente onde ela falhou nos 121 |
 | **AUD-14 / NOT-6** | Nome da capa: **Central Técnica** por ora, ela não está contente. Montar rodada nova **na tela**, não no chat |
 
 ---
