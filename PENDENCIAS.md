@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 30/07/2026 (v9.33) · este arquivo é a memória entre conversas
+### atualizado em 30/07/2026 (v9.38) · este arquivo é a memória entre conversas
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -67,21 +67,21 @@ porque publicar é pedido dela.
 | ~~F-3~~ | ✅ feito em v9.34. A aba MNT entrou no "⚙ Ver configurações" (a porta abria vazia — foi isso que ela viu no PC do trabalho em 30/07): nome, cargo/registro, responsável, data de emissão, **os 10 textos da folha** (título, colunas, rótulos — tela E impressão), esconder/mostrar painel de números e selos de origem. E o **título duplicado do topo saiu** da aba, por pedido dela — ficam "← Capa" e o ⚙ |
 | **F-4** | Folha sair em **Word e WhatsApp** |
 | **F-5** | Trazer ID e Anotações da planilha |
-| **F-7** | Refazer a frase do rodapé do salão |
-| **F-8** | Portão: **não vira "orçar"** — serviço + ideia técnica na observação |
-| **SJ-1** | Revisar os 121 serviços como **PhD em soluções** (padrão por trás: toda a ferrugem de Arraial é 1 problema — maresia — com 30 sintomas) |
+| **F-7** | 📄 reescrita proposta no documento SJ-1 — espera o OK dela |
+| **F-8** | 📄 reescrita proposta no documento SJ-1 (alumínio anodizado + inox na observação) — espera o OK dela |
+| **SJ-1** | 📄 **proposta pronta** (30/07): `4. TAREFAS\CODE - Resgate MNT (30-07-26)\PROPOSTA SJ-1...md` — 3 causas raiz (maresia 22+, umidade, rodapés 8-em-1), reescritas F-7/F-8, base RDC 216/275. **Não aplicada**: espera a recuperação da tarde de 29/07 e o OK dela |
 | **SJ-3** | Folha do **Matheus** (37 de elétrica + os 5 sinalizados hoje) |
 | ~~DEF-1~~ | ✅ feito em v9.28. Provado no navegador: **0 crachás trocados** em 12 modelos / 161 perguntas, e 0 modelos regravados à toa. Correção do plano: trocar por `metaSetU` **não** faria a trava viajar (essa chave não entra no envelope da sincronização) — o que resolve é preservar o crachá, e isso está feito |
 | ~~DEF-2 / AR-3~~ | ✅ feito em v9.29. **O diagnóstico estava errado:** conferi no navegador e as áreas **chegam** no celular (entram no envelope e o `areasMod` sobe). O defeito real era pior: área apagada **não tinha Ctrl+Z**. Agora volta, e a seta diz "as áreas" |
-| **DEF-3 / NOT-1** | ⚠️ **meia-feita, e a tentativa deu errado.** Fiz o guardião carimbar a data sozinho — e ele **quebrou os acentos do site publicado** (o PowerShell 5.1 lê o arquivo na codificação do sistema, não em UTF-8; 16 palavras quebradas viraram 483 e a capa dela encheu de rabisco). Desfeito. Hoje o guardião **confere e barra** se a data estiver velha, mas quem troca é quem publica. Voltar a automatizar exige ler/gravar em UTF-8 explícito e testar com palavra acentuada antes |
+| ~~DEF-3 / NOT-1~~ | ✅ feito em v9.37, agora do jeito certo: UTF-8 explícito e **prova do acento** antes e depois de gravar — se falhar, não escreve e cobra à mão. (1ª tentativa registrada: Fiz o guardião carimbar a data sozinho — e ele **quebrou os acentos do site publicado** (o PowerShell 5.1 lê o arquivo na codificação do sistema, não em UTF-8; 16 palavras quebradas viraram 483 e a capa dela encheu de rabisco). Desfeito. Hoje o guardião **confere e barra** se a data estiver velha, mas quem troca é quem publica. Voltar a automatizar exige ler/gravar em UTF-8 explícito e testar com palavra acentuada antes |
 | ~~DEF-5~~ | ✅ feito em v9.27 |
 | ~~DEF-7~~ | ✅ feito em v9.27 |
 | ~~DEF-8~~ | ✅ feito em v9.27 |
 | ~~DEF-4 / SB-7~~ | ✅ feito em 30/07. A biblioteca virou o repositório **privado** `leticiaoliveira-gh/biblioteca-design` (13 arquivos: as 16 peças, os 8 gráficos, a paleta validada e os checklists). Se este computador morrer, o desenho do site não morre junto |
-| **AR-2** | Áreas nascerem junto com a empresa (`addEmpresa` só grava nome e sigla) |
+| ~~AR-2~~ | ✅ feito em v9.38: criar empresa **oferece copiar o mapa de áreas** de outra — um clique e nasce organizada |
 | **AR-4/5** | Padrão de nome das câmaras · padronização dos 622 textos e mover item de aba errada |
-| **NOT-2/3** | Backup automático que sobrevive a trocar de PC · página com os modelos antigos de card |
-| **AUD-10/11/12** | Layout da aba de NC · layout da aba Manutenções · palavras de urgência editáveis pela tela |
+| ~~NOT-2/3~~ | ✅ feito em v9.37: a **nuvem** aparece como backup na capa ("nuvem HH:MM ✓" — guarda todas as versões e sobrevive a trocar de PC) · página `modelos/` com os cards antigos (museu, só olhar) |
+| **AUD-10/11** ~~12~~ | ✅ AUD-12 feito em v9.38: **palavras de urgência editáveis** pela janela do painel ⚙ da NC, sincronizadas, campo vazio = padrão. AUD-10/11: as **propostas estão na tela** (`modelos/layouts.html` — 3 opções para NC, 2 para Manutenções); falta ela escolher |
 | **AUD-16/17** | Responder "no celular precisa de backup?" · configurações atreladas ao login |
 | ~~SKILL-14~~ | ✅ feito em 30/07. Virou a skill `phd-em-solucoes` (`~/.claude/skills/`). Como memória ela só era *lembrada*; como skill ela **dispara sozinha** sempre que eu for entregar levantamento, lista, achado, NC, serviço de manutenção ou ação corretiva — que é exatamente onde ela falhou nos 121 |
 | **AUD-14 / NOT-6** | Nome da capa: **Central Técnica** por ora, ela não está contente. Montar rodada nova **na tela**, não no chat |
