@@ -42,7 +42,10 @@ const CFG_ABAS={
      acao:()=>{cfgFechar();dgGerirOpcoes("urg");}},
     {gr:"outros",rot:"Áreas e pisos",dica:"O mapa de áreas desta loja",
      valor:()=>((typeof NC_AREAS!=="undefined"&&NC_AREAS[currentStore])||[]).length+" áreas",
-     acao:()=>{cfgFechar();if(typeof ncGerirAreas==="function")ncGerirAreas();}}
+     acao:()=>{cfgFechar();if(typeof ncGerirAreas==="function")ncGerirAreas();}},
+    {gr:"outros",rot:"Palavras de urgência",dica:"As palavras que fazem o site sugerir URGENTE sozinho",
+     valor:()=>(typeof NC_KW!=="undefined")?(NC_KW.URGENTE.length+NC_KW.ATENCAO.length+NC_KW.OBSERVACAO.length)+" palavras":"—",
+     acao:()=>{cfgFechar();if(typeof ncGerirPalavras==="function")ncGerirPalavras();}}
   ],
   list:()=>[
     {gr:"filtrar",rot:"Filtrar",dica:"Responsável, status e área",

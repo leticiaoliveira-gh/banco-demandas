@@ -995,7 +995,34 @@ async function addEmpresa(ev){ev.preventDefault();
  EMPRESAS.push({code,name,ativa:true});
  await saveEmpresas();
  document.getElementById("empNome").value="";document.getElementById("empCode").value="";
- toggleEmpresaForm();fillLojaSelects();await renderHome();toast("Empresa "+name+" ("+code+") criada e ativada ✓");}
+ toggleEmpresaForm();fillLojaSelects();await renderHome();toast("Empresa "+name+" ("+code+") criada e ativada ✓");
+ /* ===== AR-2 · A EMPRESA JÁ NASCE COM ÁREAS (30/07) =====
+    Antes: criar empresa só gravava nome e sigla — as áreas ficavam para
+    depois e era aí que a bagunça começava (cada aba inventava a sua).
+    Agora, se outra empresa já tem o mapa de áreas, oferecemos COPIAR:
+    um clique e a empresa nova nasce organizada igual. Ela ajusta depois
+    pelo "Áreas e pisos" do painel ⚙ da aba de NC, como sempre. */
+ try{
+   const fontes=Object.keys(AREAS_ALL||{}).filter(c=>c!==code&&Array.isArray(AREAS_ALL[c])&&AREAS_ALL[c].length);
+   if(fontes.length&&typeof ncSaveAreas==="function"){
+     let origem=fontes[0];
+     if(fontes.length>1){
+       const nomes=fontes.map((c,i)=>(i+1)+" = "+((empresa(c)||{}).name||c)+" ("+AREAS_ALL[c].length+" áreas)").join("\n");
+       const r=prompt("A empresa nova pode já nascer com o mapa de áreas de outra.\n\nCopiar de qual?\n"+nomes+"\n\nDigite o número (ou Cancelar para começar do zero):","1");
+       if(r===null)origem=null;
+       else origem=fontes[Number(r.trim())-1]||null;
+     }else{
+       if(!confirm("Quer que "+name+" já nasça com o mapa de áreas de "
+         +((empresa(origem)||{}).name||origem)+" ("+AREAS_ALL[origem].length+" áreas)?\n\n"
+         +"OK = copiar (dá para ajustar depois, e o Ctrl+Z desfaz)\nCancelar = começar do zero"))origem=null;
+     }
+     if(origem){
+       if(typeof NC_AREAS!=="undefined")NC_AREAS[code]=JSON.parse(JSON.stringify(AREAS_ALL[origem]));
+       await ncSaveAreas(code);
+       toast(AREAS_ALL[origem].length+" áreas copiadas para "+name+" ✓");
+     }
+   }
+ }catch(e){/* copiar áreas é conveniência: se falhar, a empresa já está criada */}}
 
 async function renameEmpresa(code){const e=empresa(code);if(!e)return;
  const n=prompt("Novo nome para "+e.name+" ("+code+"):",e.name);
@@ -1297,7 +1324,7 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",itens:DATA};}
+function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",ncPalavras:(typeof NC_KW_OVR!=="undefined")?NC_KW_OVR:null,ncPalavrasMod:(typeof NC_KW_MOD!=="undefined")?(NC_KW_MOD||""):"",itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -1534,7 +1561,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.37";
+const APP_VERSAO="9.38";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

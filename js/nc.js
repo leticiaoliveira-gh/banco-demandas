@@ -46,6 +46,7 @@ let NC_URG={...NC_URG_PADRAO},NC_URG_MOD="";
 /* compatibilidade: itens antigos ATENCAO exibem como OBSERVAÇÃO */
 Object.defineProperty(NC_URG,"ATENCAO",{value:NC_URG.OBSERVACAO,enumerable:false});
 async function ncLoadUrgencias(){
+  if(typeof ncLoadPalavras==="function")await ncLoadPalavras();  /* pega carona nos mesmos pontos de carga */
   const g=await metaGet("ncUrgencias");NC_URG_MOD=await metaGet("ncUrgenciasMod")||"";
   if(g&&Object.keys(g).length){
     NC_URG={...g};
@@ -62,7 +63,12 @@ async function ncSalvarUrgencias(){
 /* usa o MESMO gerenciador do Quadro Geral, para a experiência ser igual em todas as abas */
 function ncGerirUrgencias(){dgGerirOpcoes("urg");}
 function ncNormalizar(t){return (t||"").toLowerCase().trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"");}
-const NC_KW={
+/* ===== AUD-12 \u00b7 AS PALAVRAS-GATILHO S\u00c3O DELA (30/07) =====
+   Estas listas decidem o que o site marca como URGENTE sozinho. Eram fixas no
+   c\u00f3digo \u2014 ela n\u00e3o podia acrescentar "gordura acumulada" nem tirar uma palavra
+   que atrapalha. Agora s\u00e3o edit\u00e1veis pela tela (painel \u2699 da aba), gravam com
+   metaSetU (Ctrl+Z pega) e viajam na sincroniza\u00e7\u00e3o. Campo vazio = padr\u00e3o. */
+const NC_KW_PADRAO={
  URGENTE:["mofo","mofad","bolor","contamina","contaminaç","cruzad",
   "temperatura","descongel","fora do padrao","fora da validade",
   "vencid","vencimento","validade",
@@ -78,6 +84,55 @@ const NC_KW={
  OBSERVACAO:["organiza","desorganiz","sinaliza","sinalizaç",
   "padroniza","padronizaç","identificaç","estetic","estétic"]
 };
+let NC_KW=JSON.parse(JSON.stringify(NC_KW_PADRAO)),NC_KW_MOD="",NC_KW_OVR={};
+async function ncLoadPalavras(){
+  const g=await metaGet("ncPalavras");NC_KW_MOD=await metaGet("ncPalavrasMod")||"";
+  NC_KW_OVR=(g&&typeof g==="object")?g:{};
+  NC_KW=Object.assign(JSON.parse(JSON.stringify(NC_KW_PADRAO)),NC_KW_OVR);
+}
+async function ncGerirPalavras(){
+  await ncLoadPalavras();
+  const ROTS=[["URGENTE","Palavras que fazem virar URGENTE","mofo, rato, vazamento…"],
+    ["ATENCAO","Palavras de atenção (viram Observação)","pintura, lâmpada, quebrado…"],
+    ["OBSERVACAO","Palavras de observação","organização, sinalização…"]];
+  const antigo=document.getElementById("nc-kwcfg");if(antigo)antigo.remove();
+  let campos="";
+  for(const [k,rot,ex] of ROTS){
+    campos+=`<div class="bd-grupo"><label class="bd-rotulo" for="nckw-${k}">${esc(rot)}</label>
+      <textarea class="bd-campo" id="nckw-${k}" rows="3" placeholder="${esc(ex)}"
+        >${esc((NC_KW[k]||[]).join(", "))}</textarea>
+      <span class="bd-ajuda">Separe por vírgula. Vale o começo da palavra: "vencid" pega vencido e vencida.</span></div>`;
+  }
+  const p=document.createElement("div");
+  p.id="nc-kwcfg";p.className="cfg-painel";
+  p.innerHTML=`<div class="cfg-cx" onclick="event.stopPropagation()">
+    <div class="cfg-topo"><b>Palavras de urgência</b>
+      <button class="btn ghost sm" onclick="document.getElementById('nc-kwcfg').remove()" aria-label="Fechar">✕</button></div>
+    <p class="desc" style="margin:4px 2px 10px">São as palavras que o site procura no texto
+      para sugerir a urgência sozinho. A sugestão continua sendo só sugestão — quem decide é você.
+      Apagar tudo de uma caixa volta à lista padrão.</p>
+    ${campos}
+    <div class="m28-form-acoes" style="margin-top:12px">
+      <button class="bd-btn bd-btn-principal" onclick="ncSalvarPalavras()">Salvar</button>
+      <button class="bd-btn bd-btn-fantasma" onclick="document.getElementById('nc-kwcfg').remove()">Cancelar</button>
+    </div></div>`;
+  p.onclick=()=>p.remove();
+  document.body.appendChild(p);
+}
+async function ncSalvarPalavras(){
+  const novo={};
+  for(const k of ["URGENTE","ATENCAO","OBSERVACAO"]){
+    const el=document.getElementById("nckw-"+k);if(!el)continue;
+    const lista=el.value.split(",").map(s=>ncNormalizar(s)).filter(Boolean);
+    if(lista.length&&JSON.stringify(lista)!==JSON.stringify(NC_KW_PADRAO[k]))novo[k]=lista;
+  }
+  NC_KW_OVR=novo;
+  NC_KW=Object.assign(JSON.parse(JSON.stringify(NC_KW_PADRAO)),novo);
+  NC_KW_MOD=nowISO();
+  await metaSetU("ncPalavras",novo);await metaSetU("ncPalavrasMod",NC_KW_MOD);
+  const j=document.getElementById("nc-kwcfg");if(j)j.remove();
+  dataChanged();toast("Palavras de urgência atualizadas ✓");
+}
 function ncClassificar(texto){
  const t=ncNormalizar(texto);
  const tem=l=>l.some(k=>t.includes(k));

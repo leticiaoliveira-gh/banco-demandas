@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Propostas de layout — NC e Manutenções</title>
+<!-- AUD-10/11 (30/07): os dois layouts prometidos desde julho, agora NA TELA
+     para ela escolher vendo (regra dela: mostrar, não explicar). Página-museu:
+     nada aqui mexe em dado nenhum. A escolha dela vira implementação depois. -->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#f7f7f5;color:#2d2e3a;padding:24px 16px 60px;max-width:860px;margin:0 auto;
+    font-size:14px;line-height:1.5}
+  a.volta{color:#1d6b57;font-weight:600;text-decoration:none}
+  h1{font-size:20px;color:#155244;margin:14px 0 4px}
+  .desc{color:#5c5d68;font-size:13px;margin-bottom:8px}
+  .aviso{background:#e8f5f0;border-left:3px solid #1d6b57;color:#155244;border-radius:0 8px 8px 0;
+    padding:9px 13px;font-size:12.5px;margin:12px 0 26px}
+  h2{font-size:15px;color:#155244;margin:34px 0 10px;border-bottom:2px solid #1d6b57;padding-bottom:5px}
+  .op{background:#fff;border:1px solid #e6e7ea;border-radius:12px;padding:14px 16px;margin-bottom:14px;
+    box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .op-t{font-weight:700;font-size:13.5px;color:#155244;margin-bottom:2px}
+  .op-d{font-size:12px;color:#5c5d68;margin-bottom:12px}
+  .selo{display:inline-block;font-size:10px;font-weight:700;border-radius:99px;padding:2px 8px;
+    margin-left:6px;text-transform:uppercase;letter-spacing:.5px;vertical-align:1px}
+  .selo.hoje{background:#f1f1f3;color:#5c5d68;border:1px solid #e2e3e7}
+  .selo.nova{background:#e8f5f0;color:#155244;border:1px solid #bfe0d4}
+  /* miniaturas dos layouts */
+  .mini{border:1px solid #eceded;border-radius:10px;padding:10px;background:#fafbfa;font-size:11.5px}
+  .m-area{background:#e8f5f0;border-left:3px solid #1d6b57;color:#155244;font-weight:700;
+    padding:4px 8px;border-radius:0 6px 6px 0;margin:8px 0 4px;font-size:11px}
+  .m-linha{display:flex;gap:8px;align-items:flex-start;padding:6px 4px;border-bottom:1px solid #f0f0f2}
+  .m-urg{flex:none;font-size:9px;font-weight:700;border-radius:99px;padding:1px 7px;
+    background:#ffecec;color:#b42318;border:1px solid #f5c6c6}
+  .m-obs{background:#d1fae5;color:#047857;border-color:#b5ecd3}
+  .m-txt{flex:1}
+  .m-meta{color:#8a8b96;font-size:10px}
+  .m-card{background:#fff;border:1px solid #e6e7ea;border-left:4px solid #b42318;border-radius:8px;
+    padding:8px 10px;margin:6px 0}
+  .m-card.obs{border-left-color:#047857}
+  .m-foto{display:inline-block;width:26px;height:26px;border-radius:5px;background:#d7e5df;
+    vertical-align:middle;margin-right:6px}
+  table.m-tab{border-collapse:collapse;width:100%;font-size:10.5px}
+  .m-tab th{background:#e8f5f0;color:#155244;text-align:left;padding:4px 6px;border:1px solid #d7e5df}
+  .m-tab td{padding:4px 6px;border:1px solid #eceded;vertical-align:top}
+  .como{background:#fffaeb;border:1px solid #fedf89;color:#93370d;border-radius:10px;
+    padding:10px 14px;font-size:12.5px;margin-top:30px}
+</style>
+</head>
+<body>
+<a class="volta" href="index.html">← Modelos antigos</a> · <a class="volta" href="../index.html">← Site</a>
+<h1>Propostas de layout — para você escolher vendo</h1>
+<p class="desc">Prometido desde julho: o desenho novo da aba de <b>Não Conformidade</b> e da aba
+<b>Manutenções e Elétrica</b> (a antiga). Cada opção abaixo é uma miniatura com dados de exemplo.</p>
+<div class="aviso">Nada aqui mexe nos seus dados. Você escolhe na conversa
+("quero a opção B da NC") e a implementação vem depois, testada.</div>
+
+<h2>Aba de Não Conformidade (AUD-10)</h2>
+
+<div class="op">
+  <div class="op-t">Opção A — como é hoje <span class="selo hoje">atual</span></div>
+  <div class="op-d">Lista agrupada por área; urgência como selo colorido na linha.</div>
+  <div class="mini">
+    <div class="m-area">CÂMARA: LATICÍNIOS (F&amp;L)</div>
+    <div class="m-linha"><span class="m-urg">URGENTE</span><span class="m-txt">Eliminar o mofo do teto da câmara.</span><span class="m-meta">12/07</span></div>
+    <div class="m-linha"><span class="m-urg m-obs">OBSERVAÇÃO</span><span class="m-txt">Reorganizar as caixas do fundo.</span><span class="m-meta">15/07</span></div>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t">Opção B — cartões com faixa de urgência <span class="selo nova">proposta</span></div>
+  <div class="op-d">Cada NC vira um cartão; a cor entra pela faixa lateral <b>e</b> a palavra continua
+  escrita (cor nunca sozinha). A foto aparece no cartão, sem abrir nada.</div>
+  <div class="mini">
+    <div class="m-area">CÂMARA: LATICÍNIOS (F&amp;L)</div>
+    <div class="m-card"><span class="m-urg">URGENTE</span> <span class="m-foto"></span>
+      Eliminar o mofo do teto da câmara. <span class="m-meta">registrada 12/07 · há 18 dias</span></div>
+    <div class="m-card obs"><span class="m-urg m-obs">OBSERVAÇÃO</span>
+      Reorganizar as caixas do fundo. <span class="m-meta">registrada 15/07</span></div>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t">Opção C — igual à folha do Sr. João <span class="selo nova">proposta</span></div>
+  <div class="op-d">O mesmo desenho que você já aprovou na aba MNT: colunas-pergunta
+  ("Foi resolvida?" · "O que está errado?"), tempo parado em vermelho quando passa do limite.</div>
+  <div class="mini">
+    <div class="m-area">CÂMARA: LATICÍNIOS (F&amp;L)</div>
+    <table class="m-tab"><tr><th>Foi resolvida?</th><th>O que está errado?</th><th>Desde quando</th><th>Urgência</th></tr>
+    <tr><td>⬜</td><td>Eliminar o mofo do teto da câmara.</td><td>12/07 · <b style="color:#b42318">há 18 dias</b></td><td><span class="m-urg">URGENTE</span></td></tr>
+    <tr><td>⬜</td><td>Reorganizar as caixas do fundo.</td><td>15/07</td><td><span class="m-urg m-obs">OBSERVAÇÃO</span></td></tr></table>
+  </div>
+</div>
+
+<h2>Aba Manutenções e Elétrica (AUD-11)</h2>
+
+<div class="op">
+  <div class="op-t">Opção A — como é hoje <span class="selo hoje">atual</span></div>
+  <div class="op-d">Tabela de 9 colunas. Completa, mas aperta no celular.</div>
+  <div class="mini">
+    <table class="m-tab"><tr><th>Empresa</th><th>Área</th><th>Demanda</th><th>Ação</th><th>RT</th><th>Executor</th><th>Relato</th><th>Atualização</th><th>Status</th></tr>
+    <tr><td>AC</td><td>Cozinha</td><td>Trocar a lâmpada queimada.</td><td>—</td><td>Letícia</td><td>Matheus</td><td>10/07</td><td>22/07</td><td>Pendente</td></tr></table>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t">Opção B — folha por executor, igual à do Sr. João <span class="selo nova">proposta (a minha recomendação)</span></div>
+  <div class="op-d">Cada executor tem a sua folha: a do Matheus lista só a elétrica dele, agrupada
+  por piso → área, imprimível do mesmo jeito. As 9 colunas viram detalhes que abrem no lápis.
+  <b>Por quê:</b> é o desenho que já funcionou com o Sr. João — e a folha do Matheus (SJ-3) já vai nascer assim.</div>
+  <div class="mini">
+    <div class="m-area">2º PISO — COZINHA (UAN)</div>
+    <div class="m-linha"><span class="m-txt">⬜ Trocar a lâmpada queimada sobre a bancada.</span><span class="m-meta">10/07 · há 20 dias</span></div>
+    <div class="m-linha"><span class="m-txt">⬜ Reapertar a tomada solta da parede.</span><span class="m-meta">15/07</span></div>
+  </div>
+</div>
+
+<div class="como"><b>Como escolher:</b> me diga na conversa, por exemplo
+"NC na opção B e Manutenções na B". Dá para misturar e dá para pedir ajuste
+("a B sem foto"). Nada muda até você mandar.</div>
+</body>
+</html>

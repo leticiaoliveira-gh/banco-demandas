@@ -168,6 +168,14 @@ async function _syncMergeEnvelope(env){
    await metaSet("ncUrgencias",env.ncUrgencias);await metaSet("ncUrgenciasMod",NC_URG_MOD);
    if(window.renderNC)renderNC();changed=true;
  }else if(env&&modNC()>(env.ncUrgenciasMod||""))localAhead=true;
+ /* palavras-gatilho da urgência automática (AUD-12, 30/07) */
+ const modKW=()=>typeof NC_KW_MOD!=="undefined"?(NC_KW_MOD||""):"";
+ if(env&&env.ncPalavras&&(env.ncPalavrasMod||"")>modKW()&&typeof NC_KW_PADRAO!=="undefined"){
+   NC_KW=Object.assign(JSON.parse(JSON.stringify(NC_KW_PADRAO)),env.ncPalavras);
+   NC_KW_OVR=env.ncPalavras;NC_KW_MOD=env.ncPalavrasMod;
+   await metaSet("ncPalavras",env.ncPalavras);await metaSet("ncPalavrasMod",NC_KW_MOD);
+   changed=true;
+ }else if(env&&modKW()>(env.ncPalavrasMod||""))localAhead=true;
  /* executores (lista única para todas as empresas) */
  if(env&&Array.isArray(env.executores)&&(env.executoresMod||"")>(EXECUTORES_MOD||"")){
    EXECUTORES=env.executores;EXECUTORES_MOD=env.executoresMod;
