@@ -84,11 +84,38 @@ try {
 } catch { $doSite = $true }   # na dúvida, confere (barrar demais é melhor que publicar errado)
 
 if ($ver.Success -and $doSite) {
-  $raw   = [System.IO.File]::ReadAllText($appjs, [System.Text.Encoding]::UTF8)
+  # DEF-3, segunda tentativa (30/07) - desta vez do jeito certo.
+  # A primeira quebrou os acentos porque usava a codificacao do sistema.
+  # Agora: LE em UTF-8 explicito, GRAVA em UTF-8 sem BOM, e SO grava se uma
+  # PALAVRA ACENTUADA do arquivo sobreviver intacta ao ciclo le-escreve.
+  # Se o teste do acento falhar, ele NAO escreve e volta a so cobrar a data.
+  $utf8  = New-Object System.Text.UTF8Encoding $false
+  $raw   = [System.IO.File]::ReadAllText($appjs, $utf8)
   $mData = [regex]::Match($raw, 'APP_DATA\s*=\s*"([^"]*)"')
   $hoje  = (Get-Date).ToString('dd/MM/yyyy')
   if ($mData.Success -and -not $mData.Groups[1].Value.StartsWith($hoje)) {
-    $problemas += "o APP_DATA ainda diz '$($mData.Groups[1].Value)' mas hoje e $hoje - atualize a data no js/app.js, senao a capa mente a data para ela"
+    # (este script fica em ASCII puro: acento dentro do .ps1 quebra o proprio
+    #  PowerShell 5.1. Os caracteres acentuados sao construidos por codigo.)
+    $ponto     = [string][char]0x00B7                       # o simbolo do meio
+    $cedilha   = [string][char]0x00E7                       # c com cedilha
+    $atil      = [string][char]0x00E3                       # a com til
+    $quebrado  = [string][char]0x00C3 + [string][char]0x0083 # a dupla que denuncia acento quebrado
+    $carimbo   = $hoje + ' ' + $ponto + ' ' + (Get-Date).ToString('HH:mm')
+    $novo      = [regex]::Replace($raw, 'APP_DATA\s*=\s*"[^"]*"', 'APP_DATA="' + $carimbo + '"')
+    # prova do acento: o arquivo tem de continuar com cedilha/til vivos e sem a dupla quebrada
+    $provaOk   = ($novo.Contains($cedilha) -or $novo.Contains($atil)) -and (-not $novo.Contains($quebrado))
+    if ($provaOk) {
+      [System.IO.File]::WriteAllText($appjs, $novo, $utf8)
+      # rele o que gravou e confere de novo - so entao confia
+      $rele = [System.IO.File]::ReadAllText($appjs, $utf8)
+      if ($rele.Contains($quebrado) -or -not ($rele.Contains($cedilha) -or $rele.Contains($atil))) {
+        $problemas += "o carimbo automatico da data quebrou um acento ao regravar - NAO PUBLIQUE; restaure js/app.js do git"
+      } else {
+        Write-Output ("Data da publicacao carimbada sozinha (UTF-8 conferido): " + $carimbo)
+      }
+    } else {
+      $problemas += "o APP_DATA ainda diz '$($mData.Groups[1].Value)' mas hoje e $hoje - o carimbo automatico nao passou na prova do acento, atualize a mao"
+    }
   }
 }
 

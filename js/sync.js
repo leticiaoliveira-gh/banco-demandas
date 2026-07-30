@@ -256,6 +256,11 @@ async function syncPush(isRetry){
  }
  if(!r.ok)throw new Error("PUT "+r.status);
  const j=await r.json();syncSha=j.content&&j.content.sha||null;syncDirty=false;
+ /* NOT-2 (30/07): cada envio bem-sucedido À NUVEM é um backup de verdade —
+    o repositório guarda TODAS as versões e sobrevive a trocar de PC.
+    A capa passa a mostrar isso, em vez de fingir que só a pasta local conta.
+    (metaSet simples: é carimbo de relógio, não decisão dela.) */
+ await metaSet("lastCloudBackup",nowISO());
 }
 
 async function syncNow(){

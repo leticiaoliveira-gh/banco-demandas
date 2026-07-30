@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Modelos antigos da capa — Central de Demandas NP</title>
+<!-- NOT-3 (30/07): ela pediu para VER os modelos antigos de card sem quebrar
+     nada. Esta página é um MUSEU: só mostra, não mexe em dado nenhum e não
+     toca na capa de verdade. Para adotar um modelo antigo de volta, é pedir —
+     os comentários "PARA VOLTAR" no js/app.js dizem exatamente o que devolver. -->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#f7f7f5;color:#2d2e3a;padding:24px 16px 60px;max-width:720px;margin:0 auto;
+    font-size:14px;line-height:1.5}
+  a.volta{color:#1d6b57;font-weight:600;text-decoration:none}
+  h1{font-size:20px;color:#155244;margin:14px 0 4px}
+  .desc{color:#5c5d68;font-size:13px;margin-bottom:22px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:#1d6b57;
+    border-bottom:2px solid #1d6b57;padding-bottom:5px;margin:30px 0 6px}
+  .quando{font-size:12px;color:#5c5d68;margin-bottom:10px}
+  .selo{display:inline-block;font-size:10.5px;font-weight:700;border-radius:99px;
+    padding:2px 9px;margin-left:6px;vertical-align:2px;text-transform:uppercase;letter-spacing:.5px}
+  .selo.atual{background:#e8f5f0;color:#155244;border:1px solid #bfe0d4}
+  .selo.antigo{background:#f1f1f3;color:#5c5d68;border:1px solid #e2e3e7}
+  /* reprodução fiel do card de empresa (cores e medidas do site) */
+  .card{background:#fff;border:1px solid #e6e7ea;border-radius:12px;
+    padding:14px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .info{flex:1;min-width:150px}
+  .tit{font-weight:700;font-size:14.5px}
+  .sub{color:#6f707b;font-size:12.5px;margin-top:3px}
+  .urg{color:#b42318;font-weight:700}
+  .barra{height:6px;background:#eceded;border-radius:99px;margin-top:7px;max-width:220px;overflow:hidden}
+  .barra i{display:block;height:100%;background:#1d6b57;border-radius:99px}
+  .bt{border:1px solid #d7d8dd;background:#fff;border-radius:8px;min-height:38px;
+    padding:7px 12px;font-size:13px;color:#2d2e3a}
+  .bt.cheio{background:#1d6b57;border-color:#1d6b57;color:#fff;font-weight:600}
+  .chave{width:36px;height:20px;border-radius:20px;background:#2a9d8a;position:relative;flex:none}
+  .chave::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;
+    background:#fff;top:3px;right:3px}
+  .nota{background:#fffaeb;border:1px solid #fedf89;color:#93370d;border-radius:10px;
+    padding:10px 14px;font-size:12.5px;margin-top:26px}
+</style>
+</head>
+<body>
+<a class="volta" href="../index.html">← Voltar para o site</a>
+<h1>Modelos antigos da capa</h1>
+<p class="desc">Um museu: aqui você <b>só olha</b> — nada desta página mexe nos seus dados
+nem na capa de verdade. Se quiser algum modelo de volta, é só pedir na conversa.</p>
+
+<h2>Modelo de hoje <span class="selo atual">em uso</span></h2>
+<p class="quando">Desde 29/07/2026 (v9.25) — lápis e lixeira primeiro, chavinha colada no Iniciar, sem contagem no card.</p>
+<div class="card">
+  <div class="info">
+    <div class="tit">Arraial do Cabo — Super Fricarnes (AC)</div>
+    <div class="sub"><span class="urg">2 urgentes</span></div>
+  </div>
+  <button class="bt">✎</button>
+  <button class="bt">🗑</button>
+  <div class="chave" title="Ativa"></div>
+  <span class="sub">Ativa</span>
+  <button class="bt cheio">Iniciar →</button>
+</div>
+
+<h2>Modelo com contagem <span class="selo antigo">até 29/07</span></h2>
+<p class="quando">Tinha a linha "X pendentes · Y concluídos" e a barrinha de progresso.
+Você marcou de rosa na folha impressa = tirar. Os números continuam vivos nas etiquetas do topo e nos Indicadores.</p>
+<div class="card">
+  <div class="info">
+    <div class="tit">Arraial do Cabo — Super Fricarnes (AC)</div>
+    <div class="sub">121 pendentes · 14 concluídos · <span class="urg">2 urgentes</span></div>
+    <div class="barra"><i style="width:10%"></i></div>
+  </div>
+  <div class="chave" title="Ativa"></div>
+  <button class="bt cheio">Iniciar →</button>
+  <button class="bt">✎</button>
+  <button class="bt">🗑</button>
+</div>
+
+<h2>Modelo com botões no fim <span class="selo antigo">até 28/07</span></h2>
+<p class="quando">A chavinha ficava longe do Iniciar — você usava os dois juntos e a mão
+tinha que viajar. Por isso a ordem mudou.</p>
+<div class="card">
+  <div class="info">
+    <div class="tit">Cabo Frio — Super Fricarnes (CF)</div>
+    <div class="sub">86 pendentes · 9 concluídos</div>
+    <div class="barra"><i style="width:9%"></i></div>
+  </div>
+  <button class="bt cheio">Iniciar →</button>
+  <button class="bt">✎</button>
+  <button class="bt">🗑</button>
+  <div class="chave" title="Ativa"></div>
+</div>
+
+<div class="nota"><b>Como voltar a um modelo antigo:</b> peça na conversa ("quero o card
+com a contagem de volta"). O código guarda anotado exatamente o que devolver — é
+mudança de minutos e nenhum dado se perde.</div>
+</body>
+</html>

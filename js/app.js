@@ -762,6 +762,7 @@ async function renderHome(){
       onchange="capaMostrar('mostrarNumeros',this.checked)"> Faixa com os <b>números</b> (Quadro Geral, Urgentes, Manutenções, Inspeções)</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button class="btn ghost sm" title="A lista continua existindo e sincronizando — só saiu da capa" onclick="gerirPendencias()">📋 Pendências de configuração${pendAbertas.length?" ("+pendAbertas.length+")":""}</button>
+      <a class="btn ghost sm" href="modelos/" title="Museu dos desenhos antigos do card de empresa — só olhar, nada muda">🖼 Modelos antigos da capa</a>
       ${window.showDirectoryPicker&&!autoOk?`<button class="btn ghost sm" onclick="setupAutoBackup()"><span data-txt="capa.autoBackup">⚙ Ativar backup automático</span></button>`:""}
     </div>
     <button class="btn sm" style="margin-top:12px" onclick="toggleOrganizarCapa()">✓ Concluir</button>`;
@@ -769,8 +770,14 @@ async function renderHome(){
  /* backup compacto no topo da capa (ao lado do ⚙ Sincronização) —
     no CELULAR o bloco inteiro não aparece (ver ehCelular acima) */
  const noCel=ehCelular();
+ /* NOT-2 (30/07): a NUVEM é o backup que sobrevive a trocar de PC — o
+    repositório privado guarda todas as versões. O rótulo passa a contar isso.
+    O download local continua existindo; ele protege contra ficar sem internet. */
+ const lc=await metaGet("lastCloudBackup");
+ const nuvemOk=lc&&(Date.now()-new Date(lc).getTime())<36*3600e3;   /* enviado nas últimas 36h */
+ const nuvemTxt=lc?` · nuvem ${brDateTime(lc)} ✓`:"";
  const topB=document.getElementById("backup-top");
- if(topB)topB.innerHTML=noCel?"":`<span class="backup-top-lbl" title="Último backup">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}</span>${backupBtns}`;
+ if(topB)topB.innerHTML=noCel?"":`<span class="backup-top-lbl" title="Backup baixado: o arquivo que você guarda. Nuvem: o repositório privado, que guarda todas as versões e sobrevive a trocar de computador.">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}${nuvemTxt}</span>${backupBtns}`;
  /* Lembrete de backup SILENCIADO (23/07, pedido dela: "parar de pedir").
     Não aparece: com backup automático ativo, com backup recente (<14 dias),
     em dispositivo temporário (PC do trabalho — nada fica lá mesmo) ou sem dados.
@@ -778,7 +785,7 @@ async function renderHome(){
  const dias=lb?Math.floor((Date.now()-new Date(lb).getTime())/864e5):null;
  const tempSync=(typeof syncIsTemporario==="function")&&syncIsTemporario();
  document.getElementById("backup-banner").innerHTML=
-   (vivos.length&&!noCel&&!autoOk&&!tempSync&&(dias===null||dias>=14))?
+   (vivos.length&&!noCel&&!autoOk&&!nuvemOk&&!tempSync&&(dias===null||dias>=14))?
    `<div style="font-size:12.5px;margin:0 0 16px;opacity:.75">${lb?("Último backup há "+dias+" dias"):"Nenhum backup feito neste navegador"} · <span class="back-link" onclick="exportExcel()">baixar agora</span></div>`:"";
  let html="";
  /* busca, filtro e ordenação das empresas (capa) */
@@ -1527,11 +1534,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.36";
+const APP_VERSAO="9.37";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="30/07/2026 · 14:40";
+const APP_DATA="30/07/2026 · 13:57";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
