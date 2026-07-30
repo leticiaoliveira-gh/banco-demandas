@@ -68,7 +68,22 @@ if ($maisNovo) {
 # Se um dia o carimbo automático voltar, tem de ler e gravar em UTF-8 explícito
 # e ser testado com uma palavra acentuada ANTES de publicar.
 # Por ora o APP_DATA é conferido abaixo, e quem o atualiza é quem publica.
-if ($ver.Success) {
+# SÓ COBRAR A DATA QUANDO O SITE REALMENTE MUDOU (30/07)
+# Antes ele cobrava sempre. Resultado: um commit que só mexe em documento — ou
+# um commit em OUTRA pasta, porque o gancho vale para o computador todo — ficava
+# barrado por causa de uma data que não tinha por que mudar. Agora ele olha o que
+# está indo no commit: se nenhum arquivo do site entrou, não há o que conferir.
+$doSite = $false
+try {
+  $staged = & git -C $proj diff --cached --name-only 2>$null
+  if ($LASTEXITCODE -eq 0 -and $staged) {
+    $doSite = @($staged | Where-Object {
+      $_ -match '^(index\.html|sw\.js|manifest\.json|status\.json|js/|css/|biblioteca/|catalogo/|icons/)'
+    }).Count -gt 0
+  }
+} catch { $doSite = $true }   # na dúvida, confere (barrar demais é melhor que publicar errado)
+
+if ($ver.Success -and $doSite) {
   $raw   = [System.IO.File]::ReadAllText($appjs, [System.Text.Encoding]::UTF8)
   $mData = [regex]::Match($raw, 'APP_DATA\s*=\s*"([^"]*)"')
   $hoje  = (Get-Date).ToString('dd/MM/yyyy')

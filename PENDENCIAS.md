@@ -77,7 +77,7 @@ porque publicar é pedido dela.
 | ~~DEF-5~~ | ✅ feito em v9.27 |
 | ~~DEF-7~~ | ✅ feito em v9.27 |
 | ~~DEF-8~~ | ✅ feito em v9.27 |
-| **DEF-4 / SB-7** | A biblioteca de design **só existe neste computador** — subir para repositório privado |
+| ~~DEF-4 / SB-7~~ | ✅ feito em 30/07. A biblioteca virou o repositório **privado** `leticiaoliveira-gh/biblioteca-design` (13 arquivos: as 16 peças, os 8 gráficos, a paleta validada e os checklists). Se este computador morrer, o desenho do site não morre junto |
 | **AR-2** | Áreas nascerem junto com a empresa (`addEmpresa` só grava nome e sigla) |
 | **AR-4/5** | Padrão de nome das câmaras · padronização dos 622 textos e mover item de aba errada |
 | **NOT-2/3** | Backup automático que sobrevive a trocar de PC · página com os modelos antigos de card |
