@@ -21,7 +21,7 @@ STATUS_FNS.mnt28={isPend:d=>!d.feito,isDone:d=>!!d.feito};
 TABS.mnt28.renderCards=function(){const c=document.getElementById("cards");if(c)c.innerHTML="";};
 
 /* filtros da tela (só vivem enquanto ela está na aba) */
-let M28F={q:"",piso:"",area:"",ver:"todos"};
+let M28F={q:"",piso:"",area:"",ver:"todos",fechadas:{}};
 
 /* ---- itens desta aba, da empresa aberta ---- */
 function m28Itens(){
@@ -38,12 +38,15 @@ let M28_ORDEM=null,M28_CAB=null;
    Estes são os textos fixos da folha — título, colunas, rótulos. Cada um pode
    ser trocado pelo painel de configuração, sem código. O que ela não trocou
    usa o padrão; apagar o campo volta ao padrão. */
+/* 30/07 — padrões trocados pela folha anotada dela (Folha 1):
+   título por extenso, colunas "Feito? | Demanda | Data Registro | Observações".
+   Continua tudo editável pelo ✎ — isto é só o novo ponto de partida. */
 const M28_TXT_PADRAO={
   etiqueta:"Relatório de manutenção",
-  tituloPrefixo:"Relatório MNT — Mês:",
+  tituloPrefixo:"Manutenção e Infraestrutura —",
   rotExec:"Responsável pelos serviços",
-  colFeito:"Foi feito?",colFazer:"O que fazer?",
-  colData:"Data registro",colObs:"Recado · lembrete",colObsImp:"Recado",
+  colFeito:"Feito?",colFazer:"Demanda",
+  colData:"Data Registro",colObs:"Observações · lembrete",colObsImp:"Observações",
   rotUnidade:"Unidade",rotEmitido:"Emitido em"};
 let M28_TXT=null,M28_VIS=null;
 function m28T(){return M28_TXT||M28_TXT_PADRAO;}
@@ -229,8 +232,6 @@ async function renderMnt28(){
           <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar esta etiqueta e os outros textos da folha" aria-label="Trocar esta etiqueta e os outros textos da folha">✎</button></div>
         <h1>${esc(m28Titulo(c))}
           <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar o título e os outros textos da folha" aria-label="Trocar o título e os outros textos da folha">✎</button></h1>
-        ${exec?`<div class="m28-exec"><span>${esc(m28T().rotExec)}</span>${esc(exec)}
-          <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">✎</button></div>`:""}
       </div>
       ${/* 29/07: a informação de nutricionista aparecia DUAS VEZES — uma dentro do
             nome (o texto livre que ela digitou nos "seus dados") e outra na linha de
@@ -244,6 +245,9 @@ async function renderMnt28(){
       </div>
     </div>
     <div class="m28-capa-linha">
+      ${/* Folha 1 dela: o responsável saiu de baixo do título e veio para esta linha */""}
+      ${exec?`<div class="m28-capa-i"><span class="rot">${esc(m28T().rotExec)}</span><span class="val">${esc(exec)}</span>
+        <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">✎</button></div>`:""}
       <div class="m28-capa-i"><span class="rot">${esc(m28T().rotUnidade)}</span><span class="val">${esc(loja)}</span></div>
       <div class="m28-capa-i"><span class="rot">${esc(m28T().rotEmitido)}</span><span class="val">${brDate(c.emitidoEm||today())}</span>
         <button class="m28-lapis" onclick="m28TrocarEmissao()" title="Trocar a data de emissão" aria-label="Trocar a data de emissão">✎</button></div>
@@ -255,11 +259,14 @@ async function renderMnt28(){
       <div class="bd-kpi-num${classe?" "+classe:""}">${valor}</div>
       <div class="bd-kpi-var"><span class="bd-kpi-obs">${esc(obs)}</span></div>
     </div>`;
+  /* Folha 1 dela: o card "Pisos" saiu e entrou o card URGENTES — com a palavra,
+     porque cor sozinha nunca diz nada. Urgente é o que ELA marcar no lápis. */
+  const urgentes=itens.filter(d=>d.urg&&!d.feito).length;
   const numeros=`<div class="bd-kpis m28-nums">
     ${kpi("Serviços",total,"em "+areas.length+(areas.length===1?" área":" áreas"))}
     ${kpi("A fazer",total-feitos,(total?Math.round((total-feitos)/total*100):0)+"% do total","m28-pend")}
     ${kpi("Feitos",feitos,"marcados por você","m28-ok")}
-    ${kpi("Pisos",pisos.length,pisos.join(" e ")||"—")}
+    ${kpi("Urgentes",urgentes,urgentes?"destacados para o executor":"nenhum marcado","m28-urg")}
   </div>`;
 
   const nVer=m28QtdVerificar();
@@ -321,9 +328,20 @@ function m28RenderLista(){
       html+=`<div class="m28-piso">${esc(piso||"Sem piso")}<span class="m28-count">${nPiso[d.piso]} ${nPiso[d.piso]===1?"serviço":"serviços"}</span></div>`;}
     if(d.area!==area){area=d.area;const k=d.piso+"|"+d.area;
       const f=fArea[k]||0,n=nArea[k];
-      html+=`<div class="m28-area" data-piso="${esc(d.piso)}" data-area="${esc(area)}"><span class="m28-area-nome">${esc(area)}</span>`
+      const fechada=!!M28F.fechadas[k];
+      /* Folha 2 dela: cada área pode FECHAR, igual ao Notion — a setinha gira e
+         os serviços somem até abrir de novo. Só arruma a vista: nada se apaga. */
+      html+=`<div class="m28-area${fechada?" fechada":""}" data-piso="${esc(d.piso)}" data-area="${esc(area)}">`
+        +`<button class="m28-abrefecha" onclick="m28AbreFecha('${esc(k).replace(/'/g,"\'")}')"
+            aria-expanded="${fechada?"false":"true"}" title="${fechada?"Abrir esta área":"Fechar esta área"}"
+            aria-label="${fechada?"Abrir":"Fechar"} a área ${esc(area)}">${fechada?"›":"⌄"}</button>`
+        +`<span class="m28-area-nome">${esc(area)}</span>`
+        +`<button class="m28-lapis m28-lapis-area" onclick="m28RenomearArea('${esc(d.piso).replace(/'/g,"\'")}','${esc(area).replace(/'/g,"\'")}')"
+            title="Renomear esta área (vale para a folha inteira)" aria-label="Renomear a área ${esc(area)}">✎</button>`
         +`<span class="m28-count">${f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")}</span>`
-        +`<div class="m28-tab-cab"><span>${esc(m28T().colFeito)}</span><span>${esc(m28T().colFazer)}</span><span>${esc(m28T().colData)}</span><span>${esc(m28T().colObs)}</span></div></div>`;}
+        +(fechada?"":`<div class="m28-tab-cab"><span>${esc(m28T().colFeito)}</span><span>${esc(m28T().colFazer)}</span><span>${esc(m28T().colData)}</span><span>${esc(m28T().colObs)}</span></div>`)
+        +`</div>`;}
+    if(M28F.fechadas[d.piso+"|"+d.area])continue;
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
@@ -332,7 +350,7 @@ function m28RenderLista(){
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
-      <div class="m28-fazer">${esc(d.fazer||"")}
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(d.fazer||"")}
         ${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
         ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
@@ -343,6 +361,8 @@ function m28RenderLista(){
       <div class="m28-obs">${d.obs?m28Texto(d.obs):(d.nota?"":'<span class="m28-vaziotxt">—</span>')}
         ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
       <div class="m28-acts">
+        <button class="btn ghost sm" onclick="m28ParaQualidade(${d.id})" aria-label="Transferir para o relatório de Qualidade"
+          title="Transferir: sai desta folha e vira uma Não Conformidade no relatório de Qualidade">⇄</button>
         <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;
@@ -495,6 +515,10 @@ function m28FormHTML(d){
       </div>
     </div>
     <div class="bd-grupo">
+      <label class="m28-urgchk"><input type="checkbox" id="m28f-urg" ${d.urg?"checked":""}>
+        <span class="m28-urgselo">Urgente</span> destacar este serviço para o executor</label>
+    </div>
+    <div class="bd-grupo">
       <span class="bd-rotulo">Fotos</span>
       <div class="m28-thumbs">${fotos}
         <label class="m28-addfoto" title="Acrescentar foto deste serviço" tabindex="0"
@@ -526,9 +550,10 @@ async function m28Salvar(id){
   d.piso=document.getElementById("m28f-piso").value;
   d.area=document.getElementById("m28f-area").value;
   d.dataRegistro=document.getElementById("m28f-data").value||"";
+  d.urg=!!document.getElementById("m28f-urg")?.checked;
   d.mod=nowISO();
   await putItem(d);dataChanged();
-  M28_EDITANDO=null;m28RenderLista();toast("Serviço atualizado ✓");
+  M28_EDITANDO=null;m28AtualizarTopo();m28RenderLista();toast("Serviço atualizado ✓");
 }
 async function m28PorFoto(ev,id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
@@ -580,6 +605,9 @@ function m28AtualizarTopo(){
     nums[1].querySelector(".bd-kpi-num").textContent=total-feitos;
     nums[1].querySelector(".bd-kpi-obs").textContent=(total?Math.round((total-feitos)/total*100):0)+"% do total";
     nums[2].querySelector(".bd-kpi-num").textContent=feitos;
+    if(nums[3]){const u=itens.filter(d=>d.urg&&!d.feito).length;
+      nums[3].querySelector(".bd-kpi-num").textContent=u;
+      nums[3].querySelector(".bd-kpi-obs").textContent=u?"destacados para o executor":"nenhum marcado";}
   }
 }
 
@@ -620,8 +648,8 @@ function m28Imprimir(){
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
-    blocos+=`<div class="bl li"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
-      +`<span class="f">${esc(d.fazer||"")}</span><span class="q">${desde}</span>`
+    blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
+      +`<span class="f">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}</span><span class="q">${desde}</span>`
       +`<span class="o">${esc(d.obs||"")}</span></div>`;
   }
   const cabecalho=`<div class="capa">
@@ -641,7 +669,7 @@ function m28Imprimir(){
       <div class="num"><span>Serviços</span><b>${rows.length}</b></div>
       <div class="num"><span>A fazer</span><b>${rows.length-feitos}</b></div>
       <div class="num"><span>Feitos</span><b>${feitos}</b></div>
-      <div class="num"><span>Áreas</span><b>${nAreas}</b></div>
+      <div class="num"><span>Urgentes</span><b>${rows.filter(d=>d.urg&&!d.feito).length}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja;
 
@@ -651,7 +679,7 @@ function m28Imprimir(){
   @page{size:A4;margin:0}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    color:#344054;font-size:10.6px;line-height:1.42;background:#e9ebee}
+    color:#344054;font-size:12.4px;line-height:1.5;background:#e9ebee}
   .folha{width:210mm;height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
     position:relative;box-shadow:0 4px 18px rgba(16,24,40,.14);overflow:hidden}
   .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
@@ -679,19 +707,22 @@ function m28Imprimir(){
   h2{font-size:11.5px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
     border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:7px 0 2px}
   .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
-    border-left:3px solid #1d6b57;padding:4px 8px;margin-top:14px;font-size:10.6px;font-weight:700;
+    border-left:3px solid #1d6b57;padding:5px 9px;margin-top:14px;font-size:12px;font-weight:700;
     color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .ar b{font-weight:600;color:#667085;font-size:9px}
   .cab,.li{display:grid;grid-template-columns:46px 1fr 66px 18%;gap:8px;padding:4px 8px}
-  .cab{font-size:7.9px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;
+  .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;text-align:center;
     border-bottom:1px solid #eaecf0}
   .cab .c,.li .c{text-align:center}
-  .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:10.6px}
-  .li .o{color:#667085;font-size:9.6px}
-  .li .q{font-size:9.2px;color:#667085}
+  .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
+  .li .o{color:#667085;font-size:11.4px}
+  .li .q{font-size:10.8px;color:#667085}
   .li .q b{display:block;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
   .li .q i{font-style:normal;display:block;font-size:8.8px}
   .li .q i.grave{color:#b42318;font-weight:600}
+  .ug{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px}
+  .li.urgl .f{color:#1f2937}
+  .cab .f{text-align:left}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
   .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:space-between;
@@ -861,3 +892,54 @@ if(typeof CFG_ABAS!=="undefined")CFG_ABAS.mnt28=()=>[
    valor:()=>"10 textos",
    acao:()=>{cfgFechar();m28GerirTextos();}}
 ];
+
+/* =====================================================================
+   FOLHAS ANOTADAS DE 29/07 — abrir/fechar área, renomear área e a
+   transferência para o relatório de Qualidade (30/07)
+   ===================================================================== */
+/* Folha 2: a setinha da área — fecha e abre, igual ao Notion. Só arruma a
+   vista; nada é apagado. O estado vive só nesta visita à aba. */
+function m28AbreFecha(k){
+  M28F.fechadas[k]=!M28F.fechadas[k];
+  m28RenderLista();
+}
+/* Folha 3: "não consigo editar os nomes de cada área" — agora consegue, daqui
+   mesmo. Renomeia no CADASTRO da empresa e em TODOS os serviços da área de uma
+   vez (o vínculo é pelo nome). Tudo no mesmo passo do Ctrl+Z. */
+async function m28RenomearArea(piso,areaAtual){
+  const novo=prompt("Novo nome para a área "+areaAtual+" ("+piso+"):\n\nVale para a folha inteira e para o cadastro da empresa.",areaAtual);
+  if(novo===null)return;
+  const nome=novo.trim();
+  if(!nome||nome===areaAtual)return;
+  /* 1) cadastro da empresa (é a lista que todas as abas leem) */
+  if(typeof NC_AREAS!=="undefined"&&typeof ncSaveAreas==="function"){
+    const lista=(typeof AREAS_ALL!=="undefined"&&AREAS_ALL[currentStore])||[];
+    NC_AREAS[currentStore]=lista.map(a=>(a.nome===areaAtual&&(a.piso||"").trim()===(piso||"").trim())?{...a,nome}:a);
+    await ncSaveAreas(currentStore);
+  }
+  /* 2) todos os serviços desta folha que apontam para a área */
+  let n=0;
+  for(const d of m28Itens()){
+    if(d.area===areaAtual&&d.piso===piso){d.area=nome;d.mod=nowISO();await putItem(d);n++;}
+  }
+  dataChanged();renderMnt28();
+  toast("Área renomeada em "+n+(n===1?" serviço":" serviços")+" ✓");
+}
+/* Folha 1: o botão de mandar para a QUALIDADE — o serviço sai desta folha
+   (que é de obra e conserto) e vira uma Não Conformidade no relatório de
+   Qualidade, com a mesma área e a urgência acompanhando. Ctrl+Z desfaz os
+   dois lados, porque tudo passa por putItem. */
+async function m28ParaQualidade(id){
+  const d=DATA.find(x=>x.id===id);if(!d)return;
+  if(!confirm("Transferir para o relatório de Qualidade?\n\n"+(d.fazer||"")+"\n\nEle SAI desta folha e vira uma Não Conformidade lá."))return;
+  const nc={uid:newUid(),mod:nowISO(),tipo:"nc",loja:currentStore,
+    piso:d.piso,area:d.area,nc:d.fazer||"",acao:"",
+    urgencia:d.urg?"URGENTE":"OBSERVACAO",revisar:!d.urg,
+    rt:RT_INFO||RT_DEFAULT,executor:"",fotos:Array.isArray(d.fotos)?d.fotos.slice():[],
+    relato:d.dataRegistro||today(),atualizacao:today(),status:"Pendente",
+    criado:"transferido da folha MNT"};
+  const nid=await putItem(nc);nc.id=nid;DATA.push(nc);
+  d.deleted=true;d.mod=nowISO();await putItem(d);
+  dataChanged();m28AtualizarTopo();m28RenderLista();
+  toast("Transferido para a Qualidade ✓ (Ctrl+Z desfaz)");
+}
