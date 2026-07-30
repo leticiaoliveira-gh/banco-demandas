@@ -210,3 +210,13 @@
   .m28-form .bd-btn{min-height:44px;flex:1}
   .m28-thumb button{width:30px;height:30px;min-height:30px;top:-9px;right:-9px;font-size:16px}
 }
+
+/* ─────────── o topo do site NÃO se repete nesta aba (30/07, pedido dela) ───────────
+   A folha já tem a própria capa verde (título, responsável, RT, unidade, data).
+   O cabeçalho padrão do site mostrava OUTRO título em cima ("MNT 28.07.26" com a
+   linha de frases) — dois títulos, um em cima do outro. Ela pediu: o de cima sai.
+   Ficam só a volta ("← Capa"), o nome da loja e o botão ⚙ Configurações — a porta
+   de entrada e a de saída nunca somem. */
+body[data-aba="mnt28"] .head #appTitle,
+body[data-aba="mnt28"] .head #appSubtitle{display:none}
+body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}

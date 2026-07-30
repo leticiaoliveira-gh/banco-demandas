@@ -64,7 +64,7 @@ porque publicar é pedido dela.
 | **TEL-11** | ❓ **preciso dela:** o Telegram entrou na AUDITORIA como frente ("2 bots no ar, falta testar áudio e ronda") e nos passos do plano, mas **não sei o que exatamente ela mandou sobre Telegram** que não entrou em nenhum documento. Ela precisa reenviar ou dizer onde está |
 | ~~F-1~~ | ✅ feito em v9.27 |
 | ~~F-2~~ | ✅ feito em v9.27 |
-| **F-3** | Painel de configuração da aba MNT |
+| ~~F-3~~ | ✅ feito em v9.34. A aba MNT entrou no "⚙ Ver configurações" (a porta abria vazia — foi isso que ela viu no PC do trabalho em 30/07): nome, cargo/registro, responsável, data de emissão, **os 10 textos da folha** (título, colunas, rótulos — tela E impressão), esconder/mostrar painel de números e selos de origem. E o **título duplicado do topo saiu** da aba, por pedido dela — ficam "← Capa" e o ⚙ |
 | **F-4** | Folha sair em **Word e WhatsApp** |
 | **F-5** | Trazer ID e Anotações da planilha |
 | **F-7** | Refazer a frase do rodapé do salão |

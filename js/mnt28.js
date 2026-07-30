@@ -33,9 +33,25 @@ function m28Itens(){
    fora de ordem e o cabeçalho sem período e sem RT. Gravamos na primeira carga
    e a partir daí viaja na sincronização, como qualquer configuração dela. */
 let M28_ORDEM=null,M28_CAB=null;
+/* ===== F-3 · TODA PALAVRA DA FOLHA É DELA (30/07) =====
+   Ela pediu: "deixa eu editar absolutamente tudo e organizar do meu jeito".
+   Estes são os textos fixos da folha — título, colunas, rótulos. Cada um pode
+   ser trocado pelo painel de configuração, sem código. O que ela não trocou
+   usa o padrão; apagar o campo volta ao padrão. */
+const M28_TXT_PADRAO={
+  etiqueta:"Relatório de manutenção",
+  tituloPrefixo:"Relatório MNT — Mês:",
+  rotExec:"Responsável pelos serviços",
+  colFeito:"Foi feito?",colFazer:"O que fazer?",
+  colData:"Data registro",colObs:"Recado · lembrete",colObsImp:"Recado",
+  rotUnidade:"Unidade",rotEmitido:"Emitido em"};
+let M28_TXT=null,M28_VIS=null;
+function m28T(){return M28_TXT||M28_TXT_PADRAO;}
 async function m28Config(){
   if(M28_ORDEM===null)M28_ORDEM=await metaGet("mnt28Ordem")||{};
   if(M28_CAB===null)M28_CAB=await metaGet("mnt28Cabecalho")||{};
+  if(M28_TXT===null)M28_TXT=Object.assign({},M28_TXT_PADRAO,await metaGet("mnt28Textos")||{});
+  if(M28_VIS===null)M28_VIS=Object.assign({kpis:true,origem:true},await metaGet("mnt28Visual")||{});
 }
 function m28Ordem(){
   if(M28_ORDEM&&Object.keys(M28_ORDEM).length)return M28_ORDEM;
@@ -50,7 +66,7 @@ function m28Titulo(c){
   const iso=(c&&c.emitidoEm)||today();
   const m=Number(String(iso).split("-")[1])-1;
   const mes=M28_MESES[m]||"";
-  return "Relatório MNT — Mês: "+(mes?mes.toUpperCase():"—");
+  return m28T().tituloPrefixo+" "+(mes?mes.toUpperCase():"—");
 }
 /* ===== O NOME E A LINHA DE BAIXO — DELA, EDITÁVEIS (29/07) =====
    Antes o nome vinha do texto livre dos "seus dados" (que já trazia a palavra
@@ -192,7 +208,9 @@ async function renderMnt28(){
   const itens=m28Itens();
   const c=m28Cab(itens);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
-  const exec=(itens.find(d=>d.executor)||{}).executor||c.executor||"";
+  /* o executor que ELA gravou no cabeçalho vence o que veio na carga —
+     antes era ao contrário e a edição dela não aparecia (F-3) */
+  const exec=c.executor||(itens.find(d=>d.executor)||{}).executor||"";
   const total=itens.length,feitos=itens.filter(d=>d.feito).length;
   const areas=[...new Set(itens.map(d=>d.area))];
   const pisos=[...new Set(itens.map(d=>d.piso))]
@@ -205,9 +223,10 @@ async function renderMnt28(){
   const capa=`<div class="m28-capa">
     <div class="m28-capa-topo">
       <div>
-        <div class="m28-capa-et">Relatório de manutenção</div>
+        <div class="m28-capa-et">${esc(m28T().etiqueta)}</div>
         <h1>${esc(m28Titulo(c))}</h1>
-        ${exec?`<div class="m28-exec"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}
+        ${exec?`<div class="m28-exec"><span>${esc(m28T().rotExec)}</span>${esc(exec)}
+          <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">✎</button></div>`:""}
       </div>
       ${/* 29/07: a informação de nutricionista aparecia DUAS VEZES — uma dentro do
             nome (o texto livre que ela digitou nos "seus dados") e outra na linha de
@@ -221,8 +240,8 @@ async function renderMnt28(){
       </div>
     </div>
     <div class="m28-capa-linha">
-      <div class="m28-capa-i"><span class="rot">Unidade</span><span class="val">${esc(loja)}</span></div>
-      <div class="m28-capa-i"><span class="rot">Emitido em</span><span class="val">${brDate(c.emitidoEm||today())}</span>
+      <div class="m28-capa-i"><span class="rot">${esc(m28T().rotUnidade)}</span><span class="val">${esc(loja)}</span></div>
+      <div class="m28-capa-i"><span class="rot">${esc(m28T().rotEmitido)}</span><span class="val">${brDate(c.emitidoEm||today())}</span>
         <button class="m28-lapis" onclick="m28TrocarEmissao()" title="Trocar a data de emissão" aria-label="Trocar a data de emissão">✎</button></div>
     </div></div>`;
 
@@ -261,7 +280,7 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28Imprimir()" title="Abrir a folha pronta para imprimir ou salvar em PDF">🖨 Imprimir / PDF</button>
   </div>`;
 
-  el.innerHTML=capa+numeros+barra+'<div id="m28-lista"></div>';
+  el.innerHTML=capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+barra+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 
@@ -300,7 +319,7 @@ function m28RenderLista(){
       const f=fArea[k]||0,n=nArea[k];
       html+=`<div class="m28-area" data-piso="${esc(d.piso)}" data-area="${esc(area)}"><span class="m28-area-nome">${esc(area)}</span>`
         +`<span class="m28-count">${f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")}</span>`
-        +`<div class="m28-tab-cab"><span>Foi feito?</span><span>O que fazer?</span><span>Data registro</span><span>Recado · lembrete</span></div></div>`;}
+        +`<div class="m28-tab-cab"><span>${esc(m28T().colFeito)}</span><span>${esc(m28T().colFazer)}</span><span>${esc(m28T().colData)}</span><span>${esc(m28T().colObs)}</span></div></div>`;}
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
@@ -310,7 +329,7 @@ function m28RenderLista(){
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
       <div class="m28-fazer">${esc(d.fazer||"")}
-        ${d.origem?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
+        ${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
         ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
@@ -577,7 +596,7 @@ function m28Imprimir(){
 
   const c=m28Cab(rows);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
-  const exec=(rows.find(d=>d.executor)||{}).executor||c.executor||"";
+  const exec=c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const feitos=rows.filter(d=>d.feito).length;
   const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
@@ -590,10 +609,10 @@ function m28Imprimir(){
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;
       blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
-        +`<div class="bl cab"><span class="c">Foi feito?</span><span class="f">O que fazer?</span>`
+        +`<div class="bl cab"><span class="c">${esc(m28T().colFeito)}</span><span class="f">${esc(m28T().colFazer)}</span>`
         /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
            não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
-        +`<span class="q">Data registro</span><span class="o">Recado</span></div>`;}
+        +`<span class="q">${esc(m28T().colData)}</span><span class="o">${esc(m28T().colObsImp)}</span></div>`;}
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
@@ -602,17 +621,17 @@ function m28Imprimir(){
       +`<span class="o">${esc(d.obs||"")}</span></div>`;
   }
   const cabecalho=`<div class="capa">
-      <div><div class="et">Relatório de manutenção</div>
+      <div><div class="et">${esc(m28T().etiqueta)}</div>
         <h1>${esc(m28Titulo(c))}</h1>
-        ${exec?`<div class="ex"><span>Responsável pelos serviços</span>${esc(exec)}</div>`:""}</div>
+        ${exec?`<div class="ex"><span>${esc(m28T().rotExec)}</span>${esc(exec)}</div>`:""}</div>
       ${/* mesma correção da tela: nome em cima, UMA linha embaixo — sem repetir
            a informação de nutricionista, como estava saindo antes */""}
       <div class="rt"><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
-      <div class="un"><div><span>Unidade</span>${esc(loja)}</div>
+      <div class="un"><div><span>${esc(m28T().rotUnidade)}</span>${esc(loja)}</div>
         ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
-        <div><span>Emitido em</span>${brDate(c.emitidoEm||today())}</div></div>
+        <div><span>${esc(m28T().rotEmitido)}</span>${brDate(c.emitidoEm||today())}</div></div>
     </div>
     <div class="nums">
       <div class="num"><span>Serviços</span><b>${rows.length}</b></div>
@@ -741,3 +760,100 @@ function m28Imprimir(){
   s.textContent=PAGINADOR;
   doc.body.appendChild(s);
 }
+
+/* =====================================================================
+   F-3 · PAINEL DE CONFIGURAÇÃO DA ABA MNT (30/07)
+   ---------------------------------------------------------------------
+   Ela clicou em "Ver configurações" nesta aba (30/07, no PC do trabalho) e
+   a porta abriu vazia — a aba não estava cadastrada no painel. Agora está,
+   e por ele ela mexe em TUDO sem código: cabeçalho, textos das colunas,
+   o que aparece e o que se esconde. Tudo grava com metaSetU (desfazer pega)
+   e viaja na sincronização como qualquer configuração dela.
+   ===================================================================== */
+async function m28TrocarExecutor(){
+  await m28Config();
+  const atual=(M28_CAB&&M28_CAB.executor)||(m28Itens().find(d=>d.executor)||{}).executor||"";
+  const v=prompt("Quem é o responsável pelos serviços desta folha?",atual);
+  if(v===null)return;
+  M28_CAB=Object.assign({},M28_CAB||{},{executor:v.trim()});
+  await metaSetU("mnt28Cabecalho",M28_CAB);
+  dataChanged();renderMnt28();toast("Responsável atualizado ✓");
+}
+/* mostrar/esconder pedaços da tela (painel de números, selos de origem) */
+async function m28Alternar(chave){
+  await m28Config();
+  M28_VIS=Object.assign({},M28_VIS,{[chave]:M28_VIS[chave]===false});
+  await metaSetU("mnt28Visual",M28_VIS);
+  dataChanged();renderMnt28();
+  if(typeof cfgAbrir==="function")cfgAbrir();   /* reabre o painel no lugar */
+}
+/* a janelinha com TODOS os textos fixos da folha, cada um num campo */
+async function m28GerirTextos(){
+  await m28Config();
+  const ROTS={etiqueta:"Etiqueta pequena do topo",
+    tituloPrefixo:"Começo do título (o mês entra sozinho depois)",
+    rotExec:"Rótulo acima do responsável",
+    colFeito:"Coluna: feito",colFazer:"Coluna: o que fazer",
+    colData:"Coluna: data",colObs:"Coluna: observações (na tela)",
+    colObsImp:"Coluna: observações (na folha impressa)",
+    rotUnidade:"Rótulo: unidade",rotEmitido:"Rótulo: emitido em"};
+  const antigo=document.getElementById("m28-txcfg");if(antigo)antigo.remove();
+  let campos="";
+  for(const k in ROTS){
+    campos+=`<div class="bd-grupo"><label class="bd-rotulo" for="m28tx-${k}">${esc(ROTS[k])}</label>
+      <input class="bd-campo" id="m28tx-${k}" value="${esc(M28_TXT[k]||"")}"
+        placeholder="${esc(M28_TXT_PADRAO[k])}"></div>`;
+  }
+  const p=document.createElement("div");
+  p.id="m28-txcfg";p.className="cfg-painel";
+  p.innerHTML=`<div class="cfg-cx" onclick="event.stopPropagation()">
+    <div class="cfg-topo"><b>Textos da folha</b>
+      <button class="btn ghost sm" onclick="document.getElementById('m28-txcfg').remove()" aria-label="Fechar">✕</button></div>
+    <p class="desc" style="margin:4px 2px 10px">Troque qualquer palavra. Deixar um campo
+      vazio volta ao texto padrão (que aparece apagadinho dentro dele).</p>
+    ${campos}
+    <div class="m28-form-acoes" style="margin-top:12px">
+      <button class="bd-btn bd-btn-principal" onclick="m28SalvarTextos()">Salvar</button>
+      <button class="bd-btn bd-btn-fantasma" onclick="document.getElementById('m28-txcfg').remove()">Cancelar</button>
+    </div></div>`;
+  p.onclick=()=>p.remove();
+  document.body.appendChild(p);
+  const c=p.querySelector("input");if(c)c.focus();
+}
+async function m28SalvarTextos(){
+  const novo={};
+  for(const k in M28_TXT_PADRAO){
+    const el=document.getElementById("m28tx-"+k);if(!el)continue;
+    const v=el.value.trim();
+    if(v&&v!==M28_TXT_PADRAO[k])novo[k]=v;    /* só guarda o que difere do padrão */
+  }
+  await metaSetU("mnt28Textos",novo);
+  M28_TXT=Object.assign({},M28_TXT_PADRAO,novo);
+  const j=document.getElementById("m28-txcfg");if(j)j.remove();
+  dataChanged();renderMnt28();toast("Textos da folha atualizados ✓");
+}
+/* o cadastro no painel "Ver configurações" — a mesma porta das outras abas */
+if(typeof CFG_ABAS!=="undefined")CFG_ABAS.mnt28=()=>[
+  {gr:"layout",rot:"Painel de números",dica:"Os 4 cartões do topo (serviços, a fazer…)",
+   valor:()=>((M28_VIS||{}).kpis===false)?"Escondido":"Visível",acao:()=>m28Alternar("kpis")},
+  {gr:"layout",rot:"Selos de origem",dica:"As etiquetas VT 27/04, PPR… junto dos serviços",
+   valor:()=>((M28_VIS||{}).origem===false)?"Escondidos":"Visíveis",acao:()=>m28Alternar("origem")},
+  {gr:"filtrar",rot:"Filtrar",dica:"Busca, piso, área e o que mostrar",
+   valor:()=>cfgConta([M28F.q,M28F.piso,M28F.area,M28F.ver!=="todos"?M28F.ver:""]),
+   acao:()=>{cfgFechar();const q=document.getElementById("m28q");if(q)q.focus();}},
+  {gr:"outros",rot:"Seu nome",dica:"Como sai no alto da folha",
+   valor:()=>m28RtNome(M28_CAB||{}),
+   acao:()=>{cfgFechar();m28TrocarRt("nome");}},
+  {gr:"outros",rot:"Cargo e registro",dica:"A linha embaixo do nome",
+   valor:()=>{const l=m28RtLinha(M28_CAB||{});return l.length>24?l.slice(0,24)+"…":l;},
+   acao:()=>{cfgFechar();m28TrocarRt("linha");}},
+  {gr:"outros",rot:"Responsável pelos serviços",dica:"Quem executa esta folha",
+   valor:()=>(M28_CAB&&M28_CAB.executor)||(m28Itens().find(d=>d.executor)||{}).executor||"—",
+   acao:()=>{cfgFechar();m28TrocarExecutor();}},
+  {gr:"outros",rot:"Data de emissão",dica:"A data que sai na folha e dá o mês do título",
+   valor:()=>brDate((M28_CAB&&M28_CAB.emitidoEm)||today()),
+   acao:()=>{cfgFechar();m28TrocarEmissao();}},
+  {gr:"outros",rot:"Textos da folha",dica:"Título, colunas e rótulos — troque qualquer palavra",
+   valor:()=>"10 textos",
+   acao:()=>{cfgFechar();m28GerirTextos();}}
+];

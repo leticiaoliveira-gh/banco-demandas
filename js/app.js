@@ -1236,6 +1236,9 @@ async function addItem(e){e.preventDefault();
 function showTab(t){
  /* textos personalizados por ela valem em toda tela nova */
  setTimeout(aplicarTextos,0);
+ /* qual aba está aberta, visível para o CSS — é o que permite a aba MNT
+    esconder o título duplicado do topo sem afetar as outras (30/07) */
+ document.body.dataset.aba=t;
  const tab=TABS[t]||TABS.dg;
  currentTab=t;
  if(tab.tipo)currentTipo=tab.tipo;
@@ -1524,11 +1527,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.33";
+const APP_VERSAO="9.34";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="30/07/2026 · 09:15";
+const APP_DATA="30/07/2026 · 13:45";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
