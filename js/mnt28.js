@@ -223,8 +223,11 @@ async function renderMnt28(){
   const capa=`<div class="m28-capa">
     <div class="m28-capa-topo">
       <div>
+        ${/* o lápis fica NO título (30/07): ela toca na palavra que quer mudar,
+             não procura num menu. Abre a janelinha com todos os textos da folha. */""}
         <div class="m28-capa-et">${esc(m28T().etiqueta)}</div>
-        <h1>${esc(m28Titulo(c))}</h1>
+        <h1>${esc(m28Titulo(c))}
+          <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar o título e os outros textos da folha" aria-label="Trocar o título e os outros textos da folha">✎</button></h1>
         ${exec?`<div class="m28-exec"><span>${esc(m28T().rotExec)}</span>${esc(exec)}
           <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">✎</button></div>`:""}
       </div>
