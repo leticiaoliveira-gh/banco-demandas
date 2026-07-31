@@ -1353,6 +1353,24 @@ function download(name,content,type){const b=content instanceof Blob?content:new
 async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=await f.text();
  try{
   const parsed=JSON.parse(txt);
+  /* ===== ARQUIVO DE ATUALIZAÇÃO (30/07) =====
+     O Importar de sempre só ACRESCENTA: item com uid conhecido é pulado.
+     Isso impediu a recuperação do trabalho de 29/07 dela (que CONSOLIDOU
+     serviços: 44 viraram 21 — precisa atualizar texto e apagar os absorvidos).
+     Um arquivo marcado com atualizar:true entra pela mesma junção da
+     sincronização: por item, vence a edição mais nova; os absorvidos viajam
+     como lápide e somem em todos os aparelhos. */
+  if(parsed&&parsed.atualizar===true&&Array.isArray(parsed.itens)){
+    if(!confirm("Este é um ARQUIVO DE ATUALIZAÇÃO ("+parsed.itens.length+" itens).\n\n"
+      +"Ele atualiza itens existentes e aplica consolidações (as versões mais novas vencem).\n\n"
+      +(parsed.descricao?parsed.descricao+"\n\n":"")+"Aplicar agora?")){e.target.value="";return;}
+    if(typeof syncMergeEnvelope==="function"){
+      await syncMergeEnvelope(parsed);
+      fillLojaSelects();render();if(typeof renderDG==="function")renderDG();dataChanged();
+      toast("Atualização aplicada ✓ ("+parsed.itens.length+" itens)");
+    }else toast("A sincronização ainda não carregou — tente de novo em instantes.");
+    e.target.value="";return;
+  }
   /* aceita: array puro (backups antigos) OU envelope {versao, empresas, itens} */
   const arr=Array.isArray(parsed)?parsed:(parsed&&Array.isArray(parsed.itens)?parsed.itens:null);
   if(!arr)throw 0;
@@ -1561,7 +1579,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.39";
+const APP_VERSAO="9.40";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
