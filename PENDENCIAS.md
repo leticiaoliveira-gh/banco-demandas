@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 30/07/2026 (v9.39) · este arquivo é a memória entre conversas
+### atualizado em 31/07/2026 (v9.42) · este arquivo é a memória entre conversas
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -60,6 +60,15 @@ em vermelho) e **Manutenções na opção B** (folha por executor — casa com S
 folha do Matheus). Ver `modelos/layouts.html`.
 
 Fotos do mercado (Folha 2): ela vai reunir e mandar; inserir nos relatórios.
+
+### Anotações dela no Notion (31/07, guardadas a pedido) — códigos novos
+
+| Cód | O que |
+|---|---|
+| **DOC-9** | Reenviar os **3 arquivos atualizados**: AUDITORIA · PLANO REESTRUTURADO · PROMPT PARA A CONVERSA NOVA (caixinha dela no Notion segue desmarcada) |
+| **SINC-1** | **Sincronização de pendências 1**: plano + as anotações da aba do Notion dela — revisar e unificar ("me ajudar a não me perder mais") |
+| **SINC-2** | **Sincronização de pendências 2**: plano + o grupo do site no **WhatsApp** — revisar e incluir no plano |
+| **FT-1** | Ela transferiu coisas de **ficha técnica** para o grupo do site → criar a **Ficha Técnica própria** (projeto separado do site) |
 
 ## 🔴 EM ABERTO — na ordem em que uma destrava a outra
 
