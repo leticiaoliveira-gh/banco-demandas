@@ -68,7 +68,6 @@ Fotos do mercado (Folha 2): ela vai reunir e mandar; inserir nos relatórios.
 | **DOC-9** | Reenviar os **3 arquivos atualizados**: AUDITORIA · PLANO REESTRUTURADO · PROMPT PARA A CONVERSA NOVA (caixinha dela no Notion segue desmarcada) |
 | **SINC-1** | **Sincronização de pendências 1**: plano + as anotações da aba do Notion dela — revisar e unificar ("me ajudar a não me perder mais") |
 | **SINC-2** | **Sincronização de pendências 2**: plano + o grupo do site no **WhatsApp** — revisar e incluir no plano |
-| **FT-1** | Ela transferiu coisas de **ficha técnica** para o grupo do site → criar a **Ficha Técnica própria** (projeto separado do site) |
 
 ## 🔴 EM ABERTO — na ordem em que uma destrava a outra
 
