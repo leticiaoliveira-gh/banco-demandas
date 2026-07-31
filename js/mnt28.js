@@ -284,6 +284,7 @@ async function renderMnt28(){
       <option value="todos"${M28F.ver==="todos"?" selected":""}>Todos</option>
       <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Só o que falta</option>
       <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Só os feitos</option>
+      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>🔒 Só com o meu lembrete</option>
     </select>
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
@@ -305,6 +306,7 @@ function m28RenderLista(){
     if(M28F.area&&d.area!==M28F.area)return false;
     if(M28F.ver==="fazer"&&d.feito)return false;
     if(M28F.ver==="feitos"&&!d.feito)return false;
+    if(M28F.ver==="lembretes"&&!(d.nota||"").trim())return false;   /* o "só pra mim" à vista, sempre */
     if(q&&!((d.fazer||"")+" "+(d.obs||"")+" "+(d.nota||"")+" "+(d.area||"")+" "+(d.piso||"")).toLowerCase().includes(q))return false;
     return true;});
 
