@@ -40,11 +40,9 @@ porque publicar é pedido dela.
 ---
 
 
-## 🟠 APROVADO POR ELA EM 30/07 — aplicar LOGO APÓS a recuperação da tarde de 29/07
+## 🟠 APROVADO EM 30/07 — ✅ APLICADO em 31/07 (recuperação concluída)
 
-> Renomear área mexe em todos os serviços da área (1º piso!) e atropelaria o que
-> está preso no PC do trabalho. Por isso espera. **Ela também não deve usar o
-> lápis de renomear nas áreas do 1º piso até lá.**
+> **Recuperação de 29/07 CONCLUÍDA em 31/07**: folha impressa reconstruída (21+2 VERIFICAR devolvidos), renomes aplicados por arquivo de atualização. Lição gravada: item com VERIFICAR é intocável em consolidação.
 
 | O que | Decidido |
 |---|---|
