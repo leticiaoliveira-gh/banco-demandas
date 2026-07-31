@@ -13,21 +13,21 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=103">
+<link rel="stylesheet" href="css/app.css?v=104">
 <!-- POLIMENTO: camada de acabamento (contraste, foco de teclado, sombras
      padronizadas, alvo de toque no celular). Só acabamento — não muda layout.
      PARA DESFAZER TUDO: apague só esta linha de baixo. -->
-<link rel="stylesheet" href="css/polimento.css?v=103">
+<link rel="stylesheet" href="css/polimento.css?v=104">
 <!-- APARÊNCIA (escolhas dela de 25/07): capa em "painel de vidro" no computador
      e "modo loja" no celular · cartões dos quadros em modo caderno · alvos de
      toque de 44px. PARA VOLTAR AO DE ANTES: apague só esta linha de baixo. -->
 <!-- PEÇAS PRONTAS da biblioteca de design (classes bd-*). É daqui que sai todo
      visual novo — nada é construído do zero. Catálogo em /catalogo/ -->
-<link rel="stylesheet" href="biblioteca/pecas.css?v=103">
-<link rel="stylesheet" href="biblioteca/graficos.css?v=103">
-<link rel="stylesheet" href="css/aparencia.css?v=103">
+<link rel="stylesheet" href="biblioteca/pecas.css?v=104">
+<link rel="stylesheet" href="biblioteca/graficos.css?v=104">
+<link rel="stylesheet" href="css/aparencia.css?v=104">
 <!-- MNT 28.07.26: cabeçalho do relatório e lista agrupada por piso → área -->
-<link rel="stylesheet" href="css/mnt28.css?v=103">
+<link rel="stylesheet" href="css/mnt28.css?v=104">
 </head>
 <body>
 <div class="app">
@@ -160,7 +160,9 @@
             <button onclick="fecharMenuMais();exportExcel()"><span data-txt="menu.exportar">⬇ Exportar para Excel</span></button>
             <button onclick="fecharMenuMais();pdfDeTodasAsAbas()" title="Um PDF com uma página para cada quadro do site"><span data-txt="menu.pdfAbas">📄 PDF de todos os quadros</span></button>
             <button onclick="fecharMenuMais();abrirArquivo()" title="Excel, CSV, Word, PDF de texto, imagem"><span data-txt="menu.trazer">📎 Trazer arquivo (Excel, Word, PDF...)</span></button>
-            <button onclick="fecharMenuMais();document.getElementById('importFile').click()" title="Aceita só o arquivo .json de backup deste site"><span data-txt="menu.restaurar">⬆ Restaurar backup (.json)</span></button>
+            <!-- 31/07, pedido dela: o nome tem de ser o MESMO que aparece nas
+                 conversas ("Importar"), nunca um nome diferente por tela. -->
+            <button onclick="fecharMenuMais();document.getElementById('importFile').click()" title="Aceita os arquivos .json deste site: backup e arquivos de atualização"><span data-txt="menu.restaurar">⬆ Importar arquivo (.json)</span></button>
             <button onclick="fecharMenuMais();showTab('add')"><span data-txt="menu.cadastrar">＋ Cadastrar item manualmente</span></button>
             <div class="menu-sep"></div>
             <button onclick="fecharMenuMais();ckMinhaAssinatura()" title="Desenhe uma vez; entra sozinha nas inspeções"><span data-txt="menu.assinatura">✍ Minha assinatura</span></button>
@@ -292,26 +294,26 @@
   </div>
 </div>
 
-<script src="js/app.js?v=103"></script>
-<script src="js/docxlite.js?v=103"></script>
-<script src="js/dg.js?v=103"></script>
-<script src="js/pdflite.js?v=103"></script>
-<script src="js/ck.js?v=103"></script>
-<script src="js/ck-modelo2.js?v=103"></script>
-<script src="js/arquivos.js?v=103"></script>
-<script src="js/cronometro.js?v=103"></script>
-<script src="js/pdf-abas.js?v=103"></script>
-<script src="js/configs.js?v=103"></script>
-<script src="js/nc.js?v=103"></script>
-<script src="js/ck-qualidade.js?v=103"></script>
-<script src="js/ppr.js?v=103"></script>
-<script src="js/ind.js?v=103"></script>
+<script src="js/app.js?v=104"></script>
+<script src="js/docxlite.js?v=104"></script>
+<script src="js/dg.js?v=104"></script>
+<script src="js/pdflite.js?v=104"></script>
+<script src="js/ck.js?v=104"></script>
+<script src="js/ck-modelo2.js?v=104"></script>
+<script src="js/arquivos.js?v=104"></script>
+<script src="js/cronometro.js?v=104"></script>
+<script src="js/pdf-abas.js?v=104"></script>
+<script src="js/configs.js?v=104"></script>
+<script src="js/nc.js?v=104"></script>
+<script src="js/ck-qualidade.js?v=104"></script>
+<script src="js/ppr.js?v=104"></script>
+<script src="js/ind.js?v=104"></script>
 <!-- CARGA DA ABA MNT 28.07.26 — dados reais da loja, por isso mora FORA do
      repositório público (a pasta dados/ está no .gitignore). No site publicado
      este arquivo não existe e o navegador simplesmente ignora a linha: os itens
      já chegaram pela sincronização. Sem ?v= de propósito — não entra no sw.js. -->
 <script src="dados/mnt28-carga.js"></script>
-<script src="js/mnt28.js?v=103"></script>
-<script src="js/sync.js?v=103"></script>
+<script src="js/mnt28.js?v=104"></script>
+<script src="js/sync.js?v=104"></script>
 </body>
 </html>
