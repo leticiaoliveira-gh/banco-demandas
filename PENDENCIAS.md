@@ -69,6 +69,16 @@ Fotos do mercado (Folha 2): ela vai reunir e mandar; inserir nos relatórios.
 | **SINC-1** | **Sincronização de pendências 1**: plano + as anotações da aba do Notion dela — revisar e unificar ("me ajudar a não me perder mais") |
 | **SINC-2** | **Sincronização de pendências 2**: plano + o grupo do site no **WhatsApp** — revisar e incluir no plano |
 
+### 🔍 Achados da varredura de 31/07 (Penúltima → SITE 28.07 → SITE 29.07)
+
+| Cód | O que |
+|---|---|
+| **AUD-23** | **A cor dos botões da barra** — decisão dela, estava no plano de 29/07 e tinha caído |
+| **AUD-24** | Conferir se o "Quadro Geral estilo Notion" (checklists DENTRO das demandas, categorias urgente/alta/média/baixa) já está atendido ou ficou pela metade |
+| 📌 | **AR-1 já tem ferramenta pronta**: o documento editável das 95 áreas/622 textos (entregue em 28/07, com mover-de-aba e campo de destino) — ela ainda não devolveu as decisões |
+| 📌 | O Word "PLANO PARA O MAPA MENTAL (29-07)" e a regeração interrompida na SITE 29.07 estão **obsoletos** — vale o **PLANO NOVO (31-07)** |
+| 📌 | Existe um **prompt do "chat de orientações"** (3º chat, só aconselha) no OneDrive → ARRAIAL - Planilhas (28-07-26) |
+
 ## 🔴 EM ABERTO — na ordem em que uma destrava a outra
 
 ### Decisões dela (em clique, em lote)
