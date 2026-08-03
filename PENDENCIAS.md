@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 03/08/2026 (v9.44) · este arquivo é a memória entre conversas
+### atualizado em 03/08/2026 (v9.45) · este arquivo é a memória entre conversas
 
 ---
 

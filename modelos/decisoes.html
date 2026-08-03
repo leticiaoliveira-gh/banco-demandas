@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1d6b57">
+<title>Suas decisões — tudo desenhado, é só escolher</title>
+<!-- 03/08: cada decisão pendente com o CONTEÚDO na frente dela e as opções
+     desenhadas. Pedido dela: "já vem com a proposta certa pra minha
+     visualização e não fica enrolando". Página-museu: sem JavaScript,
+     não toca em dado nenhum. -->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#f7f7f5;color:#2d2e3a;padding:24px 16px 60px;max-width:900px;margin:0 auto;
+    font-size:14px;line-height:1.5}
+  a.volta{color:#1d6b57;font-weight:600;text-decoration:none;display:inline-block;
+    padding:12px 8px;line-height:20px;touch-action:manipulation}
+  a.volta:focus-visible{outline:2px solid #1d6b57;outline-offset:3px;border-radius:4px}
+  h1{font-size:21px;color:#155244;margin:16px 0 4px;text-wrap:balance}
+  .desc{color:#5c5d68;font-size:13px;margin-bottom:12px}
+  .indice{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+  .indice a{display:inline-block;padding:12px 16px;border-radius:99px;text-decoration:none;
+    background:#fff;border:1px solid #bfe0d4;color:#155244;font-weight:600;font-size:12.5px;
+    line-height:20px;touch-action:manipulation}
+  .indice a:hover{background:#e8f5f0}
+  .indice a:focus-visible{outline:2px solid #1d6b57;outline-offset:3px}
+  h2{font-size:16px;color:#155244;margin:40px 0 4px;border-bottom:2px solid #1d6b57;
+    padding-bottom:8px;text-wrap:balance;scroll-margin-top:16px}
+  .cod{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.5px;
+    background:#155244;color:#fff;border-radius:99px;padding:2px 9px;margin-right:8px;vertical-align:2px}
+  .pergunta{color:#5c5d68;font-size:13px;margin:10px 0 14px;line-height:1.65}
+  .cx{background:#fff;border:1px solid #e6e7ea;border-radius:12px;padding:14px 16px;margin-bottom:12px;
+    box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .cx-t{font-weight:600;font-size:13.5px;color:#155244;margin-bottom:8px}
+  .op{border:1px solid #e6e7ea;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff}
+  .op.voto{border:2px solid #1d6b57;background:#f7fbf9}
+  .op-t{font-weight:600;font-size:13.5px;margin-bottom:4px;color:#2d2e3a}
+  .selo-voto{display:inline-block;background:#e8f5f0;color:#155244;font-size:10.5px;font-weight:700;
+    padding:2px 9px;border-radius:99px;margin-left:6px;vertical-align:1px}
+  .op-d{font-size:12.5px;color:#5c5d68;line-height:1.6}
+  .item{padding:9px 0;border-bottom:1px solid #f0f0f2;font-size:13px}
+  .item:last-child{border-bottom:0}
+  .item .meta{display:block;font-size:11.5px;color:#5c5d68;margin-top:3px}
+  .area{background:#e8f5f0;border-left:3px solid #1d6b57;color:#155244;font-weight:700;
+    padding:4px 9px;border-radius:0 6px 6px 0;margin:10px 0 4px;font-size:11.5px}
+  .sel{display:inline-block;font-size:10.5px;font-weight:700;border-radius:99px;padding:1px 8px;white-space:nowrap}
+  .sel.ex{background:#fee4e2;color:#912018;border:1px solid #fda29b}
+  .sel.re{background:#fffaeb;color:#93370d;border:1px solid #fedf89}
+  .sel.di{background:#e7f0f9;color:#0c447c;border:1px solid #b5d4f4}
+  .norma{font-size:11.5px;font-weight:600}
+  .norma.ex{color:#b42318}.norma.re{color:#93370d}
+  .risco{background:#fffaeb;border-left:3px solid #b3730a;color:#93370d;border-radius:0 8px 8px 0;
+    padding:11px 14px;font-size:12.5px;margin-top:10px;line-height:1.6}
+  .achado{background:#f0faf6;border-left:3px solid #067647;color:#155244;border-radius:0 8px 8px 0;
+    padding:11px 14px;font-size:12.5px;margin:10px 0;line-height:1.6}
+  .rodape{background:#e8f5f0;border:1px solid #bfe0d4;color:#155244;border-radius:12px;
+    padding:16px;font-size:13px;margin-top:40px;line-height:1.65}
+  .capa-ex{background:linear-gradient(150deg,#0f5b52,#2a9d8a);color:#fff;border-radius:10px;
+    padding:14px 16px;margin-bottom:8px}
+  .capa-ex b{font-size:17px;display:block}
+  .capa-ex span{font-size:11.5px;color:rgba(255,255,255,.85)}
+  .btlinha{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .btex{padding:8px 14px;border-radius:8px;font-size:12.5px;font-weight:600;border:1px solid}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<a class="volta" href="plano.html">← O plano</a> · <a class="volta" href="../index.html">← Site</a>
+
+<h1>Suas decisões — tudo desenhado, é só escolher</h1>
+<p class="desc">Cada uma com o conteúdo na sua frente. Me responda pelo código
+("SJ-6: juntar" · "JOÃO-1: são do Sr. João") e eu aplico.</p>
+
+<nav class="indice" aria-label="Ir direto para uma decisão">
+  <a href="#joao">Os 4 do "João"</a>
+  <a href="#sj6">3 dúvidas da folha</a>
+  <a href="#ralo">Os 12 ralos</a>
+  <a href="#ar1">As áreas</a>
+  <a href="#aud13">Manipulação → NC</a>
+  <a href="#capa">Nome da capa</a>
+  <a href="#pequenas">As pequenas</a>
+</nav>
+
+<!-- ══════════ JOÃO-1 ══════════ -->
+<h2 id="joao"><span class="cod">JOÃO-1</span>Os 4 itens do "João"</h2>
+<p class="pergunta">Na sua planilha existe <b>"João"</b> escrito separado de <b>"Sr. João"</b>.
+São 4 serviços, todos de <b>23/07/2026</b>, todos no <b>2º piso</b>, todos pendentes. Eles não
+entraram em folha nenhuma até você dizer de quem são. Estes são:</p>
+
+<div class="cx">
+  <div class="area">2º PISO — COZINHA (UAN)</div>
+  <div class="item">Vazamento de água — verificar e consertar
+    <span class="meta">ação sugerida na planilha: reparar hidráulica</span></div>
+  <div class="area">2º PISO — CÂMARA: PRODUÇÃO</div>
+  <div class="item">Piso quebrado — trocar (acumula bactéria)
+    <span class="meta">ação sugerida: reparar / vedar</span></div>
+  <div class="item">Porta: troca da borracha + limpeza de mofo e ferrugem
+    <span class="meta">ação sugerida: higienizar a área</span></div>
+  <div class="area">2º PISO — PRODUÇÃO - MANIPULAÇÃO</div>
+  <div class="item">Dedetização e fechamento de frestas (baratas embaixo)
+    <span class="meta">ação sugerida: acionar controle de pragas</span></div>
+</div>
+
+<div class="achado"><b>O que eu vejo:</b> os quatro são obra e conserto — hidráulica, piso,
+borracha de porta, vedação de fresta. É exatamente o perfil do Sr. João. A única parte que não é
+dele é a <b>dedetização</b> em si, que é da empresa de pragas; o <b>fechamento das frestas</b>
+continua sendo obra.</div>
+
+<div class="op voto"><div class="op-t">1 · São do Sr. João <span class="selo-voto">meu voto</span></div>
+  <div class="op-d">Os 4 entram na folha dele. No último, eu separo: a dedetização vai para a
+  empresa de pragas e o fechamento das frestas fica com ele.</div></div>
+<div class="op"><div class="op-t">2 · É outra pessoa</div>
+  <div class="op-d">Você me diz quem é e eu crio a folha dessa pessoa, igual à do Matheus.</div></div>
+<div class="op"><div class="op-t">3 · Deixar de fora por enquanto</div>
+  <div class="op-d">Ficam registrados como pendência e ninguém recebe.</div></div>
+
+<!-- ══════════ SJ-6 ══════════ -->
+<h2 id="sj6"><span class="cod">SJ-6</span>As 3 dúvidas da folha do Sr. João</h2>
+<p class="pergunta">São dúvidas de <b>consolidação</b>: dois textos que podem ser o mesmo serviço.
+Depois do que aconteceu em julho, eu não junto nada sozinha.</p>
+
+<div class="cx">
+  <div class="cx-t">Dúvida 1 · Os evaporadores</div>
+  <div class="area">2º PISO — CORREDOR DAS CÂMARAS</div>
+  <div class="item">Limpar os evaporadores das 7 câmaras — há acúmulo de mofo.</div>
+  <div class="item">Fazer manutenção e limpeza pesada nos evaporadores das câmaras do 2º piso.</div>
+  <div class="op voto" style="margin-top:10px"><div class="op-t">Juntar num só <span class="selo-voto">meu voto</span></div>
+    <div class="op-d">Dizem a mesma coisa. Eu manteria o primeiro (que diz <b>7 câmaras</b> e o
+    motivo: mofo) e traria "manutenção e limpeza pesada" para dentro dele.</div></div>
+  <div class="op"><div class="op-t">Manter os dois</div>
+    <div class="op-d">Se para você são coisas diferentes — limpar é rotina, manutenção é o
+    equipamento — ficam separados.</div></div>
+</div>
+
+<div class="cx">
+  <div class="cx-t">Dúvida 2 · A ferrugem no fundo da câmara</div>
+  <div class="area">2º PISO — CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+  <div class="item">Tratar a ferrugem no rodapé do fundo da câmara e pintar ao redor.</div>
+  <div class="item">Trocar o rodapé da parte interna da câmara — está solto e sujo. <b>Urgente.</b></div>
+  <div class="op voto" style="margin-top:10px"><div class="op-t">São o mesmo rodapé — juntar <span class="selo-voto">meu voto</span></div>
+    <div class="op-d">Um fala em tratar a ferrugem, o outro em trocar porque está solto. Se for o
+    mesmo ponto, tratar ferrugem de um rodapé que vai ser trocado é trabalho jogado fora.</div></div>
+  <div class="op"><div class="op-t">São pontos diferentes</div>
+    <div class="op-d">Um é o fundo, outro é a parte interna. Ficam os dois.</div></div>
+</div>
+
+<div class="cx">
+  <div class="cx-t">Dúvida 3 · O ralo do corredor</div>
+  <div class="area">2º PISO — CORREDOR DAS CÂMARAS</div>
+  <div class="item">Limpar e colocar tela em todos os ralos do corredor.</div>
+  <div class="item">Colocar tela no ralo.
+    <span class="meta">observação na folha: "Empresa especializada será contratada para desentupir."</span></div>
+  <div class="op voto" style="margin-top:10px"><div class="op-t">O segundo está dentro do primeiro — juntar <span class="selo-voto">meu voto</span></div>
+    <div class="op-d">"Todos os ralos do corredor" já inclui esse. Eu levaria a observação do
+    desentupimento para o item que fica.</div></div>
+  <div class="op"><div class="op-t">É um ralo específico</div>
+    <div class="op-d">Se esse é o que está entupido e vai ter empresa contratada, é caso à parte.</div></div>
+</div>
+
+<!-- ══════════ RALO-1 ══════════ -->
+<h2 id="ralo"><span class="cod">RALO-1</span>Os 12 ralos — achado novo</h2>
+<p class="pergunta">Sua regra manda eu sinalizar quando <b>5 ou mais</b> serviços têm a mesma
+causa. Encontrei <b>12 serviços de ralo</b> na folha, e <b>9 deles são a mesma coisa</b>:
+colocar tela. Estão em banheiro de cliente, banheiro de colaborador, cozinha, produção,
+corredor das câmaras e hortifruti.</p>
+
+<div class="achado"><b>E a base legal muda a solução.</b> A norma não fala em tela para ralo.
+Ela diz: <b>"quando presentes, os ralos devem ser sifonados e as grelhas devem possuir dispositivo
+que permitam seu fechamento"</b> <span class="norma ex">— RDC 216/2004, item 4.1.5</span>.<br><br>
+Tela impede o inseto grande de subir, mas <b>não fecha o ralo</b> e não impede o cheiro nem o
+retorno de esgoto. Se a vigilância olhar, tela sozinha não cumpre o item.</div>
+
+<div class="op voto"><div class="op-t">1 · Um serviço só, com a solução certa <span class="selo-voto">meu voto</span></div>
+  <div class="op-d">Os 9 viram uma frente única: <b>trocar as grelhas por modelo com fechamento e
+  conferir se os ralos são sifonados</b>, em todas as áreas de uma vez.
+  <div style="margin-top:8px;padding:9px 11px;background:#fafbfa;border-radius:8px">
+    Padronizar as grelhas dos ralos — modelo com dispositivo de fechamento — nas áreas de
+    manipulação e banheiros.
+    <span class="sel ex" style="margin-left:4px">Exigência</span>
+    <span class="norma ex">RDC 216/2004, item 4.1.5</span>
+  </div>
+  Um mutirão fecha 9 linhas da folha e resolve de verdade.</div></div>
+<div class="op"><div class="op-t">2 · Manter os 9 separados, mas trocar o texto</div>
+  <div class="op-d">Cada ralo continua sendo um serviço (útil se forem feitos aos poucos), mas
+  "colocar tela" vira "grelha com fechamento", com a norma citada em cada um.</div></div>
+<div class="op"><div class="op-t">3 · Deixar como está</div>
+  <div class="op-d">Você conhece a loja: se tela resolve o problema real que você vê lá, mantemos.
+  Aí eu registro que é solução parcial diante do item 4.1.5.</div></div>
+
+<!-- ══════════ AR-1 ══════════ -->
+<h2 id="ar1"><span class="cod">AR-1</span>As áreas — a raiz</h2>
+<p class="pergunta">Em <b>Arraial do Cabo</b> não são duas listas de áreas. São <b>três</b>, e
+nenhuma tem uma única área em comum com as outras:</p>
+
+<div class="cx">
+  <div class="item"><b>Folha de manutenção</b> (Sr. João + Matheus) — 142 serviços em <b>35 áreas</b>
+    <span class="meta">escreve <code>1º PISO</code> e <code>2º PISO</code>, em caixa alta</span></div>
+  <div class="item"><b>Não Conformidade</b> — 175 registros em <b>31 áreas</b>
+    <span class="meta">escreve <code>1º Piso</code>, <code>1º Piso — Parte Interna</code> e <code>2º Piso</code></span></div>
+  <div class="item"><b>Manutenções e Elétrica</b> (a antiga) — 357 itens em <b>50 áreas</b>
+    <span class="meta">sem piso nenhum</span></div>
+  <div class="item"><b>Cadastro da loja</b> — <b>90 áreas</b>, das quais <b>60 não têm nenhum item</b></div>
+</div>
+
+<div class="risco"><b>Por que eu parei aqui.</b> Você já decidiu que a lista dos serviços manda.
+Mas aplicar isso <b>renomeia a área de 175 não conformidades</b> — onde você trabalha a Qualidade
+e assina com o CRN. É mudança em massa em dado seu, e a regra é você ver antes. Qualquer caminho
+abaixo vai por arquivo de atualização, com checkpoint salvo antes.</div>
+
+<div class="op voto"><div class="op-t">1 · Uma lista só, e eu trago os empates <span class="selo-voto">meu voto</span></div>
+  <div class="op-d">Eu junto as três, marco onde discordam (ex.: <code>AÇOUGUE – VENDAS</code> x
+  <code>AÇOUGUE - ÁREA DE VENDAS</code>) e te trago <b>só os empates</b> para escolher — devem ser
+  uns 10 grupos, não 95 itens. Depois disso, toda carga nova nasce certa.</div></div>
+<div class="op"><div class="op-t">2 · Cada aba mantém a sua lista</div>
+  <div class="op-d">Eu só faço o site parar de misturá-las no seletor (que hoje mostra três pisos
+  onde deveriam ser dois). Nada nos seus dados muda. Rápido e sem risco, mas a bagunça continua
+  por baixo e volta na próxima carga.</div></div>
+<div class="op"><div class="op-t">3 · Só limpar o que não é usado</div>
+  <div class="op-d">Apago do cadastro as <b>60 áreas sem nenhum item</b> e não toco no resto.
+  Meio-termo: diminui a lista pela metade sem mexer em registro nenhum.</div></div>
+
+<!-- ══════════ AUD-13 ══════════ -->
+<h2 id="aud13"><span class="cod">AUD-13</span>Os itens de manipulação virarem NC</h2>
+<p class="pergunta">Esta pendência está aberta desde 20/07 esperando uma lista de <b>18 itens</b>.
+Procurei em <b>cinco backups</b> — o seu banco de hoje, o de 19, 20, 21 e 23/07 e o "antes da
+limpeza" de 24/07. Em todos há 167 itens ligados a perguntas do checklist, mas <b>zero marcados
+como "não é infraestrutura"</b>. A marcação nunca ficou salva; o número 18 foi uma contagem feita
+naquela conversa.</p>
+
+<div class="op voto"><div class="op-t">1 · Você marca na tela, com a ferramenta pronta <span class="selo-voto">meu voto</span></div>
+  <div class="op-d">Em Checklists → modelo de Infraestrutura → <b>"🔗 Ligar minhas manutenções"</b>.
+  Ele mostra cada manutenção com um palpite e você marca as que não são infraestrutura. No fim, um
+  botão leva todas para a aba de Não Conformidade de uma vez. <b>E dessa vez a marcação fica
+  salva</b> — foi isso que faltou em julho.</div></div>
+<div class="op"><div class="op-t">2 · Eu monto a lista e você confere</div>
+  <div class="op-d">Varro as 357 manutenções procurando tarefa de manipulador (papelão, avental,
+  higienização, identificação de produto). Aviso: meu primeiro teste de filtro trouxe lixo junto,
+  então a lista sairia com erros para você tirar.</div></div>
+<div class="op"><div class="op-t">3 · Encerrar</div>
+  <div class="op-d">A aba antiga virou arquivo e a folha nova já nasceu sem nenhuma tarefa de
+  manipulador. Se você não usa mais a antiga no dia a dia, a pendência perdeu o sentido.</div></div>
+
+<!-- ══════════ AUD-14 ══════════ -->
+<h2 id="capa"><span class="cod">AUD-14</span>O nome da capa</h2>
+<p class="pergunta">Hoje está <b>"Central Técnica"</b> e você disse que não gostou. Quatro
+propostas, desenhadas como aparecem na capa:</p>
+
+<div class="capa-ex"><b>Central de Demandas NP</b><span>Arraial do Cabo · Cabo Frio</span></div>
+<div class="capa-ex"><b>Minha Central</b><span>Arraial do Cabo · Cabo Frio</span></div>
+<div class="capa-ex"><b>Central da Qualidade</b><span>Arraial do Cabo · Cabo Frio</span></div>
+<div class="capa-ex"><b>Painel NP</b><span>Arraial do Cabo · Cabo Frio</span></div>
+
+<div class="op voto"><div class="op-t">Central de Demandas NP <span class="selo-voto">meu voto</span></div>
+  <div class="op-d">É o nome que você já usa nas conversas e nos documentos — e "demandas" diz o
+  que o site faz, enquanto "técnica" não diz nada para quem lê de fora.</div></div>
+<div class="op"><div class="op-d">Ou me diga o nome que você quer. É a sua capa; o campo é
+  editável e você troca sozinha pelo lápis a qualquer momento.</div></div>
+
+<!-- ══════════ AS PEQUENAS ══════════ -->
+<h2 id="pequenas">As pequenas — cinco minutos no total</h2>
+
+<div class="cx">
+  <div class="cx-t"><span class="cod">AUD-23</span>A cor dos botões da barra</div>
+  <div class="op-d" style="margin-bottom:8px">Hoje os botões da barra são todos claros, com borda
+  cinza. As opções:</div>
+  <div class="btlinha">
+    <span class="btex" style="background:#fff;border-color:#e2e3e7;color:#5c5d68">Como está hoje</span>
+    <span class="btex" style="background:#e8f5f0;border-color:#bfe0d4;color:#155244">Verde claro</span>
+    <span class="btex" style="background:#1d6b57;border-color:#1d6b57;color:#fff">Verde cheio</span>
+  </div>
+  <div class="op-d" style="margin-top:8px">Meu voto: <b>como está hoje</b>. A regra da casa é um
+  botão verde cheio por tela, e ele já é o "+ Serviço". Se a barra inteira ficar verde, nenhum
+  botão se destaca.</div>
+</div>
+
+<div class="cx">
+  <div class="cx-t"><span class="cod">AUD-16</span>"No celular precisa de backup?"</div>
+  <div class="op-d"><b>Não precisa.</b> Tudo que você faz no celular sobe para a sua nuvem, que
+  guarda todas as versões e sobrevive a trocar de aparelho. O backup manual serve para quando você
+  quer um arquivo na mão — para guardar fora, mandar para alguém ou por segurança extra antes de
+  uma mudança grande. Confirma que pode ficar assim?</div>
+</div>
+
+<div class="cx">
+  <div class="cx-t"><span class="cod">AUD-17</span>Configurações atreladas ao login</div>
+  <div class="op-d">Hoje as suas configurações viajam com os dados — quem entra com a sua senha vê
+  o site do seu jeito, em qualquer aparelho. É isso que você quer, ou você queria configurações
+  <b>diferentes</b> por aparelho (uma coisa no computador, outra no celular)?</div>
+</div>
+
+<div class="cx">
+  <div class="cx-t"><span class="cod">AUD-18 a 22</span>Cinco respostas de um minuto</div>
+  <div class="item">O <b>fluxograma por áudio</b> — ainda quer?</div>
+  <div class="item">O <b>teste do Importar</b> — já deu para testar?</div>
+  <div class="item">O <b>chat do token</b> — posso considerar apagado?</div>
+  <div class="item">A <b>lista cortada de 14/07</b> — ainda falta algo dela?</div>
+  <div class="item">O <b>lembrete de sexta</b> — ainda faz sentido?</div>
+</div>
+
+<div class="cx">
+  <div class="cx-t"><span class="cod">TEL-11</span>O Telegram</div>
+  <div class="op-d">Você mandou alguma coisa sobre Telegram que entrou na auditoria como frente
+  ("2 bots no ar, falta testar áudio e ronda"), mas <b>não está em documento nenhum</b>. Preciso
+  que você reenvie ou diga onde está.</div>
+</div>
+
+<div class="rodape"><b>Como responder:</b> pelo código, na ordem que você quiser — <b>"JOÃO-1: 1"</b>,
+<b>"SJ-6: juntar as três"</b>, <b>"RALO-1: 1"</b>. Pode responder uma só e deixar o resto para
+depois. <b>Nada muda até você mandar.</b></div>
+
+</body>
+</html>
