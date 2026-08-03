@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1d6b57">
+<title>Três escolhas — para você decidir vendo</title>
+<!-- LAY-1 / LAY-2 / LAY-3 (03/08): as três perguntas que ela não quis responder
+     por texto. Regra dela: mostrar, não explicar. Página-museu — nada aqui mexe
+     em dado nenhum, não tem JavaScript, não salva nada. -->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#f7f7f5;color:#2d2e3a;padding:24px 16px 60px;max-width:900px;margin:0 auto;
+    font-size:14px;line-height:1.5}
+  /* alvo de toque de 44px, regra fixa do site — o texto é pequeno, a área que
+     responde ao dedo não é */
+  a.volta{color:#1d6b57;font-weight:600;text-decoration:none;
+    display:inline-block;padding:12px 8px;line-height:20px;touch-action:manipulation}
+  a.volta:focus-visible{outline:2px solid #1d6b57;outline-offset:3px;border-radius:4px}
+  h1{font-size:20px;color:#155244;margin:16px 0 4px;text-wrap:balance}
+  /* atalhos para pular direto ao bloco — a página é longa no celular */
+  .indice{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+  .indice a{display:inline-block;padding:12px 16px;border-radius:99px;text-decoration:none;
+    background:#fff;border:1px solid #bfe0d4;color:#155244;font-weight:600;font-size:12.5px;
+    line-height:20px;touch-action:manipulation}
+  .indice a:hover{background:#e8f5f0}
+  .indice a:focus-visible{outline:2px solid #1d6b57;outline-offset:3px}
+  .desc{color:#5c5d68;font-size:13px;margin-bottom:8px}
+  .aviso{background:#e8f5f0;border-left:3px solid #1d6b57;color:#155244;border-radius:0 8px 8px 0;
+    padding:12px 16px;font-size:12.5px;margin:12px 0 8px}
+  .risco{background:#fffaeb;border-left:3px solid #b3730a;color:#93370d;border-radius:0 8px 8px 0;
+    padding:12px 16px;font-size:12.5px;margin:12px 0 0}
+
+  h2{font-size:16px;color:#155244;margin:40px 0 4px;border-bottom:2px solid #1d6b57;padding-bottom:8px;
+    text-wrap:balance;scroll-margin-top:16px}
+  .cod{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;
+    background:#155244;color:#fff;border-radius:99px;padding:2px 8px;margin-right:8px;vertical-align:2px}
+  .pergunta{color:#5c5d68;font-size:13px;margin:8px 0 16px}
+
+  .op{background:#fff;border:1px solid #e6e7ea;border-radius:12px;padding:16px;margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .op-t{font-weight:700;font-size:14px;color:#155244;margin-bottom:12px}
+  .num{display:inline-block;width:20px;height:20px;border-radius:50%;background:#e8f5f0;
+    color:#155244;font-size:11px;font-weight:700;text-align:center;line-height:20px;margin-right:8px}
+  .selo{display:inline-block;font-size:10px;font-weight:700;border-radius:99px;padding:2px 8px;
+    margin-left:8px;text-transform:uppercase;letter-spacing:.5px;vertical-align:1px;
+    background:#e8f5f0;color:#155244;border:1px solid #bfe0d4}
+
+  /* as duas vistas: computador e celular, lado a lado */
+  /* min-width:0 é obrigatório: sem ele a coluna do grid se estica até caber a
+     tabela inteira e empurra a página para o lado no celular (rolagem lateral,
+     que aqui não pode existir). Com ele, a tabela larga rola DENTRO da moldura. */
+  .vistas{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+  .vistas>div{min-width:0}
+  .vista-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+    color:#5c5d68;margin-bottom:4px}
+  .mini{border:1px solid #eceded;border-radius:10px;padding:12px;background:#fafbfa;font-size:11.5px;
+    overflow-x:auto}
+  .cel{max-width:288px;border:8px solid #d7d8dd;border-radius:20px;padding:8px;background:#fafbfa;
+    font-size:11.5px}
+
+  /* peças das miniaturas — mesmas cores do site */
+  .m-area{background:#e8f5f0;border-left:3px solid #1d6b57;color:#155244;font-weight:700;
+    padding:4px 8px;border-radius:0 6px 6px 0;margin:8px 0 4px;font-size:11px}
+  .m-urg{display:inline-block;font-size:9px;font-weight:700;border-radius:99px;padding:1px 7px;
+    background:#fee4e2;color:#912018;border:1px solid #fda29b;white-space:nowrap}
+  .m-obs{background:#d1fae5;color:#047857;border-color:#b5ecd3}
+  /* #8a8b96 daria contraste 3,3 — abaixo do mínimo. É o mesmo defeito que o
+     polimento.css já corrigiu no site (era 3,4 → hoje 4,9); não se reintroduz. */
+  .m-meta{color:#5c5d68;font-size:10px;font-variant-numeric:tabular-nums}
+  .m-foto{display:inline-block;width:28px;height:28px;border-radius:5px;background:#d7e5df;
+    border:1px solid #c3d8d0;vertical-align:middle}
+  .m-fototxt{font-size:8px;color:#2f5b4e;text-align:center;line-height:28px;display:block}
+  table.m-tab{border-collapse:collapse;width:100%;font-size:10.5px}
+  .m-tab th{background:#e8f5f0;color:#155244;text-align:left;padding:4px 6px;border:1px solid #d7e5df;
+    font-weight:700}
+  .m-tab td{padding:4px 6px;border:1px solid #eceded;vertical-align:top;font-variant-numeric:tabular-nums}
+  .tarde{color:#b42318;font-weight:600}
+  .cx{color:#5c5d68}
+
+  /* linha empilhada, como fica no celular */
+  .m-linha{display:flex;gap:8px;align-items:flex-start;padding:8px 4px;border-bottom:1px solid #f0f0f2}
+  .m-txt{flex:1;min-width:0}
+  .m-sub{display:block;font-size:10px;color:#5c5d68;margin-top:2px}
+  .toque{display:block;font-size:10px;color:#1d6b57;font-weight:600;margin-top:4px}
+
+  /* ganha e perde */
+  .gp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;font-size:12.5px}
+  .gp div{border-radius:8px;padding:8px 12px}
+  .ganha{background:#f0faf6;border-left:3px solid #067647;color:#155244}
+  .perde{background:#fdf6f6;border-left:3px solid #b42318;color:#7a2018}
+  .gp b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+
+  .conta{font-size:12.5px;color:#5c5d68;margin-top:12px;padding-top:10px;border-top:1px solid #eceded}
+  .conta b{color:#155244}
+
+  .como{background:#e8f5f0;border:1px solid #bfe0d4;color:#155244;border-radius:12px;
+    padding:16px;font-size:13px;margin-top:40px}
+  .como b{color:#155244}
+
+  @media (max-width:760px){
+    .vistas{grid-template-columns:1fr}
+    .gp{grid-template-columns:1fr}
+    .cel{max-width:100%}
+    /* no computador a maquete é miniatura; no celular ela é o próprio tamanho
+       real. 10,5px ali não dá para julgar desenho nenhum — sobe o texto. */
+    .mini,.cel{font-size:13px}
+    table.m-tab{font-size:12px}
+    .m-meta,.m-sub,.toque{font-size:11.5px}
+    .m-area{font-size:12px}
+    .m-urg{font-size:10px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<a class="volta" href="layouts.html">← Propostas de layout</a> ·
+<a class="volta" href="../index.html">← Site</a>
+
+<h1>Três escolhas — para você decidir vendo</h1>
+<p class="desc">Você já escolheu os dois desenhos grandes (a <b>opção C</b> na Não Conformidade e a
+<b>opção B</b> nas Manutenções). Para construir, faltam três detalhes. Em vez de te explicar por
+escrito, desenhei os três aqui.</p>
+<div class="aviso">Nada aqui mexe nos seus dados. É um desenho, com nomes e datas de exemplo.
+Só me diga o número que você quer em cada bloco.</div>
+
+<nav class="indice" aria-label="Ir direto para um bloco">
+  <a href="#lay1">1 · Onde fica a foto</a>
+  <a href="#lay2">2 · Quando fica vermelho</a>
+  <a href="#lay3">3 · A folha do Matheus</a>
+</nav>
+
+<!-- ══════════════════ LAY-1 ══════════════════ -->
+<h2 id="lay1"><span class="cod">LAY-1</span>Na folha de Não Conformidade, onde fica a foto?</h2>
+<p class="pergunta">A folha nova tem colunas em forma de pergunta. Mas a NC tem coisas que a folha do
+Sr. João não tem: <b>foto</b>, <b>ação corretiva</b> e <b>observação</b>. Estas são as três formas de
+acomodar isso.</p>
+
+<div class="op">
+  <div class="op-t"><span class="num">1</span>Foto à vista, observação em coluna</div>
+  <div class="vistas">
+    <div>
+      <div class="vista-t">No computador</div>
+      <div class="mini">
+        <div class="m-area">CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+        <table class="m-tab">
+          <tr><th scope="col">Foi resolvida?</th><th scope="col">O que está errado?</th><th scope="col">Desde quando</th><th scope="col">Urgência</th><th scope="col">Observações</th></tr>
+          <tr><td class="cx">☐</td>
+            <td>Eliminar o mofo do teto da câmara.<br><span class="m-foto"><span class="m-fototxt">foto</span></span></td>
+            <td>04/07<br><span class="tarde">há 30 dias</span></td>
+            <td><span class="m-urg">URGENTE</span></td>
+            <td>Refazer a pintura antimofo depois.</td></tr>
+          <tr><td class="cx">☐</td><td>Reorganizar as caixas do fundo.</td>
+            <td>28/07<br><span class="m-meta">há 6 dias</span></td>
+            <td><span class="m-urg m-obs">OBSERVAÇÃO</span></td><td>—</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="vista-t">No celular</div>
+      <div class="cel">
+        <div class="m-area">CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+        <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Eliminar o mofo do teto da câmara.
+          <span class="m-sub">04/07 · <span class="tarde">há 30 dias</span> · <span class="m-urg">URGENTE</span></span>
+          <span class="m-sub">Refazer a pintura antimofo depois.</span>
+          <span class="m-foto" style="margin-top:4px"><span class="m-fototxt">foto</span></span></span></div>
+        <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Reorganizar as caixas do fundo.
+          <span class="m-sub">28/07 · há 6 dias · <span class="m-urg m-obs">OBSERVAÇÃO</span></span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="gp">
+    <div class="ganha"><b>Você ganha</b>Confere tudo sem tocar em nada. A foto — que é o que prova a
+    não conformidade para a gerência — está lá, na hora.</div>
+    <div class="perde"><b>Você perde</b>É a versão mais cheia das três. No celular cada item ocupa
+    mais espaço, então você rola mais para chegar no fim da lista.</div>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t"><span class="num">2</span>Linha limpa, o detalhe abre quando você toca</div>
+  <div class="vistas">
+    <div>
+      <div class="vista-t">No computador</div>
+      <div class="mini">
+        <div class="m-area">CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+        <table class="m-tab">
+          <tr><th scope="col">Foi resolvida?</th><th scope="col">O que está errado?</th><th scope="col">Desde quando</th><th scope="col">Urgência</th></tr>
+          <tr><td class="cx">☐</td><td>Eliminar o mofo do teto da câmara.
+            <span class="toque">▸ tocar para ver a foto e a ação corretiva</span></td>
+            <td>04/07<br><span class="tarde">há 30 dias</span></td><td><span class="m-urg">URGENTE</span></td></tr>
+          <tr><td class="cx">☐</td><td>Reorganizar as caixas do fundo.</td>
+            <td>28/07<br><span class="m-meta">há 6 dias</span></td>
+            <td><span class="m-urg m-obs">OBSERVAÇÃO</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="vista-t">No celular</div>
+      <div class="cel">
+        <div class="m-area">CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+        <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Eliminar o mofo do teto da câmara.
+          <span class="m-sub">04/07 · <span class="tarde">há 30 dias</span> · <span class="m-urg">URGENTE</span></span>
+          <span class="toque">▸ tocar para ver a foto</span></span></div>
+        <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Reorganizar as caixas do fundo.
+          <span class="m-sub">28/07 · há 6 dias · <span class="m-urg m-obs">OBSERVAÇÃO</span></span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="gp">
+    <div class="ganha"><b>Você ganha</b>Lista enxuta, cabe muito mais coisa na tela de uma vez.
+    Ótimo para bater a lista rápido dentro da loja.</div>
+    <div class="perde"><b>Você perde</b>Um toque em cada item para ver a foto. Se você confere
+    olhando as fotos, são dezenas de toques a mais por visita.</div>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t"><span class="num">3</span>Só as quatro colunas — o resto pelo lápis</div>
+  <div class="vistas">
+    <div>
+      <div class="vista-t">No computador</div>
+      <div class="mini">
+        <div class="m-area">CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+        <table class="m-tab">
+          <tr><th scope="col">Foi resolvida?</th><th scope="col">O que está errado?</th><th scope="col">Desde quando</th><th scope="col">Urgência</th></tr>
+          <tr><td class="cx">☐</td><td>Eliminar o mofo do teto da câmara.</td>
+            <td>04/07<br><span class="tarde">há 30 dias</span></td><td><span class="m-urg">URGENTE</span></td></tr>
+          <tr><td class="cx">☐</td><td>Reorganizar as caixas do fundo.</td>
+            <td>28/07<br><span class="m-meta">há 6 dias</span></td>
+            <td><span class="m-urg m-obs">OBSERVAÇÃO</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="vista-t">No celular</div>
+      <div class="cel">
+        <div class="m-area">CÂMARA: FRIOS E LATICÍNIOS (F&amp;L)</div>
+        <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Eliminar o mofo do teto da câmara.
+          <span class="m-sub">04/07 · <span class="tarde">há 30 dias</span> · <span class="m-urg">URGENTE</span></span></span></div>
+        <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Reorganizar as caixas do fundo.
+          <span class="m-sub">28/07 · há 6 dias · <span class="m-urg m-obs">OBSERVAÇÃO</span></span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="gp">
+    <div class="ganha"><b>Você ganha</b>É o mais parecido com a folha de papel. Nada distrai
+    de responder “isso foi resolvido ou não?”.</div>
+    <div class="perde"><b>Você perde</b>Para ver a foto ou a ação corretiva você abre o lápis, que é
+    a tela de <i>editar</i>. Conferir passa a ser sempre pela porta de edição.</div>
+  </div>
+</div>
+
+<!-- ══════════════════ LAY-2 ══════════════════ -->
+<h2 id="lay2"><span class="cod">LAY-2</span>A partir de quantos dias o tempo fica vermelho?</h2>
+<p class="pergunta">Na folha do Sr. João o vermelho aparece com <b>1 ano</b> parado — é obra, demora
+mesmo. Não conformidade é outra coisa: some em dias. O número certo é o que faz o vermelho
+<b>significar alguma coisa</b>. Abaixo, a mesma lista de 6 desenhada três vezes.</p>
+
+<div class="op">
+  <div class="op-t"><span class="num">1</span>15 dias<span class="selo">acende 5 das 6</span></div>
+  <div class="mini">
+    <div class="m-linha"><span class="m-txt">Eliminar o mofo do teto da câmara de frios.</span><span class="m-meta">15/04 · <span class="tarde">há 110 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Substituir o rodapé quebrado do corredor.</span><span class="m-meta">05/06 · <span class="tarde">há 59 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Eliminar a ferrugem da base da seladora.</span><span class="m-meta">20/06 · <span class="tarde">há 44 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Desobstruir o ralo do corredor interno.</span><span class="m-meta">04/07 · <span class="tarde">há 30 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Refazer o rejunte da parede da pia.</span><span class="m-meta">19/07 · <span class="tarde">há 15 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Reorganizar as caixas do fundo da câmara.</span><span class="m-meta">28/07 · há 6 dias</span></div>
+  </div>
+  <div class="conta">Quase tudo fica vermelho. <b>Consequência:</b> o vermelho vira o normal da
+  folha — e o que é normal a gerência para de enxergar.</div>
+</div>
+
+<div class="op">
+  <div class="op-t"><span class="num">2</span>30 dias<span class="selo">acende 4 das 6</span></div>
+  <div class="mini">
+    <div class="m-linha"><span class="m-txt">Eliminar o mofo do teto da câmara de frios.</span><span class="m-meta">15/04 · <span class="tarde">há 110 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Substituir o rodapé quebrado do corredor.</span><span class="m-meta">05/06 · <span class="tarde">há 59 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Eliminar a ferrugem da base da seladora.</span><span class="m-meta">20/06 · <span class="tarde">há 44 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Desobstruir o ralo do corredor interno.</span><span class="m-meta">04/07 · <span class="tarde">há 30 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Refazer o rejunte da parede da pia.</span><span class="m-meta">19/07 · há 15 dias</span></div>
+    <div class="m-linha"><span class="m-txt">Reorganizar as caixas do fundo da câmara.</span><span class="m-meta">28/07 · há 6 dias</span></div>
+  </div>
+  <div class="conta">Vermelho = <b>passou de um mês sem resolver</b>. Casa com o relatório mensal que
+  você já entrega: o que acende é exatamente o que atravessou um fechamento.</div>
+</div>
+
+<div class="op">
+  <div class="op-t"><span class="num">3</span>60 dias<span class="selo">acende 1 das 6</span></div>
+  <div class="mini">
+    <div class="m-linha"><span class="m-txt">Eliminar o mofo do teto da câmara de frios.</span><span class="m-meta">15/04 · <span class="tarde">há 110 dias</span></span></div>
+    <div class="m-linha"><span class="m-txt">Substituir o rodapé quebrado do corredor.</span><span class="m-meta">05/06 · há 59 dias</span></div>
+    <div class="m-linha"><span class="m-txt">Eliminar a ferrugem da base da seladora.</span><span class="m-meta">20/06 · há 44 dias</span></div>
+    <div class="m-linha"><span class="m-txt">Desobstruir o ralo do corredor interno.</span><span class="m-meta">04/07 · há 30 dias</span></div>
+    <div class="m-linha"><span class="m-txt">Refazer o rejunte da parede da pia.</span><span class="m-meta">19/07 · há 15 dias</span></div>
+    <div class="m-linha"><span class="m-txt">Reorganizar as caixas do fundo da câmara.</span><span class="m-meta">28/07 · há 6 dias</span></div>
+  </div>
+  <div class="conta">Só o caso extremo acende. <b>Consequência:</b> é forte quando aparece, mas
+  um item pode ficar quase dois meses parado sem nada te avisar.</div>
+</div>
+
+<div class="aviso">Escolha o número que quiser: ele fica <b>editável no ⚙</b>, então você muda depois
+sozinha, sem me chamar. A data continua vindo do dia em que a NC foi registrada — nunca invento data.</div>
+
+<!-- ══════════════════ LAY-3 ══════════════════ -->
+<h2 id="lay3"><span class="cod">LAY-3</span>Onde nasce a folha do Matheus?</h2>
+<p class="pergunta">A elétrica é do Matheus e nunca entra na folha do Sr. João — isso já está valendo.
+Falta decidir <b>onde</b> a folha dele mora. Hoje existem duas abas de manutenção: a
+<b>MNT</b> (a folha nova do Sr. João) e a <b>Manutenções e Elétrica</b> (a antiga, de 9 colunas).</p>
+
+<div class="op">
+  <div class="op-t"><span class="num">1</span>Na aba MNT, com um seletor de responsável</div>
+  <div class="mini">
+    <div style="margin-bottom:8px">Folha de:
+      <span class="m-urg m-obs" style="background:#155244;color:#fff;border-color:#155244">SR. JOÃO</span>
+      <span class="m-urg m-obs">MATHEUS</span>
+      <span class="m-urg m-obs">TODOS</span></div>
+    <div class="m-area">2º PISO — COZINHA (UAN)</div>
+    <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Trocar a lâmpada queimada sobre a bancada.</span><span class="m-meta">10/07</span></div>
+    <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Reapertar a tomada solta da parede.</span><span class="m-meta">15/07</span></div>
+  </div>
+  <div class="gp">
+    <div class="ganha"><b>Você ganha</b>Uma aba só, um desenho só. Você troca o nome no alto e
+    imprime a folha daquela pessoa. Todo ajuste que eu fizer vale para os dois automaticamente.</div>
+    <div class="perde"><b>Você perde</b>Os dois times passam a viver na mesma lista quando você
+    escolhe “Todos” — se você prefere nunca ver a elétrica junto, precisa lembrar de filtrar.</div>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t"><span class="num">2</span>Uma aba nova, só do Matheus</div>
+  <div class="mini">
+    <div style="margin-bottom:8px" class="m-meta">MENU: Capa · Não Conformidade · MNT (Sr. João) ·
+      <b style="color:#155244">MNT Elétrica (Matheus)</b> · Manutenções e Elétrica · Indicadores</div>
+    <div class="m-area">2º PISO — COZINHA (UAN)</div>
+    <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Trocar a lâmpada queimada sobre a bancada.</span><span class="m-meta">10/07</span></div>
+  </div>
+  <div class="gp">
+    <div class="ganha"><b>Você ganha</b>Separação total. Impossível um item de elétrica aparecer
+    na folha do Sr. João, nem por engano.</div>
+    <div class="perde"><b>Você perde</b>Passa a ter três abas de manutenção no menu. E cada
+    melhoria de desenho precisa ser feita duas vezes — o dobro de trabalho para sempre.</div>
+  </div>
+</div>
+
+<div class="op">
+  <div class="op-t"><span class="num">3</span>A aba antiga troca de desenho e vira a folha por responsável</div>
+  <div class="mini">
+    <div class="m-meta" style="margin-bottom:6px">Hoje ela é assim:</div>
+    <table class="m-tab">
+      <tr><th scope="col">Empresa</th><th scope="col">Área</th><th scope="col">Demanda</th><th scope="col">Ação</th><th scope="col">RT</th><th scope="col">Executor</th><th scope="col">Relato</th><th scope="col">Atualização</th><th scope="col">Status</th></tr>
+      <tr><td>AC</td><td>Cozinha</td><td>Trocar a lâmpada queimada.</td><td>—</td><td>Letícia</td><td>Matheus</td><td>10/07</td><td>22/07</td><td>Pendente</td></tr>
+    </table>
+    <div class="m-meta" style="margin:10px 0 6px">E passaria a ser assim:</div>
+    <div class="m-area">2º PISO — COZINHA (UAN)</div>
+    <div class="m-linha"><span class="cx">☐</span><span class="m-txt">Trocar a lâmpada queimada sobre a bancada.</span><span class="m-meta">10/07</span></div>
+  </div>
+  <div class="gp">
+    <div class="ganha"><b>Você ganha</b>Some a tabela larga que aperta no celular, e o site fica
+    com um desenho só de manutenção, sem aba antiga sobrando.</div>
+    <div class="perde"><b>Você perde</b>As duas abas guardam a informação de formas diferentes.
+    Para juntar, seus itens antigos precisam ser convertidos um a um.</div>
+  </div>
+  <div class="risco"><b>Atenção — é o único caminho dos três que mexe nos seus dados de verdade.</b>
+  Eu faria com checkpoint salvo antes e por arquivo de atualização, como fizemos na recuperação do
+  1º piso. Mesmo assim é o único que tem risco; os outros dois não têm nenhum.</div>
+</div>
+
+<div class="como"><b>Como responder:</b> me diga só os três números — por exemplo
+<b>“LAY-1: 1 · LAY-2: 2 · LAY-3: 1”</b>. Pode misturar e pode pedir ajuste
+(“a 1 sem a coluna de observação”). <b>Nada muda até você mandar.</b></div>
+
+</body>
+</html>

@@ -21,7 +21,24 @@ STATUS_FNS.mnt28={isPend:d=>!d.feito,isDone:d=>!!d.feito};
 TABS.mnt28.renderCards=function(){const c=document.getElementById("cards");if(c)c.innerHTML="";};
 
 /* filtros da tela (só vivem enquanto ela está na aba) */
-let M28F={q:"",piso:"",area:"",ver:"todos",fechadas:{}};
+/* exec (03/08, LAY-3): "Folha de: Sr. João · Matheus · Todos". A elétrica é do
+   Matheus e nunca entra na folha de quem faz obra — mas as duas moram na mesma
+   aba, com o mesmo desenho. Trocar o nome aqui troca a folha inteira, inclusive
+   a impressa. */
+let M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
+
+/* quem tem serviço nesta folha — sai dos próprios itens, não de uma lista fixa,
+   para o seletor nunca oferecer um nome sem nenhum serviço atrás */
+function m28Executores(itens){
+  return [...new Set((itens||m28Itens()).map(d=>(d.executor||"").trim()).filter(Boolean))].sort();
+}
+/* "a folha aberta agora": todos os serviços, ou só os da pessoa escolhida.
+   É o que os números do topo e o botão do VERIFICAR precisam enxergar — sem
+   isto, a folha do Matheus mostraria o contador do Sr. João. */
+function m28ItensDaFolha(){
+  const t=m28Itens();
+  return M28F.exec?t.filter(d=>(d.executor||"").trim()===M28F.exec):t;
+}
 
 /* ---- itens desta aba, da empresa aberta ---- */
 function m28Itens(){
@@ -55,6 +72,13 @@ async function m28Config(){
   if(M28_CAB===null)M28_CAB=await metaGet("mnt28Cabecalho")||{};
   if(M28_TXT===null)M28_TXT=Object.assign({},M28_TXT_PADRAO,await metaGet("mnt28Textos")||{});
   if(M28_VIS===null)M28_VIS=Object.assign({kpis:true,origem:true},await metaGet("mnt28Visual")||{});
+}
+/* recarga forçada — chamada pelo Ctrl+Z e pela sincronização, que mudam o banco
+   por baixo do que já está na memória da página. Sem isto, ela desfazia a troca
+   de um texto da folha e a tela continuava mostrando o texto velho. */
+async function m28RecarregarConfig(){
+  M28_ORDEM=null;M28_CAB=null;M28_TXT=null;M28_VIS=null;
+  await m28Config();
 }
 function m28Ordem(){
   if(M28_ORDEM&&Object.keys(M28_ORDEM).length)return M28_ORDEM;
@@ -98,7 +122,7 @@ async function m28TrocarRt(qual){
       :"A linha de baixo (cargo e registro), como deve sair na folha:",atual);
   if(v===null)return;                       /* cancelou: não mexe em nada */
   M28_CAB=Object.assign({},M28_CAB||{},ehNome?{rtNome:v.trim()}:{rtLinha:v.trim()});
-  await metaSetU("mnt28Cabecalho",M28_CAB); /* metaSetU: o desfazer pega */
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB); /* metaSetU: o desfazer pega */
   dataChanged();renderMnt28();toast(ehNome?"Nome atualizado ✓":"Linha atualizada ✓");
 }
 async function m28TrocarEmissao(){
@@ -112,7 +136,7 @@ async function m28TrocarEmissao(){
   const iso=`${a.length===2?"20"+a:a}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
   if(isNaN(new Date(iso).getTime())){toast("Data não reconhecida. Escreva assim: 29/07/2026");return;}
   M28_CAB=Object.assign({},M28_CAB||{},{emitidoEm:iso});
-  await metaSetU("mnt28Cabecalho",M28_CAB);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB);
   dataChanged();renderMnt28();toast("Data de emissão atualizada ✓");
 }
 function m28Cab(itens){
@@ -194,10 +218,10 @@ async function m28CargaInicial(){
   }
   /* guarda a ordem oficial e o cabeçalho NO BANCO: é o que faz a folha continuar
      organizada no celular dela, onde o arquivo da carga não existe */
-  if(c.ordemAreas){M28_ORDEM=c.ordemAreas;await metaSetU("mnt28Ordem",c.ordemAreas);}
+  if(c.ordemAreas){M28_ORDEM=c.ordemAreas;await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Ordem",c.ordemAreas);}
   M28_CAB={periodo:c.periodo||"",rt:c.rt||"",crn:c.crn||"",
     emitidoEm:c.emitidoEm||today(),executor:c.executor||"",lojaNome:c.lojaNome||""};
-  await metaSetU("mnt28Cabecalho",M28_CAB);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB);
   await metaSetU("mnt28Cargas",feitas.concat([c.cargaId]));
   if(novos.length){dataChanged();toast(novos.length+" serviços carregados ✓");}
   return novos.length>0;
@@ -208,12 +232,16 @@ async function renderMnt28(){
   const el=document.getElementById("tab-mnt28");if(!el)return;
   await m28Config();
   await m28CargaInicial();
-  const itens=m28Itens();
-  const c=m28Cab(itens);
+  const todos=m28Itens();
+  /* LAY-3: escolhida uma pessoa, TUDO passa a ser a folha dela — capa, números
+     e lista. Números da folha inteira embaixo do nome de uma pessoa só seriam
+     um número que a prejudica, e isso aqui não pode acontecer. */
+  const itens=M28F.exec?todos.filter(d=>(d.executor||"").trim()===M28F.exec):todos;
+  const c=m28Cab(itens.length?itens:todos);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   /* o executor que ELA gravou no cabeçalho vence o que veio na carga —
      antes era ao contrário e a edição dela não aparecia (F-3) */
-  const exec=c.executor||(itens.find(d=>d.executor)||{}).executor||"";
+  const exec=M28F.exec||c.executor||(itens.find(d=>d.executor)||{}).executor||"";
   const total=itens.length,feitos=itens.filter(d=>d.feito).length;
   const areas=[...new Set(itens.map(d=>d.area))];
   const pisos=[...new Set(itens.map(d=>d.piso))]
@@ -272,12 +300,23 @@ async function renderMnt28(){
   const nVer=m28QtdVerificar();
   const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>${esc(p)}</option>`).join("");
   const opArea=areas.sort().map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>${esc(a)}</option>`).join("");
+  /* só aparece quando há mais de uma pessoa com serviço — com um executor só,
+     um seletor de um item é ruído na barra */
+  /* sai de TODOS, nunca dos filtrados: senão, escolhida uma pessoa, o seletor
+     ficaria só com ela e não haveria caminho de volta */
+  const execs=m28Executores(todos);
+  const opExec=execs.length>1?execs.map(e=>{
+    const n=todos.filter(d=>(d.executor||"").trim()===e).length;
+    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha de: ${esc(e)} (${n})</option>`;
+  }).join(""):"";
   const barra=`<div class="toolbar m28-barra">
     <div class="search">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="m28q" aria-label="Buscar nesta folha" autocomplete="off" spellcheck="false"
         placeholder="Buscar por serviço, área ou observação…" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
     </div>
+    ${opExec?`<select aria-label="Escolher de quem é a folha" onchange="m28Filtro('exec',this.value)"
+      title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Folha de: todos</option>${opExec}</select>`:""}
     <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Todos os pisos</option>${opPiso}</select>
     <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Todas as áreas</option>${opArea}</select>
     <select aria-label="Mostrar" onchange="m28Filtro('ver',this.value)">
@@ -296,12 +335,19 @@ async function renderMnt28(){
   m28RenderLista();
 }
 
-function m28Filtro(k,v){M28F[k]=v;m28RenderLista();}
+function m28Filtro(k,v){
+  M28F[k]=v;
+  /* trocar de folha muda a capa, os números e o botão de imprimir — não só a
+     lista. Por isso o executor redesenha a aba inteira; os outros filtros não. */
+  if(k==="exec"){M28F.fechadas={};renderMnt28();return;}
+  m28RenderLista();
+}
 
 function m28RenderLista(){
   const el=document.getElementById("m28-lista");if(!el)return;
   const q=(M28F.q||"").toLowerCase();
   let rows=m28Itens().filter(d=>{
+    if(M28F.exec&&(d.executor||"").trim()!==M28F.exec)return false;   /* a folha é de uma pessoa só */
     if(M28F.piso&&d.piso!==M28F.piso)return false;
     if(M28F.area&&d.area!==M28F.area)return false;
     if(M28F.ver==="fazer"&&d.feito)return false;
@@ -383,12 +429,12 @@ function m28Texto(t){
 }
 /* Quantos recados impressos ainda são, na verdade, lembrete dela */
 function m28QtdVerificar(){
-  return m28Itens().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||"")).length;
+  return m28ItensDaFolha().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||"")).length;
 }
 /* Um clique só: leva todos esses para "meu lembrete", que não é impresso.
    Não faço isso sozinho porque é texto dela — mas deixo a um toque. */
 async function m28MoverVerificar(){
-  const alvos=m28Itens().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||""));
+  const alvos=m28ItensDaFolha().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||""));
   if(!alvos.length)return;
   if(!confirm("Mover "+alvos.length+" observação(ões) que começam com VERIFICAR para \"Meu lembrete\"?\n\n"
     +"Elas continuam na tela para você, com o cadeado, e deixam de sair impressas na folha do executor.\n"
@@ -481,6 +527,11 @@ function m28FormHTML(d){
   const opArea=(por[pisoAtual]||[]).sort().map(a=>`<option value="${esc(a)}"${a===d.area?" selected":""}>${esc(a)}</option>`).join("");
   const fotos=(d.fotos||[]).map((f,i)=>`<span class="m28-thumb"><img src="${f}" width="64" height="64" alt="Foto ${i+1} deste serviço">
       <button type="button" onclick="m28TirarFoto(${d.id},${i})" aria-label="Remover a foto ${i+1}" title="Remover">×</button></span>`).join("");
+  /* a lista de quem executa é a MESMA da aba antiga (ela já cadastra e renomeia
+     por lá) — nunca uma segunda lista para ela manter em dois lugares */
+  const opExec=(typeof execOptionsHTML!=="undefined")
+    ? execOptionsHTML(d.executor||"")
+    : `<option selected>${esc(d.executor||"")}</option>`;
   return `<div class="m28-form" data-id="${d.id}">
     <div class="bd-grupo">
       <label class="bd-rotulo" for="m28f-fazer">O que fazer?</label>
@@ -500,6 +551,14 @@ function m28FormHTML(d){
         <label class="bd-rotulo" for="m28f-data">Data do registro</label>
         <input class="bd-campo" type="date" id="m28f-data" value="${esc(d.dataRegistro||"")}">
         <span class="bd-ajuda">Sem data? Deixe vazio.</span>
+      </div>
+      ${/* LAY-3 (03/08): quem executa passa a ser DESTE serviço, não da folha
+           inteira. É o que faz a folha do Matheus existir sem aba nova. A lista
+           é a mesma que ela já edita na aba antiga — não se cria outra. */""}
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="m28f-exec">Quem faz</label>
+        <select class="bd-campo" id="m28f-exec">${opExec}</select>
+        <span class="bd-ajuda">Manda o serviço para a folha desta pessoa.</span>
       </div>
     </div>
     <div class="m28-form-linha">
@@ -553,9 +612,16 @@ async function m28Salvar(id){
   d.area=document.getElementById("m28f-area").value;
   d.dataRegistro=document.getElementById("m28f-data").value||"";
   d.urg=!!document.getElementById("m28f-urg")?.checked;
+  const ex=document.getElementById("m28f-exec");
+  const execAntes=(d.executor||"").trim();
+  if(ex)d.executor=ex.value==="Outro"?"":ex.value;
   d.mod=nowISO();
   await putItem(d);dataChanged();
-  M28_EDITANDO=null;m28AtualizarTopo();m28RenderLista();toast("Serviço atualizado ✓");
+  M28_EDITANDO=null;m28AtualizarTopo();
+  /* trocou de dono: a barra precisa se refazer, senão o seletor fica sem o nome
+     novo (ou com um nome que já não tem nenhum serviço atrás) */
+  if((d.executor||"").trim()!==execAntes){renderMnt28();toast("Serviço enviado para a folha de "+(d.executor||"ninguém")+" ✓");return;}
+  m28RenderLista();toast("Serviço atualizado ✓");
 }
 async function m28PorFoto(ev,id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
@@ -599,7 +665,7 @@ async function m28Novo(){
 }
 /* só os números do topo — evita redesenhar a folha inteira a cada toque */
 function m28AtualizarTopo(){
-  const itens=m28Itens(),total=itens.length,feitos=itens.filter(d=>d.feito).length;
+  const itens=m28ItensDaFolha(),total=itens.length,feitos=itens.filter(d=>d.feito).length;
   const el=document.getElementById("tab-mnt28");if(!el)return;
   const nums=el.querySelectorAll(".m28-nums .bd-kpi");
   if(nums.length>=3){
@@ -621,6 +687,7 @@ function m28AtualizarTopo(){
    ===================================================================== */
 function m28Imprimir(){
   let rows=m28Itens();
+  if(M28F.exec)rows=rows.filter(d=>(d.executor||"").trim()===M28F.exec);   /* a folha é de uma pessoa só */
   if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
   if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
   if(M28F.piso)rows=rows.filter(d=>d.piso===M28F.piso);
@@ -630,7 +697,10 @@ function m28Imprimir(){
 
   const c=m28Cab(rows);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
-  const exec=c.executor||(rows.find(d=>d.executor)||{}).executor||"";
+  /* LAY-3: com a folha filtrada por pessoa, quem manda no cabeçalho é ELA —
+     imprimir a folha do Matheus com o nome do Sr. João no topo seria pior que
+     não ter folha. Sem filtro, vale o que ela gravou no cabeçalho, como antes. */
+  const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const feitos=rows.filter(d=>d.feito).length;
   const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
@@ -813,14 +883,14 @@ async function m28TrocarExecutor(){
   const v=prompt("Quem é o responsável pelos serviços desta folha?",atual);
   if(v===null)return;
   M28_CAB=Object.assign({},M28_CAB||{},{executor:v.trim()});
-  await metaSetU("mnt28Cabecalho",M28_CAB);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB);
   dataChanged();renderMnt28();toast("Responsável atualizado ✓");
 }
 /* mostrar/esconder pedaços da tela (painel de números, selos de origem) */
 async function m28Alternar(chave){
   await m28Config();
   M28_VIS=Object.assign({},M28_VIS,{[chave]:M28_VIS[chave]===false});
-  await metaSetU("mnt28Visual",M28_VIS);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Visual",M28_VIS);
   dataChanged();renderMnt28();
   if(typeof cfgAbrir==="function")cfgAbrir();   /* reabre o painel no lugar */
 }
@@ -864,7 +934,7 @@ async function m28SalvarTextos(){
     const v=el.value.trim();
     if(v&&v!==M28_TXT_PADRAO[k])novo[k]=v;    /* só guarda o que difere do padrão */
   }
-  await metaSetU("mnt28Textos",novo);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Textos",novo);
   M28_TXT=Object.assign({},M28_TXT_PADRAO,novo);
   const j=document.getElementById("m28-txcfg");if(j)j.remove();
   dataChanged();renderMnt28();toast("Textos da folha atualizados ✓");

@@ -45,7 +45,14 @@ const CFG_ABAS={
      acao:()=>{cfgFechar();if(typeof ncGerirAreas==="function")ncGerirAreas();}},
     {gr:"outros",rot:"Palavras de urgência",dica:"As palavras que fazem o site sugerir URGENTE sozinho",
      valor:()=>(typeof NC_KW!=="undefined")?(NC_KW.URGENTE.length+NC_KW.ATENCAO.length+NC_KW.OBSERVACAO.length)+" palavras":"—",
-     acao:()=>{cfgFechar();if(typeof ncGerirPalavras==="function")ncGerirPalavras();}}
+     acao:()=>{cfgFechar();if(typeof ncGerirPalavras==="function")ncGerirPalavras();}},
+    /* 03/08 — a folha nova (opção C): os títulos das colunas e o limite de dias */
+    {gr:"outros",rot:"Textos da folha",dica:"Os títulos das colunas — troque com as suas palavras",
+     valor:()=>"5 títulos",
+     acao:()=>{cfgFechar();if(typeof ncGerirTextos==="function")ncGerirTextos();}},
+    {gr:"outros",rot:"Quando fica vermelho",dica:"Dias parada até o tempo virar vermelho na folha",
+     valor:()=>(typeof ncLimiteDias==="function")?ncLimiteDias()+" dias":"—",
+     acao:()=>{cfgFechar();if(typeof ncGerirTextos==="function")ncGerirTextos();}}
   ],
   list:()=>[
     {gr:"filtrar",rot:"Filtrar",dica:"Responsável, status e área",

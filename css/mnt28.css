@@ -53,6 +53,9 @@
 .m28-nums{margin-bottom:16px}
 .m28-nums .bd-kpi-num.m28-pend{color:#b3730a}
 .m28-nums .bd-kpi-num.m28-ok{color:#067647}
+/* o card URGENTES nasceu em 31/07 (Folha 1 dela) e ficou sem cor, preto ao lado
+   dos dois irmãos coloridos. Mesmo vermelho do resto do site. */
+.m28-nums .bd-kpi-num.m28-urg{color:#b42318}
 
 /* Nome de área é comprido ("CORREDOR DE ENTRADA - INTERNO (teto, parede e piso)").
    Sem estas duas linhas a caixa de escolha estica e empurra a página inteira
@@ -78,6 +81,26 @@
 .m28-item:last-child{margin-bottom:4px}
 .m28-area-nome{font-size:13.5px;font-weight:700;color:#155244;flex:1;min-width:0}
 .m28-count{font-size:11.5px;font-weight:600;color:#5c5d68;white-space:nowrap}
+
+/* ─────────── fechar e abrir a área (estilo Notion) ───────────
+   A setinha estava saindo como botão cinza do navegador, com a caixinha e tudo,
+   e sem os 44px que o dedo precisa. Mesma técnica do lápis: o desenho é
+   pequeno, a área que responde ao toque é grande e invisível. */
+.m28-abrefecha{
+  background:none;border:0;cursor:pointer;padding:0;margin:0;line-height:1;
+  width:20px;height:20px;flex:none;position:relative;align-self:center;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:#155244;border-radius:5px;
+}
+.m28-abrefecha:hover{background:rgba(21,82,68,.10)}
+.m28-abrefecha::before{content:"";position:absolute;top:50%;left:50%;
+  width:44px;height:44px;transform:translate(-50%,-50%)}
+/* área fechada: os cantos fecham embaixo, porque não há mais lista pendurada */
+.m28-area.fechada{border-radius:0 8px 8px 0;margin-bottom:6px}
+/* o lápis padrão é branco (nasceu para a capa verde). Aqui o fundo é verde
+   CLARO — branco sobre verde claro é invisível. Escurece e some o hover branco. */
+.m28-lapis-area{color:#2a6b5c}
+.m28-lapis-area:hover{background:rgba(21,82,68,.10);color:#155244}
 
 /* cabeçalho das 3 colunas — repete em cada área, para não se perder na rolagem */
 .m28-tab-cab{
@@ -120,6 +143,22 @@
   background:#fef3f2;border:1px solid #fecdca;color:#b42318;
   font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
 }
+/* URGENTE é o que ELA marca no lápis. Mesma família do VERIFICAR, um tom mais
+   forte — é o único selo que precisa gritar. A palavra vai escrita: quem não
+   distingue vermelho continua lendo "Urgente". */
+.m28-urgselo{
+  display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
+  background:#fee4e2;border:1px solid #fda29b;color:#912018;
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
+}
+/* no formulário, o selo fica ao lado da caixinha de marcar, na mesma linha */
+.m28-urgchk{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:13px;color:#5c5d68;line-height:1.4;cursor:pointer;
+}
+.m28-urgchk input{width:18px;height:18px;flex:none;margin:0;cursor:pointer;accent-color:#b42318}
+.m28-urgchk .m28-urgselo{margin-right:0}
+
 .m28-origem{
   display:inline-block;margin-left:7px;font-size:10.5px;font-weight:600;color:#5c5d68;
   background:#f1f1f3;border:1px solid #e2e3e7;border-radius:99px;padding:1px 8px;white-space:nowrap;
@@ -209,6 +248,9 @@
   .m28-form textarea.bd-campo{min-height:76px}
   .m28-form .bd-btn{min-height:44px;flex:1}
   .m28-thumb button{width:30px;height:30px;min-height:30px;top:-9px;right:-9px;font-size:16px}
+  /* a caixinha de urgência também é dedo, não mouse */
+  .m28-urgchk{min-height:44px}
+  .m28-urgchk input{width:24px;height:24px}
 }
 
 /* ─────────── o topo do site NÃO se repete nesta aba (30/07, pedido dela) ───────────

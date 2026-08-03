@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 31/07/2026 (v9.42) · este arquivo é a memória entre conversas
+### atualizado em 03/08/2026 (v9.42) · este arquivo é a memória entre conversas
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -61,6 +61,83 @@ folha do Matheus). Ver `modelos/layouts.html`.
 
 Fotos do mercado (Folha 2): ela vai reunir e mandar; inserir nos relatórios.
 
+### ✅ AS 3 ESCOLHAS FORAM RESPONDIDAS E CONSTRUÍDAS (03/08, v9.43) — não refazer
+
+| Cód | Escolha dela | Construído |
+|---|---|---|
+| **LAY-1** | **Foto à vista + coluna de observações** (opção 1) | A aba de NC saiu do cartão e virou **folha de conferência**: 5 colunas (*Foi resolvida? · O que está errado? · Desde quando · Urgência · Observações*), agrupada por piso → área, cabeçalho de colunas repetido a cada área, foto pequena junto do problema, ação corretiva e observação juntas na última coluna. A caixinha resolve e reabre. `js/nc.js` + `.nc-fl-*` em `css/app.css` |
+| **LAY-2** | **30 dias** | `ncDesde()` conta em **dias** (a MNT conta em meses, não servia), passa de 30 fica vermelho **com a palavra escrita**, e NC já resolvida nunca acende. Número **editável no ⚙** |
+| **LAY-3** | **Na aba MNT, com seletor de responsável** | `M28F.exec` + *"Folha de: Sr. João · Matheus · Todos"*. Trocar o nome troca **capa, números, lista e folha impressa**. `executor` virou campo por serviço no lápis, usando a lista `EXECUTORES` que ela já edita. A aba antiga **não foi tocada** |
+| **Matheus** | **Todos entram como não feitos** | 41 serviços gerados e testados |
+
+**Também nasceram:** `NC_TXT_PADRAO` + `ncGerirTextos()` (os 5 títulos de coluna e o limite de dias,
+graváveis com `metaSetU`, campo vazio volta ao padrão) e 2 linhas novas em `CFG_ABAS.nc`.
+
+### ✅ CONSERTO DE RAIZ — o que ela editava não chegava no celular (03/08, v9.44)
+
+**Achado conferindo o banco dela na nuvem:** as chaves `mnt28Textos`, `mnt28Cabecalho`,
+`mnt28Visual`, `mnt28Ordem` e `ncTextos` **nunca entraram no envelope da sincronização**
+(`buildBackupEnvelope`, `js/app.js`). Na prática: **tudo que ela edita pelos 6 lápis da capa da
+MNT** — nome, cargo/registro, responsável pelos serviços, data de emissão e os 10 textos da folha
+— **e** os 5 títulos novos da folha de NC ficavam presos no aparelho onde ela editou. Ela trocava
+o título no computador e o celular continuava com o antigo. **Vale desde 30/07**, quando os lápis
+nasceram (F-3): a metade "ela edita sozinha" funcionava, a metade "chega no celular" não.
+
+**Corrigido:** `FOLHAS_CHAVES` + `FOLHAS_CFG` + `folhasCfgSet()` em `js/app.js` (grava com
+`metaSetU`, carimba a hora e agenda a sincronização), as 5 chaves no envelope, e o outro lado no
+`js/sync.js` — que ainda **recarrega a memória da página e repinta a aba**, senão o texto novo
+chegaria no banco e a tela continuaria com o velho. **Provado nas duas pontas:** editei aqui e o
+envelope levou; zerei como se fosse o celular, sincronizei, e o título e o limite de dias
+chegaram — inclusive na tela, sem recarregar.
+
+### ✅ CONSERTO DE RAIZ — o desfazer não repintava a tela (03/08)
+
+O `Ctrl+Z` voltava o dado no banco e a **tela continuava com o texto velho**: ela desfazia e parecia
+que não funcionou. Valia para os textos da folha de NC **e** da MNT. Duas causas:
+`recarregarConfig()` (`js/app.js`) não recarregava `NC_TXT` nem `M28_TXT/M28_CAB/M28_VIS`, e
+`histAplicar()` não repintava a aba `mnt28`. Corrigido com `ncRecarregarTextos()` e
+`m28RecarregarConfig()`. **Provado no navegador:** trocou o título, desfez, a tela voltou sozinha.
+
+### ⚠️ AR-1 — o que a varredura de 03/08 provou (a raiz, agora com número)
+
+**Das 34 áreas usadas pelos 122 serviços da folha do Sr. João, ZERO batem com o cadastro de áreas
+da loja.** Nem o piso: os serviços dizem `1º PISO`, o cadastro diz `1º Piso` — e o cadastro ainda
+tem `1º Piso — Parte Central` e `1º Piso — Parte Interna`. São duas listas que nunca se encontraram.
+
+**Consequência real (medida, não suposta):** o seletor de piso mostra os dois conjuntos somados —
+`1º Piso`, `2º Piso` **e** `1º PISO` — três opções onde deveriam ser duas.
+**O que NÃO acontece:** o lápis **não** troca a área do serviço sozinho. Eu afirmei que trocava e
+estava errado — `m28ListaAreas()` (`js/mnt28.js:510-521`) já acrescenta à lista as áreas usadas na
+folha, justamente para nada ficar órfão. Testado no navegador: salvar sem mexer preserva piso e área.
+
+**Decisão dela (03/08):** a folha do Matheus nasce com os **mesmos nomes da folha do Sr. João**;
+o AR-1 depois arruma as duas de uma vez.
+
+### 🟣 A PÁGINA DE COMPARAÇÃO CONTINUA NO AR (para consultar)
+
+> Eu perguntei em texto e ela disse que **não decide por texto, só vendo**. As três foram
+> puladas e refeitas com desenho: **`modelos/comparar-layouts.html`** (estática, sem
+> JavaScript, não toca em dado). Cada opção diz o que ela **ganha** e o que ela **perde**.
+> **Regra combinada:** se durante a execução eu esbarrar em algo que dependa de uma delas,
+> **paro e devolvo a pergunta na hora** — não assumo caminho provisório.
+
+| Cód | Pergunta | Opções desenhadas |
+|---|---|---|
+| **LAY-1** | Na folha de NC (opção C), **onde fica a foto** e a ação corretiva? | 1) foto à vista + coluna de observações · 2) linha limpa, abre ao tocar · 3) só as 4 colunas |
+| **LAY-2** | A partir de **quantos dias** parada a NC fica vermelha? | 15 (acende 5 de 6) · 30 (acende 4) · 60 (acende 1). Fica editável no ⚙ de qualquer jeito |
+| **LAY-3** | **Onde nasce a folha do Matheus?** | 1) na aba MNT com seletor de responsável · 2) aba nova só dele · 3) a aba antiga troca de desenho — **é o único caminho que mexe nos dados dela** |
+
+**Já respondidas** — a página fica como registro do que foi comparado e por quê.
+
+### ✅ FEITO EM 03/08 — não refazer
+
+| Cód | O que |
+|---|---|
+| **CSS-1** | **6 estilos que não existiam.** O `js/mnt28.js` escrevia 6 classes que **não estavam em nenhum arquivo de estilo** — o selo **URGENTE** saía como texto solto, a setinha de fechar área saía como botão cinza do navegador e **sem os 44px de toque**, o card **Urgentes** ficava preto ao lado dos irmãos coloridos, e o **lápis da área era branco sobre fundo verde claro** (invisível). Causa raiz: o `js` recebeu o urgente e o abre-fecha em 31/07 e o `css` parou em 30/07. Corrigido em `css/mnt28.css` e **provado no navegador** (selo `#912018` sobre `#fee4e2`, card `#b42318`, abre-fecha 44×44, lápis `#2a6b5c`) |
+| **LAY-0** | `modelos/comparar-layouts.html` criada, no `SHELL` do `sw.js` e com link em `modelos/index.html`. Conferida em navegador de verdade: **zero erro no console**, **zero rolagem lateral** em 375px e 768px, links com 44px, tabelas largas rolando **dentro** da moldura |
+| **SJ-3** | ✅ **Folha do Matheus pronta.** Carga gerada e **testada no navegador**: `4. TAREFAS\CODE - Layouts e folha do Matheus (03-08-26)\IMPORTAR NO SITE - Folha do Matheus (41 servicos).json` (22 KB). **41 serviços** (40 da planilha − 1 que era pergunta + 2 sinalizados em 29/07 que não existiam: iluminação das ilhas e da carga e descarga), todos **não feitos**, 21 áreas. Provado: os serviços do Sr. João ficam **intactos**, a folha impressa sai com **"Responsável: Matheus"** e **não cita o Sr. João**, **nenhum lembrete 🔒 dela vaza** para o papel, 7 selos VERIFICAR na tela. Falta só ela **importar**. Análise (5 causas, RDC 216) no `FOLHA DO MATHEUS (SJ-3) - levantamento conferido.md` |
+| **CSS-2** | O traço de "vazio" da folha de NC estava em contraste 2,0 (sumia no celular na luz da loja) → `#767783` |
+
 ### Anotações dela no Notion (31/07, guardadas a pedido) — códigos novos
 
 | Cód | O que |
@@ -110,7 +187,7 @@ Fotos do mercado (Folha 2): ela vai reunir e mandar; inserir nos relatórios.
 | **F-7** | 📄 reescrita proposta no documento SJ-1 — espera o OK dela |
 | **F-8** | 📄 reescrita proposta no documento SJ-1 (alumínio anodizado + inox na observação) — espera o OK dela |
 | **SJ-1** | 📄 **proposta pronta** (30/07): `4. TAREFAS\CODE - Resgate MNT (30-07-26)\PROPOSTA SJ-1...md` — 3 causas raiz (maresia 22+, umidade, rodapés 8-em-1), reescritas F-7/F-8, base RDC 216/275. **Não aplicada**: espera a recuperação da tarde de 29/07 e o OK dela |
-| **SJ-3** | Folha do **Matheus** (37 de elétrica + os 5 sinalizados hoje) |
+| **SJ-3** | Folha do **Matheus**. **Levantamento feito e conferido em 03/08** — e o número mudou: são **40** na planilha (não 37), zero linhas escondidas por filtro. Dos 5 sinalizados em 29/07, **2 já estavam lá** (lâmpada da câmara de laticínios e as 2 da cozinha), então a conta é **40 + 3 = 43**. **Não são 40 problemas, são 5 causas**: sem rotina de troca de lâmpada (14 itens) · luminária/tomada sem capa protetora (4 — RDC 216 item 4.1.15, risco de caco de vidro no alimento) · fiação exposta perto de água (3 — o mais grave) · disjuntor sem identificação (3, todos parados desde 10/02/2025) · forno da UAN (3 linhas que são o mesmo serviço). **7 serviços passaram de 1 ano parados.** Falta: a resposta de **LAY-3**, se os 25 já "concluídos" entram, o que são os **4 itens do "João"** (nome separado de "Sr. João" na planilha) e **as fotos dos documentos** — sem elas eu não afirmo que a folha está completa |
 | ~~DEF-1~~ | ✅ feito em v9.28. Provado no navegador: **0 crachás trocados** em 12 modelos / 161 perguntas, e 0 modelos regravados à toa. Correção do plano: trocar por `metaSetU` **não** faria a trava viajar (essa chave não entra no envelope da sincronização) — o que resolve é preservar o crachá, e isso está feito |
 | ~~DEF-2 / AR-3~~ | ✅ feito em v9.29. **O diagnóstico estava errado:** conferi no navegador e as áreas **chegam** no celular (entram no envelope e o `areasMod` sobe). O defeito real era pior: área apagada **não tinha Ctrl+Z**. Agora volta, e a seta diz "as áreas" |
 | ~~DEF-3 / NOT-1~~ | ✅ feito em v9.37, agora do jeito certo: UTF-8 explícito e **prova do acento** antes e depois de gravar — se falhar, não escreve e cobra à mão. (1ª tentativa registrada: Fiz o guardião carimbar a data sozinho — e ele **quebrou os acentos do site publicado** (o PowerShell 5.1 lê o arquivo na codificação do sistema, não em UTF-8; 16 palavras quebradas viraram 483 e a capa dela encheu de rabisco). Desfeito. Hoje o guardião **confere e barra** se a data estiver velha, mas quem troca é quem publica. Voltar a automatizar exige ler/gravar em UTF-8 explícito e testar com palavra acentuada antes |

@@ -111,6 +111,31 @@ async function removePendencia(i){
  if(!confirm("Excluir esta pendência?\n\n"+PENDENCIAS[i].texto))return;
  PENDENCIAS.splice(i,1);await savePendencias();gerirPendencias();renderHome();}
 
+/* ═══════ CONFIGURAÇÕES DAS FOLHAS — AGORA VIAJAM (03/08) ═══════
+   BURACO ACHADO conferindo o banco na nuvem: tudo que ela edita pelos 6 lápis
+   da capa da MNT (nome, cargo, responsável, data de emissão, os 10 textos da
+   folha) e no ⚙ ficava SÓ no aparelho onde ela editou — essas chaves nunca
+   entraram no envelope da sincronização. Ela trocava o título no computador e
+   no celular continuava o antigo. Vale desde 30/07, quando os lápis nasceram.
+   Aqui elas viajam juntas, com um único carimbo de hora: quem editou por
+   último vence, igual às urgências e às áreas. */
+const FOLHAS_CHAVES=["mnt28Textos","mnt28Cabecalho","mnt28Visual","mnt28Ordem","ncTextos"];
+let FOLHAS_CFG={},FOLHAS_CFG_MOD="";
+async function loadFolhasCfg(){
+  const o={};
+  for(const k of FOLHAS_CHAVES){const v=await metaGet(k);if(v!==null&&v!==undefined)o[k]=v;}
+  FOLHAS_CFG=o;FOLHAS_CFG_MOD=await metaGet("folhasCfgMod")||"";
+}
+/* usar SEMPRE isto para gravar configuração de folha: grava com metaSetU (para
+   o Ctrl+Z pegar), atualiza o carimbo e manda sincronizar */
+async function folhasCfgSet(chave,valor){
+  await metaSetU(chave,valor);
+  FOLHAS_CFG[chave]=valor;
+  FOLHAS_CFG_MOD=nowISO();
+  await metaSet("folhasCfgMod",FOLHAS_CFG_MOD);
+  if(window.syncSchedule)syncSchedule();
+}
+
 /* ===== Executores gerenciáveis (lista única para todas as empresas) ===== */
 let EXECUTORES=[],EXECUTORES_MOD="";
 async function loadExecutores(){
@@ -638,6 +663,9 @@ async function histAplicar(passo,voltando){
     if(typeof ckRedesenhaPasso==="function")ckRedesenhaPasso();
     if(typeof ckRedesenhaLista==="function"&&document.getElementById("ck-constr"))ckRedesenhaLista();
     if(typeof renderNC==="function"&&currentTab==="nc")renderNC();
+    /* faltava a folha de manutenção: o desfazer mexia no banco e a folha do
+       Sr. João continuava mostrando o valor anterior */
+    if(typeof renderMnt28==="function"&&currentTab==="mnt28")renderMnt28();
     if(typeof render==="function"&&(currentTab==="list"||currentTab==="add"))render();
     if(document.getElementById("view-home").style.display!=="none")await renderHome();
     if(window.syncSchedule)syncSchedule();
@@ -688,10 +716,15 @@ async function metaSetU(k,v){
 async function recarregarConfig(){
   await loadEmpresas();await loadPendencias();await loadRtInfo();
   await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
-  await loadExecutores();await loadAreasAll();
+  await loadExecutores();await loadAreasAll();await loadFolhasCfg();
   if(window.dgLoadOpcoes)await dgLoadOpcoes();
   if(window.ckLoadOpcoes)await ckLoadOpcoes();
   if(window.ncLoadUrgencias)await ncLoadUrgencias();
+  /* 03/08 — os textos das folhas ficam guardados na memória da página enquanto
+     ela usa. Sem estas duas linhas, o Ctrl+Z voltava o dado no banco e a TELA
+     continuava com o texto velho: ela desfazia e parecia que não funcionou. */
+  if(window.ncRecarregarTextos)await ncRecarregarTextos();
+  if(window.m28RecarregarConfig)await m28RecarregarConfig();
   if(window.ckAmbCarregarTodas)await ckAmbCarregarTodas();
   if(window.ckqCarregarSetores)await ckqCarregarSetores();
   if(window.fillExecSelects)fillExecSelects();
@@ -1324,7 +1357,7 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",ncPalavras:(typeof NC_KW_OVR!=="undefined")?NC_KW_OVR:null,ncPalavrasMod:(typeof NC_KW_MOD!=="undefined")?(NC_KW_MOD||""):"",itens:DATA};}
+function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",ncPalavras:(typeof NC_KW_OVR!=="undefined")?NC_KW_OVR:null,ncPalavrasMod:(typeof NC_KW_MOD!=="undefined")?(NC_KW_MOD||""):"",folhasCfg:(typeof FOLHAS_CFG!=="undefined")?FOLHAS_CFG:null,folhasCfgMod:(typeof FOLHAS_CFG_MOD!=="undefined")?(FOLHAS_CFG_MOD||""):"",itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -1579,7 +1612,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.42";
+const APP_VERSAO="9.44";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

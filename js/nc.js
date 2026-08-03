@@ -133,6 +133,59 @@ async function ncSalvarPalavras(){
   const j=document.getElementById("nc-kwcfg");if(j)j.remove();
   dataChanged();toast("Palavras de urgência atualizadas ✓");
 }
+/* ═══════════ TEXTOS DA FOLHA DE NC (03/08) ═══════════
+   Mesma janela e mesmas regras da aba MNT: o padrão vai como dica no campo,
+   apagar o campo volta ao padrão, e só o que ela mudou é gravado. */
+async function ncGerirTextos(){
+  await ncLoadTextos();
+  const ROTS=[["colResolvida","Primeira coluna (a caixinha)"],
+    ["colErrado","Coluna do problema"],
+    ["colDesde","Coluna do tempo parado"],
+    ["colUrg","Coluna da urgência"],
+    ["colObs","Coluna das observações"]];
+  const antigo=document.getElementById("nc-txcfg");if(antigo)antigo.remove();
+  let campos="";
+  for(const [k,rot] of ROTS){
+    campos+=`<div class="bd-grupo"><label class="bd-rotulo" for="nctx-${k}">${esc(rot)}</label>
+      <input class="bd-campo" id="nctx-${k}" value="${esc(ncT()[k]===NC_TXT_PADRAO[k]?"":ncT()[k]||"")}"
+        placeholder="${esc(NC_TXT_PADRAO[k])}"></div>`;
+  }
+  const p=document.createElement("div");
+  p.id="nc-txcfg";p.className="cfg-painel";
+  p.innerHTML=`<div class="cfg-cx" onclick="event.stopPropagation()">
+    <div class="cfg-topo"><b>Textos da folha de não conformidade</b>
+      <button class="btn ghost sm" onclick="document.getElementById('nc-txcfg').remove()" aria-label="Fechar">✕</button></div>
+    <p class="desc" style="margin:4px 2px 10px">São os títulos das colunas da folha.
+      Deixar o campo vazio volta ao texto de fábrica (que aparece em cinza).</p>
+    ${campos}
+    <div class="bd-grupo">
+      <label class="bd-rotulo" for="nctx-diasVermelho">Ficar vermelho depois de quantos dias parada</label>
+      <input class="bd-campo" id="nctx-diasVermelho" type="number" min="1" max="3650" inputmode="numeric"
+        value="${esc(ncT().diasVermelho===String(NC_DIAS_PADRAO)?"":ncT().diasVermelho||"")}"
+        placeholder="${NC_DIAS_PADRAO}">
+      <span class="bd-ajuda">Passou disto, o tempo aparece em vermelho na folha — e a palavra
+        continua escrita, para quem imprime em preto e branco. NC já resolvida nunca fica vermelha.</span>
+    </div>
+    <div class="m28-form-acoes" style="margin-top:12px">
+      <button class="bd-btn bd-btn-principal" onclick="ncSalvarTextos()">Salvar</button>
+      <button class="bd-btn bd-btn-fantasma" onclick="document.getElementById('nc-txcfg').remove()">Cancelar</button>
+    </div></div>`;
+  p.onclick=()=>p.remove();
+  document.body.appendChild(p);
+}
+async function ncSalvarTextos(){
+  const novo={};
+  for(const k of Object.keys(NC_TXT_PADRAO)){
+    const el=document.getElementById("nctx-"+k);if(!el)continue;
+    const v=el.value.trim();
+    if(v&&v!==NC_TXT_PADRAO[k])novo[k]=v;   /* só guarda o que difere do padrão */
+  }
+  NC_TXT=Object.assign({},NC_TXT_PADRAO,novo);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("ncTextos",novo);          /* metaSetU: sem ele o Ctrl+Z não pega */
+  const j=document.getElementById("nc-txcfg");if(j)j.remove();
+  dataChanged();ncRenderList();toast("Textos da folha atualizados ✓");
+}
+
 function ncClassificar(texto){
  const t=ncNormalizar(texto);
  const tem=l=>l.some(k=>t.includes(k));
@@ -175,6 +228,70 @@ function ncMeses(d,refYm){
 }
 const ncOrdinal=n=>n+"º mês";
 
+/* ═══════════ DESDE QUANDO ESTÁ PARADA (03/08 — LAY-2) ═══════════
+   A folha do Sr. João conta em MESES e fica vermelha com 1 ano, porque obra
+   demora mesmo. Não conformidade é outra coisa: some em dias. Por isso aqui a
+   conta é em DIAS, e o limite é dela — escolheu 30, muda no ⚙ quando quiser.
+   A data vem do dia em que a NC foi registrada (campo relato). Sem data, não
+   inventa nada: mostra um traço. */
+const NC_DIAS_PADRAO=30;
+function ncLimiteDias(){
+  const n=parseInt(NC_TXT&&NC_TXT.diasVermelho,10);
+  return (n>0&&n<3650)?n:NC_DIAS_PADRAO;
+}
+function ncDias(iso){
+  if(!iso)return null;
+  const p=String(iso).slice(0,10).split("-");
+  if(p.length!==3)return null;
+  const d=new Date(+p[0],+p[1]-1,+p[2]);
+  if(isNaN(d))return null;
+  const h=new Date();
+  const a=Date.UTC(h.getFullYear(),h.getMonth(),h.getDate()),b=Date.UTC(+p[0],+p[1]-1,+p[2]);
+  return Math.max(0,Math.round((a-b)/86400000));
+}
+function ncTempoTexto(dias){
+  if(dias===null)return "";
+  if(dias===0)return "hoje";
+  if(dias===1)return "ontem";
+  if(dias<30)return "há "+dias+" dias";
+  const m=Math.floor(dias/30);
+  if(m<12)return "há "+m+(m===1?" mês":" meses");
+  const a=Math.floor(m/12),r=m%12;
+  return "há "+a+(a===1?" ano":" anos")+(r?" e "+r+(r===1?" mês":" meses"):"");
+}
+/* A data prova; o tempo cobra. Passou do limite dela, fica vermelho — e o texto
+   continua escrito, porque cor sozinha nunca diz nada (regra fixa do site). */
+function ncDesde(d){
+  if(!d.relato)return '<span class="nc-fl-vazio">—</span>';
+  const dias=ncDias(d.relato),txt=ncTempoTexto(dias);
+  const resolvida=d.status==="Resolvida";
+  const grave=!resolvida&&dias!==null&&dias>=ncLimiteDias();
+  return `<span class="nc-fl-data">${brDate(d.relato)}</span>`
+    +(txt?`<span class="nc-fl-tempo${grave?" grave":""}">${txt}</span>`:"");
+}
+
+/* ═══════════ OS RÓTULOS DA FOLHA SÃO DELA (03/08) ═══════════
+   Mesmo mecanismo já testado na aba MNT: o valor de fábrica vai como dica no
+   campo, campo vazio volta ao padrão, e grava só o que ela mudou. Sempre por
+   metaSetU — com metaSet puro o Ctrl+Z não pegaria. */
+const NC_TXT_PADRAO={
+  colResolvida:"Foi resolvida?",
+  colErrado:"O que está errado?",
+  colDesde:"Desde quando",
+  colUrg:"Urgência",
+  colObs:"Observações",
+  diasVermelho:String(NC_DIAS_PADRAO)};
+let NC_TXT=null;
+function ncT(){return NC_TXT||NC_TXT_PADRAO;}
+async function ncLoadTextos(){
+  if(NC_TXT===null)NC_TXT=Object.assign({},NC_TXT_PADRAO,await metaGet("ncTextos")||{});
+}
+/* recarga forçada — chamada pelo Ctrl+Z e pela sincronização, que mudam o banco
+   por baixo do que já está na memória da página */
+async function ncRecarregarTextos(){
+  NC_TXT=null;await ncLoadTextos();
+}
+
 /* ---- redação técnica (rascunho por modelo; skill redacao-tecnica-uan
         pode refinar depois). Tom formal, direto, sem culpabilizar,
         1–3 linhas, sem citar RDC. ---- */
@@ -216,6 +333,7 @@ let ncCapUrgManual=null;/* urgência escolhida manualmente no formulário */
 /* ---- render principal da aba ---- */
 async function renderNC(){
  if(window.aplicarTextos)setTimeout(aplicarTextos,0);
+ await ncLoadTextos();          /* os rótulos das colunas e o limite de dias são dela */
  const wrap=document.getElementById("tab-nc");
  const areas=await ncAreas(currentStore);
  if(wrap.dataset.store!==currentStore){
@@ -414,26 +532,47 @@ function ncRenderList(){
    ||((a.ordem??1e9)-(b.ordem??1e9))||(a.relato||"").localeCompare(b.relato||""));
  const nPiso={},nArea={};
  for(const d of rows){nPiso[d.piso]=(nPiso[d.piso]||0)+1;const k=d.piso+"|"+d.area;nArea[k]=(nArea[k]||0)+1;}
+ /* ═══════════ A FOLHA (opção C, escolhida por ela em 30/07) ═══════════
+    Sai o cartão, entra a folha de conferência: colunas escritas em forma de
+    pergunta, o mesmo desenho que já funcionou com o Sr. João. A foto fica À
+    VISTA junto do problema (LAY-1, escolha dela) — é a foto que prova a não
+    conformidade para a gerência, e esconder custaria um toque por item. */
+ const T=ncT();
+ const cabecalho=`<div class="nc-fl-cab"><span>${esc(T.colResolvida)}</span><span>${esc(T.colErrado)}</span>`
+   +`<span>${esc(T.colDesde)}</span><span>${esc(T.colUrg)}</span><span>${esc(T.colObs)}</span></div>`;
  let html="",piso=null,area=null;
  for(const d of rows){
   if(d.piso!==piso){piso=d.piso;area=null;html+=`<div class="nc-piso">${esc(piso||"Sem piso")} <span class="nc-count">${nPiso[d.piso]} NC${nPiso[d.piso]===1?"":"s"}</span></div>`;}
-  if(d.area!==area){area=d.area;html+=`<div class="nc-area-h">${esc(area)} <span class="nc-count">${nArea[d.piso+"|"+d.area]}</span></div>`;}
+  /* o cabeçalho das colunas repete a cada área, para não se perder na rolagem */
+  if(d.area!==area){area=d.area;html+=`<div class="nc-area-h">${esc(area)} <span class="nc-count">${nArea[d.piso+"|"+d.area]}</span></div>`+cabecalho;}
   const meses=ncMeses(d,ym),resolvida=d.status==="Resolvida";
   const badges=(meses>=2&&!resolvida?`<span class="nc-badge reinc">↻ ${ncOrdinal(meses)}</span>`:"")
    +(d.revisar?'<span class="nc-badge warn">⚠ revisar</span>':"")
    +((d.reaberturas||0)>0?`<span class="nc-badge">reaberta ${d.reaberturas}x</span>`:"");
   const pontos=(d.pontos||[]).map(p=>`<div class="nc-ponto">• ${esc(p)}</div>`).join("");
-  const fotos=(d.fotos||[]).map((f,i)=>`<img class="nc-mini" src="${f}" onclick="ncVerFoto(${d.id},${i})">`).join("");
-  html+=`<div class="nc-item ${resolvida?"done":""}" data-id="${d.id}" data-area="${esc(d.area||"")}">
-   <div class="nc-item-top"><span class="nc-alca" title="Segure e arraste para mudar a ordem dentro desta área" onpointerdown="ncArrIni(event,${d.id})">⠿</span>${ncTag(d.urgencia)}${badges}<span class="nc-data">${brDate(d.relato)}${resolvida?" · resolvida em "+brDate(d.resolvida_em):""}</span></div>
-   <div class="nc-texto">${esc(d.texto_tecnico||d.texto_bruto||"(sem descrição — ver fotos)")}</div>
-   ${pontos}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}
+  const fotos=(d.fotos||[]).map((f,i)=>`<img class="nc-mini" src="${f}" width="56" height="56"
+    alt="Foto ${i+1} desta não conformidade" onclick="ncVerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
+  /* a coluna de observações junta a ação corretiva e a observação — as duas
+     coisas que ela escreve e que precisavam de lugar na folha */
+  const obs=[d.acao?"✔ "+d.acao:"",d.obs||""].filter(Boolean).map(esc).join("<br>");
+  html+=`<div class="nc-item nc-fl ${resolvida?"done":""}" data-id="${d.id}" data-area="${esc(d.area||"")}">
+   <div class="nc-fl-c1">
+    <button class="nc-fl-check" role="checkbox" aria-checked="${resolvida?"true":"false"}"
+      aria-label="${resolvida?"Reabrir":"Marcar como resolvida"}: ${esc((d.texto_tecnico||d.texto_bruto||"").slice(0,70))}"
+      title="${resolvida?"Resolvida em "+brDate(d.resolvida_em)+" — toque para reabrir":"Marcar como resolvida"}"
+      onclick="${resolvida?`ncReabrir(${d.id})`:`ncResolver(${d.id})`}"><span aria-hidden="true">${resolvida?"✓":""}</span></button>
+    <span class="nc-alca" title="Segure e arraste para mudar a ordem dentro desta área"
+      aria-hidden="true" onpointerdown="ncArrIni(event,${d.id})">⠿</span>
+   </div>
+   <div class="nc-fl-texto">${esc(d.texto_tecnico||d.texto_bruto||"(sem descrição — ver fotos)")}
+    ${badges}${pontos}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}</div>
+   <div class="nc-fl-desde">${ncDesde(d)}${resolvida?`<span class="nc-fl-ok">resolvida ${brDate(d.resolvida_em)}</span>`:""}</div>
+   <div class="nc-fl-urg">${ncTag(d.urgencia)}</div>
+   <div class="nc-fl-obs">${obs||'<span class="nc-fl-vazio">—</span>'}</div>
    <div class="nc-acts">
-    <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar arquivo ou imagem nesta NC">📎</button>
-     <button class="btn ghost sm" onclick="ncEditar(${d.id})"><span data-txt="nc.editar">✎ Editar</span></button>
-    ${resolvida?`<button class="btn ghost sm" onclick="ncReabrir(${d.id})"><span data-txt="nc.reabrir">↩ Reabrir</span></button>`
-     :`<button class="btn sm" onclick="ncResolver(${d.id})"><span data-txt="nc.resolver">✓ Resolver</span></button>`}
-    <button class="delbtn" title="Excluir" onclick="removeItem(${d.id})">🗑</button>
+    <button class="btn ghost sm" onclick="anexarNoItem('${d.uid}')" title="Anexar arquivo ou imagem nesta NC" aria-label="Anexar arquivo nesta NC">📎</button>
+    <button class="btn ghost sm" onclick="ncEditar(${d.id})" aria-label="Editar esta NC"><span data-txt="nc.editar">✎</span></button>
+    <button class="delbtn" title="Excluir" aria-label="Excluir esta NC" onclick="removeItem(${d.id})">🗑</button>
    </div></div>`;
  }
  el.innerHTML=html;

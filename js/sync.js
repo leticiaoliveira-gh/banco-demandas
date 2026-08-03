@@ -176,6 +176,25 @@ async function _syncMergeEnvelope(env){
    await metaSet("ncPalavras",env.ncPalavras);await metaSet("ncPalavrasMod",NC_KW_MOD);
    changed=true;
  }else if(env&&modKW()>(env.ncPalavrasMod||""))localAhead=true;
+ /* ═══ configurações das folhas (03/08) ═══
+    Os 6 lápis da capa da MNT e os textos das colunas das duas folhas. Antes
+    disto ficavam presos no aparelho onde ela editou: trocava o título no
+    computador e o celular continuava com o antigo. */
+ const modFC=()=>typeof FOLHAS_CFG_MOD!=="undefined"?(FOLHAS_CFG_MOD||""):"";
+ if(env&&env.folhasCfg&&(env.folhasCfgMod||"")>modFC()&&typeof FOLHAS_CHAVES!=="undefined"){
+   for(const k of FOLHAS_CHAVES){
+     if(Object.prototype.hasOwnProperty.call(env.folhasCfg,k))await metaSet(k,env.folhasCfg[k]);
+   }
+   FOLHAS_CFG=env.folhasCfg;FOLHAS_CFG_MOD=env.folhasCfgMod;
+   await metaSet("folhasCfgMod",FOLHAS_CFG_MOD);
+   /* o que está na memória da página é o valor VELHO — recarregar, senão a
+      tela continua mostrando o texto antigo mesmo com o novo já no banco */
+   if(window.m28RecarregarConfig)await m28RecarregarConfig();
+   if(window.ncRecarregarTextos)await ncRecarregarTextos();
+   if(window.renderMnt28&&currentTab==="mnt28")renderMnt28();
+   if(window.renderNC&&currentTab==="nc")renderNC();
+   changed=true;
+ }else if(env&&modFC()>(env.folhasCfgMod||""))localAhead=true;
  /* executores (lista única para todas as empresas) */
  if(env&&Array.isArray(env.executores)&&(env.executoresMod||"")>(EXECUTORES_MOD||"")){
    EXECUTORES=env.executores;EXECUTORES_MOD=env.executoresMod;
