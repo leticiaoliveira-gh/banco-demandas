@@ -1,5 +1,109 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 03/08/2026 (v9.42) · este arquivo é a memória entre conversas
+### atualizado em 03/08/2026 (v9.44) · este arquivo é a memória entre conversas
+
+---
+
+## 🟢 DECISÕES DELA — rodada de 03/08. **Valem sempre. Não perguntar de novo.**
+
+> Colhidas uma a uma, com o conteúdo desenhado na tela antes de cada pergunta (pedido dela:
+> *"já vem com a proposta certa pra minha visualização e não fica enrolando"*).
+
+| Cód | Assunto | Decidido |
+|---|---|---|
+| **SJ-1a** | Maresia — 22 serviços de ferrugem em **AC** | **Caminho 3**: substituição progressiva — **alumínio anodizado com ferragens de inox** nos portões e grades, **inox** em prateleiras e estantes de câmara. Onde ainda não der para trocar, caminho 1 (raspar até o metal são + fundo anticorrosivo + esmalte; **nunca** tinta sobre ferrugem) |
+| **SJ-1b** | Onde a explicação da causa aparece | **Opção 1** — orientação curta em cada item **+ um** bloco explicando a causa no fim da folha |
+| **SJ-1c** | Quando existe bloco de causa | **Só quando muitos serviços têm a mesma origem.** Gatilho combinado: **5 ou mais**. Nos demais, item sem bloco. Achando outro caso, **sinalizar e ela decide** — nunca criar por conta própria |
+| **PL-1** | Caminho da planilha de Arraial | **O site é o original; a planilha vira exportação.** Ela edita só no site (inclusive pelo celular, na loja) e a planilha sai por botão, sempre igual |
+| **AR-1** | Qual lista de áreas manda em **AC** | **A dos serviços** — as áreas que ela lê na folha impressa. O cadastro se ajusta a ela. ⚠️ **Aplicar exige mais uma decisão dela** — ver o levantamento abaixo |
+| **MAT-1** | Materiais de limpeza do 2º piso, **AC** | **Existe**, é área própria do 2º piso. Os 3 serviços ficam onde estão e **o VERIFICAR permanece nos três** |
+| **LEG-1** | Banco de legislações da área dela, clicável | Aceito — **para o fim da fila**, palavras dela: *"é algo para se aplicar futuramente, porque tem coisa mais urgente"* |
+
+### 🔴 LEG-0 — COMO A BASE LEGAL APARECE. Regra fixa, vale em TODO documento.
+
+Toda orientação técnica sai com **uma das três categorias**, com cor própria. O **selo classifica**
+e o texto **começa direto no que fazer** — sem repetir a palavra antes.
+
+| Categoria | Cor | Quando | O que leva junto |
+|---|---|---|---|
+| **Exigência** | vermelho `#b42318` / fundo `#fee4e2` | A norma obriga | **sempre** o item citado |
+| **Recomendação** | âmbar `#b3730a` / fundo `#fffaeb` | Existe norma, mas ela não obriga esse caminho | diz **o que é exigido** e **o que é melhor** |
+| **Dica funcional** | azul `#1668b8` / fundo `#e7f0f9` | Ideia dela, o "sair da caixinha" | **sem norma citada** — dito na cara |
+
+Nenhuma orientação sai sem a sua categoria. Na folha impressa (preto e branco) a categoria vai
+**escrita entre colchetes** — cor nunca é a única forma de dizer algo.
+
+**LEG-0b · vocabulário:** **"Boas Práticas" sempre no plural** — é o nome do regulamento (BPF); no
+singular soa amador num documento assinado com o CRN. E **não** usar "Boas Práticas" como nome de
+selo: o selo é **Recomendação**.
+
+### 📗 BASE LEGAL VERIFICADA no texto oficial da RDC 216/2004 (não de memória)
+
+| Item | O que exige | Onde se usa |
+|---|---|---|
+| **4.1.3** | Piso, parede e teto lisos, impermeáveis e laváveis; íntegros, livres de **bolores** e **descascamentos**; não podem transmitir contaminante | mofo, infiltração, rodapé, pintura descascando |
+| **4.1.8** | Luminárias sobre a área de preparação **protegidas contra explosão e quedas acidentais** | luminária sem capa |
+| **4.1.9** | Instalações elétricas **embutidas ou protegidas em tubulações externas e íntegras** | fiação exposta |
+| **4.1.15** | Equipamentos e móveis **resistentes à corrosão** e em adequado estado de conservação | os 22 da maresia |
+
+Complementam: **RDC 275/2002** (POPs e checklist de BPF) e **RDC 854/2024** (metais em contato com
+alimento; substituiu a RDC 20/07 — serve para exigir do fornecedor que o inox seja de liga própria
+para alimento).
+
+> ⚠️ **A lei NÃO obriga inox.** Ela obriga **característica**: resistente à corrosão e superfície
+> íntegra. Dizer "a lei manda inox" é falso e derruba a fala dela. O que ela diz é: *"a norma exige
+> material resistente à corrosão e superfície íntegra — o que está lá está corroído e descascando
+> sobre alimento. O inox é o material que cumpre."*
+>
+> 🚫 **Nunca citar a CVS 6/99**: é do estado de **São Paulo** (não vale no RJ) **e foi revogada**
+> pela Portaria CVS 5/2013. A base dela é a **federal**.
+
+### ✅ APLICADO EM 03/08 (v9.45) — as decisões dela viraram código
+
+| Cód | O que foi construído |
+|---|---|
+| **LEG-0** | **A peça da orientação técnica existe e é uma só** para as duas folhas (`orientacaoHTML`, `orientacaoTexto`, `orientacaoFormHTML`, `orientacaoLer` em `js/app.js`; `.ori-*` em `css/app.css`). Cada serviço/NC ganhou `orientacao`, `orientacaoTipo` e `orientacaoBase`. **Provado no navegador:** os três selos na tela com as cores certas; no papel a categoria sai **entre colchetes** (`[Exigência] RDC 216/2004, item 4.1.15`); o campo da norma **some sozinho** quando é Dica; item sem orientação não mostra nada; os 3 botões com **44px** no celular; contraste da norma âmbar subido de 3,9 → **7,5** |
+| **SJ-1c** | **Bloco de causa** no fim da folha (`m28CausaHTML` + `causaTitulo`/`causaTexto` no ⚙). **Não existe até ela escrever** — não nasce sozinho. Aparece na tela com lápis e fecha a folha impressa |
+| **SEG-1** | ✅ **Corrigido** o passo a passo do PC do trabalho (`js/app.js`, "Como faço para..."). O texto antigo mandava usar a "Configuração manual" — o único caminho em que o token do GitHub podia ficar gravado para sempre no PC de terceiro. Agora ensina o caminho da senha, avisa para recusar o "salvar senha" do navegador, e diz que **fechar a aba não basta** (o banco inteiro fica no PC; só o 🚪 apaga) |
+| **F-4** | ✅ **A folha sai em Word e em WhatsApp.** `m28ParaWord()` (via `js/docxlite.js`, que já existia) e `m28ParaWhatsApp()`, que copia o texto pronto — com `*negrito*`, `⬜`/`✅` e a base legal — e, se o navegador não deixar copiar, mostra numa caixa para ela copiar à mão. **Provado:** respeitam os filtros da barra (escolhida a folha do Matheus, sai só a dele, e o nome do arquivo já vem com o nome dele), e **nenhum lembrete 🔒 vaza** |
+| **PL-1** | ✅ **A planilha virou exportação.** `m28ParaPlanilha()` gera CSV com ponto e vírgula e BOM (é assim que o Excel em português abre certo), com 13 colunas — incluindo Orientação técnica, Tipo e Base legal. O site é o original; a planilha sai igual, quando ela precisar mandar para alguém |
+| **F-5** | ⚠️ **Parado por falta de fonte.** O pedido é "trazer ID e Anotações da planilha". O **ID** existe (coluna `Nº`, 357/357 preenchidos). Mas a coluna **`Observação` está VAZIA em todas as 357 linhas** — e também nas outras três planilhas de Arraial. Todas elas foram *geradas pelo site* em 28/07 ("direto do banco"), não são as originais dela. **Precisa dela:** onde está a planilha com as anotações, ou se o que ela quer é outra coisa |
+| **AUD-24** | ✅ **Conferido: não ficou pela metade.** O Quadro Geral já tem checklist dentro da demanda (campo "Passos", subitens por indentação, criação por voz) e as 4 categorias URGENTE / ALTA / MÉDIA / BAIXA editáveis (`DG_PRIOS_PADRAO`, `js/dg.js:15-20`). Nada a fazer |
+
+### ⚠️ AR-1 — o levantamento completo (03/08). **Não executado: mexe em dado dela.**
+
+Não são duas listas de áreas. **São três, e nenhuma tem uma única área em comum com as outras.**
+Medido no banco dela, em **Arraial do Cabo**:
+
+| Aba | Itens | Áreas | Pisos que usa |
+|---|---|---|---|
+| **MNT** (Sr. João + Matheus) | 142 | 35 | `1º PISO` · `2º PISO` |
+| **Não Conformidade** | 175 | 31 | `1º Piso` · `1º Piso — Parte Interna` · `2º Piso` |
+| **Manutenções e Elétrica** (antiga) | 357 | 50 | sem piso |
+| **Cadastro da loja** | — | 90 | 4 pisos, incluindo "Parte Central" e "Parte Interna" |
+
+**60 das 90 áreas do cadastro não têm nenhum item** em nenhuma aba.
+
+**Por que parei:** aplicar "a lista dos serviços manda" significa **renomear a área de 175 não
+conformidades** — onde ela trabalha a Qualidade e assina com o CRN. É mudança em massa em dado
+real. Pela regra dela, isso vai por **arquivo de atualização, com checkpoint antes, e ela vendo
+antes** — nunca escrito direto.
+
+**O que falta ela decidir** (montar na tela, não perguntar por texto): se as três abas passam a
+usar **uma lista só** (e qual nome vence em cada área), ou se cada aba mantém a sua e o site só
+para de misturá-las no seletor. E o que fazer com "Parte Central" e "Parte Interna", que só a NC
+usa.
+
+### 🔴 REGRAS DE TRABALHO que nasceram desta rodada
+
+| Cód | Regra |
+|---|---|
+| **REG-1** | **Sempre dizer de qual loja se trata.** Ela tem mais de uma. Nunca "a área existe" — sempre "em AC, a área existe". Vale em pergunta, documento, folha e conversa |
+| **REG-2** | **O VERIFICAR é o método dela**: marcar para conferir **na loja** se o serviço já foi feito, **e só depois cobrar**. Não é dúvida do sistema. **Nunca oferecer tirá-lo, nunca perguntar se pode apagar** |
+| **REG-3** | **Antes de perguntar, reler as decisões já anotadas.** Duas vezes em 03/08 eu re-perguntei algo já respondido, com outras palavras, e ela cobrou — com razão |
+| **REG-4** | **Provar antes de afirmar.** Eu disse que o lápis trocava a área do serviço sozinho e pedi decisão baseada nisso; fui testar e estava errado. Medir no navegador **antes** de relatar |
+| **REG-5** | **Decisão que ela não toma por texto vira desenho na tela** — nunca a mesma pergunta reformulada. Ver [[pergunta-sem-resposta-vira-desenho]] |
+
+---
 
 > **Como usar:** cada item tem um código. É por ele que a Lê cobra e que eu marco como
 > feito. Toda conversa nova deve ler este arquivo antes de propor qualquer coisa.
@@ -187,7 +291,7 @@ o AR-1 depois arruma as duas de uma vez.
 | **F-7** | 📄 reescrita proposta no documento SJ-1 — espera o OK dela |
 | **F-8** | 📄 reescrita proposta no documento SJ-1 (alumínio anodizado + inox na observação) — espera o OK dela |
 | **SJ-1** | 📄 **proposta pronta** (30/07): `4. TAREFAS\CODE - Resgate MNT (30-07-26)\PROPOSTA SJ-1...md` — 3 causas raiz (maresia 22+, umidade, rodapés 8-em-1), reescritas F-7/F-8, base RDC 216/275. **Não aplicada**: espera a recuperação da tarde de 29/07 e o OK dela |
-| **SJ-3** | Folha do **Matheus**. **Levantamento feito e conferido em 03/08** — e o número mudou: são **40** na planilha (não 37), zero linhas escondidas por filtro. Dos 5 sinalizados em 29/07, **2 já estavam lá** (lâmpada da câmara de laticínios e as 2 da cozinha), então a conta é **40 + 3 = 43**. **Não são 40 problemas, são 5 causas**: sem rotina de troca de lâmpada (14 itens) · luminária/tomada sem capa protetora (4 — RDC 216 item 4.1.15, risco de caco de vidro no alimento) · fiação exposta perto de água (3 — o mais grave) · disjuntor sem identificação (3, todos parados desde 10/02/2025) · forno da UAN (3 linhas que são o mesmo serviço). **7 serviços passaram de 1 ano parados.** Falta: a resposta de **LAY-3**, se os 25 já "concluídos" entram, o que são os **4 itens do "João"** (nome separado de "Sr. João" na planilha) e **as fotos dos documentos** — sem elas eu não afirmo que a folha está completa |
+| **SJ-3** | Folha do **Matheus**. **Levantamento feito e conferido em 03/08** — e o número mudou: são **40** na planilha (não 37), zero linhas escondidas por filtro. Dos 5 sinalizados em 29/07, **2 já estavam lá** (lâmpada da câmara de laticínios e as 2 da cozinha), então a conta é **40 + 3 = 43**. **Não são 40 problemas, são 5 causas**: sem rotina de troca de lâmpada (14 itens) · luminária/tomada sem capa protetora (4 — RDC 216 **item 4.1.8**, risco de caco de vidro no alimento) · fiação exposta perto de água (RDC 216 **item 4.1.9**) · fiação exposta perto de água (3 — o mais grave) · disjuntor sem identificação (3, todos parados desde 10/02/2025) · forno da UAN (3 linhas que são o mesmo serviço). **7 serviços passaram de 1 ano parados.** Falta: a resposta de **LAY-3**, se os 25 já "concluídos" entram, o que são os **4 itens do "João"** (nome separado de "Sr. João" na planilha) e **as fotos dos documentos** — sem elas eu não afirmo que a folha está completa |
 | ~~DEF-1~~ | ✅ feito em v9.28. Provado no navegador: **0 crachás trocados** em 12 modelos / 161 perguntas, e 0 modelos regravados à toa. Correção do plano: trocar por `metaSetU` **não** faria a trava viajar (essa chave não entra no envelope da sincronização) — o que resolve é preservar o crachá, e isso está feito |
 | ~~DEF-2 / AR-3~~ | ✅ feito em v9.29. **O diagnóstico estava errado:** conferi no navegador e as áreas **chegam** no celular (entram no envelope e o `areasMod` sobe). O defeito real era pior: área apagada **não tinha Ctrl+Z**. Agora volta, e a seta diz "as áreas" |
 | ~~DEF-3 / NOT-1~~ | ✅ feito em v9.37, agora do jeito certo: UTF-8 explícito e **prova do acento** antes e depois de gravar — se falhar, não escreve e cobra à mão. (1ª tentativa registrada: Fiz o guardião carimbar a data sozinho — e ele **quebrou os acentos do site publicado** (o PowerShell 5.1 lê o arquivo na codificação do sistema, não em UTF-8; 16 palavras quebradas viraram 483 e a capa dela encheu de rabisco). Desfeito. Hoje o guardião **confere e barra** se a data estiver velha, mas quem troca é quem publica. Voltar a automatizar exige ler/gravar em UTF-8 explícito e testar com palavra acentuada antes |

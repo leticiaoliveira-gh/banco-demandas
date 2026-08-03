@@ -64,7 +64,11 @@ const M28_TXT_PADRAO={
   rotExec:"Responsável pelos serviços",
   colFeito:"Feito?",colFazer:"Demanda",
   colData:"Data Registro",colObs:"Observações · lembrete",colObsImp:"Observações",
-  rotUnidade:"Unidade",rotEmitido:"Emitido em"};
+  rotUnidade:"Unidade",rotEmitido:"Emitido em",
+  /* SJ-1c (03/08, decisão dela): o bloco de causa só existe quando MUITOS
+     serviços têm a mesma origem — a maresia é o caso. Vazio = não aparece.
+     O texto é dela; eu não crio bloco por conta própria. */
+  causaTitulo:"",causaTexto:""};
 let M28_TXT=null,M28_VIS=null;
 function m28T(){return M28_TXT||M28_TXT_PADRAO;}
 async function m28Config(){
@@ -329,6 +333,11 @@ async function renderMnt28(){
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
       title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">🔒 Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
     <button class="btn ghost sm" onclick="m28Imprimir()" title="Abrir a folha pronta para imprimir ou salvar em PDF">🖨 Imprimir / PDF</button>
+    ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
+         filtros — escolhida a folha do Matheus, sai só a dele. */""}
+    <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">📄 Word</button>
+    <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">💬 WhatsApp</button>
+    <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">📊 Planilha</button>
   </div>`;
 
   el.innerHTML=capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+barra+'<div id="m28-lista"></div>';
@@ -400,6 +409,7 @@ function m28RenderLista(){
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
       <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(d.fazer||"")}
         ${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
+        ${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}
         ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
@@ -415,7 +425,125 @@ function m28RenderLista(){
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;
   }
+  html+=m28CausaHTML();
   el.innerHTML=html;
+}
+/* =====================================================================
+   F-4 e PL-1 (03/08) — a folha sai em WORD, em WHATSAPP e em PLANILHA
+   A tela é a fonte; estes três são só formas de levar o mesmo conteúdo
+   para fora. Respeitam os filtros da barra, inclusive o de responsável:
+   escolhida a folha do Matheus, sai só a dele.
+   ===================================================================== */
+function m28Filtradas(){
+  let rows=m28ItensDaFolha();
+  if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
+  if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
+  if(M28F.piso)rows=rows.filter(d=>d.piso===M28F.piso);
+  if(M28F.area)rows=rows.filter(d=>d.area===M28F.area);
+  return rows.sort(m28Comparar);
+}
+function m28NomeArquivo(){
+  const c=m28Cab(m28Filtradas());
+  const quem=M28F.exec||c.executor||"";
+  return m28Titulo(c).replace(/[\\/:*?"<>|]/g,"-")+(quem?" - "+quem.replace(/[\\/:*?"<>|]/g,"-"):"");
+}
+/* PL-1: a planilha vira EXPORTAÇÃO. O site é o original — ela edita aqui e
+   a planilha sai igual, quando precisar mandar para alguém. */
+function m28ParaPlanilha(){
+  const rows=m28Filtradas();
+  if(!rows.length){alert("Nenhum serviço para exportar com os filtros atuais.");return;}
+  const head=["Piso","Área","O que fazer","Feito","Data do registro","Tempo parado",
+    "Responsável","Orientação técnica","Tipo","Base legal","Urgente","Observações","Origem"];
+  const linha=d=>[d.piso,d.area,d.fazer,d.feito?"Sim":"Não",brDate(d.dataRegistro),
+    m28TempoTexto(m28Meses(d.dataRegistro)),d.executor||"",
+    d.orientacao||"",(typeof ORI_TIPOS!=="undefined"&&ORI_TIPOS[d.orientacaoTipo])?ORI_TIPOS[d.orientacaoTipo].rotulo:"",
+    d.orientacaoBase||"",d.urg?"Sim":"",d.obs||"",d.origem||""];
+  /* ponto e vírgula + BOM: é assim que o Excel em português abre certo */
+  const csv=[head,...rows.map(linha)]
+    .map(r=>r.map(c=>'"'+String(c==null?"":c).replace(/"/g,'""')+'"').join(";")).join("\r\n");
+  download(m28NomeArquivo()+".csv","﻿"+csv,"text/csv");
+  toast("Planilha exportada ✓ ("+rows.length+" serviços)");
+}
+/* F-4: a folha em Word, para ela editar ou anexar num relatório */
+async function m28ParaWord(){
+  if(typeof DocxLite!=="function"){toast("O gerador de Word não carregou — recarregue a página.");return;}
+  const rows=m28Filtradas();
+  if(!rows.length){alert("Nenhum serviço para gerar com os filtros atuais.");return;}
+  const c=m28Cab(rows);
+  const exec=M28F.exec||c.executor||"";
+  const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
+  const doc=new DocxLite();
+  doc.p(m28T().etiqueta,{size:16,color:"6B7280"});
+  doc.p(m28Titulo(c),{bold:true,size:32,color:"155244"});
+  if(exec)doc.p(m28T().rotExec+": "+exec,{size:21});
+  doc.p(m28T().rotUnidade+": "+loja+"    "+m28T().rotEmitido+": "+brDate(c.emitidoEm||today()),{size:19,color:"5C5D68"});
+  doc.p(m28RtNome(c),{bold:true,size:21});
+  doc.p(m28RtLinha(c),{size:18,color:"5C5D68"});
+  doc.p("");
+  let piso=null,area=null;
+  for(const d of rows){
+    if(d.piso!==piso){piso=d.piso;area=null;doc.p("");doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:24,color:"1D6B57"});}
+    if(d.area!==area){area=d.area;doc.p(area,{bold:true,size:21});}
+    doc.p((d.feito?"[x] ":"[ ] ")+(d.urg?"URGENTE — ":"")+(d.fazer||""),d.urg?{bold:true,color:"B42318"}:{});
+    const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
+    if(ori)doc.p(ori,{size:18,color:"475467"});
+    const desde=d.dataRegistro?brDate(d.dataRegistro)+(m28TempoTexto(m28Meses(d.dataRegistro))?" · "+m28TempoTexto(m28Meses(d.dataRegistro)):""):"";
+    if(desde)doc.p(desde,{size:17,color:"667085"});
+    /* o lembrete 🔒 dela NUNCA sai — nem aqui */
+    if(d.obs)doc.p(d.obs,{size:18,color:"5C5D68"});
+  }
+  const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
+  if(ct||cx){doc.p("");doc.p(ct||"Por que isto se repete",{bold:true,size:19,color:"4A6B62"});doc.p(cx,{size:18});}
+  download(m28NomeArquivo()+".docx",await doc.blob());
+  toast("Word gerado ✓ ("+rows.length+" serviços)");
+}
+/* F-4: texto pronto para colar no WhatsApp — sem tabela, sem formatação que
+   o WhatsApp não entenda; só *negrito* e traços */
+function m28ParaWhatsApp(){
+  const rows=m28Filtradas();
+  if(!rows.length){alert("Nenhum serviço para enviar com os filtros atuais.");return;}
+  const c=m28Cab(rows);
+  const exec=M28F.exec||c.executor||"";
+  let t="*"+m28Titulo(c)+"*\n";
+  if(exec)t+=m28T().rotExec+": "+exec+"\n";
+  t+=m28T().rotEmitido+": "+brDate(c.emitidoEm||today())+"\n";
+  let piso=null,area=null;
+  for(const d of rows){
+    if(d.piso!==piso){piso=d.piso;area=null;t+="\n*"+(piso||"Sem piso").toUpperCase()+"*\n";}
+    if(d.area!==area){area=d.area;t+="\n_"+area+"_\n";}
+    t+=(d.feito?"✅ ":"⬜ ")+(d.urg?"*URGENTE* — ":"")+(d.fazer||"")+"\n";
+    const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
+    if(ori)t+="   ↳ "+ori+"\n";
+    if(d.obs)t+="   "+d.obs+"\n";
+  }
+  const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
+  if(ct||cx)t+="\n*"+(ct||"Por que isto se repete")+"*\n"+cx+"\n";
+  m28CopiarTexto(t,rows.length);
+}
+async function m28CopiarTexto(t,n){
+  try{
+    await navigator.clipboard.writeText(t);
+    toast("Copiado ✓ ("+n+" serviços) — cole no WhatsApp");
+  }catch(e){
+    /* sem permissão de área de transferência: mostra para ela copiar à mão */
+    ncModal(`<h2>Folha para o WhatsApp</h2>
+      <p class="desc">Seu navegador não deixou copiar sozinho. Selecione tudo e copie.</p>
+      <textarea class="bd-campo" rows="14" style="font-size:13px" onclick="this.select()">${esc(t)}</textarea>
+      <div class="form-actions"><button class="btn" onclick="ncFechar()">Fechar</button></div>`);
+    const a=document.querySelector("#nc-modal textarea");if(a){a.focus();a.select();}
+  }
+}
+
+/* SJ-1c: um bloco só, no fim da folha, explicando a causa que se repete.
+   Só aparece se ela escreveu — nunca nasce sozinho. */
+function m28CausaHTML(){
+  const t=(m28T().causaTitulo||"").trim(),x=(m28T().causaTexto||"").trim();
+  if(!t&&!x)return "";
+  return `<div class="ori-causa">
+    <div class="ori-causa-t">${esc(t||"Por que isto se repete")}
+      <button class="m28-lapis m28-lapis-area" onclick="m28GerirTextos()"
+        title="Mudar este bloco" aria-label="Mudar o bloco de causa">✎</button></div>
+    <div class="ori-causa-tx">${esc(x)}</div></div>`;
 }
 
 /* ===== "VERIFICAR" GANHA SELO ESCRITO (29/07) =====
@@ -575,6 +703,9 @@ function m28FormHTML(d){
         <span class="bd-ajuda">Só você vê. <b>Nunca é impresso.</b></span>
       </div>
     </div>
+    ${/* LEG-0 (03/08): a orientação técnica com a base legal. Sai impressa na
+         folha, junto do serviço, com a categoria escrita. */""}
+    ${typeof orientacaoFormHTML==="function"?orientacaoFormHTML(d,"m28f"):""}
     <div class="bd-grupo">
       <label class="m28-urgchk"><input type="checkbox" id="m28f-urg" ${d.urg?"checked":""}>
         <span class="m28-urgselo">Urgente</span> destacar este serviço para o executor</label>
@@ -612,6 +743,7 @@ async function m28Salvar(id){
   d.area=document.getElementById("m28f-area").value;
   d.dataRegistro=document.getElementById("m28f-data").value||"";
   d.urg=!!document.getElementById("m28f-urg")?.checked;
+  if(typeof orientacaoLer==="function")Object.assign(d,orientacaoLer("m28f"));
   const ex=document.getElementById("m28f-exec");
   const execAntes=(d.executor||"").trim();
   if(ex)d.executor=ex.value==="Outro"?"":ex.value;
@@ -720,10 +852,19 @@ function m28Imprimir(){
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
+    /* LEG-0: a categoria sai ESCRITA entre colchetes — em preto e branco a cor
+       do selo some, e a palavra é a única coisa que sobra no papel */
+    const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
-      +`<span class="f">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}</span><span class="q">${desde}</span>`
+      +`<span class="f">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}`
+      +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")+`</span><span class="q">${desde}</span>`
       +`<span class="o">${esc(d.obs||"")}</span></div>`;
   }
+  /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
+     não são 22 problemas, é 1. Só existe se ela escreveu. */
+  const causaT=(m28T().causaTitulo||"").trim(),causaX=(m28T().causaTexto||"").trim();
+  if(causaT||causaX)blocos+=`<div class="bl causa"><b>${esc(causaT||"Por que isto se repete")}</b>`
+    +`<span>${esc(causaX)}</span></div>`;
   const cabecalho=`<div class="capa">
       <div><div class="et">${esc(m28T().etiqueta)}</div>
         <h1>${esc(m28Titulo(c))}</h1>
@@ -793,6 +934,16 @@ function m28Imprimir(){
   .li .q i{font-style:normal;display:block;font-size:8.8px}
   .li .q i.grave{color:#b42318;font-weight:600}
   .ug{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px}
+  /* orientação técnica com a base legal — a categoria vai ESCRITA entre
+     colchetes, porque no papel a cor do selo não existe */
+  .li .ori-p{font-style:normal;display:block;font-size:9.4px;color:#5c5d68;
+    line-height:1.45;margin-top:2px}
+  /* o bloco de causa que fecha a folha (só quando ela escreve) */
+  .causa{display:block;margin-top:12px;padding:9px 11px;background:#f9fafb;
+    border-left:3px solid #1d6b57;border-radius:0 6px 6px 0}
+  .causa b{display:block;font-size:8.4px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.6px;color:#4a6b62;margin-bottom:3px}
+  .causa span{display:block;font-size:9.6px;line-height:1.5;color:#344054}
   .li.urgl .f{color:#1f2937}
   .cab .f{text-align:left}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
@@ -919,6 +1070,19 @@ async function m28GerirTextos(){
     <p class="desc" style="margin:4px 2px 10px">Troque qualquer palavra. Deixar um campo
       vazio volta ao texto padrão (que aparece apagadinho dentro dele).</p>
     ${campos}
+    ${/* SJ-1c: o bloco de causa, no fim da folha. Vazio = não aparece. */""}
+    <div class="bd-grupo" style="border-top:1px solid #eceded;padding-top:12px;margin-top:4px">
+      <label class="bd-rotulo" for="m28tx-causaTitulo">Bloco de causa — título</label>
+      <input class="bd-campo" id="m28tx-causaTitulo" value="${esc(M28_TXT.causaTitulo||"")}"
+        placeholder="Ex.: Maresia — a causa de 22 serviços desta folha">
+    </div>
+    <div class="bd-grupo">
+      <label class="bd-rotulo" for="m28tx-causaTexto">Bloco de causa — explicação</label>
+      <textarea class="bd-campo" id="m28tx-causaTexto" rows="3"
+        placeholder="Ex.: ferro pintado no litoral perde para o sal…">${esc(M28_TXT.causaTexto||"")}</textarea>
+      <span class="bd-ajuda">Aparece <b>uma vez só</b>, no fim da folha, na tela e impressa.
+        Deixe vazio e ele não existe. Use quando <b>muitos serviços</b> têm a mesma origem.</span>
+    </div>
     <div class="m28-form-acoes" style="margin-top:12px">
       <button class="bd-btn bd-btn-principal" onclick="m28SalvarTextos()">Salvar</button>
       <button class="bd-btn bd-btn-fantasma" onclick="document.getElementById('m28-txcfg').remove()">Cancelar</button>

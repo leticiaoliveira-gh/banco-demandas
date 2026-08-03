@@ -565,7 +565,7 @@ function ncRenderList(){
       aria-hidden="true" onpointerdown="ncArrIni(event,${d.id})">⠿</span>
    </div>
    <div class="nc-fl-texto">${esc(d.texto_tecnico||d.texto_bruto||"(sem descrição — ver fotos)")}
-    ${badges}${pontos}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}</div>
+    ${badges}${pontos}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="nc-fotos">${fotos}</div>`:""}</div>
    <div class="nc-fl-desde">${ncDesde(d)}${resolvida?`<span class="nc-fl-ok">resolvida ${brDate(d.resolvida_em)}</span>`:""}</div>
    <div class="nc-fl-urg">${ncTag(d.urgencia)}</div>
    <div class="nc-fl-obs">${obs||'<span class="nc-fl-vazio">—</span>'}</div>
@@ -663,6 +663,9 @@ async function ncEditar(id){
    <div class="field"><label>Urgência</label><select id="nc-e-urg">${ordenarOpc(NC_URG).map(u=>`<option value="${u}" ${u===d.urgencia?"selected":""}>${NC_URG[u].rotulo}</option>`).join("")}</select></div>
    <div class="field"><label>Data do relato</label><input type="date" id="nc-e-relato" value="${d.relato||""}"></div>
   </div>
+  ${/* LEG-0 (03/08): a orientação técnica com a base legal — Exigência,
+       Recomendação ou Dica funcional. A mesma peça da folha de manutenção. */""}
+  ${typeof orientacaoFormHTML==="function"?orientacaoFormHTML(d,"nc-e"):""}
   <div class="field"><label><input type="checkbox" id="nc-e-rev" ${d.revisar?"checked":""} style="width:auto;margin-right:6px">Marcada para revisão</label></div>
   <div class="field"><label>Fotos</label><div class="nc-thumbs">${(d.fotos||[]).map((f,i)=>`<span class="nc-thumb"><img src="${f}"><button onclick="ncEditRef.fotos.splice(${i},1);ncEditar(${d.id})" title="Remover">×</button></span>`).join("")}</div>
    <input type="file" accept="image/*" capture="environment" multiple onchange="ncEditFoto(event,${d.id})"></div>
@@ -697,6 +700,7 @@ async function ncSalvarEdicao(id){
  d.urgencia=document.getElementById("nc-e-urg").value;
  d.relato=document.getElementById("nc-e-relato").value||d.relato;
  d.revisar=document.getElementById("nc-e-rev").checked;
+ if(typeof orientacaoLer==="function")Object.assign(d,orientacaoLer("nc-e"));
  await ncPut(d);ncFechar();toast("NC atualizada ✓");ncRenderCards();ncRenderList();
 }
 
@@ -823,6 +827,9 @@ async function ncRelatorioPrint(){
    ${(d.fotos||[]).length?`<div class="fts">${d.fotos.map((f,i)=>`<img src="${f}"${i?' class="extra"':""}>`).join("")}</div>`:""}
    <p class="prob">${esc(ncRelProblema(d))}</p>
    <div class="acao">${esc(ncRelAcao(d))}</div>
+   ${/* LEG-0: a base legal entra no relatório que vai para a gerência — com a
+        categoria escrita, porque o relatório é lido impresso */""}
+   ${(typeof orientacaoTexto==="function"&&orientacaoTexto(d))?`<div class="oriline">${esc(orientacaoTexto(d))}</div>`:""}
    ${d.obs?`<div class="obsline">${esc(d.obs)}</div>`:""}
    ${m>=2?`<span class="rei">Reincidente — ${ncOrdinal(m)}</span>`:""}
   </div>`;
@@ -850,6 +857,10 @@ async function ncRelatorioPrint(){
  .acao{margin:8px 0 0;background:#f3f7f4;border-radius:8px;padding:8px 10px;color:#1d5245}
  .acao::before{content:"✔ ";color:#1d6b57;font-weight:700}
  .obsline{margin:8px 0 0;background:#fdf4e3;border-radius:8px;padding:8px 10px;color:#7a561a;font-size:13px}
+ /* a orientação técnica com a base legal — a categoria vem escrita entre
+    colchetes no próprio texto, então funciona em preto e branco */
+ .oriline{margin:8px 0 0;background:#f6f6f7;border-left:3px solid #98a2b3;border-radius:0 8px 8px 0;
+   padding:8px 10px;color:#475467;font-size:12.5px;line-height:1.5}
  .obsline::before{content:"👁 "}
  .rei{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;color:#9a6b1f;background:#fdf4e3;border-radius:10px;padding:2px 10px}
  .card{overflow:hidden}
@@ -906,6 +917,9 @@ async function ncRelatorioDocx(){
   const m=ncMeses(d,ym),urg=d.urgencia==="URGENTE";
   doc.p(ncRelProblema(d),urg?{bold:true,color:"C0392B"}:{});
   doc.p("✔ Ação corretiva: "+ncRelAcao(d),{color:"1D6B57"});
+  /* LEG-0: a base legal também no Word, que é o que ela entrega assinado */
+  const oriW=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
+  if(oriW)doc.p(oriW,{color:"475467",size:19});
   if(d.obs)doc.p("👁 Observação: "+d.obs,{color:"9A6B1F"});
   if(m>=2)doc.p("Reincidente — "+ncOrdinal(m),{bold:true,color:"9A6B1F",size:18});
   for(const f of (d.fotos||[]))await doc.image(f,{maxWidthPx:340});

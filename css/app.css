@@ -620,6 +620,56 @@
 .nc-count{float:right;font-weight:600;font-size:12px;opacity:.85}
 
 /* ═══════════════════════════════════════════════════════════════════
+   ORIENTAÇÃO TÉCNICA COM BASE LEGAL (03/08 — LEG-0, decisão dela)
+   Três categorias, três cores, e a PALAVRA sempre escrita — cor nunca
+   é a única forma de dizer algo, e a folha sai impressa em preto e
+   branco. Vale igual na folha de manutenção e na de não conformidade.
+   ═══════════════════════════════════════════════════════════════════ */
+.ori{margin-top:6px;font-size:12.5px;line-height:1.6;color:#5c5d68;overflow-wrap:anywhere}
+.ori-selo{
+  display:inline-block;margin-left:4px;padding:1px 8px;border-radius:99px;
+  font-size:10.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap;vertical-align:1px;
+}
+.ori-base{margin-left:6px;font-size:11.5px}
+/* Exigência — a norma obriga */
+.ori-exig .ori-selo{background:#fee4e2;color:#912018;border:1px solid #fda29b}
+.ori-exig .ori-base{color:#b42318;font-weight:600}
+/* Recomendação — existe norma, mas ela não obriga este caminho.
+   A norma usa #93370d e não o âmbar claro: em #b3730a o contraste era 3,9,
+   abaixo do mínimo, e sumia no celular na luz da loja. */
+.ori-reco .ori-selo{background:#fffaeb;color:#93370d;border:1px solid #fedf89}
+.ori-reco .ori-base{color:#93370d;font-weight:600}
+/* Dica funcional — ideia dela, sem norma citada */
+.ori-dica .ori-selo{background:#e7f0f9;color:#0c447c;border:1px solid #b5d4f4}
+.ori-dica .ori-base{color:#1668b8;font-weight:600}
+
+/* os três botões do formulário */
+.ori-bts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.ori-bt{
+  flex:1 1 auto;min-height:36px;padding:7px 12px;border-radius:8px;cursor:pointer;
+  font-size:12.5px;font-weight:600;background:#fff;border:1px solid var(--border);color:#5c5d68;
+  transition:border-color .15s ease,background .15s ease;
+}
+.ori-bt:hover{border-color:#a9aab3}
+.ori-bt.ori-exig.on{background:#fee4e2;color:#912018;border-color:#fda29b}
+.ori-bt.ori-reco.on{background:#fffaeb;color:#93370d;border-color:#fedf89}
+.ori-bt.ori-dica.on{background:#e7f0f9;color:#0c447c;border-color:#b5d4f4}
+/* dedo, não mouse: os três botões com 44px e um por linha, para não errar o toque.
+   Vale por tipo de toque E por largura — o segundo pega tablet com mouse. */
+@media(pointer:coarse),(max-width:820px){.ori-bt{min-height:44px;flex:1 1 100%}}
+
+/* o bloco de causa: só quando 5+ serviços têm a mesma origem (regra dela) */
+.ori-causa{
+  margin:20px 0 8px;padding:12px 14px;border-radius:0 8px 8px 0;
+  background:#fafbfa;border-left:3px solid #1d6b57;
+}
+.ori-causa-t{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  color:#4a6b62;margin-bottom:5px;
+}
+.ori-causa-tx{font-size:12.5px;line-height:1.65;color:#2d2e3a;overflow-wrap:anywhere}
+
+/* ═══════════════════════════════════════════════════════════════════
    A FOLHA DE NÃO CONFORMIDADE (03/08) — opção C, escolhida por ela
    Sai o cartão, entra a folha de conferência: colunas escritas em forma
    de pergunta, igual à folha do Sr. João que já funcionou.

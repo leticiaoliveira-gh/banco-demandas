@@ -136,6 +136,93 @@ async function folhasCfgSet(chave,valor){
   if(window.syncSchedule)syncSchedule();
 }
 
+/* ═══════ ORIENTAÇÃO TÉCNICA COM BASE LEGAL (03/08 — LEG-0) ═══════
+   Regra fixa dela: toda orientação sai com UMA das três categorias, e a
+   categoria vai ESCRITA — cor nunca é a única forma de dizer algo, e a folha
+   do Sr. João é impressa em preto e branco.
+
+   Exigência    a norma obriga        → sempre com o item citado
+   Recomendação existe norma, não obriga esse caminho
+   Dica         ideia dela, SEM norma → o "sair da caixinha", dito na cara
+
+   Mora aqui, e não em cada aba, porque vale igual na folha de manutenção e na
+   de não conformidade: um ajuste conserta as duas. */
+const ORI_TIPOS={
+  exigencia:{rotulo:"Exigência",classe:"ori-exig",
+    ajuda:"A norma obriga. Escreva o item (ex.: RDC 216/2004, item 4.1.15)."},
+  recomendacao:{rotulo:"Recomendação",classe:"ori-reco",
+    ajuda:"Existe norma, mas ela não obriga este caminho. Diga o que é exigido e o que é melhor."},
+  dica:{rotulo:"Dica funcional",classe:"ori-dica",
+    ajuda:"Ideia sua, sem norma por trás. Fica escrito que é dica — não se disfarça de lei."}
+};
+function oriTipo(d){const t=(d&&d.orientacaoTipo)||"";return ORI_TIPOS[t]?t:"";}
+/* na TELA: o texto primeiro, depois o selo e a norma */
+function orientacaoHTML(d){
+  const txt=(d&&d.orientacao||"").trim();
+  const t=oriTipo(d);
+  if(!txt&&!t)return "";
+  const cfg=ORI_TIPOS[t]||ORI_TIPOS.dica;
+  const base=(d&&d.orientacaoBase||"").trim();
+  return `<div class="ori ${cfg.classe}">${txt?esc(txt)+" ":""}`
+    +`<span class="ori-selo">${cfg.rotulo}</span>`
+    +(base?`<span class="ori-base">${esc(base)}</span>`:"")
+    +`</div>`;
+}
+/* na FOLHA IMPRESSA: a categoria entre colchetes, porque em preto e branco a
+   cor do selo desaparece e a palavra é a única coisa que sobra */
+function orientacaoTexto(d){
+  const txt=(d&&d.orientacao||"").trim();
+  const t=oriTipo(d);
+  if(!txt&&!t)return "";
+  const cfg=ORI_TIPOS[t]||ORI_TIPOS.dica;
+  const base=(d&&d.orientacaoBase||"").trim();
+  return (txt?txt+" ":"")+"["+cfg.rotulo+"]"+(base?" "+base:"");
+}
+/* o formulário das duas abas — um só, para nunca divergirem */
+function orientacaoFormHTML(d,pref){
+  const t=oriTipo(d);
+  const bt=(k)=>`<button type="button" class="ori-bt ${ORI_TIPOS[k].classe}${t===k?" on":""}"
+     onclick="orientacaoEscolher('${pref}','${k}')" aria-pressed="${t===k?"true":"false"}"
+     title="${esc(ORI_TIPOS[k].ajuda)}">${ORI_TIPOS[k].rotulo}</button>`;
+  return `<div class="bd-grupo">
+    <label class="bd-rotulo" for="${pref}-ori">Orientação técnica</label>
+    <textarea class="bd-campo" id="${pref}-ori" rows="2"
+      placeholder="Comece pelo que fazer. Ex.: trocar por alumínio anodizado com ferragens de inox.">${esc(d.orientacao||"")}</textarea>
+    <div class="ori-bts" role="group" aria-label="Que tipo de orientação é esta">${bt("exigencia")}${bt("recomendacao")}${bt("dica")}</div>
+    <input type="hidden" id="${pref}-oritipo" value="${esc(t)}">
+    <div id="${pref}-oribase-cx" style="${t&&t!=="dica"?"":"display:none"}">
+      <input class="bd-campo" id="${pref}-oribase" value="${esc(d.orientacaoBase||"")}"
+        placeholder="RDC 216/2004, item 4.1.15">
+      <span class="bd-ajuda" id="${pref}-oriajuda">${esc(t?ORI_TIPOS[t].ajuda:"")}</span>
+    </div>
+  </div>`;
+}
+function orientacaoEscolher(pref,k){
+  const campo=document.getElementById(pref+"-oritipo");if(!campo)return;
+  const desmarcando=campo.value===k;         /* tocar no que já está aceso desmarca */
+  const novo=desmarcando?"":k;
+  campo.value=novo;
+  const cx=document.getElementById(pref+"-oribase-cx");
+  const aj=document.getElementById(pref+"-oriajuda");
+  /* "dica" não pede norma — é justamente o caso sem norma por trás */
+  if(cx)cx.style.display=(novo&&novo!=="dica")?"":"none";
+  if(aj)aj.textContent=novo?ORI_TIPOS[novo].ajuda:"";
+  const grupo=campo.closest(".bd-grupo");
+  if(grupo)grupo.querySelectorAll(".ori-bt").forEach(b=>{
+    const on=!!novo&&b.classList.contains(ORI_TIPOS[novo].classe);
+    b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");
+  });
+}
+/* lê o que ela preencheu — usado no Salvar das duas abas */
+function orientacaoLer(pref){
+  const t=(document.getElementById(pref+"-oritipo")||{}).value||"";
+  return {
+    orientacao:((document.getElementById(pref+"-ori")||{}).value||"").trim(),
+    orientacaoTipo:ORI_TIPOS[t]?t:"",
+    orientacaoBase:t&&t!=="dica"?((document.getElementById(pref+"-oribase")||{}).value||"").trim():""
+  };
+}
+
 /* ===== Executores gerenciáveis (lista única para todas as empresas) ===== */
 let EXECUTORES=[],EXECUTORES_MOD="";
 async function loadExecutores(){
@@ -1612,7 +1699,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.44";
+const APP_VERSAO="9.45";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
@@ -1716,10 +1803,18 @@ const COMO_FACO=[
     "Preencha Dono, Repositório e cole o token do GitHub. Aperte Salvar.",
     "Os dados descem sozinhos em alguns segundos."
   ]},
-  {k:"pc-terceiros",titulo:"Usar em um computador que não é seu",passos:[
-    "Abra o site normalmente e aperte ⚙ Sincronização.",
-    "Marque a opção NÃO SALVAR NESTE APARELHO (o token some quando fechar a aba).",
-    "Ao terminar o expediente, aperte na Capa 🚪 Sair e apagar deste PC — envia o que você fez e apaga o rastro."
+  /* SEG-1 (03/08) — este texto estava DESATUALIZADO e mandava pelo caminho
+     arriscado: foi escrito antes do login por senha existir e apontava para a
+     "Configuração manual", onde a caixinha vem DESMARCADA numa aba nova. Se ela
+     esquecesse de marcar, o token do GitHub ficava gravado para sempre no PC do
+     trabalho. O caminho da senha é temporário por construção — não tem como errar. */
+  {k:"pc-terceiros",titulo:"Usar o computador do trabalho com segurança",passos:[
+    "PARA ENTRAR: abra o site e aperte ⚙ Sincronização. Como o computador não é seu, ele já pede a sua senha — digite e confirme. Aparece \"Pronto ✓ Nada fica salvo neste computador\".",
+    "Se o navegador perguntar \"deseja salvar esta senha?\", RECUSE. Aceitando, a senha fica guardada no perfil daquele PC.",
+    "NÃO use a \"Configuração manual\": é o único caminho em que a sua chave pode ficar gravada lá para sempre. O campo de senha é seguro sozinho.",
+    "PARA SAIR: volte na Capa e aperte 🚪 Sair e apagar deste PC. Ele primeiro manda o que você fez para a sua nuvem e só depois apaga. Espere a confirmação.",
+    "FECHAR A ABA NÃO BASTA: a senha some sozinha, mas o banco inteiro (demandas, NCs, manutenções, fotos) continua gravado naquele computador. É o botão 🚪 que apaga isso.",
+    "Esqueceu de sair um dia? No dia seguinte, abra o site naquele PC e aperte 🚪 — ele apaga o que ficou."
   ]},
   {k:"desfazer",titulo:"Desfazer algo que fiz sem querer",passos:[
     "Aperte Ctrl+Z (ou o botão ← no topo da rail lateral).",
