@@ -34,6 +34,20 @@
 | **Tarefa agendada diária "Backup diario - Central Compliance", 20h.** Não depende do navegador nem de ela abrir o site: busca o banco na **nuvem** e grava em `- BACKUPS\Backups - Relatório Não Conformidades\Backup NC - DD.MM.AA` (JSON + CSV). Cobre o trabalho feito no celular e em outros aparelhos. Log em `_log do backup diario.txt` | `4. TAREFAS\CODE + POWERSHELL - Backup a prova de balas + juntadas (04-08-26)\backup-diario.ps1` |
 | Os 3 arquivos soltos de 23.07.26 foram para `Backup NC - 23.07.26\manual (22h45)`. Nada apagado | pasta de backups |
 
+### 🟠 OS 9 "VERIFICAR" PERDIDOS — o que se fez em 04/08
+
+Os 9 lembretes que ela deixou na folha de 29/07 esvaziaram entre 29/07 e 03/08.
+**Os serviços ficaram; só as observações sumiram.** Ela só percebeu porque tinha
+a folha impressa numa foto. O texto se preservou em `dados\mnt28-carga.json` —
+que estava **fora do git e fora de todo backup** (arquivo único, num lugar só).
+
+| Frente | O que ficou pronto |
+|---|---|
+| **O dia 29/07 virou backup** | `Backup NC - 29.07.26\` com a folha **igual à impressa** (HTML), a planilha e a carga crua. A folha é reconstituída de **duas fontes**: serviço e recado vêm do banco (é o que foi impresso), o VERIFICAR vem da carga. Nenhuma fonte sozinha reproduz o papel |
+| **Os 9 voltam para a folha viva** | entram no mesmo arquivo de atualização (24 itens agora). Nos 6 de ralo a observação **começa** por "VERIFICAR — tenho dúvida." e a explicação técnica fica no campo de orientação; os 3 de sinalização entram só para receber "VERIFICAR se ainda tem." |
+| **VERIFICAR em TODOS os backups** | cada pasta diária passa a ter `VERIFICAR do dia.csv`. Gerado também **retroativamente** nas pastas antigas: 17/07 (1) · 18/07 (1) · 19,20,21/07 (19) · 23/07 (20) · 29/07 (9) · 04/08 (24) |
+| **Alarme** | o script diário compara com o backup anterior. Caindo o número, escreve no log e grava `ATENCAO - VERIFICAR que sumiram.txt` com área e serviço de cada um. **Testado hoje: acusou os 9 corretamente.** Ele nunca conserta sozinho |
+
 **O que quebrou em 23/07, para não repetir:** o backup em pasta usa uma permissão
 que o navegador **devolve quando fecha**. Sem ela, `doBackup()` saía calado e o
 botão manual ia para Downloads. Ninguém percebeu por 10 dias porque a capa dizia
