@@ -838,8 +838,18 @@ function ehCelular(){
   /* iPad com iOS 13+ se apresenta como Mac; o toque é o que o entrega */
   return /Mac/i.test(navigator.platform||"")&&(navigator.maxTouchPoints||0)>1;
 }
+/* AUD-16 (04/08) — no celular o backup some da tela inteira, não só da capa.
+   O bloco do topo já não aparecia; faltava o "⬇ Exportar para Excel" do menu ⋯,
+   que era por onde ela ainda esbarrava nele. Nada se perde: no celular tudo
+   sobe para a nuvem, que guarda todas as versões. */
+function ocultarBackupNoCelular(){
+  if(!ehCelular())return;
+  const b=document.getElementById("menuExportar");
+  if(b)b.hidden=true;
+}
 async function renderHome(){
  setTimeout(aplicarTextos,0);
+ ocultarBackupNoCelular();
  renderRtInfo();
  const vivos=DATA.filter(d=>!d.deleted);
  const lb=await metaGet("lastBackup");
@@ -852,7 +862,10 @@ async function renderHome(){
    const dirH=await metaGet("backupDir");
    if(dirH){
      let perm="denied";try{perm=await dirH.queryPermission({mode:"readwrite"});}catch(e){}
-     if(perm==="granted"){autoOk=true;backupInfo=" · auto ✓";}
+     /* BKP-2 (04/08): mostrar O NOME DA PASTA. Antes dizia só "auto ✓" e ela
+        ficou sem saber para onde o backup ia — nome da pasta é a informação
+        que responde "onde está o meu backup?". */
+     if(perm==="granted"){autoOk=true;backupInfo=" · pasta "+esc(dirH.name||"")+" ✓";}
      else backupBtns+=` <button class="btn ghost sm" onclick="reauthBackup()">🔓 Reautorizar pasta</button>`;
    }
  }
@@ -1456,7 +1469,31 @@ function buildCsvGeral(){
    "gestao_nc.csv" é o nome velho da aba. Agora cada arquivo diz o que é e leva a data. */
 function selo(){const d=new Date(),p=n=>String(n).padStart(2,"0");
  return p(d.getDate())+"."+p(d.getMonth()+1)+"."+String(d.getFullYear()).slice(2);}
+/* BKP-1 (04/08) — O BOTÃO ⬇ BACKUP AGORA GRAVA NA PASTA DELA.
+   O defeito: este botão só sabia "baixar", e o baixar do navegador vai SEMPRE
+   para Downloads. A pasta que ela escolheu era usada apenas pelo backup
+   automático. Resultado: ela apertava Backup, o arquivo caía em Downloads
+   fora do padrão, e ela achava que a configuração tinha se perdido.
+   Agora: existe pasta autorizada → grava lá, na subpasta do dia, e diz onde
+   salvou. A permissão caiu? O clique dela É o gesto que o navegador exige,
+   então dá para pedir de volta na hora. Só cai em Downloads se ela recusar,
+   e aí o aviso diz isso com todas as letras. */
 async function exportExcel(){
+ const dirH=await metaGet("backupDir");
+ if(dirH){
+   let perm="denied";
+   try{perm=dirH.queryPermission?await dirH.queryPermission({mode:"readwrite"}):"granted";}catch(e){}
+   if(perm!=="granted"){try{perm=await dirH.requestPermission({mode:"readwrite"});}catch(e){}}
+   if(perm==="granted"){
+     await doBackup(true);
+     toast("Backup salvo na sua pasta "+(dirH.name||"de backup")+" ✓");
+     if(document.getElementById("view-home").style.display!=="none")renderHome();
+     return;
+   }
+   alert("Não consegui gravar na sua pasta de backup"+(dirH.name?" (\""+dirH.name+"\")":"")+".\n\n"
+     +"O backup vai para a pasta Downloads desta vez. Para voltar ao normal, use\n"
+     +"\"🔓 Reautorizar pasta\" na capa.");
+ }
  download("Demandas e Manutencoes - "+selo()+".csv","﻿"+buildCsvGeral(),"text/csv");
  if(window.ncExportCSV)ncExportCSV(); /* CSV próprio da aba NC (colunas diferentes) */
  download("Backup completo do site - "+selo()+".json",JSON.stringify(buildBackupEnvelope(),null,2),"application/json");
@@ -1577,15 +1614,10 @@ async function doBackup(force){
      }catch(e){/* sem permissão ou sem empresa aberta: o resto do backup continua */}
    }
    await metaSet("lastBackup",nowISO());
-   /* regra do projeto: manter apenas as últimas 7 pastas diárias */
-   try{
-     const pastas=[];
-     for await(const [nome,h] of dir.entries())
-       if(h.kind==="directory"&&/^Backup NC - \d{2}\.\d{2}\.\d{2}$/.test(nome))pastas.push(nome);
-     const chave=s=>s.slice(-8).split(".").reverse().join(""); /* DD.MM.AA → AAMMDD p/ ordenar */
-     pastas.sort((a,b)=>chave(a).localeCompare(chave(b)));
-     while(pastas.length>7)await dir.removeEntry(pastas.shift(),{recursive:true}).catch(()=>{});
-   }catch(e){}
+   /* NADA É APAGADO (decisão dela, 04/08). Aqui existia um expurgo que removia
+      sozinho toda pasta além das 7 mais recentes — ela não sabia que existia.
+      Backup que se apaga sozinho não é backup. Se um dia a pasta incomodar de
+      tamanho, a limpeza é à mão, com ela vendo o que sai. */
    if(document.getElementById("view-home").style.display!=="none")renderHome();
  }catch(e){/* sem permissão/pasta removida — o card da capa oferece reautorizar */}
 }
@@ -1699,11 +1731,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.45";
+const APP_VERSAO="9.46";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="30/07/2026 · 13:57";
+const APP_DATA="04/08/2026 · 19:15";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
@@ -1945,6 +1977,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();carimbarVersao();
+ ocultarBackupNoCelular();   /* AUD-16: o menu ⋯ existe em todas as abas, não só na capa */
  goHome();
  atalhoRapido();          /* ?rapido=CF abre direto no registro de NC daquela loja */
  if(window.syncInit)syncInit();

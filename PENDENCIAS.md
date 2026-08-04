@@ -1,5 +1,53 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 03/08/2026 (v9.45) · este arquivo é a memória entre conversas
+### atualizado em 04/08/2026 (v9.45) · este arquivo é a memória entre conversas
+
+---
+
+## 🟢 DECISÕES DELA — rodada de 04/08 (respostas da tela `modelos/decisoes.html`)
+
+| Cód | Assunto | Decidido |
+|---|---|---|
+| **JOÃO-1** | Os 4 itens escritos como "João" | **São do Sr. João.** Entram na folha dele. No item das baratas, a **dedetização** vai para a empresa de pragas e o **fechamento das frestas** fica com ele |
+| **SJ-6 · 1** | Os dois textos de evaporador | **Juntar num só**, com observação: **verificar se é serviço do Sr. João ou de empresa especializada** |
+| **SJ-6 · 2** | Ferrugem × rodapé solto na câmara F&L | **É o mesmo rodapé. Juntar** |
+| **SJ-6 · 3** | O ralo do corredor | **Juntar** no item "todos os ralos do corredor", com observação atualizada: **a empresa já fez o desentupimento; o Sr. João confirma com a Monique se pode instalar o ralo** |
+| **RALO-1** | Os 12 serviços de ralo | **Opção 1 com correção dela:** a solução certa (grelha com dispositivo de fechamento + ralo sifonado) vale para todos, **mas o lembrete continua em CADA área**. Agrupar por causa **não** é tirar a linha da área — o bloco explicativo é acréscimo, nunca substituição. Reescrever o texto sem travessão ` — ` e explicando melhor |
+| **AUD-16** | Backup no celular | **Tirar a opção da tela do celular.** Ela não quer nem ver o botão lá |
+| **AUD-17** | Configurações atreladas ao login | **Sim, sempre atreladas ao login.** Nunca configuração por aparelho. Decisão fechada, não perguntar de novo |
+| **AUD-23** | Cor dos botões da barra | **Encerrado como está hoje** (claros com borda cinza). Não havia motivo registrado além de "decisão dela que caiu do plano de 29/07" |
+| **AUD-14** | Nome da capa | Em aberto. Palavras dela: **Compliance · Compliance 360° · Central Compliance**. Montar rodada nova **na tela** |
+| **AUD-18** | Fluxograma por áudio | Ela não entendeu o item. **Reapresentar com exemplo** antes de cobrar decisão |
+| **AUD-19** | Teste do Importar | Testou, **não tem certeza se salvou** e não gostou da experiência. Vira tarefa minha: dar retorno visível do que entrou |
+| **AUD-20** | Chat do token | Sem resposta nesta rodada |
+| **AUD-21** | Lista cortada de 14/07 | **Encerrada** — ela não sabe mais do que se trata e nada dependia dela |
+| **AUD-22** | Lembrete de sexta | **Encerrado** — ela não lembra qual é |
+| **TEL-11** | Telegram | Ela acha que era sobre **áudio** e não tem o registro. **Prioridade dela: "isso tem que funcionar".** Vira BOT-12 (testar áudio e modo ronda) |
+
+### ✅ FEITO em 04/08 (v9.46) — o backup à prova de balas
+
+| O que | Onde |
+|---|---|
+| O botão **⬇ Backup** agora grava na pasta dela. Se a permissão caiu, ele pede de volta no próprio clique; só cai em Downloads se ela recusar, e o aviso diz isso | `js/app.js`, `exportExcel()` |
+| **O expurgo automático saiu.** Havia um trecho que apagava sozinho toda pasta de backup além das 7 mais recentes. Decisão dela: **nunca apagar nada** | `js/app.js`, `doBackup()` |
+| A capa mostra o **nome da pasta** de backup, não só "auto ✓" | `js/app.js`, `renderHome()` |
+| **AUD-16 fechado**: no celular o "⬇ Exportar para Excel" do menu ⋯ some. Era o último lugar em que o backup aparecia lá | `index.html` + `ocultarBackupNoCelular()` |
+| **Tarefa agendada diária "Backup diario - Central Compliance", 20h.** Não depende do navegador nem de ela abrir o site: busca o banco na **nuvem** e grava em `- BACKUPS\Backups - Relatório Não Conformidades\Backup NC - DD.MM.AA` (JSON + CSV). Cobre o trabalho feito no celular e em outros aparelhos. Log em `_log do backup diario.txt` | `4. TAREFAS\CODE + POWERSHELL - Backup a prova de balas + juntadas (04-08-26)\backup-diario.ps1` |
+| Os 3 arquivos soltos de 23.07.26 foram para `Backup NC - 23.07.26\manual (22h45)`. Nada apagado | pasta de backups |
+
+**O que quebrou em 23/07, para não repetir:** o backup em pasta usa uma permissão
+que o navegador **devolve quando fecha**. Sem ela, `doBackup()` saía calado e o
+botão manual ia para Downloads. Ninguém percebeu por 10 dias porque a capa dizia
+"auto ✓" pelo estado antigo. Agora há três camadas: o botão pede a permissão de
+volta, a capa mostra o nome da pasta, e a tarefa agendada roda **fora** do
+navegador — se as duas primeiras falharem, a terceira continua gravando.
+
+### 🔴 Demandas NOVAS abertas nesta rodada
+
+| Cód | O que | Causa raiz já apurada |
+|---|---|---|
+| **BKP-1** 🔴 **urgente (pedido dela)** | O botão **⬇ Backup** cai em Downloads mesmo com a pasta fixa configurada | **Achado no código:** `exportExcel()` (`js/app.js`) usa sempre `download()`, que é o baixar do navegador. A pasta escolhida (`backupDir`) só é usada por `doBackup()`, o automático de 30 s. Ou seja, o clique manual **nunca** enxergou a pasta. Correção: se existir pasta autorizada, o botão grava nela e avisa onde salvou |
+| **BKP-2** | Ela não sabe mais qual é a pasta fixa do backup | A capa mostra "auto ✓" mas **não mostra o nome da pasta**. Correção: exibir o nome (`dir.name`) e o caminho ao lado do estado |
+| **BKP-3** | "Nunca sei se sincronizou / se tem backup" | A capa informa em números e datas, não em estado. Proposta: uma frase única de estado ("tudo salvo na nuvem às HH:MM"), verde quando está tudo certo |
 
 ---
 

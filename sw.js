@@ -1,6 +1,6 @@
 ﻿/* Service worker â€” network-first com fallback em cache: o app abre offline
    e atualiza sozinho quando hÃ¡ internet. Bump da versÃ£o a cada deploy. */
-const CACHE = "np-demandas-v115";
+const CACHE = "np-demandas-v116";
 /* ATENCAO: "dados/mnt28-carga.js" NAO entra aqui de proposito. E o arquivo com
    os dados reais da loja, existe so no computador dela e nao vai para o
    repositorio publico. Se entrasse nesta lista, o cache inteiro falharia no
