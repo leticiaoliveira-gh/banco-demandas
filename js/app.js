@@ -1507,6 +1507,81 @@ async function exportExcel(){
  toast("Excel (CSV) + backup exportados");}
 function download(name,content,type){const b=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
 
+/* ===== RECIBO DA IMPORTAÇÃO (AUD-19, 04/08) =====
+   Fica na tela até ela fechar e mostra, item por item, o que entrou. Usa as
+   peças da biblioteca (bd-janela, bd-kpi, bd-aviso, bd-btn) — nada construído
+   do zero. Confere pelo banco DEPOIS do merge: o que está escrito aqui é o que
+   ficou gravado, não o que o arquivo prometia. */
+function reciboDaImportacao(itensDoArquivo,antes){
+  const agora=new Map(DATA.filter(d=>d.uid).map(d=>[d.uid,d]));
+  const novos=[],trocados=[],saidos=[],naoEntraram=[];
+  for(const it of (itensDoArquivo||[])){
+    const d=agora.get(it.uid);
+    const eraTexto=antes.get(it.uid);
+    if(it.deleted){
+      if(!d||d.deleted)saidos.push(eraTexto||"(item)");
+      else naoEntraram.push(eraTexto||it.uid);
+      continue;
+    }
+    if(!d||d.deleted){naoEntraram.push(it.fazer||it.nc||it.uid);continue;}
+    const texto=d.fazer||d.nc||"";
+    if(eraTexto===undefined)novos.push({area:d.area||"",texto:texto});
+    else if(eraTexto!==texto)trocados.push({area:d.area||"",de:eraTexto,para:texto});
+    else trocados.push({area:d.area||"",de:"",para:texto});   /* mudou só recado/orientação */
+  }
+  const lista=(arr,render)=>arr.length?`<ul class="rec-lista">${arr.map(render).join("")}</ul>`:"";
+  const corte=(s,n)=>{s=String(s||"");return s.length>n?s.slice(0,n-1)+"…":s;};
+  const corpo=`
+    <div class="bd-kpis rec-kpis">
+      <div class="bd-kpi"><div class="bd-kpi-nome">Atualizados</div><div class="bd-kpi-num">${trocados.length}</div></div>
+      <div class="bd-kpi"><div class="bd-kpi-nome">Novos</div><div class="bd-kpi-num">${novos.length}</div></div>
+      <div class="bd-kpi"><div class="bd-kpi-nome">Saíram da folha</div><div class="bd-kpi-num">${saidos.length}</div></div>
+    </div>
+    ${naoEntraram.length?`<div class="bd-aviso bd-aviso-atencao rec-bloco"><span class="bd-aviso-ico">!</span>
+      <div><b>${naoEntraram.length} não entraram</b>${lista(naoEntraram,t=>`<li>${esc(corte(t,90))}</li>`)}</div></div>`:""}
+    ${trocados.length?`<div class="rec-bloco"><div class="rec-tit">Serviços atualizados</div>
+      ${lista(trocados,t=>`<li><span class="rec-area">${esc(t.area)}</span>${esc(corte(t.para,110))}</li>`)}</div>`:""}
+    ${novos.length?`<div class="rec-bloco"><div class="rec-tit">Serviços novos</div>
+      ${lista(novos,t=>`<li><span class="rec-area">${esc(t.area)}</span>${esc(corte(t.texto,110))}</li>`)}</div>`:""}
+    ${saidos.length?`<div class="rec-bloco"><div class="rec-tit">Saíram da folha (absorvidos por outro serviço)</div>
+      ${lista(saidos,t=>`<li>${esc(corte(t,110))}</li>`)}</div>`:""}
+    <div class="bd-aviso bd-aviso-info rec-bloco"><span class="bd-aviso-ico">↩</span>
+      <div>Não era isto que você queria? A seta <b>←</b> lá em cima desfaz, e o seu backup de antes continua guardado.</div></div>`;
+
+  const m=document.createElement("div");
+  m.className="bd-fundo rec-fundo";   /* o fundo escurecido é a peça da biblioteca */
+  m.setAttribute("role","dialog");
+  m.setAttribute("aria-modal","true");
+  m.setAttribute("aria-label","O que entrou na importação");
+  m.innerHTML=`<div class="bd-janela rec-janela" onclick="event.stopPropagation()">
+      <div class="bd-janela-topo"><div><b>Pronto. Foi isto que entrou.</b>
+        <div class="rec-sub">Confira antes de continuar — está tudo gravado.</div></div>
+        <button class="bd-janela-x" aria-label="Fechar">✕</button></div>
+      <div class="bd-janela-corpo rec-corpo">${corpo}</div>
+      <div class="bd-janela-rodape"><button class="bd-btn bd-btn-principal rec-ok">Entendi</button></div>
+    </div>`;
+  /* teclado: Esc fecha, Tab não escapa da janela e o foco volta para onde
+     estava. Sem isso, quem usa só o teclado "perde" a página atrás da janela. */
+  const focoAnterior=document.activeElement;
+  const fechar=()=>{m.remove();document.removeEventListener("keydown",tecla);
+    if(focoAnterior&&focoAnterior.focus)focoAnterior.focus();};
+  const tecla=ev=>{
+    if(ev.key==="Escape"){fechar();return;}
+    if(ev.key!=="Tab")return;
+    const focaveis=m.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    if(!focaveis.length)return;
+    const primeiro=focaveis[0],ultimo=focaveis[focaveis.length-1];
+    if(ev.shiftKey&&document.activeElement===primeiro){ev.preventDefault();ultimo.focus();}
+    else if(!ev.shiftKey&&document.activeElement===ultimo){ev.preventDefault();primeiro.focus();}
+  };
+  m.onclick=fechar;
+  m.querySelector(".bd-janela-x").onclick=fechar;
+  m.querySelector(".rec-ok").onclick=fechar;
+  document.addEventListener("keydown",tecla);
+  document.body.appendChild(m);
+  m.querySelector(".rec-ok").focus();
+}
+
 async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=await f.text();
  try{
   const parsed=JSON.parse(txt);
@@ -1522,9 +1597,14 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
       +"Ele atualiza itens existentes e aplica consolidações (as versões mais novas vencem).\n\n"
       +(parsed.descricao?parsed.descricao+"\n\n":"")+"Aplicar agora?")){e.target.value="";return;}
     if(typeof syncMergeEnvelope==="function"){
+      /* AUD-19 (04/08): ela importou uma vez e ficou sem saber se salvou —
+         o aviso era um toast que some em segundos. Agora sai um RECIBO: fica
+         na tela até ela fechar e diz item por item o que entrou. O retrato do
+         "antes" tem de ser tirado ANTES do merge. */
+      const antes=new Map(DATA.filter(d=>d.uid&&!d.deleted).map(d=>[d.uid,d.fazer||d.nc||""]));
       await syncMergeEnvelope(parsed);
       fillLojaSelects();render();if(typeof renderDG==="function")renderDG();dataChanged();
-      toast("Atualização aplicada ✓ ("+parsed.itens.length+" itens)");
+      reciboDaImportacao(parsed.itens,antes);
     }else toast("A sincronização ainda não carregou — tente de novo em instantes.");
     e.target.value="";return;
   }
@@ -1731,11 +1811,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.46";
+const APP_VERSAO="9.47";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="04/08/2026 · 19:15";
+const APP_DATA="04/08/2026 · 20:15";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
