@@ -34,7 +34,32 @@
 | **Tarefa agendada diária "Backup diario - Central Compliance", 20h.** Não depende do navegador nem de ela abrir o site: busca o banco na **nuvem** e grava em `- BACKUPS\Backups - Relatório Não Conformidades\Backup NC - DD.MM.AA` (JSON + CSV). Cobre o trabalho feito no celular e em outros aparelhos. Log em `_log do backup diario.txt` | `4. TAREFAS\CODE + POWERSHELL - Backup a prova de balas + juntadas (04-08-26)\backup-diario.ps1` |
 | Os 3 arquivos soltos de 23.07.26 foram para `Backup NC - 23.07.26\manual (22h45)`. Nada apagado | pasta de backups |
 
-### 🟠 OS 9 "VERIFICAR" PERDIDOS — o que se fez em 04/08
+### 🔵 LE-1 · NOTION E WHATSAPP — **parado, é dela. NÃO FAZER NADA.**
+
+Ela quer **ver sozinha primeiro** o que existe no Notion e no grupo do WhatsApp
+do site, e só depois pedir o que aplicar. Não sugerir, não adiantar, não deixar
+pronto "para o caso de". Só entra em pauta quando **ela** trouxer.
+
+### ✅ CORREÇÃO IMPORTANTE (04/08, noite) — os VERIFICAR NÃO estavam perdidos
+
+Conferindo campo a campo antes de mexer, apareceu o seguinte: os 9 lembretes
+estão **inteiros no campo "Meu lembrete 🔒"** (`nota`). Foram **movidos** para lá
+pelo botão *"🔒 Tirar N VERIFICAR da folha impressa"* (`js/mnt28.js`) — que
+existe justamente para o lembrete dela não sair no papel do executor. A
+observação esvaziou porque o texto **mudou de campo**, não porque sumiu.
+Hoje são **26 lembretes 🔒 na folha**.
+
+**Consequências, e valem como regra:**
+
+1. **Procurar VERIFICAR olhando os DOIS campos** (`obs` e `nota`). Olhar só um
+   dá diagnóstico errado — foi o que aconteceu comigo.
+2. O arquivo de atualização **não devolve** VERIFICAR para a observação:
+   devolver faria o lembrete voltar a ser impresso, o oposto do que ela quis.
+   Ele **preserva** as notas intactas (conferido item a item).
+3. **O VERIFICAR na observação SAI impresso.** Só o campo 🔒 nunca sai. Por isso
+   o backup guarda as duas versões da folha.
+
+### 🟠 OS 9 "VERIFICAR" — o que se fez em 04/08
 
 Os 9 lembretes que ela deixou na folha de 29/07 esvaziaram entre 29/07 e 03/08.
 **Os serviços ficaram; só as observações sumiram.** Ela só percebeu porque tinha
@@ -46,7 +71,28 @@ que estava **fora do git e fora de todo backup** (arquivo único, num lugar só)
 | **O dia 29/07 virou backup** | `Backup NC - 29.07.26\` com a folha **igual à impressa** (HTML), a planilha e a carga crua. A folha é reconstituída de **duas fontes**: serviço e recado vêm do banco (é o que foi impresso), o VERIFICAR vem da carga. Nenhuma fonte sozinha reproduz o papel |
 | **Os 9 voltam para a folha viva** | entram no mesmo arquivo de atualização (24 itens agora). Nos 6 de ralo a observação **começa** por "VERIFICAR — tenho dúvida." e a explicação técnica fica no campo de orientação; os 3 de sinalização entram só para receber "VERIFICAR se ainda tem." |
 | **VERIFICAR em TODOS os backups** | cada pasta diária passa a ter `VERIFICAR do dia.csv`. Gerado também **retroativamente** nas pastas antigas: 17/07 (1) · 18/07 (1) · 19,20,21/07 (19) · 23/07 (20) · 29/07 (9) · 04/08 (24) |
-| **Alarme** | o script diário compara com o backup anterior. Caindo o número, escreve no log e grava `ATENCAO - VERIFICAR que sumiram.txt` com área e serviço de cada um. **Testado hoje: acusou os 9 corretamente.** Ele nunca conserta sozinho |
+| **Alarme** | o script diário compara com o backup **imediatamente anterior**, e só nas abas que aquele backup cobre. Caindo o número, escreve no log e grava `ATENCAO - VERIFICAR que sumiram.txt` com área e serviço. Ele nunca conserta sozinho |
+
+### 📁 O PADRÃO FIXO DE CADA BACKUP (decisão dela, 04/08)
+
+Toda pasta `Backup NC - DD.MM.AA` tem **sempre os mesmos arquivos, com os mesmos
+nomes** — quem monta é `gerar-relatorios.py`, chamado pelo backup das 20h:
+
+| Arquivo | O que é |
+|---|---|
+| `Relatorio MNT - entregue.pdf` | a folha como o Sr. João recebe: **sem** o campo 🔒 e sem observação marcada com VERIFICAR |
+| `Relatorio MNT - com VERIFICAR.pdf` | a mesma folha com os lembretes dela à vista, linha destacada |
+| `VERIFICAR do dia.xlsx` | a lista dela em Excel formatado (cabeçalho verde, filtro, painel congelado, coluna do lembrete em âmbar) e **dizendo de que campo veio** cada lembrete |
+| `Backup completo do site (nuvem).json` · `Demandas e Manutencoes (nuvem).csv` | o banco e a planilha geral |
+
+**Conferido nos dois PDFs:** os dois trazem os **mesmos 142 serviços** — o filtro
+é da observação, nunca do serviço. O "entregue" tem **zero** VERIFICAR e zero 🔒;
+o "com VERIFICAR" tem 33 e 32. Padrão aplicado também, retroativamente, em
+17, 18, 19, 20, 21, 23, 29/07 e 04/08.
+
+**Filtro do que é lembrete:** só conta **VERIFICAR em MAIÚSCULAS** — é como ela
+marca. "verificar" no meio de uma frase é português comum; se entrasse, a lista
+viraria ruído (51 linhas em vez de 36) e ninguém mais olharia.
 
 **O que quebrou em 23/07, para não repetir:** o backup em pasta usa uma permissão
 que o navegador **devolve quando fecha**. Sem ela, `doBackup()` saía calado e o
