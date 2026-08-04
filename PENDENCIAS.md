@@ -3,6 +3,31 @@
 
 ---
 
+### 🔴 SINC-3 — POR QUE ELA NÃO VIA NADA CHEGAR (achado em 04/08, à noite)
+
+Ela abriu o site, fechou, abriu de novo e continuava "Overview". **Não era falta
+de publicação: o navegador dela estava DESCONECTADO da nuvem.** Medido na
+própria máquina dela: `syncEnabled() = false`, usuário e repositório vazios,
+nenhuma chave guardada.
+
+**Causa:** entrar pela senha grava a chave **só no `sessionStorage`** — por
+desenho (`js/sync.js`: *"Entrar por senha é SEMPRE modo temporário: fechou,
+sumiu"*), regra criada para o PC do trabalho. Ela usou esse caminho em 03/08;
+ao fechar o navegador, a conexão sumiu. **Desde então, nada da nuvem chegava —
+e ela não tinha como saber**, porque a capa mostrava a data do último envio
+("nuvem 03/08 12:20 ✓"), que parece confirmação de que está tudo certo.
+
+**Resolvido na hora:** as decisões de 04/08 foram aplicadas direto no banco
+daquele navegador, pelo mesmo caminho do botão Importar. Conferido lá:
+título **Central Compliance**, folha com **144**, 1210 itens vivos, **26
+lembretes 🔒** e nenhum "João" solto.
+
+**Fica em aberto, e é dela:** reconectar a sincronização (só ela digita a
+chave). E há um defeito de tela a corrigir: **quando a sincronização está
+desligada, a capa não diz isso com clareza** — o rótulo de backup continua
+mostrando data antiga como se fosse "✓". Enquanto isso, cada aparelho fica
+sozinho e ninguém percebe.
+
 ## ✅ AS DECISÕES DE 04/08 ESTÃO APLICADAS (a pedido dela: *"importa pra mim"*)
 
 Aplicadas **pela nuvem**, com a mesma regra do botão Importar (por item, vence o
