@@ -34,6 +34,23 @@
 | **Tarefa agendada diária "Backup diario - Central Compliance", 20h.** Não depende do navegador nem de ela abrir o site: busca o banco na **nuvem** e grava em `- BACKUPS\Backups - Relatório Não Conformidades\Backup NC - DD.MM.AA` (JSON + CSV). Cobre o trabalho feito no celular e em outros aparelhos. Log em `_log do backup diario.txt` | `4. TAREFAS\CODE + POWERSHELL - Backup a prova de balas + juntadas (04-08-26)\backup-diario.ps1` |
 | Os 3 arquivos soltos de 23.07.26 foram para `Backup NC - 23.07.26\manual (22h45)`. Nada apagado | pasta de backups |
 
+### ✅ AUD-19 — o RECIBO DO IMPORTAR (v9.47, 04/08)
+
+Ela importou uma vez e ficou sem saber se salvou: o aviso era um toast que
+sumia em segundos. Agora, ao importar um arquivo de atualização, abre uma
+**janela que fica na tela** e diz, item por item: **atualizados · novos · os que
+saíram da folha · os que não entraram** — com o nome da área em cada linha.
+Fecha no ✕, no botão, no Esc ou clicando fora, e lembra que o **←** desfaz.
+
+Feita com as peças da biblioteca (`bd-fundo`, `bd-janela`, `bd-kpi`, `bd-aviso`,
+`bd-btn`) — nada construído do zero. Confere pelo **banco depois do merge**: o
+que está escrito é o que ficou gravado, não o que o arquivo prometia.
+`reciboDaImportacao()` em `js/app.js`, estilo no fim de `css/app.css`.
+
+**Provado no navegador:** 1 atualizado, 1 novo e 1 absorvido classificados
+certo; console sem erro; 375px sem rolagem lateral; botão de 44px; foco entra na
+janela, o Tab não escapa e volta para onde estava ao fechar.
+
 ### 🔵 LE-1 · NOTION E WHATSAPP — **parado, é dela. NÃO FAZER NADA.**
 
 Ela quer **ver sozinha primeiro** o que existe no Notion e no grupo do WhatsApp
