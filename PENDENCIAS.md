@@ -3,6 +3,32 @@
 
 ---
 
+## ✅ AS DECISÕES DE 04/08 ESTÃO APLICADAS (a pedido dela: *"importa pra mim"*)
+
+Aplicadas **pela nuvem**, com a mesma regra do botão Importar (por item, vence o
+`mod` mais novo; `deleted` vira lápide; textos entram pelo `textosMod`). Commit
+`sync 2026-08-04T23:40` no repositório de dados — chega no celular e no
+computador na próxima sincronização.
+
+| Conferido depois de aplicar | |
+|---|---|
+| Atualizados · novos · saíram | **17 · 1 · 3** |
+| Folha do Sr. João | 142 → **144 serviços** |
+| Aba antiga de Manutenções | 529 → 525 (os 4 do "João" saíram de lá e entraram na folha) |
+| Não Conformidade | **504 → 504, intacta** |
+| Lembretes 🔒 | **26, todos preservados** |
+| "João" solto como executor | **zero** |
+| Nome da capa | "Overview" → **"Central Compliance"** |
+
+Estado de antes guardado em `Backup NC - 04.08.26\ANTES das juntadas (04-08)\`
+(dois arquivos: o snapshot e a cópia conferida).
+
+**Falso alarme corrigido na hora:** o vigia acusou 6 lembretes "sumidos" — eram
+os 6 ralos cujo **texto** eu reescrevi. Ele comparava por área + frase. Agora o
+Excel leva a coluna **Código do serviço** e a comparação é por ele: reescrever
+uma frase não acusa mais nada, e apagar um lembrete de verdade continua
+acusando (testado nos dois casos, num diretório de teste).
+
 ## 🟢 DECISÕES DELA — rodada de 04/08 (respostas da tela `modelos/decisoes.html`)
 
 | Cód | Assunto | Decidido |
