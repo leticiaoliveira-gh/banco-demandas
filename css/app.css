@@ -1209,3 +1209,35 @@
   .rec-kpis{grid-template-columns:1fr}
   .rec-janela{max-height:92vh}
 }
+
+/* ===== MODO DE EDIÇÃO TOTAL (05/08) =====
+   Nada aqui muda cor, medida, fonte ou sombra do que já existia: tudo só vale
+   ENQUANTO o modo de edição está ligado, e some inteiro quando ela desliga.
+   O balanço reaproveita o @keyframes balanca que já existia na capa. */
+body.editando-cards #hub-grid > [data-hub],
+body.editando-cards #store-list .store-row{
+  animation:balanca .35s infinite;transform-origin:50% 50%}
+body.editando-cards #hub-grid > [data-hub]:nth-child(even),
+body.editando-cards #store-list .store-row:nth-child(even){animation-delay:.17s}
+body.editando-cards #hub-grid > [data-hub]{position:relative}
+body.editando-cards .card-pego,body.editando-cards .card-fantasma{animation:none}
+body.editando-cards .card-fantasma{opacity:.4}
+
+/* o ✕ que esconde o quadro. Alvo maior no celular, como o resto do site. */
+.card-ctrl{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;
+  background:#fff;border:1px solid #e2e3e7;color:#5c5d68;
+  cursor:pointer;z-index:3;box-shadow:0 1px 2px rgba(16,24,40,.05);animation:none}
+.card-ctrl:hover{background:#fee4e2;border-color:#fda29b;color:#912018}
+.card-ctrl:focus-visible{outline:2px solid #1d6b57;outline-offset:2px}
+
+.escondidos-linha{font-size:12.5px;color:#5c5d68;margin:12px 0 4px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;line-height:1.6}
+
+@media(max-width:700px){
+  .card-ctrl{width:36px;height:36px;font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.editando-cards #hub-grid > [data-hub],
+  body.editando-cards #store-list .store-row{animation:none}
+}

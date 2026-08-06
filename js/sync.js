@@ -195,6 +195,15 @@ async function _syncMergeEnvelope(env){
    if(window.renderNC&&currentTab==="nc")renderNC();
    changed=true;
  }else if(env&&modFC()>(env.folhasCfgMod||""))localAhead=true;
+ /* ordem dos quadros do Sumário e os que ela escondeu (05/08) */
+ const modHub=()=>typeof HUB_CFG_MOD!=="undefined"?(HUB_CFG_MOD||""):"";
+ if(env&&env.hubCfg&&(env.hubCfgMod||"")>modHub()&&typeof HUB_CFG!=="undefined"){
+   HUB_CFG={ordem:env.hubCfg.ordem||[],escondidos:env.hubCfg.escondidos||[]};
+   HUB_CFG_MOD=env.hubCfgMod;
+   await metaSet("hubCfg",HUB_CFG);await metaSet("hubCfgMod",HUB_CFG_MOD);
+   if(window.renderHub&&document.getElementById("view-hub")?.style.display==="block")renderHub();
+   changed=true;
+ }else if(env&&modHub()>(env.hubCfgMod||""))localAhead=true;
  /* executores (lista única para todas as empresas) */
  if(env&&Array.isArray(env.executores)&&(env.executoresMod||"")>(EXECUTORES_MOD||"")){
    EXECUTORES=env.executores;EXECUTORES_MOD=env.executoresMod;

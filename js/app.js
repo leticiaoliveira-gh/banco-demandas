@@ -437,9 +437,12 @@ function toggleModoEdicao(){
   /* o cabeçalho segue o modo — no hub, currentTab é nulo, então redesenha o hub */
   if(currentStore&&!currentTab&&document.getElementById("view-hub")?.style.display==="block")showHub();
   else updateSubtitle(currentTab);
-  toast(MODO_EDICAO?"Modo edição LIGADO — clique em qualquer texto para trocar"
+  toast(MODO_EDICAO?"Modo edição LIGADO — clique no texto para trocar, segure o card para arrastar"
                    :"Modo edição desligado");
   if(MODO_EDICAO)barraModoEdicao();else{const b=document.getElementById("barraEdicao");if(b)b.remove();}
+  /* 05/08: o mesmo botão passa a ligar também o arrastar e o esconder
+     (js/edicao.js). Se aquele arquivo não estiver lá, nada aqui muda. */
+  if(typeof edicaoAplicar==="function")edicaoAplicar(MODO_EDICAO);
 }
 function barraModoEdicao(){
   if(document.getElementById("barraEdicao"))return;
@@ -483,7 +486,10 @@ function renderHub(){
      As peças vêm PRONTAS da biblioteca (biblioteca/pecas.css, classes bd-*):
      bd-card / bd-card-faixa / bd-card-icone / bd-selo / bd-barra. Nada do zero. */
   const vivos=DATA.filter(d=>!d.deleted&&d.loja===currentStore);
-  box.innerHTML=ABAS_HUB().map(t=>{const a=TABS[t];
+  /* 05/08: a ordem que ela arrastou manda, e quadro escondido não aparece.
+     Sem js/edicao.js carregado, cai na ordem de fábrica — como sempre foi. */
+  const abas=(typeof hubVisiveis==="function")?hubVisiveis(ABAS_HUB()):ABAS_HUB();
+  box.innerHTML=abas.map(t=>{const a=TABS[t];
     const meus=a.tipo?vivos.filter(d=>d.tipo===a.tipo):[];
     const pend=meus.filter(isPendente).length, done=meus.filter(isConcluido).length;
     const tot=pend+done, pct=tot?Math.round(done/tot*100):0;
@@ -531,6 +537,8 @@ function showHub(){
     h1.title="Para renomear: ✏️ Editar textos";}
   document.getElementById("appSubtitle").innerHTML=subLivreHTML("hub");
   renderHub();renderBreadcrumb();syncNav();window.scrollTo(0,0);
+  /* com o modo de edição ligado, o Sumário já entra arrastável e com o ✕ */
+  if(MODO_EDICAO&&typeof edicaoAplicar==="function")edicaoAplicar(true);
 }
 /* ===== Navegação permanente (barra lateral + barra do celular) ===== */
 function navItemHTML(t){const a=TABS[t];
@@ -754,6 +762,12 @@ async function histAplicar(passo,voltando){
        Sr. João continuava mostrando o valor anterior */
     if(typeof renderMnt28==="function"&&currentTab==="mnt28")renderMnt28();
     if(typeof render==="function"&&(currentTab==="list"||currentTab==="add"))render();
+    /* 05/08: faltava o Sumário. Desfazer um arrastar ou um "esconder" mexia no
+       banco e a tela continuava igual — o mesmo defeito que a folha teve. */
+    if(typeof renderHub==="function"&&document.getElementById("view-hub")?.style.display==="block"){
+      renderHub();
+      if(MODO_EDICAO&&typeof edicaoAplicar==="function")edicaoAplicar(true);
+    }
     if(document.getElementById("view-home").style.display!=="none")await renderHome();
     if(window.syncSchedule)syncSchedule();
   }finally{HIST_LIGADO=true;}
@@ -803,6 +817,7 @@ async function metaSetU(k,v){
 async function recarregarConfig(){
   await loadEmpresas();await loadPendencias();await loadRtInfo();
   await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
+  if(window.loadHubCfg)await loadHubCfg();   /* ordem e escondidos do Sumário (05/08) */
   await loadExecutores();await loadAreasAll();await loadFolhasCfg();
   if(window.dgLoadOpcoes)await dgLoadOpcoes();
   if(window.ckLoadOpcoes)await ckLoadOpcoes();
@@ -1457,7 +1472,11 @@ const temNC=()=>typeof NC_URG!=="undefined";
 const modNC=()=>typeof NC_URG_MOD!=="undefined"?(NC_URG_MOD||""):"";
 const temCK=()=>typeof CK_TIPOS!=="undefined";
 const modCK=()=>typeof CK_OPC_MOD!=="undefined"?(CK_OPC_MOD||""):"";
-function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",ncPalavras:(typeof NC_KW_OVR!=="undefined")?NC_KW_OVR:null,ncPalavrasMod:(typeof NC_KW_MOD!=="undefined")?(NC_KW_MOD||""):"",folhasCfg:(typeof FOLHAS_CFG!=="undefined")?FOLHAS_CFG:null,folhasCfgMod:(typeof FOLHAS_CFG_MOD!=="undefined")?(FOLHAS_CFG_MOD||""):"",itens:DATA};}
+function buildBackupEnvelope(){return {versao:6,exportadoEm:nowISO(),empresasMod:EMPRESAS_MOD,empresas:EMPRESAS,pendenciasMod:PENDENCIAS_MOD,pendencias:PENDENCIAS,rtInfo:RT_INFO,rtInfoMod:RT_INFO_MOD,abaNomes:ABA_NOMES,abaNomesMod:ABA_NOMES_MOD,abaSub:ABA_SUB,abaSubMod:ABA_SUB_MOD,capaCfg:CAPA_CFG,capaCfgMod:CAPA_CFG_MOD,textos:TEXTOS,textosMod:TEXTOS_MOD,dgOpcoes:temDG()?{prios:DG_PRIOS,sits:DG_SIT,papeis:{concluido:DG_CHAVE_CONCLUIDO,andamento:DG_CHAVE_ANDAMENTO,urgente:DG_CHAVE_URGENTE}}:null,dgOpcoesMod:modDG(),ncUrgencias:temNC()?JSON.parse(JSON.stringify(NC_URG)):null,ncUrgenciasMod:modNC(),ckOpcoes:temCK()?{tipos:CK_TIPOS,coment:CK_COMENT,foto:CK_FOTO,listas:CK_LISTAS}:null,ckOpcoesMod:modCK(),areasMod:AREAS_MOD,areas:AREAS_ALL,executores:EXECUTORES,executoresMod:EXECUTORES_MOD,assinaturaRT:(typeof CK_ASSINATURA!=="undefined")?CK_ASSINATURA:"",assinaturaRTMod:(typeof CK_ASSIN_MOD!=="undefined")?CK_ASSIN_MOD:"",ambTipos:(typeof CK_AMB_ALL!=="undefined")?CK_AMB_ALL:{},ambTiposMod:(typeof CK_AMB_MOD!=="undefined")?CK_AMB_MOD:"",ckqSetores:(typeof CKQ_SETORES_ALL!=="undefined")?CKQ_SETORES_ALL:{},ckqSetoresMod:(typeof CKQ_SETORES_MOD!=="undefined")?CKQ_SETORES_MOD:"",ncPalavras:(typeof NC_KW_OVR!=="undefined")?NC_KW_OVR:null,ncPalavrasMod:(typeof NC_KW_MOD!=="undefined")?(NC_KW_MOD||""):"",folhasCfg:(typeof FOLHAS_CFG!=="undefined")?FOLHAS_CFG:null,folhasCfgMod:(typeof FOLHAS_CFG_MOD!=="undefined")?(FOLHAS_CFG_MOD||""):"",
+ /* 05/08: a ordem dos quadros e os que ela escondeu também viajam — decisão
+    dela de salvar "onde já salva", para chegar no celular. */
+ hubCfg:(typeof HUB_CFG!=="undefined")?HUB_CFG:null,hubCfgMod:(typeof HUB_CFG_MOD!=="undefined")?(HUB_CFG_MOD||""):"",
+ itens:DATA};}
 
 function buildCsvGeral(){
  const head=["Aba","Empresa","Área","Não Conformidade / Demanda","Ação Corretiva","Responsável Técnica","Executor","Data do Relato","Data de Atualização","Status"];
@@ -1811,11 +1830,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.48";
+const APP_VERSAO="9.49";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="04/08/2026 · 20:45";
+const APP_DATA="06/08/2026 · 00:30";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
@@ -2054,7 +2073,8 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
      if(dirty)await putItem(d);
    }
  }finally{HIST_LIGADO=true;}
- await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();await loadStatusSite();
+ await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
+  if(window.loadHubCfg)await loadHubCfg();   /* ordem e escondidos do Sumário (05/08) */if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();carimbarVersao();
  ocultarBackupNoCelular();   /* AUD-16: o menu ⋯ existe em todas as abas, não só na capa */

@@ -3,6 +3,33 @@
 
 ---
 
+### ✅ AUT-1 — MODO DE EDIÇÃO TOTAL, 1ª parte (v9.49, 05/08)
+
+Pedido dela: *"autonomia total de gerenciamento no futuro, sem alterar o
+design"*. **Nenhuma cor, medida, fonte, sombra ou layout mudou** — o que entrou
+só existe enquanto o modo de edição está ligado.
+
+| O que | Como |
+|---|---|
+| Um botão só | o ✎ de sempre (`toggleModoEdicao`) passou a ligar também o arrastar e o esconder |
+| Balanço estilo iPhone | reaproveita o `@keyframes balanca` que já existia; agora vale nos cards do Sumário e nas empresas |
+| Arrastar o **card inteiro** | `SortableJS` local em `js/lib/sortable.min.js` (sem CDN, offline preservado), ligada em `js/edicao.js`. **`forceFallback:true`** — o mesmo gesto no computador e no celular; era o arraste nativo do Windows que fazia o "não consigo arrastar" dela |
+| Esconder / trazer de volta | ✕ no canto do card. **Nada é apagado**: vai para `hubCfg.escondidos` e volta pela linha "1 quadro escondido — trazer de volta" |
+| Onde salva | `metaSetU` → entra no desfazer **e** vai para a nuvem (`hubCfg`/`hubCfgMod` no envelope e no merge). Decisão dela: nada de localStorage |
+| Rede de proteção | sem a biblioteca (`typeof Sortable==="undefined"`), `js/edicao.js` desiste em silêncio e o site segue com o arraste por alça de sempre. **Testado.** |
+
+**Provado no navegador:** arrastar troca a ordem e grava · o ✕ esconde e a linha
+traz de volta · a seta ← desfaz o esconder **e** o arrastar, com a tela
+redesenhando (faltava `renderHub()` no `histAplicar` — corrigido) · desligar o
+modo devolve a tela ao estado exato de antes (zero controles, zero animação) ·
+375px sem rolagem lateral, botão de esconder com 36px em tela pequena ·
+console limpo.
+
+**Falta da 2ª parte:** escrever por cima de *todos* os textos (hoje já vale em
+`[data-txt]`, títulos, checklists e quadro geral — falta padronizar no resto),
+duplicar/criar pelo card, e a **Entrega 2: as setas sobreviverem ao recarregar**
+(hoje o histórico morre ao abrir o site de novo — é o que ela reclama).
+
 ### 🔴 SINC-3 — POR QUE ELA NÃO VIA NADA CHEGAR (achado em 04/08, à noite)
 
 Ela abriu o site, fechou, abriu de novo e continuava "Overview". **Não era falta
