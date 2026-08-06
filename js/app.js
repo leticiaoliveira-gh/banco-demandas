@@ -711,13 +711,42 @@ function histFechar(){
   if(HIST.length>HIST_MAX)HIST.shift();
   HIST_POS=HIST.length-1;HIST_ATUAL=null;
   atualizarBotoesHist();
+  histGuardar();
+}
+/* ===== AS SETAS SOBREVIVEM A FECHAR O SITE (05/08) =====
+   ERA ISTO que ela reclamava desde julho: as setas funcionavam, mas o histórico
+   morava só na memória da página. Fechou o site, zerou — e clicar na seta
+   respondia "nada para voltar". Parecia defeito, e para ela era.
+   Agora a pilha fica gravada junto com o resto (IndexedDB, não localStorage:
+   cada passo carrega cópias de itens e estouraria o limite dele).
+   Guardamos os HIST_GUARDA passos mais recentes — o suficiente para desfazer o
+   trabalho de um dia sem inchar o banco. */
+const HIST_GUARDA=20;
+let histGuardaT=null;
+function histGuardar(){
+  clearTimeout(histGuardaT);
+  histGuardaT=setTimeout(async()=>{
+    try{
+      const inicio=Math.max(0,HIST.length-HIST_GUARDA);
+      await metaSet("histPilha",{passos:HIST.slice(inicio),pos:HIST_POS-inicio,quando:nowISO()});
+    }catch(e){/* banco cheio ou sem espaço: o histórico da sessão continua valendo */}
+  },600);
+}
+async function histCarregar(){
+  try{
+    const g=await metaGet("histPilha");
+    if(!g||!Array.isArray(g.passos)||!g.passos.length)return;
+    HIST=g.passos;
+    HIST_POS=(typeof g.pos==="number"&&g.pos>=-1&&g.pos<HIST.length)?g.pos:HIST.length-1;
+  }catch(e){}
+  atualizarBotoesHist();
 }
 /* nome do passo em português — é o que aparece no toast e na dica das setas */
 const META_NOME={textos:"o texto",abaNomes:"o nome do quadro",abaSub:"a linha do título",
   empresas:"as empresas",pendencias:"as pendências",rtInfo:"os seus dados",
   dgOpcoes:"as prioridades",ncUrgencias:"as urgências",ckOpcoes:"o checklist",
   executores:"os executores",assinaturaRT:"a sua assinatura",ambTipos:"os tipos de ambiente",
-  areas:"as áreas"};
+  areas:"as áreas",hubCfg:"a ordem dos quadros"};
 /* a chave das áreas é "areas_AC", "areas_CF"… — uma por empresa. Sem esta linha
    a seta diria "1 alteração" em vez de "as áreas", e ela não saberia o que volta. */
 function metaNome(k){
@@ -778,16 +807,16 @@ async function histAplicar(passo,voltando){
    clicou sem ter o que desfazer, ela recebe a explicação escrita. */
 async function desfazer(){
   histFechar();
-  if(HIST_POS<0){toast("Nada para voltar — o histórico recomeça toda vez que o site é aberto");return;}
+  if(HIST_POS<0){toast("Nada para voltar — você já está no ponto mais antigo que o site guarda");return;}
   const p=HIST[HIST_POS];
-  await histAplicar(p,true);HIST_POS--;atualizarBotoesHist();
+  await histAplicar(p,true);HIST_POS--;atualizarBotoesHist();histGuardar();
   toast("Desfeito: "+histRotulo(p));
 }
 async function refazer(){
   histFechar();
   if(HIST_POS>=HIST.length-1){toast("Nada para avançar — você já está no passo mais recente");return;}
   HIST_POS++;const p=HIST[HIST_POS];
-  await histAplicar(p,false);atualizarBotoesHist();
+  await histAplicar(p,false);atualizarBotoesHist();histGuardar();
   toast("Refeito: "+histRotulo(p));
 }
 function atualizarBotoesHist(){
@@ -1830,7 +1859,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.49";
+const APP_VERSAO="9.50";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
@@ -2076,7 +2105,8 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
   if(window.loadHubCfg)await loadHubCfg();   /* ordem e escondidos do Sumário (05/08) */if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();await loadStatusSite();
  document.getElementById("fmData").value=today();
- renderTabs();fillExecSelects();initAtalhos();atualizarBotoesHist();carimbarVersao();
+ renderTabs();fillExecSelects();initAtalhos();carimbarVersao();
+ await histCarregar();   /* as setas já nascem com o que dá para desfazer (05/08) */
  ocultarBackupNoCelular();   /* AUD-16: o menu ⋯ existe em todas as abas, não só na capa */
  goHome();
  atalhoRapido();          /* ?rapido=CF abre direto no registro de NC daquela loja */
