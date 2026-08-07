@@ -3,6 +3,47 @@
 
 ---
 
+### 📄 CF-2 — RELATÓRIO DO 2º PISO DE CABO FRIO (06/08) — entregue
+
+Pedido dela: um documento **só** para a gerência, unindo **qualidade e manutenção**, focado no
+**2º piso**, objetivo, com estratégia — e não a loja inteira. A folha de manutenção de CF para o
+Sr. João sai **separada**, depois.
+
+**Medido no banco (não estimado):** 198 pendências em aberto no 2º piso · 18 urgentes ·
+153 de qualidade e 45 de manutenção. Agrupadas por causa: **5 causas** explicam tudo —
+lugar indefinido para as coisas (73) · falta de rotina de fim de turno (53) · estrutura vencida (51)
+· compras represadas (26) · falta de padrão de identificação (11).
+
+**O achado mais grave:** uma única câmara acumula **frios e laticínios + hortaliças + alimentos
+impróprios para consumo**. Alimento condenado dividindo porta com alimento de consumo. E a câmara
+da confeitaria antiga está **vazia** desde a mudança — a solução já está dentro da loja.
+
+**Três caminhos para a câmara vazia** (ela pediu mais uma opção além das duas registradas):
+1. exclusiva de hortaliças — **recomendado**, resolve o achado grave sem obra e sem compra;
+2. sala de embalamento (ideia dela) — boa, mas exige bancada e fluxo, fica como 2º passo;
+3. **quarentena de impróprios/devolução** — o mais barato e o que mais protege numa fiscalização.
+Recomendação: **1 + 3 juntos**, custo de uma placa e uma etiqueta.
+
+**Ideias simples que fecham dezenas de linhas:** etiqueta única de 3 campos (o que é · feito em ·
+vence em) + fita de cor por dia da semana · prateleira do manipulador na entrada da produção
+(encerra 5 NCs de uma vez, base 4.6.3) · placa na porta de cada câmara e da sala da farinha ·
+faixa no piso do corredor · manutenção **dentro** da parada de higienização, e dedetização só
+**depois** de fechar forro e fresta.
+
+**Base legal conferida no texto oficial da RDC 216/2004** (não de memória): **4.8.18** e **4.9.1**
+identificação do alimento preparado · **4.7.6** palete/estrado liso, resistente, impermeável e
+lavável · **4.1.15** utensílio que não transmita substância e resistente à corrosão · **4.2.5**
+saneante em local reservado · **4.6.3** objetos pessoais em local específico · **4.1.3** piso,
+parede e forro sem bolor · **4.1.9** elétrica embutida ou protegida.
+Mantida a regra da casa: **a lei não obriga inox**, obriga a característica.
+
+**Entregue:** `4. TAREFAS\CODE - Relatorio 2o piso Cabo Frio (06-08-26)\` — relatório da gerência
+(**4 páginas** A4, identidade visual da casa) e briefing dela (**2 páginas**: como abrir a conversa,
+respostas prontas para as três objeções e o que é técnico dela). Conferido no Chrome: sem rolagem
+lateral, maior elemento cabe em 359px, PDF com todas as normas presentes.
+
+**Fica para depois, como ela pediu:** a folha de manutenção de CF só para o Sr. João.
+
 ### ✅ AUT-1 — MODO DE EDIÇÃO TOTAL, 1ª parte (v9.49, 05/08)
 
 Pedido dela: *"autonomia total de gerenciamento no futuro, sem alterar o
