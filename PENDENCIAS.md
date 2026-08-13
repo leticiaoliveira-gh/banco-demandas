@@ -3,6 +3,48 @@
 
 ---
 
+## 📊 ESTADO DE ARRAIAL DO CABO EM 13/08 — relatórios gerados
+
+`4. TAREFAS\CODE - Relatorios Arraial (13-08-26)\` — os dois **separados**, em PDF e em texto:
+
+| Relatório | Números |
+|---|---|
+| **Folha de Manutenção** | **147 serviços** · Sr. João 106 · Matheus 40 · sem responsável 1 · **34 parados há mais de um ano** · 9 páginas |
+| **Relatório de Não Conformidade** | **178 em aberto** · **35 urgentes** · 172 há mais de 30 dias · 12 páginas |
+
+Os dois já saem com a orientação técnica e a categoria (**Exigência / Recomendação / Dica funcional**)
+onde ela existe.
+
+### ✅ A separação está certa do lado da manutenção
+
+Auditei os 147 da folha procurando tarefa de manipulador: **nenhuma**. As 5 que o filtro levantou
+são falso alarme (identificar disjuntor e trocar borracha de porta **são** manutenção). A regra
+"manutenção nunca recebe tarefa de manipulador" está sendo cumprida.
+
+### 🔴 MNT-QUA-1 — mas o contrário acontece: 12 obras dentro do Relatório de Qualidade
+
+São 12 não conformidades **abertas** que são serviço de quem conserta, não desvio de Boas Práticas.
+**Não movi nada** — é dado dela e a decisão é dela:
+
+| Onde está | O que é |
+|---|---|
+| 1º Piso · AÇOUGUE | vedar/fechar as peças dentro das ilhas |
+| 1º Piso · ENTRADA DE CARGA E DESCARGA | porta enferrujada, amassada e vulnerável a praga |
+| 1º Piso · FREEZER | pintura nas prateleiras enferrujadas — **o texto já diz "> Sr João"** |
+| 1º Piso · GERAL | piso quebrado do corredor · forro aberto da produção |
+| 2º Piso · CÂMARAS FRIGORÍFICAS + CORREDOR | goteira quando chove · renovação de pintura (2 registros) · utensílios enferrujados |
+| 2º Piso · CÂMARAS DESATIVADAS | porta de correr e trilho precisam de pintura |
+| 2º Piso · CÂMARA DE LATICÍNIOS | fundo da câmara com ferrugem |
+| 2º Piso · CÂMARA ZERO | ferrugem na porta |
+
+**Por que importa:** enquanto estiverem na aba de Qualidade, não entram na folha do Sr. João e
+ninguém as executa — e ainda inflam o número de não conformidades que ela leva para a gerência.
+Há também **ferrugem** aqui que é a mesma **maresia** dos 22 da folha: é uma causa só, contada duas
+vezes em dois lugares.
+
+**Também aparece o AR-1:** duas dessas estão em "CÂMARAS FRIGORÍFICAS + CORREDOR **(1º PISO)**"
+mas marcadas como **2º Piso** — a área diz uma coisa e o piso diz outra.
+
 ### 📄 CF-2 — RELATÓRIO DO 2º PISO DE CABO FRIO (06/08) — entregue
 
 Pedido dela: um documento **só** para a gerência, unindo **qualidade e manutenção**, focado no
