@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 04/08/2026 (v9.45) · este arquivo é a memória entre conversas
+### atualizado em 13/08/2026 · este arquivo é a memória entre conversas
 
 ---
 
@@ -336,6 +336,56 @@ antes** — nunca escrito direto.
 usar **uma lista só** (e qual nome vence em cada área), ou se cada aba mantém a sua e o site só
 para de misturá-las no seletor. E o que fazer com "Parte Central" e "Parte Interna", que só a NC
 usa.
+
+### TEL-12 — os 6 registros do Telegram de 11/08 (corrigidos em 13/08)
+
+Ela mandou 6 coisas pelo bot em 11/08 (08:32 às 09:04, Arraial) e **ficou tudo perdido**. Não foi
+só área errada — foram **três causas somadas**:
+
+1. **O bot mandava manutenção para a aba ERRADA.** `bot2/ponte2.py` gravava `tipo:"mnt"`, que é a
+   aba antiga "Manutenções e Elétrica". Ela procurava na folha do Sr. João e não achava. Dos 12
+   registros que já vieram pelo Telegram, **7 foram para a aba antiga e nenhum para a folha nova**.
+2. **O formato antigo não tem piso** — então o `piso` que a ponte já tinha em mãos era descartado.
+   Os 3 de manutenção chegaram sem piso nenhum.
+3. **Áreas trocadas no envio** (ela selecionou correndo): o texto dizia "Açougue" e foi para Câmara:
+   Corredor · dizia "câmara zero" e foi para Câmara de Laticínios · dizia "Corredor" e foi para
+   Produção - Confeitaria.
+
+**Corrigido no bot (13/08):** `montar_item` passou a gravar `tipo:"mnt28"` com **piso**, `executor`
+(`EXECUTOR_PADRAO = "Sr. João"`), `origem:"Telegram"`, `dataRegistro` e `ordem` alta (entra no fim
+da área, sem embaralhar a ordem que ela arrumou). ⚠️ **Vale para os próximos envios — o bot precisa
+ser reiniciado.**
+
+**Os 6 corrigidos com ela, um a um, mostrando a foto e o texto original** (arquivo
+`4. TAREFAS\CODE - Layouts e folha do Matheus (03-08-26)\ATUALIZAR NO SITE - Telegram 11-08 corrigido.json`):
+
+| # | Ficou | Decisão dela |
+|---|---|---|
+| 1 | 2º PISO · Corredor das Câmaras · **folha** | rejuntar o piso; era "Câmara: Corredor" sem piso |
+| 2 | 2º PISO · Câmara Açougue · NC | **só a crosta** — a foto da água no chão saiu |
+| 3 | 2º PISO · Câmara Desativada · NC | **um registro só**, ela não quis separar os 3 assuntos |
+| 4a | 2º PISO · Câmara F&L · **folha** | ferrugem das **bancadas/armários** (não era trilho — ela corrigiu), com as 2 fotos |
+| 4b | 2º PISO · Câmara F&L · **folha** | desamassar e pintar a porta — separado do 4a |
+| 5 | 2º PISO · Câmara Zero · **folha** | **VERIFICAR** — veio sem foto e ela não lembra |
+| 6 | 2º PISO · Corredor das Câmaras · NC | **VERIFICAR** — veio sem foto e ela não lembra |
+
+**✅ APLICADO NA NUVEM EM 13/08** (ela mandou: *"faça sozinho tudo"*). Checkpoint salvo antes em
+`- BACKUPS\...\Backup NC - 13.08.26\ANTES da correcao do Telegram (13-08).json`.
+**Conferido no banco depois de subir:** os **7 estão lá**, todos com `2º PISO` · não conformidades
+**507, intactas** · **35 lembretes 🔒 preservados** · 6 alterados, **0 sumidos**, 1 novo · a foto da
+água saiu (17 → 16) · VERIFICAR subiu de 31 para 33 · folha do Sr. João/Matheus em AC:
+**147 serviços**. Chega no aparelho dela na próxima sincronização.
+
+**✅ BOTS REINICIADOS EM 13/08, 07:18.** `ponte2.py` alterado às 07:00, bots subidos às 07:18 —
+pegaram o código novo. Log: *"Bot de Cabo Frio no ar"*, *"Bot de Arraial do Cabo no ar"*.
+O bot **antigo** (`iniciar_bot.py`) não foi tocado — continua rodando como estava.
+
+⚠️ **Sobraram 4 manutenções na aba antiga**, vindas do bot em 25 e 28/07. **Não foram movidas de
+propósito:** não passaram pela revisão foto a foto, e podem ter área errada como estas tinham.
+Movê-las às cegas propagaria o erro em vez de corrigi-lo.
+
+**Lição:** os dois que ela não conseguiu identificar são **exatamente os dois que vieram sem foto**.
+Sem imagem não há como reconstruir de memória dois dias depois — o que reforça pedir foto sempre.
 
 ### 🔴 REGRAS DE TRABALHO que nasceram desta rodada
 
