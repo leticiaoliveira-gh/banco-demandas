@@ -1,5 +1,5 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 13/08/2026 · este arquivo é a memória entre conversas
+### atualizado em 24/08/2026 · este arquivo é a memória entre conversas
 
 ---
 
@@ -596,52 +596,54 @@ o AR-1 depois arruma as duas de uma vez.
 | 📌 | O Word "PLANO PARA O MAPA MENTAL (29-07)" e a regeração interrompida na SITE 29.07 estão **obsoletos** — vale o **PLANO NOVO (31-07)** |
 | 📌 | Existe um **prompt do "chat de orientações"** (3º chat, só aconselha) no OneDrive → ARRAIAL - Planilhas (28-07-26) |
 
-## 🔴 EM ABERTO — na ordem em que uma destrava a outra
+## 🔴 EM ABERTO — revisado em 24/08. **Esta é a lista válida.**
 
-### Decisões dela (em clique, em lote)
+> A lista anterior estava desatualizada e mostrava como pendente o que já foi feito
+> (SJ-6, AUD-14, AUD-16, AUD-17, AUD-19, AUD-21, AUD-22, o backup e o Telegram).
+> Review completo em tela: `4. TAREFAS\CODE - Review completo (13-08-26)\ONDE PARAMOS.html`
 
-| Ordem | Cód | O que | Meu voto |
+### Decisões dela, na ordem em que uma destrava a outra
+
+| Ordem | Cód | O que | Por que importa |
 |---|---|---|---|
-| 1º | **SJ-6** | 3 dúvidas da folha: evaporadores (novo ou juntar?) · ferrugem no fundo da câmara (novo ou o mesmo do rodapé?) · confirmar o ralo do corredor | é o que está na mão dela agora |
-| 2º | **AR-1** | Fechar as 95 áreas **por grupo** (~10 cliques) — ela recusou item a item | **é a raiz**: sem isso toda carga nova recria a bagunça |
-| 3º | **PL-2** | O piso dos 6 itens marcados ⚠, inclusive "Corredor de Entrada", que não existe no cadastro | depende do 2º |
-| 4º | **PL-1** | O caminho da planilha de Arraial | **editar no site e a planilha virar só exportação** — o único em que nada desencontra |
-| 5º | **N8N-13** | Autorizar a esteira (n8n) | vale, **mas só aqui** — antes disso ela separaria errado mais rápido |
-| 6º | **PL-3** | Revisar as ações corretivas (são sugestão gerada por regra) | depois do SJ-1; ela assina com o CRN |
-| 7º | **BOT-12** | Testar áudio e modo ronda dos bots (as mensagens de 27/07 se perderam) | independente |
-| 8º | **AUD-13** | Os 18 itens de manipulação para virar NC | parado desde 20/07 |
-| 9º | **PRO-1** | As 11 seções ⚠ REVISAR do Checklist de CF | a única revisão em dupla |
-| 10º | **AUD-18/19/20/21/22** | Fluxograma por áudio · teste do Importar · apagar o chat do token · a lista cortada de 14/07 · lembrete de sexta | 5 cliques de um minuto, numa tela só |
+| 1º | **SINC-3** | Reconectar a sincronização no computador dela | **É o primeiro.** Entrar pela senha desconecta ao fechar. Só ela digita a chave |
+| 2º | **MNT-QUA-1** | As 12 obras que estão dentro do Relatório de Qualidade | Paradas ali, ninguém executa, e incham o número que ela leva à gerência |
+| 3º | **AR-1** | As três listas de áreas que não conversam | **É a raiz**: sem isso toda carga nova recria a bagunça |
+| 4º | **AUD-10/11** | Escolher o layout de NC e de Manutenções | As opções estão desenhadas em `modelos/layouts.html` |
+| 5º | **AUD-13** | Os itens de manipulação que viram NC | Ferramenta pronta: Checklists → Infraestrutura → "🔗 Ligar minhas manutenções" |
+| 6º | **PRO-1** | As 11 seções ⚠ REVISAR do Checklist de CF | A única revisão em dupla |
+| 7º | **SJ-1 / F-7 / F-8** | Aprovar as reescritas propostas | Documento pronto desde 30/07. Ela assina com o CRN |
+| 8º | **PL-1/2/3** | Caminho da planilha · piso dos 6 itens ⚠ · revisar as ações corretivas | PL-2 depende do AR-1 |
+| 9º | **LE-1** | Notion e WhatsApp | **Ela vê sozinha primeiro. Não sugerir, não adiantar** |
+| 10º | **BOT-12** | Autorizar o teste de áudio e ronda dos bots | Testar é mandar mensagem no Telegram dela |
+| 11º | **N8N-13** | Autorizar a esteira (n8n) | Só depois do AR-1 |
+| 12º | **AUD-18/20** | Fluxograma por áudio · apagar o chat do token | Um minuto cada |
 
-### O que é meu (não depende dela)
+### O que é meu (posso executar sem ela)
 
-| Cód | O que |
-|---|---|
-| ~~DOC-1..8~~ | ✅ feito em 29/07 (v9.27): `PENDENCIAS.md`, `status.json` e `CONTINUIDADE.md` (estava parado em 19/07) atualizados. No **Notion** (página "2.0 PROJETO SITE (CENTRAL TRABALHO) > Claude CODE"): os **2 blocos vazios preenchidos** (AUDITORIA e PROMPT PARA A CONVERSA NOVA), seção **"0 · JÁ FEITO"** com as caixinhas marcadas, seção **"0.1 · DECISÕES QUE SÓ ELA PODE TOMAR"** e STATUS de "Não iniciado" → "Em andamento". **Falta só o PDF dos documentos** — e o TEL-11 abaixo |
-| **TEL-11** | ❓ **preciso dela:** o Telegram entrou na AUDITORIA como frente ("2 bots no ar, falta testar áudio e ronda") e nos passos do plano, mas **não sei o que exatamente ela mandou sobre Telegram** que não entrou em nenhum documento. Ela precisa reenviar ou dizer onde está |
-| ~~F-1~~ | ✅ feito em v9.27 |
-| ~~F-2~~ | ✅ feito em v9.27 |
-| ~~F-3~~ | ✅ feito em v9.34. A aba MNT entrou no "⚙ Ver configurações" (a porta abria vazia — foi isso que ela viu no PC do trabalho em 30/07): nome, cargo/registro, responsável, data de emissão, **os 10 textos da folha** (título, colunas, rótulos — tela E impressão), esconder/mostrar painel de números e selos de origem. E o **título duplicado do topo saiu** da aba, por pedido dela — ficam "← Capa" e o ⚙ |
-| **F-4** | Folha sair em **Word e WhatsApp** |
-| **F-5** | Trazer ID e Anotações da planilha |
-| **F-7** | 📄 reescrita proposta no documento SJ-1 — espera o OK dela |
-| **F-8** | 📄 reescrita proposta no documento SJ-1 (alumínio anodizado + inox na observação) — espera o OK dela |
-| **SJ-1** | 📄 **proposta pronta** (30/07): `4. TAREFAS\CODE - Resgate MNT (30-07-26)\PROPOSTA SJ-1...md` — 3 causas raiz (maresia 22+, umidade, rodapés 8-em-1), reescritas F-7/F-8, base RDC 216/275. **Não aplicada**: espera a recuperação da tarde de 29/07 e o OK dela |
-| **SJ-3** | Folha do **Matheus**. **Levantamento feito e conferido em 03/08** — e o número mudou: são **40** na planilha (não 37), zero linhas escondidas por filtro. Dos 5 sinalizados em 29/07, **2 já estavam lá** (lâmpada da câmara de laticínios e as 2 da cozinha), então a conta é **40 + 3 = 43**. **Não são 40 problemas, são 5 causas**: sem rotina de troca de lâmpada (14 itens) · luminária/tomada sem capa protetora (4 — RDC 216 **item 4.1.8**, risco de caco de vidro no alimento) · fiação exposta perto de água (RDC 216 **item 4.1.9**) · fiação exposta perto de água (3 — o mais grave) · disjuntor sem identificação (3, todos parados desde 10/02/2025) · forno da UAN (3 linhas que são o mesmo serviço). **7 serviços passaram de 1 ano parados.** Falta: a resposta de **LAY-3**, se os 25 já "concluídos" entram, o que são os **4 itens do "João"** (nome separado de "Sr. João" na planilha) e **as fotos dos documentos** — sem elas eu não afirmo que a folha está completa |
-| ~~DEF-1~~ | ✅ feito em v9.28. Provado no navegador: **0 crachás trocados** em 12 modelos / 161 perguntas, e 0 modelos regravados à toa. Correção do plano: trocar por `metaSetU` **não** faria a trava viajar (essa chave não entra no envelope da sincronização) — o que resolve é preservar o crachá, e isso está feito |
-| ~~DEF-2 / AR-3~~ | ✅ feito em v9.29. **O diagnóstico estava errado:** conferi no navegador e as áreas **chegam** no celular (entram no envelope e o `areasMod` sobe). O defeito real era pior: área apagada **não tinha Ctrl+Z**. Agora volta, e a seta diz "as áreas" |
-| ~~DEF-3 / NOT-1~~ | ✅ feito em v9.37, agora do jeito certo: UTF-8 explícito e **prova do acento** antes e depois de gravar — se falhar, não escreve e cobra à mão. (1ª tentativa registrada: Fiz o guardião carimbar a data sozinho — e ele **quebrou os acentos do site publicado** (o PowerShell 5.1 lê o arquivo na codificação do sistema, não em UTF-8; 16 palavras quebradas viraram 483 e a capa dela encheu de rabisco). Desfeito. Hoje o guardião **confere e barra** se a data estiver velha, mas quem troca é quem publica. Voltar a automatizar exige ler/gravar em UTF-8 explícito e testar com palavra acentuada antes |
-| ~~DEF-5~~ | ✅ feito em v9.27 |
-| ~~DEF-7~~ | ✅ feito em v9.27 |
-| ~~DEF-8~~ | ✅ feito em v9.27 |
-| ~~DEF-4 / SB-7~~ | ✅ feito em 30/07. A biblioteca virou o repositório **privado** `leticiaoliveira-gh/biblioteca-design` (13 arquivos: as 16 peças, os 8 gráficos, a paleta validada e os checklists). Se este computador morrer, o desenho do site não morre junto |
-| ~~AR-2~~ | ✅ feito em v9.38: criar empresa **oferece copiar o mapa de áreas** de outra — um clique e nasce organizada |
-| **AR-4/5** | Padrão de nome das câmaras · padronização dos 622 textos e mover item de aba errada |
-| ~~NOT-2/3~~ | ✅ feito em v9.37: a **nuvem** aparece como backup na capa ("nuvem HH:MM ✓" — guarda todas as versões e sobrevive a trocar de PC) · página `modelos/` com os cards antigos (museu, só olhar) |
-| **AUD-10/11** ~~12~~ | ✅ AUD-12 feito em v9.38: **palavras de urgência editáveis** pela janela do painel ⚙ da NC, sincronizadas, campo vazio = padrão. AUD-10/11: as **propostas estão na tela** (`modelos/layouts.html` — 3 opções para NC, 2 para Manutenções); falta ela escolher |
-| **AUD-16/17** | Responder "no celular precisa de backup?" · configurações atreladas ao login |
-| ~~SKILL-14~~ | ✅ feito em 30/07. Virou a skill `phd-em-solucoes` (`~/.claude/skills/`). Como memória ela só era *lembrada*; como skill ela **dispara sozinha** sempre que eu for entregar levantamento, lista, achado, NC, serviço de manutenção ou ação corretiva — que é exatamente onde ela falhou nos 121 |
-| **AUD-14 / NOT-6** | Nome da capa: **Central Técnica** por ora, ela não está contente. Montar rodada nova **na tela**, não no chat |
+| Ordem | Cód | O que |
+|---|---|---|
+| 1º | **MAN-2** | Aviso de "você está desconectada" na capa. Hoje a tela mostra data antiga como se estivesse tudo certo |
+| 2º | **MAN-1** | Manual de usar o site em qualquer computador: entrar, sair, e conferir que não perdeu o dia |
+| 3º | **SEG-2** | A senha do bot está em texto puro em `logsot_inicio_windows.log`. Dez minutos |
+| 4º | **CF-1** | Folha de manutenção de **Cabo Frio**, separada, para o Sr. João |
+| 5º | **AUT-2/3** | Terminar o modo de edição: escrever por cima de todo texto · duplicar e criar pelo card |
+| 6º | **COMPRAS** | A aba de compras que ela desenhou (fixa para todas as empresas, por piso e área, unificada por setor, com link de compra e de dica) |
+| 7º | **REV-1** | Replicar o tom aprovado do relatório de CF nos relatórios fixos do site |
+| 8º | **F-4/F-5** | Folha em Word e WhatsApp · trazer ID e anotações da planilha |
+| 9º | **AR-4/5** | Padrão de nome das câmaras · padronização dos 622 textos |
+| — | **SJ-3** | Folha do Matheus: falta a resposta de LAY-3, se os 25 concluídos entram, e as fotos dos documentos |
+
+### ⚠️ Riscos abertos (dizer a ela, não resolver sozinho)
+
+- **4 manutenções continuam na aba antiga** (bot, 25 e 28/07). Não movidas de propósito: sem revisão
+  foto a foto podem ter área errada, e mover às cegas propaga o erro.
+- **34 serviços parados há mais de um ano** em Arraial.
+- **Ferrugem contada duas vezes**: a mesma maresia na folha e no relatório de qualidade.
+- **Backup local não existe em 11 e 12/08** (computador desligado às 20h). A nuvem cobriu, nada se
+  perdeu, mas as pastas desses dois dias não existem.
+- **Verificar na loja, Cabo Frio:** câmara vazia · câmara de três funções · forro do Lado 1 da
+  produção · parte elétrica do corredor · manutenção da padaria (1º piso).
 
 ---
 
