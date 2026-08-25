@@ -817,6 +817,26 @@ function m28AtualizarTopo(){
    impressão do navegador (Salvar como PDF). Sem assinatura e sem a
    palavra "ordem de serviço", por decisão dela.
    ===================================================================== */
+/* Quantas fotos cabem por servico na folha impressa.
+   Ela reprovou em 25/08 uma folha de 18 paginas: "nao tem como eu entregar isso".
+   Um item tem 4 fotos; sem teto, uma linha come meia pagina e a folha incha
+   de novo. Tres e o que cabe na largura da coluna sem quebrar. */
+const MAX_FOTOS_FOLHA = 3;
+
+/* A tira de fotos que sai embaixo do servico na folha impressa (pedido dela em
+   25/08: "eu PRECISO das imagens"). Fora da folha nada muda: quem nao tem foto
+   sai exatamente como saia antes. */
+function m28FotosFolha(d){
+  const fotos=(d.fotos||[]).filter(f=>typeof f==="string"&&f.startsWith("data:"));
+  if(!fotos.length)return "";
+  const mostra=fotos.slice(0,MAX_FOTOS_FOLHA);
+  const sobra=fotos.length-mostra.length;
+  return '<i class="fts">'
+    +mostra.map(f=>`<img src="${f}" alt="">`).join("")
+    +(sobra?`<i>+${sobra} no site</i>`:"")
+    +'</i>';
+}
+
 function m28Imprimir(){
   let rows=m28Itens();
   if(M28F.exec)rows=rows.filter(d=>(d.executor||"").trim()===M28F.exec);   /* a folha é de uma pessoa só */
@@ -857,7 +877,8 @@ function m28Imprimir(){
     const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
       +`<span class="f">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}`
-      +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")+`</span><span class="q">${desde}</span>`
+      +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
+      +m28FotosFolha(d)+`</span><span class="q">${desde}</span>`
       +`<span class="o">${esc(d.obs||"")}</span></div>`;
   }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
@@ -929,6 +950,12 @@ function m28Imprimir(){
   .cab .c,.li .c{text-align:center}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
   .li .o{color:#667085;font-size:11.4px}
+  /* a foto vai DENTRO da coluna do servico: nunca se separa dele na quebra */
+  .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+  .li .fts img{width:32mm;height:24mm;object-fit:cover;
+    border:1px solid #eaecf0;border-radius:3px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
   .li .q{font-size:10.8px;color:#667085}
   .li .q b{display:block;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
   .li .q i{font-style:normal;display:block;font-size:8.8px}
