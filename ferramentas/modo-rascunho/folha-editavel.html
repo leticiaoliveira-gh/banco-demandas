@@ -1,0 +1,96 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>gerando a folha</title></head><body>
+<div id="alvo"></div>
+<script>
+/* Pagina TEMPORARIA de trabalho: nao faz parte do site.
+   Carrega o mnt28.js de verdade, injeta os servicos e monta a folha ja
+   paginada no proprio documento, para o Chrome salvar em PDF sem depender
+   de janela nova (que o navegador de teste bloqueia). */
+const params = new URLSearchParams(location.search);
+const PISO = params.get('piso') || '';   // vazio = todos os pisos
+const EXEC = params.get('exec') || 'Sr. João';
+
+/* a loja vem pela URL: este repositorio e publico, nada dela fica escrito aqui */
+const LOJA = params.get('loja') || 'AC';
+const NOME_LOJA = params.get('nomeLoja') || LOJA;
+let DATA = [], currentStore = LOJA, currentStoreName = NOME_LOJA;
+const RT_INFO = '', RT_DEFAULT = 'Letícia Oliveira';
+/* M28F, M28_ORDEM, M28_CAB, M28_TXT e M28_VIS ja sao declarados
+   dentro do mnt28.js: declarar de novo aqui quebra o arquivo inteiro. */
+function empresa(){ return {name: NOME_LOJA}; }
+/* o mnt28.js registra a aba nestes dois objetos, que moram no app.js */
+const STATUS_FNS = {};
+const TABS = {mnt28: {}};
+function metaGet(){ return Promise.resolve(null); }
+function esc(s){ const e=document.createElement('div'); e.textContent=s==null?'':s; return e.innerHTML; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function brDate(s){ if(!s) return ''; const p=String(s).slice(0,10).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s; }
+function orientacaoTexto(d){
+  if(!d || !d.orientacao) return '';
+  const cat={exigencia:'Exigência',recomendacao:'Recomendação',dica:'Dica funcional'}[d.orientacaoTipo]||'Orientação';
+  return `[${cat}] ${d.orientacao}${d.orientacaoBase?' ('+d.orientacaoBase+')':''}`;
+}
+</script>
+<script src="/js/mnt28.js"></script>
+<script src="/ferramentas/modo-rascunho/modo-rascunho.js"></script>
+<script>
+(async function(){
+  const r = await fetch('/_dados-rascunho.json?t=' + Date.now());
+  DATA = await r.json();
+  M28F.exec = EXEC; M28F.piso = PISO; M28F.ver = 'fazer'; M28F.area = ''; M28F.q = '';
+  M28_ORDEM = M28_ORDEM || {}; M28_CAB = M28_CAB || {};
+  M28_TXT = Object.assign({}, M28_TXT_PADRAO, M28_TXT || {});
+  M28_VIS = M28_VIS || {kpis:true, origem:true};
+
+  /* intercepta a janela para pegar os blocos, e monta aqui mesmo */
+  const cap = {blocos:'', cab:'', titulo:'', escrito:''};
+  const orig = window.open;
+  window.open = function(){
+    const f = {document:{open(){},write(t){cap.escrito+=t;},close(){},title:''},focus(){},print(){},close(){}};
+    [['__BLOCOS','blocos'],['__CABECALHO','cab'],['__TITULO','titulo']].forEach(([k,a])=>
+      Object.defineProperty(f,k,{set(v){cap[a]=v;},get(){return cap[a];},configurable:true}));
+    return f;
+  };
+  try { m28Imprimir(); } catch(e) { document.title = 'ERRO: ' + e.message; }
+  window.open = orig;
+
+  /* traz o estilo da folha para esta pagina */
+  const est = cap.escrito.match(/<style>([\s\S]*?)<\/style>/);
+  if (est) { const s = document.createElement('style'); s.textContent = est[1]; document.head.appendChild(s); }
+
+  const alvo = document.getElementById('alvo');
+  const caixa = document.createElement('div'); caixa.innerHTML = cap.blocos;
+  const fila = Array.prototype.slice.call(caixa.children);
+  function nova(primeira){
+    const f = document.createElement('div'); f.className = 'folha';
+    f.innerHTML = '<div class="topo">'+cap.titulo+'</div>'+(primeira?cap.cab:'')+'<div class="corpo"></div>';
+    alvo.appendChild(f); return f;
+  }
+  let folha = nova(true), corpo = folha.querySelector('.corpo');
+  for (const bl of fila){
+    corpo.appendChild(bl);
+    const rf = folha.getBoundingClientRect(), rc = corpo.getBoundingClientRect();
+    if (rc.bottom > rf.bottom - 40){
+      corpo.removeChild(bl);
+      while (corpo.lastChild && /(piso|ar|cab)/.test(corpo.lastChild.className||'')){
+        const v = corpo.lastChild; corpo.removeChild(v); fila.unshift(v);
+      }
+      folha = nova(false); corpo = folha.querySelector('.corpo'); corpo.appendChild(bl);
+    }
+  }
+  const folhas = document.querySelectorAll('.folha');
+  folhas.forEach((f,k)=>{
+    const pe = document.createElement('div'); pe.className = 'pe';
+    pe.innerHTML = '<span>'+cap.titulo+'</span><span>'+(k+1)+' / '+folhas.length+'</span>';
+    f.appendChild(pe);
+  });
+  /* ---------- MODO DE EDICAO: a folha inteira vira editavel ---------- */
+  ligarEdicao();
+
+  document.title = folhas.length + ' paginas';
+  document.body.dataset.pronto = '1';
+  document.body.dataset.paginas = folhas.length;
+  document.body.dataset.fotos = document.querySelectorAll('.fts img').length;
+})();
+</script>
+</body></html>
