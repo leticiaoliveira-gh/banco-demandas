@@ -907,17 +907,126 @@ function m28FotosFolha(d){
     +'</i>';
 }
 
+/* =====================================================================
+   AS DUAS FOLHAS (26/08) — pedido dela, com as palavras dela:
+
+     "eu quero imprimir um relatório e marcar eu mesma o que o Sr. João já
+      fez, à mão, pra mostrar pra empresa que as coisas estão sendo feitas"
+
+   São duas leituras do mesmo trabalho, e cada uma serve a uma pessoa:
+
+     SÓ O QUE FALTA     vai para a mão de quem executa. É a folha de sempre.
+     TUDO, PARA MARCAR  vai para a empresa. Leva também o que já foi resolvido,
+                        com os quadradinhos VAZIOS, e ela marca à mão.
+
+   DUAS COISAS QUE NÃO PODEM MUDAR:
+
+   1. Na folha de marcar, o quadradinho sai vazio MESMO no serviço já feito no
+      site. Papel que chega marcado não prova serviço nenhum — quem marca é ela.
+      Isto não altera o banco: o "feito" continua lá, intacto.
+
+   2. A data de corte existe para a folha não mentir. Ela emite como se fosse do
+      dia da entrega anterior; se levasse junto o que foi criado depois, a
+      empresa veria coisas que naquele dia ainda não existiam, e a folha
+      deixaria de provar o que ela quer provar.
+
+   Antes isto só existia numa ferramenta minha, e ela dependia de eu gerar e
+   subir o arquivo. Agora sai do próprio botão. Era esse o pedido: "dessa forma
+   vai ficar salvo e você não vai mais precisar ficar colocando nada na nuvem".
+   ===================================================================== */
 function m28Imprimir(){
+  const itens=m28ItensDaFolha();
+  const faltam=itens.filter(d=>!d.feito).length;
+  const feitos=itens.filter(d=>d.feito).length;
+  /* nada resolvido ainda: as duas folhas seriam iguais, então não há escolha
+     a fazer e a janela só atrapalharia */
+  if(!feitos){m28ImprimirFolha({});return;}
+
+  const hoje=today();
+  const emitido=(m28Cab(itens)||{}).emitidoEm||hoje;
+
+  const m=document.createElement("div");
+  m.className="bd-fundo";
+  m.setAttribute("role","dialog");
+  m.setAttribute("aria-modal","true");
+  m.setAttribute("aria-label","Qual folha você quer");
+  m.innerHTML=`<div class="bd-janela m28-escolha" onclick="event.stopPropagation()">
+      <div class="bd-janela-topo"><div><b>Qual folha você quer?</b>
+        <div class="m28-escolha-sub">São duas leituras do mesmo trabalho.</div></div>
+        <button class="bd-janela-x" aria-label="Fechar">✕</button></div>
+      <div class="bd-janela-corpo">
+        <button class="m28-opcao" data-modo="falta">
+          <b>Só o que falta</b>
+          <span>${faltam} ${faltam===1?"serviço":"serviços"} em aberto. É a folha de trabalho de quem executa.</span>
+        </button>
+        <button class="m28-opcao" data-modo="marcar">
+          <b>Tudo, para marcar à mão</b>
+          <span>${itens.length} ${itens.length===1?"serviço":"serviços"}, com
+            ${feitos===1?"o que já foi resolvido":`os ${feitos} que já foram resolvidos`}
+            e os quadradinhos vazios. É a folha que mostra à empresa o que foi feito.</span>
+        </button>
+        <div class="m28-corte">
+          <label class="bd-rotulo" for="m28-corte-data">Como se tivesse sido entregue em</label>
+          <input class="bd-campo" type="date" id="m28-corte-data" value="${esc(emitido)}" max="${esc(hoje)}">
+          <span class="bd-ajuda">O que foi registrado depois desta data não entra —
+            senão a folha mostra à empresa coisas que naquele dia ainda não existiam.</span>
+        </div>
+      </div>
+    </div>`;
+
+  const focoAnterior=document.activeElement;
+  const fechar=()=>{m.remove();document.removeEventListener("keydown",tecla);
+    if(focoAnterior&&focoAnterior.focus)focoAnterior.focus();};
+  const tecla=ev=>{
+    if(ev.key==="Escape"){fechar();return;}
+    if(ev.key!=="Tab")return;
+    const focaveis=m.querySelectorAll("button, input");
+    if(!focaveis.length)return;
+    const primeiro=focaveis[0],ultimo=focaveis[focaveis.length-1];
+    if(ev.shiftKey&&document.activeElement===primeiro){ev.preventDefault();ultimo.focus();}
+    else if(!ev.shiftKey&&document.activeElement===ultimo){ev.preventDefault();primeiro.focus();}
+  };
+  m.onclick=fechar;
+  m.querySelector(".bd-janela-x").onclick=fechar;
+  m.querySelectorAll(".m28-opcao").forEach(b=>{
+    b.onclick=()=>{
+      const marcar=b.getAttribute("data-modo")==="marcar";
+      const data=(m.querySelector("#m28-corte-data")||{}).value||"";
+      fechar();
+      m28ImprimirFolha(marcar?{tudo:true,emBranco:true,corte:data,emitidoEm:data}:{});
+    };
+  });
+  document.addEventListener("keydown",tecla);
+  document.body.appendChild(m);
+  const primeiro=m.querySelector(".m28-opcao");if(primeiro)primeiro.focus();
+}
+
+function m28ImprimirFolha(op){
+  op=op||{};
   let rows=m28Itens();
   if(M28F.exec)rows=rows.filter(d=>(d.executor||"").trim()===M28F.exec);   /* a folha é de uma pessoa só */
-  if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
-  if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
+  /* na folha de marcar, o que ela filtrou na tela não manda: a folha é a foto
+     do trabalho inteiro naquela data, feito e não feito */
+  if(!op.tudo){
+    if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
+    if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
+  }
   if(M28F.piso)rows=rows.filter(d=>d.piso===M28F.piso);
   if(M28F.area)rows=rows.filter(d=>d.area===M28F.area);
+  /* A DATA DE CORTE. Sem ela a folha "de julho" levaria o que foi registrado em
+     agosto, e a empresa veria coisas que naquele dia ainda não existiam. */
+  if(op.corte)rows=rows.filter(d=>{
+    const quando=String(d.dataRegistro||d.relato||"").slice(0,10);
+    return !quando||quando<=op.corte;
+  });
   if(!rows.length){alert("Nenhum serviço para imprimir com os filtros atuais.");return;}
   rows.sort(m28Comparar);
+  /* EM BRANCO: cópia com o quadradinho vazio, mesmo no que já está feito. Quem
+     marca é ela, à mão — papel que chega marcado não prova serviço nenhum.
+     É uma cópia: o "feito" continua intacto no banco. */
+  if(op.emBranco)rows=rows.map(d=>Object.assign({},d,{feito:false}));
 
-  const c=m28Cab(rows);
+  const c=Object.assign({},m28Cab(rows),op.emitidoEm?{emitidoEm:op.emitidoEm}:{});
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   /* LAY-3: com a folha filtrada por pessoa, quem manda no cabeçalho é ELA —
      imprimir a folha do Matheus com o nome do Sr. João no topo seria pior que
@@ -925,6 +1034,9 @@ function m28Imprimir(){
   const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const feitos=rows.filter(d=>d.feito).length;
   const urgentes=rows.filter(d=>d.urg&&!d.feito).length;
+  /* nome do arquivo e da janela: as duas folhas saem no mesmo dia e ela não pode
+     confundir uma com a outra na hora de imprimir */
+  const sufixo=op.emBranco?" (para marcar)":"";
   const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
 
@@ -996,7 +1108,7 @@ function m28Imprimir(){
       <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
-  const titulo="Manutenção e Infraestrutura — "+loja;
+  const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
 
   const w=window.open("");
   if(!w){alert("O navegador bloqueou a janela de impressão. Libere as janelas para este site e tente de novo.");return;}

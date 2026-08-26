@@ -267,3 +267,32 @@
 body[data-aba="mnt28"] .head #appTitle,
 body[data-aba="mnt28"] .head #appSubtitle{display:none}
 body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
+
+/* ------------------------------------------------------------------
+   AS DUAS FOLHAS (26/08) — a janela que abre no botão de imprimir.
+   Duas escolhas grandes, do tamanho do dedo, e a data embaixo.
+   ------------------------------------------------------------------ */
+.m28-escolha{max-width:520px}
+.m28-escolha-sub{font-size:13px;color:#667085;margin-top:2px}
+
+.m28-opcao{
+  display:block;width:100%;text-align:left;cursor:pointer;
+  background:#fff;border:1.5px solid #eaecf0;border-radius:10px;
+  padding:14px 16px;margin-bottom:10px;font-family:inherit;
+  transition:border-color .15s ease,background .15s ease;
+}
+.m28-opcao:hover{border-color:#2a9d8a;background:#f6fbf9}
+.m28-opcao:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
+.m28-opcao b{display:block;font-size:16px;color:#155244;margin-bottom:3px}
+.m28-opcao span{display:block;font-size:13.5px;line-height:1.5;color:#667085}
+
+.m28-corte{
+  border-top:1px solid #eaecf0;padding-top:14px;margin-top:4px;
+  display:flex;flex-direction:column;gap:6px;
+}
+/* min-height nao basta num input de data: o navegador conta o padding por fora
+   em alguns casos e sobra 43px. Altura fixa fecha a conta. */
+.m28-corte .bd-campo{max-width:200px;height:46px}
+/* o X de fechar vinha com 23px: alvo de toque menor que a ponta do dedo */
+.m28-escolha .bd-janela-x{min-width:46px;min-height:46px}
+.m28-corte .bd-ajuda{font-size:12.5px;line-height:1.5}
