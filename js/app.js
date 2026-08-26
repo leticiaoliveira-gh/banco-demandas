@@ -1867,7 +1867,7 @@ const APP_VERSAO="9.59";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="25/08/2026 · 21:40";
+const APP_DATA="26/08/2026 · 00:13";
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
     el.textContent="v"+APP_VERSAO;
