@@ -95,9 +95,28 @@ const M28_MESES=["janeiro","fevereiro","março","abril","maio","junho",
   "julho","agosto","setembro","outubro","novembro","dezembro"];
 function m28Titulo(c){
   const iso=(c&&c.emitidoEm)||today();
-  const m=Number(String(iso).split("-")[1])-1;
-  const mes=M28_MESES[m]||"";
-  return m28T().tituloPrefixo+" "+(mes?mes.toUpperCase():"—");
+  const partes=String(iso).split("-");
+  const mes=M28_MESES[Number(partes[1])-1]||"";
+  const ano=partes[0]||"";
+  const quando=mes?(mes.charAt(0).toUpperCase()+mes.slice(1)+" de "+ano):"";
+  /* LAY-4 (25/08): a folha diz de QUAL loja e de QUAL piso ela e. Sem isso as
+     tres folhas saiam com o mesmo nome no topo e ele recebia duas iguais. */
+  const sigla=(currentStore||"").trim();
+  const piso=(M28F.piso||"").trim();
+  const pedacos=[];
+  if(sigla)pedacos.push(sigla);
+  if(piso)pedacos.push(m28PisoBonito(piso));
+  const onde=pedacos.join(" - ");
+  if(!onde)return m28T().tituloPrefixo+(quando?" · "+quando:"");
+  return onde+(quando?" · "+quando:"");
+}
+
+/* "1º PISO", "1o piso" e "1º Piso" sao o mesmo piso: no titulo sai um so jeito */
+function m28PisoBonito(nome){
+  const c=(nome||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g," ").trim().toLowerCase();
+  const n=c.match(/^([123])[oº]? ?piso$/);
+  return n?n[1]+"º Piso":nome;
 }
 /* ===== O NOME E A LINHA DE BAIXO — DELA, EDITÁVEIS (29/07) =====
    Antes o nome vinha do texto livre dos "seus dados" (que já trazia a palavra
@@ -105,7 +124,8 @@ function m28Titulo(c){
    e CRN: a mesma informação aparecia duas vezes na folha dela.
    Agora são dois campos, guardados no cabeçalho da aba e trocados pelo lápis.
    Se ela ainda não trocou nada, vale o que ela pediu em 29/07. */
-const M28_RT_LINHA="Nutricionista de Produção – RT · CRN-4: 22103217";
+/* ela tirou "de Producao" em 25/08: a folha vai para fora e o cargo curto basta */
+const M28_RT_LINHA="Nutricionista – RT · CRN-4: 22103217";
 /* do texto livre antigo, aproveita só a primeira parte (antes da vírgula ou do
    travessão) — que é onde o nome dela está. Nunca fica vazio. */
 function m28RtNome(c){
@@ -854,6 +874,7 @@ function m28Imprimir(){
      não ter folha. Sem filtro, vale o que ela gravou no cabeçalho, como antes. */
   const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const feitos=rows.filter(d=>d.feito).length;
+  const urgentes=rows.filter(d=>d.urg&&!d.feito).length;
   const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
 
@@ -899,11 +920,14 @@ function m28Imprimir(){
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
         <div><span>${esc(m28T().rotEmitido)}</span>${brDate(c.emitidoEm||today())}</div></div>
     </div>
+    ${/* LAY-5 (25/08): na FOLHA IMPRESSA ficam so dois numeros, nesta ordem.
+         Ela viu a redundancia: "demandas, ja nao seria a fazer?" — com nada
+         feito os dois dao o mesmo numero, e total = a fazer + feitos. Quem conta
+         os feitos e ela, no site, depois que ele devolve a folha marcada.
+         Na TELA continuam os quatro. */""}
     <div class="nums">
-      <div class="num"><span>Serviços</span><b>${rows.length}</b></div>
-      <div class="num"><span>A fazer</span><b>${rows.length-feitos}</b></div>
-      <div class="num"><span>Feitos</span><b>${feitos}</b></div>
-      <div class="num"><span>Urgentes</span><b>${rows.filter(d=>d.urg&&!d.feito).length}</b></div>
+      <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
+      <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja;
 
@@ -950,6 +974,9 @@ function m28Imprimir(){
   .cab .c,.li .c{text-align:center}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
   .li .o{color:#667085;font-size:11.4px}
+  .num.urgente{background:#fef3f2;border-color:#fecdca}
+  .num.urgente span{color:#b42318}
+  .num.urgente b{color:#912018}
   /* a foto vai DENTRO da coluna do servico: nunca se separa dele na quebra */
   .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
   .li .fts img{width:32mm;height:24mm;object-fit:cover;

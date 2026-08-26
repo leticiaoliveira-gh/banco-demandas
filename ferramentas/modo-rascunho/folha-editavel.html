@@ -31,10 +31,24 @@ function orientacaoTexto(d){
   return `[${cat}] ${d.orientacao}${d.orientacaoBase?' ('+d.orientacaoBase+')':''}`;
 }
 </script>
-<script src="/js/mnt28.js"></script>
+<script>
+/* busca o mnt28.js sem cache e executa: senao o navegador guarda a versao
+   antiga e o rascunho mostra um formato que ja mudou */
+window.__mnt28Pronto = fetch("/js/mnt28.js", {cache: "no-store"})
+  .then(function (r) { return r.text(); })
+  .then(function (codigo) {
+    const s = document.createElement("script");
+    s.textContent = codigo;
+    document.head.appendChild(s);
+  });
+</script>
 <script src="/ferramentas/modo-rascunho/modo-rascunho.js"></script>
+<script src="/ferramentas/modo-rascunho/modo-layout.js"></script>
+<script src="/ferramentas/modo-rascunho/opcoes-cabecalho.js"></script>
+<script src="/ferramentas/modo-rascunho/escolhas-dela.js"></script>
 <script>
 (async function(){
+  await window.__mnt28Pronto;
   const r = await fetch('/_dados-rascunho.json?t=' + Date.now());
   DATA = await r.json();
   M28F.exec = EXEC; M28F.piso = PISO; M28F.ver = 'fazer'; M28F.area = ''; M28F.q = '';
@@ -86,6 +100,13 @@ function orientacaoTexto(d){
   });
   /* ---------- MODO DE EDICAO: a folha inteira vira editavel ---------- */
   ligarEdicao();
+  if (typeof ligarLayout === 'function') ligarLayout();
+  if (typeof aplicarEscolhasDela === 'function') aplicarEscolhasDela();
+  if (typeof ligarOpcoesCabecalho === 'function') ligarOpcoesCabecalho();
+  /* soDoisQuadradinhos() NAO e mais chamado: virou codigo em js/mnt28.js (v9.52).
+     Enquanto continuou rodando, esvaziava e remontava os quadradinhos que o site
+     ja entregava certos, e eles sumiam do PDF. Rascunho que vira codigo tem de
+     ser desligado no mesmo dia. */
 
   document.title = folhas.length + ' paginas';
   document.body.dataset.pronto = '1';

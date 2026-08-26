@@ -131,6 +131,10 @@ function montarResumo() {
       return limpo(r ? r.textContent : "") + " = " + limpo(v ? v.textContent : "");
     }).join(" | "));
 
+  if (typeof resumoDoLayout === "function") {
+    linhas.push.apply(linhas, resumoDoLayout());
+  }
+
   const cab = document.querySelector(".bl.cab");
   if (cab) {
     linhas.push("  colunas da tabela: " + Array.prototype.map.call(
