@@ -13,22 +13,22 @@
 <meta name="apple-mobile-web-app-title" content="NP Demandas">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/app.css?v=136">
+<link rel="stylesheet" href="css/app.css?v=137">
 <!-- POLIMENTO: camada de acabamento (contraste, foco de teclado, sombras
      padronizadas, alvo de toque no celular). Só acabamento — não muda layout.
      PARA DESFAZER TUDO: apague só esta linha de baixo. -->
-<link rel="stylesheet" href="css/polimento.css?v=136">
+<link rel="stylesheet" href="css/polimento.css?v=137">
 <!-- APARÊNCIA (escolhas dela de 25/07): capa em "painel de vidro" no computador
      e "modo loja" no celular · cartões dos quadros em modo caderno · alvos de
      toque de 44px. PARA VOLTAR AO DE ANTES: apague só esta linha de baixo. -->
 <!-- PEÇAS PRONTAS da biblioteca de design (classes bd-*). É daqui que sai todo
      visual novo — nada é construído do zero. Catálogo em /catalogo/ -->
-<link rel="stylesheet" href="biblioteca/pecas.css?v=136">
-<link rel="stylesheet" href="biblioteca/graficos.css?v=136">
-<link rel="stylesheet" href="css/aparencia.css?v=136">
+<link rel="stylesheet" href="biblioteca/pecas.css?v=137">
+<link rel="stylesheet" href="biblioteca/graficos.css?v=137">
+<link rel="stylesheet" href="css/aparencia.css?v=137">
 <!-- MNT 28.07.26: cabeçalho do relatório e lista agrupada por piso → área -->
-<link rel="stylesheet" href="css/mnt28.css?v=136">
-<link rel="stylesheet" href="css/compras.css?v=136">
+<link rel="stylesheet" href="css/mnt28.css?v=137">
+<link rel="stylesheet" href="css/compras.css?v=137">
 </head>
 <body>
 <div class="app">
@@ -93,7 +93,7 @@
           <div class="emp-toolbar">
             <div class="emp-search">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="empQ" data-txt-ph="capa.buscaEmpresa" placeholder="Pesquisar empresa..." oninput="renderHome()">
+              <input autocomplete="off" spellcheck="false" type="search" id="empQ" data-txt-ph="capa.buscaEmpresa" placeholder="Pesquisar empresa..." oninput="renderHome()">
             </div>
             <select id="empFiltro" onchange="renderHome()" title="Filtrar empresas">
               <option value="">Todas</option>
@@ -203,7 +203,7 @@
       <div class="toolbar">
         <div class="search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="q" data-txt-ph="mnt.busca" placeholder="Buscar por não conformidade, ação ou área..." oninput="render()">
+          <input autocomplete="off" spellcheck="false" type="search" id="q" data-txt-ph="mnt.busca" placeholder="Buscar por não conformidade, ação ou área..." oninput="render()">
         </div>
         <select id="fExec" onchange="render()"><option value="">Todos os responsáveis</option></select>
         <select id="fStatus" onchange="render()"><option value="">Todos os status</option><option value="Pendente">Pendentes</option><option value="Concluído">Concluídos</option></select>
@@ -302,32 +302,32 @@
   </div>
 </div>
 
-<script src="js/app.js?v=136"></script>
-<script src="js/docxlite.js?v=136"></script>
-<script src="js/dg.js?v=136"></script>
-<script src="js/pdflite.js?v=136"></script>
-<script src="js/ck.js?v=136"></script>
-<script src="js/ck-modelo2.js?v=136"></script>
-<script src="js/arquivos.js?v=136"></script>
-<script src="js/cronometro.js?v=136"></script>
-<script src="js/pdf-abas.js?v=136"></script>
-<script src="js/configs.js?v=136"></script>
-<script src="js/nc.js?v=136"></script>
-<script src="js/ck-qualidade.js?v=136"></script>
-<script src="js/ppr.js?v=136"></script>
-<script src="js/ind.js?v=136"></script>
+<script src="js/app.js?v=137"></script>
+<script src="js/docxlite.js?v=137"></script>
+<script src="js/dg.js?v=137"></script>
+<script src="js/pdflite.js?v=137"></script>
+<script src="js/ck.js?v=137"></script>
+<script src="js/ck-modelo2.js?v=137"></script>
+<script src="js/arquivos.js?v=137"></script>
+<script src="js/cronometro.js?v=137"></script>
+<script src="js/pdf-abas.js?v=137"></script>
+<script src="js/configs.js?v=137"></script>
+<script src="js/nc.js?v=137"></script>
+<script src="js/ck-qualidade.js?v=137"></script>
+<script src="js/ppr.js?v=137"></script>
+<script src="js/ind.js?v=137"></script>
 <!-- CARGA DA ABA MNT 28.07.26 — dados reais da loja, por isso mora FORA do
      repositório público (a pasta dados/ está no .gitignore). No site publicado
      este arquivo não existe e o navegador simplesmente ignora a linha: os itens
      já chegaram pela sincronização. Sem ?v= de propósito — não entra no sw.js. -->
 <script src="dados/mnt28-carga.js"></script>
-<script src="js/mnt28.js?v=136"></script>
-<script src="js/compras.js?v=136"></script>
-<script src="js/sync.js?v=136"></script>
+<script src="js/mnt28.js?v=137"></script>
+<script src="js/compras.js?v=137"></script>
+<script src="js/sync.js?v=137"></script>
 <!-- MODO DE EDIÇÃO TOTAL (05/08): arrastar o card inteiro, esconder e trazer de
      volta. A biblioteca de arrastar mora AQUI DENTRO — nada de internet, o site
      continua abrindo offline e com duplo clique. -->
-<script src="js/lib/sortable.min.js?v=136"></script>
-<script src="js/edicao.js?v=136"></script>
+<script src="js/lib/sortable.min.js?v=137"></script>
+<script src="js/edicao.js?v=137"></script>
 </body>
 </html>

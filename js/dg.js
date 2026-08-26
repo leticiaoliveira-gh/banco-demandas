@@ -114,7 +114,7 @@ function renderDG(){
     <div class="dg-bar">
       <div class="emp-search" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="dgQ" data-txt-ph="dg.busca" placeholder="Buscar na agenda (título ou item da lista)..." value="${esc((document.getElementById("dgQ")?.value)||"")}" oninput="renderDG()">
+        <input autocomplete="off" spellcheck="false" type="search" id="dgQ" data-txt-ph="dg.busca" placeholder="Buscar na agenda (título ou item da lista)..." value="${esc((document.getElementById("dgQ")?.value)||"")}" oninput="renderDG()">
       </div>
       <span class="filtro-cfg" title="Configurar as opções">
         <button onclick="dgGerirOpcoes('prios')" title="Configurar as prioridades"><span data-txt="dg.cfgPrio">⚙ Prioridades</span></button>

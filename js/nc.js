@@ -492,7 +492,7 @@ async function ncBuildToolbar(areas){
  const pisos=ncPisos(areas);
  document.getElementById("nc-toolbar").innerHTML=`
   <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-   <input type="text" id="nc-f-q" data-txt-ph="nc.busca" placeholder="Buscar nas NCs..." oninput="ncF.q=this.value;ncRenderList()"></div>
+   <input autocomplete="off" spellcheck="false" type="search" id="nc-f-q" data-txt-ph="nc.busca" placeholder="Buscar nas NCs..." oninput="ncF.q=this.value;ncRenderList()"></div>
   <select onchange="ncF.piso=this.value;ncF.area='';ncFillAreaFilter();ncRenderList()"><option value="">Todos os pisos</option>${ncOptions(pisos,ncF.piso)}</select>
   <select id="nc-f-area" onchange="ncF.area=this.value;ncRenderList()"><option value="">Todas as áreas</option>${areas.map(a=>`<option>${esc(a.nome)}</option>`).join("")}</select>
   <button class="filtro-cfg-bt" onclick="ncGerirUrgencias()" title="Configurar as urgências">⚙</button><select onchange="ncF.urg=this.value;ncRenderList()"><option value="">Todas as urgências</option>${ordenarOpc(NC_URG).map(u=>`<option value="${u}">${NC_URG[u].rotulo}</option>`).join("")}</select>

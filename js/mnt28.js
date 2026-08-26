@@ -356,18 +356,24 @@ async function renderMnt28(){
     </div></div>`;
 
   /* painel de números: peça PRONTA da biblioteca (bd-kpis / bd-kpi), nada do zero */
-  const kpi=(nome,valor,obs,classe)=>`<div class="bd-kpi">
+  /* O CARTAO DIZ QUANDO E' ELE QUE ESTA NA LISTA (26/08).
+     Escolhido "so o que falta", a lista mostra 5 e o cartao continua marcando 8
+     -- e esta certo: os tres cartoes sao total, a fazer e feitos, e filtrar por
+     situacao faria cada um contar de uma base diferente. So que, olhando, parece
+     numero parado. Entao o cartao que corresponde ao filtro se acende e diz
+     "e o que esta na lista": a conta continua honesta e a ligacao fica visivel. */
+  const kpi=(nome,valor,obs,classe,ativo)=>`<div class="bd-kpi${ativo?" m28-kpi-ativo":""}">
       <div class="bd-kpi-topo"><span class="bd-kpi-nome">${esc(nome)}</span></div>
       <div class="bd-kpi-num${classe?" "+classe:""}">${valor}</div>
-      <div class="bd-kpi-var"><span class="bd-kpi-obs">${esc(obs)}</span></div>
+      <div class="bd-kpi-var"><span class="bd-kpi-obs">${esc(ativo?"é o que está na lista":obs)}</span></div>
     </div>`;
   /* Folha 1 dela: o card "Pisos" saiu e entrou o card URGENTES — com a palavra,
      porque cor sozinha nunca diz nada. Urgente é o que ELA marcar no lápis. */
   const urgentes=itens.filter(d=>d.urg&&!d.feito).length;
   const numeros=`<div class="bd-kpis m28-nums">
-    ${kpi("Serviços",total,"em "+areas.length+(areas.length===1?" área":" áreas"))}
-    ${kpi("A fazer",total-feitos,(total?Math.round((total-feitos)/total*100):0)+"% do total","m28-pend")}
-    ${kpi("Feitos",feitos,"marcados por você","m28-ok")}
+    ${kpi("Serviços",total,"em "+areas.length+(areas.length===1?" área":" áreas"),"",M28F.ver==="todos")}
+    ${kpi("A fazer",total-feitos,(total?Math.round((total-feitos)/total*100):0)+"% do total","m28-pend",M28F.ver==="fazer")}
+    ${kpi("Feitos",feitos,"marcados por você","m28-ok",M28F.ver==="feitos")}
     ${kpi("Urgentes",urgentes,urgentes?"destacados para o executor":"nenhum marcado","m28-urg")}
   </div>`;
 
@@ -414,12 +420,21 @@ async function renderMnt28(){
   m28RenderLista();
 }
 
+/* QUALQUER filtro refaz a aba inteira (26/08).
+   Antes so o executor fazia isso, e os outros filtros mexiam apenas na lista.
+   Resultado: ela escolhia o 1o piso, a lista mostrava 35 servicos e os cartoes
+   la em cima continuavam dizendo 155 -- os da loja inteira. E o seletor de AREA
+   continuava oferecendo as areas do piso anterior.
+   Ela: "quando eu filtrar so o que falta ou todos ou area ou qualquer outro
+   filtro, tudo isso precisa atualizar sozinho. Esses cards etc."
+   A busca por texto e' a unica excecao: e' digitada letra a letra, e redesenhar
+   a aba a cada tecla custaria o foco do campo no meio da palavra. */
 function m28Filtro(k,v){
   M28F[k]=v;
-  /* trocar de folha muda a capa, os números e o botão de imprimir — não só a
-     lista. Por isso o executor redesenha a aba inteira; os outros filtros não. */
-  if(k==="exec"){M28F.fechadas={};renderMnt28();return;}
-  m28RenderLista();
+  if(k==="q"){ m28RenderLista(); m28AtualizarTopo(); return; }
+  if(k==="exec"||k==="piso") M28F.fechadas={};
+  if(k==="piso") M28F.area="";   /* area de outro piso nao existe neste */
+  renderMnt28();
 }
 
 function m28RenderLista(){
@@ -896,6 +911,9 @@ function m28AtualizarTopo(){
   const nums=el.querySelectorAll(".m28-nums .bd-kpi");
   if(nums.length>=3){
     nums[0].querySelector(".bd-kpi-num").textContent=total;
+    const nAreas=new Set(itens.map(d=>d.piso+"|"+d.area)).size;
+    const obs0=nums[0].querySelector(".bd-kpi-obs");
+    if(obs0)obs0.textContent="em "+nAreas+(nAreas===1?" área":" áreas");
     nums[1].querySelector(".bd-kpi-num").textContent=total-feitos;
     nums[1].querySelector(".bd-kpi-obs").textContent=(total?Math.round((total-feitos)/total*100):0)+"% do total";
     nums[2].querySelector(".bd-kpi-num").textContent=feitos;

@@ -299,3 +299,13 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 /* o X de fechar vinha com 23px: alvo de toque menor que a ponta do dedo */
 .m28-escolha .bd-janela-x{min-width:46px;min-height:46px}
 .m28-corte .bd-ajuda{font-size:12.5px;line-height:1.5}
+
+/* o cartão que corresponde ao filtro escolhido (26/08). Ela olhava "A fazer=5"
+   com uma lista de 5 embaixo e "Serviços=8" ao lado, e parecia número parado.
+   Agora o cartão que manda na lista se acende — e diz isso por escrito, porque
+   cor sozinha nunca é aviso. */
+.m28-kpi-ativo{
+  border-color:#2a9d8a;
+  box-shadow:0 0 0 2px rgba(42,157,138,.22);
+}
+.m28-kpi-ativo .bd-kpi-obs{color:#1d6b57;font-weight:600}

@@ -117,7 +117,7 @@ async function renderCompras(){
     </div>
 
     <div class="cmp-barra">
-      <input class="bd-campo cmp-busca" id="cmp-q" placeholder="Procurar o que comprar…"
+      <input autocomplete="off" spellcheck="false" type="search" class="bd-campo cmp-busca" id="cmp-q" placeholder="Procurar o que comprar…"
              value="${esc(CMPF.q)}" oninput="cmpFiltro('q',this.value)">
       <select class="bd-campo" onchange="cmpFiltro('piso',this.value)" aria-label="Piso">
         <option value="">Todos os pisos</option>
