@@ -1149,7 +1149,7 @@ function m28ImprimirFolha(op){
   /* LAY-6 (26/08): o bloco verde continua -- o que mudou foi o tamanho de cada
      coisa dentro dele. Em cima o assunto e a faixa com loja, piso e mes; embaixo,
      em letra fina, quem executa, quem assina, a unidade e a data. */
-  .capa{background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);color:#fff;
+  .capa{background:#17756a;color:#fff;
     padding:12px 16px;border-radius:8px;margin-bottom:11px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.72)}
@@ -1180,12 +1180,18 @@ function m28ImprimirFolha(op){
   .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
     border-left:3px solid #1d6b57;padding:5px 9px;margin-top:14px;font-size:12px;font-weight:700;
     color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ar b{font-weight:600;color:#667085;font-size:9px}
+  .ar b{font-weight:700;color:#155244;font-size:10.5px;
+    background:#fff;border-radius:10px;padding:1px 8px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .cab,.li{display:grid;grid-template-columns:46px 1fr 66px 18%;gap:8px;padding:4px 8px}
   .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;text-align:center;
     border-bottom:1px solid #eaecf0}
   .cab .c,.li .c{text-align:center}
+  /* titulo da coluna nasce onde o conteudo dela nasce -- so o quadradinho
+     "Feito?" fica centralizado, porque ali o conteudo tambem e' centralizado */
+  .cab .q,.cab .o{text-align:left}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
+  .li{padding-top:7px;padding-bottom:7px}
   .li .o{color:#667085;font-size:11.4px}
   /* o enter que ela deu vira quebra de linha de verdade, aqui e na tela */
   .li .linhas{white-space:pre-wrap}
