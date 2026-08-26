@@ -1166,6 +1166,17 @@ function m28ImprimirFolha(op){
                ["mes", m28T().rotMes, m28Mes(c)]]
     .filter(x=>x[2])
     .map(x=>`<div class="${x[0]}"><span>${esc(x[1])}</span><b>${esc(x[2])}</b></div>`).join("");
+  /* O TOPO DAS PAGINAS SEGUINTES (26/08) — opcao 1, escolhida por ela vendo as
+     quatro em papel. Ela desenhou a mao na folha: tres caixas iguais com a loja,
+     o piso e o mes. Motivo dela: "pra identificar rapido a empresa, piso e o mes
+     que to avaliando e nao ficar retornando pra primeira pagina toda hora".
+     So da SEGUNDA pagina em diante -- na primeira o cabecalho verde ja diz tudo. */
+  const topoSeguintes=[[m28T().rotLoja,(currentStore||"").trim()],
+                       [m28T().rotPiso,m28PisoBonito((M28F.piso||"").trim()).toUpperCase()],
+                       [m28T().rotMes,m28Mes(c)]]
+    .filter(x=>x[1])
+    .map(x=>`<div>${esc(x[1])}</div>`).join("");
+
   const cabecalho=`<div class="capa">
       <div class="et">${esc(m28T().etiqueta)}</div>
       <div class="assunto">${esc(m28Assunto())}</div>
@@ -1209,7 +1220,16 @@ function m28ImprimirFolha(op){
     color:#344054;font-size:12.4px;line-height:1.5;background:#e9ebee}
   .folha{width:210mm;height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
     position:relative;box-shadow:0 4px 18px rgba(16,24,40,.14);overflow:hidden}
+  /* a folha que precisou crescer para nao engolir texto: sem altura fixa e sem
+     corte. O rodape dela acompanha o fim do conteudo em vez de ficar preso. */
+  .folha.solta{height:auto;min-height:297mm;overflow:visible}
+  .folha.solta .pe{position:static;margin-top:12px}
   .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
+  /* as tres caixas do alto das paginas 2 em diante */
+  .topo2{display:flex;border:1px solid #cfd8d5;border-radius:5px;overflow:hidden;margin-bottom:10px}
+  .topo2 div{flex:1;padding:5px 10px;border-right:1px solid #cfd8d5;text-align:center;
+    font-size:11.5px;font-weight:700;color:#155244}
+  .topo2 div:last-child{border-right:0}
   /* LAY-6 (26/08): o bloco verde continua -- o que mudou foi o tamanho de cada
      coisa dentro dele. Em cima o assunto e a faixa com loja, piso e mes; embaixo,
      em letra fina, quem executa, quem assina, a unidade e a data. */
@@ -1341,8 +1361,14 @@ function m28ImprimirFolha(op){
     function novaFolha(primeira){
       var f=document.createElement("div");
       f.className="folha";
-      f.innerHTML='<div class="topo">'+window.__TITULO+'</div>'
-        +(primeira?window.__CABECALHO:"")+'<div class="corpo"></div>';
+      /* a 1a folha leva o cabecalho verde inteiro; as seguintes, so as tres
+         caixas com loja, piso e mes -- para ela saber de qual folha e' sem
+         voltar ao comeco */
+      f.innerHTML=(primeira
+          ? '<div class="topo">'+window.__TITULO+'</div>'+window.__CABECALHO
+          : (window.__TOPO2 ? '<div class="topo2">'+window.__TOPO2+'</div>'
+                            : '<div class="topo">'+window.__TITULO+'</div>'))
+        +'<div class="corpo"></div>';
       alvo.appendChild(f);
       return f;
     }
@@ -1362,7 +1388,23 @@ function m28ImprimirFolha(op){
         folha=novaFolha(false); corpo=folha.querySelector(".corpo");
         for(var v=0;v<volta.length;v++) corpo.appendChild(volta[v]);
         corpo.appendChild(fila[i]);
+        /* SE NEM SOZINHO CABE, o texto NAO some (26/08).
+           A folha tem altura fixa e overflow escondido; um servico com texto
+           muito longo ou muitas fotos pode passar da folha inteira, e ai nao ha
+           para onde empurrar -- o que sobra some sem aviso. Perder o alinhamento
+           e' ruim; perder texto de uma folha que ela assina com o CRN e' pior.
+           Nesse caso a folha cresce e deixa o navegador quebrar sozinho. */
+        if(estourou()){
+          folha.classList.add("solta");
+          folha=novaFolha(false); corpo=folha.querySelector(".corpo");
+        }
       }
+    }
+    /* folha que sobrou vazia depois de uma solta nao vai para o papel */
+    var vazias=alvo.querySelectorAll(".folha");
+    for(var z=vazias.length-1;z>=0;z--){
+      var c2=vazias[z].querySelector(".corpo");
+      if(c2 && !c2.children.length) vazias[z].remove();
     }
     var folhas=alvo.querySelectorAll(".folha");
     for(var k=0;k<folhas.length;k++){
@@ -1388,6 +1430,7 @@ function m28ImprimirFolha(op){
   doc.close();
   /* passa os dados por variável (nada de montar script dentro de string) */
   w.__BLOCOS=blocos; w.__CABECALHO=cabecalho; w.__TITULO=titulo; w.__TIRADA=tirada;
+  w.__TOPO2=topoSeguintes;
   const s=doc.createElement("script");
   s.textContent=PAGINADOR;
   doc.body.appendChild(s);
