@@ -131,15 +131,16 @@
 /* ─────────── recado impresso × lembrete só dela (29/07) ───────────
    Duas coisas diferentes que antes moravam na mesma caixa: o RECADO vai
    impresso na folha de quem conserta; o LEMBRETE é dela e nunca é impresso.
-   O cadeado e as palavras "só eu vejo" dizem isso — a cor sozinha nunca
-   basta (regra fixa do site). */
+   O cadeado e a frase "não sai na folha" dizem isso — a cor sozinha nunca
+   basta (regra fixa do site). Vermelho a pedido dela (25/08), para saltar
+   entre as demandas e ela nao passar batido. */
 .m28-nota{
   margin-top:6px;padding:6px 9px;border-radius:7px;
-  background:#f6f4ff;border-left:3px solid #7b5cff;color:#4a4560;font-size:12px;line-height:1.45;
+  background:#fef3f2;border-left:3px solid #b42318;color:#7a2b23;font-size:12px;line-height:1.45;
 }
 .m28-nota-selo{
   display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
-  color:#5a3fd6;margin-bottom:2px;
+  color:#b42318;margin-bottom:2px;
 }
 /* "VERIFICAR" é dúvida a confirmar na loja — nunca se apaga, e agora se vê */
 .m28-verificar{

@@ -63,7 +63,9 @@ const M28_TXT_PADRAO={
   tituloPrefixo:"Manutenção e Infraestrutura —",
   rotExec:"Responsável pelos serviços",
   colFeito:"Feito?",colFazer:"Demanda",
-  colData:"Data Registro",colObs:"Observações · lembrete",colObsImp:"Observações",
+  /* "Observacoes" era vago demais, palavra dela em 25/08. Virou "Lembretes".
+     CUIDADO: o campo so-dela continua sendo "Letícia revisar urgente", com cadeado. */
+  colData:"Data Registro",colObs:"Lembretes",colObsImp:"Lembretes",
   rotUnidade:"Unidade",rotEmitido:"Emitido em",
   /* SJ-1c (03/08, decisão dela): o bloco de causa só existe quando MUITOS
      serviços têm a mesma origem — a maresia é o caso. Vazio = não aparece.
@@ -437,7 +439,7 @@ function m28RenderLista(){
             uma só, e o que ela anotava para si saía impresso para o Sr. João.
             O selo escrito ("só eu vejo") acompanha a cor — cor nunca sozinha. */""}
       <div class="m28-obs">${d.obs?m28Texto(d.obs):(d.nota?"":'<span class="m28-vaziotxt">—</span>')}
-        ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
+        ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 Letícia revisar urgente · não sai na folha</span>${m28Texto(d.nota)}</div>`:""}</div>
       <div class="m28-acts">
         <button class="btn ghost sm" onclick="m28ParaQualidade(${d.id})" aria-label="Transferir para o relatório de Qualidade"
           title="Transferir: sai desta folha e vira uma Não Conformidade no relatório de Qualidade">⇄</button>
@@ -584,7 +586,7 @@ function m28QtdVerificar(){
 async function m28MoverVerificar(){
   const alvos=m28ItensDaFolha().filter(d=>/^\s*VERIFICAR\b/i.test(d.obs||""));
   if(!alvos.length)return;
-  if(!confirm("Mover "+alvos.length+" observação(ões) que começam com VERIFICAR para \"Meu lembrete\"?\n\n"
+  if(!confirm("Mover "+alvos.length+" observação(ões) que começam com VERIFICAR para \"Letícia revisar urgente\"?\n\n"
     +"Elas continuam na tela para você, com o cadeado, e deixam de sair impressas na folha do executor.\n"
     +"Nada é apagado — dá para voltar pelo lápis a qualquer momento."))return;
   for(const d of alvos){
@@ -717,7 +719,7 @@ function m28FormHTML(d){
         <span class="bd-ajuda">Isto <b>sai impresso</b> na folha dele.</span>
       </div>
       <div class="bd-grupo">
-        <label class="bd-rotulo" for="m28f-nota">Meu lembrete 🔒</label>
+        <label class="bd-rotulo" for="m28f-nota">Letícia revisar urgente 🔒</label>
         <textarea class="bd-campo" id="m28f-nota" rows="2"
           placeholder="Ex.: VERIFICAR — confirmar na loja se ainda existe.">${esc(d.nota||"")}</textarea>
         <span class="bd-ajuda">Só você vê. <b>Nunca é impresso.</b></span>
