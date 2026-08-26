@@ -1122,11 +1122,13 @@ function m28ImprimirFolha(op){
      ninguem confundir o piso com o mes -- e porque ele recebe mais de uma folha
      no mesmo dia. Cada pedaco so aparece se existir: loja sem piso nao deixa
      buraco na faixa. */
-  const faixa=[[m28T().rotLoja,(currentStore||"").trim()],
-               [m28T().rotPiso,m28PisoBonito((M28F.piso||"").trim())],
-               [m28T().rotMes,m28Mes(c)]]
-    .filter(x=>x[1])
-    .map(x=>`<div><span>${esc(x[0])}</span><b>${esc(x[1])}</b></div>`).join("");
+  /* cada pedaco leva o proprio nome de classe: marcar o mes pela POSICAO daria
+     errado assim que a loja ou o piso viessem vazios e a faixa encurtasse */
+  const faixa=[["loja",m28T().rotLoja,(currentStore||"").trim()],
+               ["piso",m28T().rotPiso,m28PisoBonito((M28F.piso||"").trim())],
+               ["mes", m28T().rotMes, m28Mes(c)]]
+    .filter(x=>x[2])
+    .map(x=>`<div class="${x[0]}"><span>${esc(x[1])}</span><b>${esc(x[2])}</b></div>`).join("");
   const cabecalho=`<div class="capa">
       <div class="et">${esc(m28T().etiqueta)}</div>
       <div class="assunto">${esc(m28Assunto())}</div>
@@ -1174,28 +1176,44 @@ function m28ImprimirFolha(op){
   /* LAY-6 (26/08): o bloco verde continua -- o que mudou foi o tamanho de cada
      coisa dentro dele. Em cima o assunto e a faixa com loja, piso e mes; embaixo,
      em letra fina, quem executa, quem assina, a unidade e a data. */
-  .capa{background:#17756a;color:#fff;
+  /* O FUNDO (26/08). Ela comparou os dois papeis: "o fundo do anterior tava bem
+     mais bonito que o atual". O sólido de agora ficou chapado; o antigo tinha um
+     degradê MUITO curto que dava profundidade. A diferença dos dois tons aqui é
+     pequena de propósito: o degradê largo era justamente o que fazia a ponta
+     direita sair lavada no papel. */
+  .capa{background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);color:#fff;
     padding:12px 16px;border-radius:8px;margin-bottom:11px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.72)}
+  .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.88)}
   .capa .assunto{font-size:21px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:3px}
   /* a faixa em tres partes iguais. Cada pedaco leva o NOME do que e' (Loja, Piso,
      Mes) porque no papel a posicao sozinha nao diz -- e ele recebe mais de uma
      folha no mesmo dia. */
-  .capa .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.3);
-    border-radius:6px;overflow:hidden}
-  .capa .faixa div{flex:1;padding:6px 11px;border-right:1px solid rgba(255,255,255,.24);text-align:center}
+  /* A FAIXA. Ela pediu "aquele fundinho claro, painel de vidro" e letras "mais
+     vivas": os rotulos estavam em 66% de branco e sumiam no papel. Fundo mais
+     presente e texto quase branco. */
+  .capa .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.34);
+    border-radius:6px;overflow:hidden;background:rgba(255,255,255,.14);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .capa .faixa div{flex:1;padding:7px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
   .capa .faixa div:last-child{border-right:0}
-  .capa .faixa span{display:block;font-size:7px;text-transform:uppercase;letter-spacing:1px;
-    color:rgba(255,255,255,.66)}
-  .capa .faixa b{font-size:14px;font-weight:700;letter-spacing:.2px}
+  .capa .faixa span{display:block;font-size:7.4px;text-transform:uppercase;letter-spacing:1px;
+    color:rgba(255,255,255,.92);font-weight:600}
+  .capa .faixa b{font-size:14.5px;font-weight:700;letter-spacing:.2px;color:#fff}
+  /* O MES EM VERMELHO, pedido dela: "quero que todos os meses sejam da cor
+     vermelha pra identificacao ser mais facil". Vermelho sobre o verde escuro
+     seria ilegivel, entao a pastilha do mes ganha fundo claro e o vermelho vai
+     no texto -- salta e continua legivel na fotocopia. */
+  .capa .faixa .mes{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .capa .faixa .mes span{color:#7a2b23}
+  .capa .faixa .mes b{color:#b42318}
   /* a linha fina de baixo, ainda dentro do verde */
   .capa .cpe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
     margin-top:9px;padding-top:7px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
   .capa .cpe div{display:flex;align-items:baseline;gap:5px}
-  .capa .cpe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.62)}
-  .capa .cpe b{font-weight:600;font-size:10.2px}
-  .capa .cpe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.72)}
+  .capa .cpe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
+  .capa .cpe b{font-weight:600;font-size:10.2px;color:#fff}
+  .capa .cpe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.88)}
   .nums{display:flex;gap:7px;margin-bottom:10px}
   .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:6px 9px;background:#f9fafb;text-align:center}
   .num span{display:block;font-size:7.8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}

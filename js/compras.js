@@ -385,11 +385,11 @@ function cmpImprimir(){
   const mes = meses[Number(partes[1]) - 1] || "";
   const quando = mes ? (mes.charAt(0).toUpperCase() + mes.slice(1) + " de " + partes[0]) : "";
 
-  const faixa = [["Loja", (currentStore || "").trim()],
-                 ["Piso", CMPF.piso || "Todos"],
-                 ["Mês", quando]]
-    .filter(x => x[1])
-    .map(x => `<div><span>${esc(x[0])}</span><b>${esc(x[1])}</b></div>`).join("");
+  const faixa = [["loja", "Loja", (currentStore || "").trim()],
+                 ["piso", "Piso", CMPF.piso || "Todos"],
+                 ["mes",  "Mês",  quando]]
+    .filter(x => x[2])
+    .map(x => `<div class="${x[0]}"><span>${esc(x[1])}</span><b>${esc(x[2])}</b></div>`).join("");
 
   let corpo = "", n = 0;
   const por = {};
@@ -424,21 +424,28 @@ function cmpImprimir(){
     .folha{width:210mm;min-height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
       box-shadow:0 4px 18px rgba(16,24,40,.14)}
     .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
-    .capa{background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);color:#fff;
+    /* mesmo cabecalho da folha de manutencao -- se um mudar, o outro muda junto */
+    .capa{background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);color:#fff;
       padding:12px 16px;border-radius:8px;margin-bottom:11px;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.72)}
+    .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.88)}
     .assunto{font-size:21px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:3px}
-    .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.3);border-radius:6px;overflow:hidden}
-    .faixa div{flex:1;padding:6px 11px;border-right:1px solid rgba(255,255,255,.24);text-align:center}
+    .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.34);border-radius:6px;
+      overflow:hidden;background:rgba(255,255,255,.14);
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .faixa div{flex:1;padding:7px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
     .faixa div:last-child{border-right:0}
-    .faixa span{display:block;font-size:7px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.66)}
-    .faixa b{font-size:14px;font-weight:700;letter-spacing:.2px}
+    .faixa span{display:block;font-size:7.4px;text-transform:uppercase;letter-spacing:1px;
+      color:rgba(255,255,255,.92);font-weight:600}
+    .faixa b{font-size:14.5px;font-weight:700;letter-spacing:.2px;color:#fff}
+    .faixa .mes{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .faixa .mes span{color:#7a2b23}
+    .faixa .mes b{color:#b42318}
     .pe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-top:9px;padding-top:7px;
       border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
     .pe div{display:flex;align-items:baseline;gap:5px}
-    .pe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.62)}
-    .pe b{font-weight:600;font-size:10.2px}
+    .pe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
+    .pe b{font-weight:600;font-size:10.2px;color:#fff}
     .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
       border-left:3px solid #1d6b57;padding:5px 9px;margin-top:14px;font-size:12px;font-weight:700;
       color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}

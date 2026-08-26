@@ -11,7 +11,9 @@
    virou duas linhas (nome em cima, CRN embaixo) e sobraram só Unidade e
    Emitido em. O período saiu daqui e será resolvido depois. */
 .m28-capa{
-  background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
+  /* o mesmo verde do papel (26/08): a tela e a folha impressa nao podem parecer
+     dois documentos diferentes */
+  background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);
   color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:14px;
 }
 .m28-capa-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}

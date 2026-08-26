@@ -6,7 +6,7 @@
 
 /* o cabeçalho verde, o mesmo desenho que ela escolheu para a folha impressa */
 .cmp-capa{
-  background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
+  background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);
   color:#fff;padding:16px 20px;border-radius:10px;margin-bottom:16px;
 }
 .cmp-capa-et{font-size:10px;font-weight:700;text-transform:uppercase;
