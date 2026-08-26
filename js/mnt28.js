@@ -35,9 +35,24 @@ function m28Executores(itens){
 /* "a folha aberta agora": todos os serviços, ou só os da pessoa escolhida.
    É o que os números do topo e o botão do VERIFICAR precisam enxergar — sem
    isto, a folha do Matheus mostraria o contador do Sr. João. */
+/* O QUE ESTA NESTA FOLHA — fonte unica (26/08).
+   Ate hoje isto filtrava SO por pessoa. A lista da tela filtrava tambem por piso
+   e area, e a folha impressa idem; so os numeros do topo ficavam contando a loja
+   inteira. Escolhido o 1o piso, a tela dizia 35 e o papel trazia 17.
+   Ela viu usando: "quando eu coloco pra imprimir so o primeiro piso, com ou sem
+   o que foi feito, o numero nao bate."
+   Numero que nao bate com a lista logo abaixo dele e' pior que numero nenhum --
+   ela assina esse papel com o CRN. Agora e' um lugar so, e todos leem daqui.
+
+   O filtro de SITUACAO (a fazer / feitos) NAO entra aqui de proposito: os
+   numeros do topo mostram justamente "total, a fazer e feitos", e filtrar por
+   situacao faria cada um deles contar de uma base diferente. */
 function m28ItensDaFolha(){
-  const t=m28Itens();
-  return M28F.exec?t.filter(d=>(d.executor||"").trim()===M28F.exec):t;
+  let t=m28Itens();
+  if(M28F.exec)t=t.filter(d=>(d.executor||"").trim()===M28F.exec);
+  if(M28F.piso)t=t.filter(d=>d.piso===M28F.piso);
+  if(M28F.area)t=t.filter(d=>d.area===M28F.area);
+  return t;
 }
 
 /* ---- itens desta aba, da empresa aberta ---- */
@@ -280,20 +295,31 @@ async function renderMnt28(){
   const el=document.getElementById("tab-mnt28");if(!el)return;
   await m28Config();
   await m28CargaInicial();
-  const todos=m28Itens();
+  /* DUAS BASES, e nao uma -- cada seletor da barra precisa continuar mostrando
+     TODOS os caminhos, senao ela escolhe um piso e fica presa nele.
+       basePlena = a loja inteira    -> monta os seletores (piso, area, pessoa)
+       itens     = o recorte de agora -> alimenta os numeros e a lista
+     Foi por confundir as duas que os numeros do topo passaram meses contando a
+     loja inteira embaixo de uma lista de um piso so. */
+  const basePlena=m28Itens();
+  const todos=m28ItensDaFolha();
   /* LAY-3: escolhida uma pessoa, TUDO passa a ser a folha dela — capa, números
      e lista. Números da folha inteira embaixo do nome de uma pessoa só seriam
      um número que a prejudica, e isso aqui não pode acontecer. */
-  const itens=M28F.exec?todos.filter(d=>(d.executor||"").trim()===M28F.exec):todos;
+  const itens=todos;   /* pessoa, piso e area ja vem aplicados (m28ItensDaFolha) */
   const c=m28Cab(itens.length?itens:todos);
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   /* o executor que ELA gravou no cabeçalho vence o que veio na carga —
      antes era ao contrário e a edição dela não aparecia (F-3) */
   const exec=M28F.exec||c.executor||(itens.find(d=>d.executor)||{}).executor||"";
   const total=itens.length,feitos=itens.filter(d=>d.feito).length;
-  const areas=[...new Set(itens.map(d=>d.area))];
-  const pisos=[...new Set(itens.map(d=>d.piso))]
-    .sort(m28CmpPiso);
+  const areas=[...new Set(itens.map(d=>d.area))];        /* para o "em N áreas" */
+  /* estas duas listas alimentam os SELETORES: saem da base plena, nunca do
+     recorte, ou não haveria caminho de volta depois de escolher um piso */
+  const pisos=[...new Set(basePlena.map(d=>d.piso))].sort(m28CmpPiso);
+  const areasTodas=[...new Set(
+    basePlena.filter(d=>!M28F.piso||d.piso===M28F.piso).map(d=>d.area)
+  )].filter(Boolean).sort();
 
   /* CABEÇALHO COMPACTO (29/07): título com o mês da emissão, que se atualiza
      sozinho — mas a data continua editável por ela (o lápis ao lado).
@@ -347,14 +373,14 @@ async function renderMnt28(){
 
   const nVer=m28QtdVerificar();
   const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>${esc(p)}</option>`).join("");
-  const opArea=areas.sort().map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>${esc(a)}</option>`).join("");
+  const opArea=areasTodas.map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>${esc(a)}</option>`).join("");
   /* só aparece quando há mais de uma pessoa com serviço — com um executor só,
      um seletor de um item é ruído na barra */
   /* sai de TODOS, nunca dos filtrados: senão, escolhida uma pessoa, o seletor
      ficaria só com ela e não haveria caminho de volta */
-  const execs=m28Executores(todos);
+  const execs=m28Executores(basePlena);
   const opExec=execs.length>1?execs.map(e=>{
-    const n=todos.filter(d=>(d.executor||"").trim()===e).length;
+    const n=basePlena.filter(d=>(d.executor||"").trim()===e&&(!M28F.piso||d.piso===M28F.piso)).length;
     return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha de: ${esc(e)} (${n})</option>`;
   }).join(""):"";
   const barra=`<div class="toolbar m28-barra">
@@ -479,11 +505,9 @@ function m28RenderLista(){
    escolhida a folha do Matheus, sai só a dele.
    ===================================================================== */
 function m28Filtradas(){
-  let rows=m28ItensDaFolha();
+  let rows=m28ItensDaFolha();   /* pessoa, piso e area ja vem aplicados */
   if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
   if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
-  if(M28F.piso)rows=rows.filter(d=>d.piso===M28F.piso);
-  if(M28F.area)rows=rows.filter(d=>d.area===M28F.area);
   return rows.sort(m28Comparar);
 }
 function m28NomeArquivo(){
@@ -952,7 +976,10 @@ function m28Imprimir(){
   m.setAttribute("aria-label","Qual folha você quer");
   m.innerHTML=`<div class="bd-janela m28-escolha" onclick="event.stopPropagation()">
       <div class="bd-janela-topo"><div><b>Qual folha você quer?</b>
-        <div class="m28-escolha-sub">São duas leituras do mesmo trabalho.</div></div>
+        <div class="m28-escolha-sub">${M28F.exec
+          ? `Folha de <b>${esc(M28F.exec)}</b>${M28F.piso?` · ${esc(m28PisoBonito(M28F.piso))}`:""}`
+          : `<b>Sem escolher a pessoa:</b> vai sair uma folha só, com o serviço de
+             todo mundo misturado. Feche aqui e escolha o nome lá em cima.`}</div></div>
         <button class="bd-janela-x" aria-label="Fechar">✕</button></div>
       <div class="bd-janela-corpo">
         <button class="m28-opcao" data-modo="falta">
@@ -966,10 +993,11 @@ function m28Imprimir(){
             e os quadradinhos vazios. É a folha que mostra à empresa o que foi feito.</span>
         </button>
         <div class="m28-corte">
-          <label class="bd-rotulo" for="m28-corte-data">Como se tivesse sido entregue em</label>
+          <label class="bd-rotulo" for="m28-corte-data">Data desta folha</label>
           <input class="bd-campo" type="date" id="m28-corte-data" value="${esc(emitido)}" max="${esc(hoje)}">
-          <span class="bd-ajuda">O que foi registrado depois desta data não entra —
-            senão a folha mostra à empresa coisas que naquele dia ainda não existiam.</span>
+          <span class="bd-ajuda">É o mês que sai no topo da folha. Na folha de marcar,
+            o que foi registrado depois desta data também não entra — senão ela mostra
+            à empresa coisas que naquele dia ainda não existiam.</span>
         </div>
       </div>
     </div>`;
@@ -993,7 +1021,8 @@ function m28Imprimir(){
       const marcar=b.getAttribute("data-modo")==="marcar";
       const data=(m.querySelector("#m28-corte-data")||{}).value||"";
       fechar();
-      m28ImprimirFolha(marcar?{tudo:true,emBranco:true,corte:data,emitidoEm:data}:{});
+      m28ImprimirFolha(marcar?{tudo:true,emBranco:true,corte:data,emitidoEm:data}
+                             :{emitidoEm:data});
     };
   });
   document.addEventListener("keydown",tecla);
@@ -1003,16 +1032,13 @@ function m28Imprimir(){
 
 function m28ImprimirFolha(op){
   op=op||{};
-  let rows=m28Itens();
-  if(M28F.exec)rows=rows.filter(d=>(d.executor||"").trim()===M28F.exec);   /* a folha é de uma pessoa só */
+  let rows=m28ItensDaFolha();   /* pessoa, piso e area: a mesma conta da tela */
   /* na folha de marcar, o que ela filtrou na tela não manda: a folha é a foto
      do trabalho inteiro naquela data, feito e não feito */
   if(!op.tudo){
     if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
     if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
   }
-  if(M28F.piso)rows=rows.filter(d=>d.piso===M28F.piso);
-  if(M28F.area)rows=rows.filter(d=>d.area===M28F.area);
   /* A DATA DE CORTE. Sem ela a folha "de julho" levaria o que foi registrado em
      agosto, e a empresa veria coisas que naquele dia ainda não existiam. */
   if(op.corte)rows=rows.filter(d=>{

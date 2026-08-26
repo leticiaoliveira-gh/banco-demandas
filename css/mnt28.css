@@ -273,7 +273,10 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
    Duas escolhas grandes, do tamanho do dedo, e a data embaixo.
    ------------------------------------------------------------------ */
 .m28-escolha{max-width:520px}
-.m28-escolha-sub{font-size:13px;color:#667085;margin-top:2px}
+/* quando ela nao escolheu a pessoa, este aviso e' o que evita uma folha com o
+   servico de duas pessoas misturado -- aconteceu em 26/08 */
+.m28-escolha-sub{font-size:13px;color:#667085;margin-top:2px;line-height:1.45}
+.m28-escolha-sub b{color:#155244}
 
 .m28-opcao{
   display:block;width:100%;text-align:left;cursor:pointer;
