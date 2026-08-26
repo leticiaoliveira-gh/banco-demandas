@@ -99,12 +99,21 @@ def ha_quanto_tempo(desde, hoje):
 
 def limpar(texto):
     """Tira o travessao longo (ela reconhece de longe e diz que 'tem cara de IA')
-    e normaliza o espaco em branco."""
+    e arruma o espaco DENTRO de cada linha.
+
+    A QUEBRA DE LINHA E CONTEUDO, nao espaco a normalizar: quando ela escreve
+    em topicos, os topicos tem de chegar em topicos no relatorio. Foi o pedido
+    dela em 25/08."""
     t = (texto or "").replace("—", ",").replace("–", ",")
-    t = re.sub(r"\s+([,.;:])", r"\1", t)      # "VERIFICAR , tenho" -> "VERIFICAR, tenho"
-    t = re.sub(r"([,.;:])\s*([,.;:])", r"\1", t)   # nunca dois sinais seguidos
-    t = re.sub(r"\s+", " ", t).strip()
-    return t.lstrip(",;: ").strip()
+    saida = []
+    for linha in t.split("\n"):
+        l = re.sub(r"[ \t]+", " ", linha)
+        l = re.sub(r"\s+([,.;:])", r"\1", l)
+        l = re.sub(r"([,.;:])\s*([,.;:])", r"\1", l)
+        l = l.strip().lstrip(",;: ").strip()
+        if l:
+            saida.append(l)
+    return "\n".join(saida)
 
 
 def verificar_de(item):
@@ -388,7 +397,9 @@ def markdown_para_html(md, titulo):
         border-bottom: 1.5px solid #bfded4; padding-bottom: 4px; }}
   h3 {{ font-size: 11.5pt; margin: 16px 0 4px; color: #344054; }}
   p {{ margin: 0 0 6px; }}
-  p.item {{ margin: 8px 0 2px; }}
+  p.item {{ margin: 8px 0 2px; white-space: pre-wrap; }}
+  /* o enter que ela deu vira quebra de linha tambem no relatorio de leitura */
+  p.detalhe {{ white-space: pre-wrap; }}
   p.detalhe {{ margin: 0 0 2px 16px; font-size: 9.5pt; color: #475467; }}
   table {{ border-collapse: collapse; margin: 8px 0 14px; }}
   th, td {{ border: 1px solid #d0d5dd; padding: 5px 10px; font-size: 10pt; text-align: left; }}

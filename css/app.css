@@ -706,6 +706,10 @@
   width:44px;height:44px;transform:translate(-50%,-50%)}
 .nc-fl .nc-alca{font-size:13px;color:#b4b5bd;cursor:grab;line-height:1}
 .nc-fl-texto{font-size:13.8px;color:#2d2e3a;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+/* O ENTER VALE AQUI TAMBEM (25/08). Ela pediu que valesse em todo relatorio
+   que ela escreve, nao so na folha de manutencao: o que ela escreve em
+   topicos precisa CHEGAR em topicos. */
+.nc-fl-texto,.nc-obs,.nc-acao,.nc-nota{white-space:pre-wrap}
 .nc-item.nc-fl.done .nc-fl-texto{color:#7a7b85;text-decoration:line-through}
 .nc-fl-obs{font-size:12.5px;color:#5c5d68;line-height:1.5;min-width:0;overflow-wrap:anywhere}
 /* o traço de "não tem nada aqui" precisa ser discreto, mas legível: em #b4b5bd
