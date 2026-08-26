@@ -67,6 +67,9 @@ const M28_TXT_PADRAO={
      CUIDADO: o campo so-dela continua sendo "Letícia revisar urgente", com cadeado. */
   colData:"Data Registro",colObs:"Lembretes",colObsImp:"Lembretes",
   rotUnidade:"Unidade",rotEmitido:"Emitido em",
+  /* LAY-6 (26/08): os tres da faixa e o de quem assina. Como todo rotulo daqui,
+     ela troca pelo painel de textos -- nada e' fixo no codigo. */
+  rotLoja:"Loja",rotPiso:"Piso",rotMes:"Mês",rotRt:"Resp. técnica",
   /* SJ-1c (03/08, decisão dela): o bloco de causa só existe quando MUITOS
      serviços têm a mesma origem — a maresia é o caso. Vazio = não aparece.
      O texto é dela; eu não crio bloco por conta própria. */
@@ -114,6 +117,25 @@ function m28Titulo(c){
 }
 
 /* "1º PISO", "1o piso" e "1º Piso" sao o mesmo piso: no titulo sai um so jeito */
+/* LAY-6 (26/08): o cabecalho da folha passou a ser a opcao 4, escolhida por ela
+   numa pagina em que viu as cinco lado a lado, em papel, com os dados de verdade.
+   O bloco verde FICA -- palavras dela: "eu quero aquele fundo verde, aquilo ali e'
+   o que mais chama a atencao". O que muda e' o tamanho de cada informacao: quatro
+   coisas em destaque (o assunto, a loja, o piso e o mes) e o resto numa linha fina
+   embaixo, dentro do proprio verde.
+   Estas tres funcoes existem porque a faixa mostra loja, piso e mes SEPARADOS --
+   antes os tres viviam grudados numa frase so, dentro de m28Titulo(). */
+function m28Assunto(){
+  /* "Manutencao e Infraestrutura —" e' o comeco do titulo que ela edita pelo lapis.
+     Na faixa ele aparece sozinho, entao o travessao do fim sai. */
+  return String(m28T().tituloPrefixo||"").replace(/\s*[—–-]\s*$/,"").trim();
+}
+function m28Mes(c){
+  const iso=(c&&c.emitidoEm)||today();
+  const partes=String(iso).split("-");
+  const mes=M28_MESES[Number(partes[1])-1]||"";
+  return mes?(mes.charAt(0).toUpperCase()+mes.slice(1)+" de "+(partes[0]||"")):"";
+}
 function m28PisoBonito(nome){
   const c=(nome||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
           .replace(/\s+/g," ").trim().toLowerCase();
@@ -938,18 +960,32 @@ function m28Imprimir(){
   const causaT=(m28T().causaTitulo||"").trim(),causaX=(m28T().causaTexto||"").trim();
   if(causaT||causaX)blocos+=`<div class="bl causa"><b>${esc(causaT||"Por que isto se repete")}</b>`
     +`<span>${esc(causaX)}</span></div>`;
+  /* LAY-6 (26/08): a faixa em tres. Ela escolheu a opcao 4 vendo as cinco em
+     papel. Os tres pedacos vao SEPARADOS e cada um com o nome do que e', para
+     ninguem confundir o piso com o mes -- e porque ele recebe mais de uma folha
+     no mesmo dia. Cada pedaco so aparece se existir: loja sem piso nao deixa
+     buraco na faixa. */
+  const faixa=[[m28T().rotLoja,(currentStore||"").trim()],
+               [m28T().rotPiso,m28PisoBonito((M28F.piso||"").trim())],
+               [m28T().rotMes,m28Mes(c)]]
+    .filter(x=>x[1])
+    .map(x=>`<div><span>${esc(x[0])}</span><b>${esc(x[1])}</b></div>`).join("");
   const cabecalho=`<div class="capa">
-      <div><div class="et">${esc(m28T().etiqueta)}</div>
-        <h1>${esc(m28Titulo(c))}</h1>
-        ${exec?`<div class="ex"><span>${esc(m28T().rotExec)}</span>${esc(exec)}</div>`:""}</div>
-      ${/* mesma correção da tela: nome em cima, UMA linha embaixo — sem repetir
-           a informação de nutricionista, como estava saindo antes */""}
-      <div class="rt"><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
-      <div class="un"><div><span>${esc(m28T().rotUnidade)}</span>${esc(loja)}</div>
+      <div class="et">${esc(m28T().etiqueta)}</div>
+      <div class="assunto">${esc(m28Assunto())}</div>
+      ${faixa?`<div class="faixa">${faixa}</div>`:""}
+      ${/* a linha fina: quem executa, quem assina, a unidade e a data. Continua
+           dentro do verde, so que pequena -- ela pediu para destacar as quatro de
+           cima "fora as outras coisas". */""}
+      <div class="pe">
+        <div><span>${esc(m28T().rotUnidade)}</span><b>${esc(loja)}</b></div>
         ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
-        <div><span>${esc(m28T().rotEmitido)}</span>${brDate(c.emitidoEm||today())}</div></div>
+        <div><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
+        ${exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
+        <div><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
+      </div>
     </div>
     ${/* LAY-5 (25/08): na FOLHA IMPRESSA ficam so dois numeros, nesta ordem.
          Ela viu a redundancia: "demandas, ja nao seria a fazer?" — com nada
@@ -972,23 +1008,31 @@ function m28Imprimir(){
   .folha{width:210mm;height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
     position:relative;box-shadow:0 4px 18px rgba(16,24,40,.14);overflow:hidden}
   .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
+  /* LAY-6 (26/08): o bloco verde continua -- o que mudou foi o tamanho de cada
+     coisa dentro dele. Em cima o assunto e a faixa com loja, piso e mes; embaixo,
+     em letra fina, quem executa, quem assina, a unidade e a data. */
   .capa{background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);color:#fff;
-    padding:13px 16px;border-radius:8px;margin-bottom:11px;display:flex;flex-wrap:wrap;
-    justify-content:space-between;align-items:flex-start;gap:14px;
+    padding:12px 16px;border-radius:8px;margin-bottom:11px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.75)}
-  .capa h1{font-size:19px;font-weight:700;letter-spacing:-.3px;line-height:1.15;margin-top:2px}
-  .capa h1 span{font-size:12px;font-weight:500;color:rgba(255,255,255,.9);display:block;margin-top:1px}
-  .rt{text-align:center;font-size:10px;line-height:1.4;flex:none;min-width:190px;
-    padding-top:2px;border-top:1px solid rgba(255,255,255,.3)}
-  .ex{font-size:10.5px;color:rgba(255,255,255,.92);margin-top:4px}
-  .ex span{display:block;font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;
-    color:rgba(255,255,255,.62)}
-  .rt b{display:block;font-weight:600}
-  .rt i{font-style:normal;color:rgba(255,255,255,.82);font-size:9px}
-  .un{display:flex;gap:22px;margin-top:9px;padding-top:8px;font-size:9.6px;flex-basis:100%;
-    border-top:1px solid rgba(255,255,255,.25)}
-  .un span{color:rgba(255,255,255,.7);text-transform:uppercase;font-size:8px;letter-spacing:.8px;margin-right:5px}
+  .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.72)}
+  .capa .assunto{font-size:21px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:3px}
+  /* a faixa em tres partes iguais. Cada pedaco leva o NOME do que e' (Loja, Piso,
+     Mes) porque no papel a posicao sozinha nao diz -- e ele recebe mais de uma
+     folha no mesmo dia. */
+  .capa .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.3);
+    border-radius:6px;overflow:hidden}
+  .capa .faixa div{flex:1;padding:6px 11px;border-right:1px solid rgba(255,255,255,.24);text-align:center}
+  .capa .faixa div:last-child{border-right:0}
+  .capa .faixa span{display:block;font-size:7px;text-transform:uppercase;letter-spacing:1px;
+    color:rgba(255,255,255,.66)}
+  .capa .faixa b{font-size:14px;font-weight:700;letter-spacing:.2px}
+  /* a linha fina de baixo, ainda dentro do verde */
+  .capa .pe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
+    margin-top:9px;padding-top:7px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
+  .capa .pe div{display:flex;align-items:baseline;gap:5px}
+  .capa .pe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.62)}
+  .capa .pe b{font-weight:600;font-size:10.2px}
+  .capa .pe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.72)}
   .nums{display:flex;gap:7px;margin-bottom:10px}
   .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:6px 9px;background:#f9fafb;text-align:center}
   .num span{display:block;font-size:7.8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}
@@ -1141,7 +1185,9 @@ async function m28GerirTextos(){
     colFeito:"Coluna: feito",colFazer:"Coluna: o que fazer",
     colData:"Coluna: data",colObs:"Coluna: observações (na tela)",
     colObsImp:"Coluna: observações (na folha impressa)",
-    rotUnidade:"Rótulo: unidade",rotEmitido:"Rótulo: emitido em"};
+    rotUnidade:"Rótulo: unidade",rotEmitido:"Rótulo: emitido em",
+    rotLoja:"Faixa: loja",rotPiso:"Faixa: piso",rotMes:"Faixa: mês",
+    rotRt:"Rótulo: responsável técnica"};
   const antigo=document.getElementById("m28-txcfg");if(antigo)antigo.remove();
   let campos="";
   for(const k in ROTS){
