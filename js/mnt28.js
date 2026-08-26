@@ -377,6 +377,31 @@ async function renderMnt28(){
     ${kpi("Urgentes",urgentes,urgentes?"destacados para o executor":"nenhum marcado","m28-urg")}
   </div>`;
 
+  /* SÃO DUAS FOLHAS JUNTAS (26/08).
+     Ela escolheu o 1º piso e "só o que falta", viu 35 e esperava 17. Os 35
+     estavam certos: são 17 de uma pessoa mais 18 da outra. Mas nada na tela
+     dizia isso -- o seletor marcava "Folha de: todos" numa letra discreta, e
+     ela pensa nas duas como documentos separados (a manutenção dele, a elétrica
+     do outro). Palavras dela: "já adianto que não está batendo".
+     O número não muda: o que faltava era ele se explicar. E cada nome vira
+     botão, para escolher num toque em vez de procurar o seletor. */
+  const porPessoa=(()=>{
+    if(M28F.exec)return "";                        /* já escolheu alguém */
+    const quem=m28Executores(itens);
+    if(quem.length<2)return "";                    /* uma pessoa só: nada a dividir */
+    const partes=quem.map(e=>{
+      const n=itens.filter(d=>(d.executor||"").trim()===e&&!d.feito).length;
+      return `<button type="button" class="m28-pessoa" onclick="m28Filtro('exec',${JSON.stringify(e).replace(/"/g,"&quot;")})">`
+        +`<b>${n}</b> de ${esc(e)}</button>`;
+    }).join("");
+    return `<div class="bd-aviso bd-aviso-info m28-juntas">
+      <span class="bd-aviso-ico" aria-hidden="true">👥</span>
+      <div><b>São ${quem.length} folhas somadas aqui.</b>
+        Toque num nome para ver só a folha dele:
+        <span class="m28-pessoas">${partes}</span></div>
+    </div>`;
+  })();
+
   const nVer=m28QtdVerificar();
   const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>${esc(p)}</option>`).join("");
   const opArea=areasTodas.map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>${esc(a)}</option>`).join("");
@@ -416,7 +441,7 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">📊 Planilha</button>
   </div>`;
 
-  el.innerHTML=capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+barra+'<div id="m28-lista"></div>';
+  el.innerHTML=capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 

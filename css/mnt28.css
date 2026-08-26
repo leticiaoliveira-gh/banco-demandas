@@ -311,3 +311,18 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   box-shadow:0 0 0 2px rgba(42,157,138,.22);
 }
 .m28-kpi-ativo .bd-kpi-obs{color:#1d6b57;font-weight:600}
+
+/* "São 2 folhas somadas aqui" (26/08). Ela filtrou o piso, viu 35 e esperava 17
+   — porque 35 é a soma de duas pessoas e nada na tela dizia isso. Cada nome é
+   um botão: escolher a folha de alguém passa a ser um toque. */
+.m28-juntas{margin-bottom:14px}
+.m28-pessoas{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.m28-pessoa{
+  font-family:inherit;font-size:14px;cursor:pointer;
+  background:#fff;border:1.5px solid #b9d9d0;border-radius:8px;
+  padding:0 14px;min-height:44px;color:#155244;
+  transition:border-color .15s ease,background .15s ease;
+}
+.m28-pessoa b{font-size:16px;font-weight:700;margin-right:4px}
+.m28-pessoa:hover{border-color:#1d6b57;background:#e8f5f0}
+.m28-pessoa:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
