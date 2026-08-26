@@ -28,7 +28,10 @@
       + 'white-space:pre-wrap">ERRO: ' + t + '</pre>';
   }
   if (typeof DADOS_DA_FOLHA === "undefined") return morrer("faltou dados-da-folha.js");
-  if (typeof m28Imprimir !== "function")     return morrer("o site não carregou a folha");
+  /* m28ImprimirFolha e nao m28Imprimir: desde a v9.62 o segundo abre a janela
+     que pergunta qual das duas folhas, e janela nenhuma se responde sozinha
+     dentro de um navegador sem tela. Aqui as escolhas ja vem pelo endereco. */
+  if (typeof m28ImprimirFolha !== "function") return morrer("o site não carregou a folha");
 
   var itens = DADOS_DA_FOLHA.itens;
 
@@ -39,17 +42,6 @@
     itens = itens.filter(function(d){
       var quando = (d.dataRegistro || d.relato || "").slice(0,10);
       return !quando || quando <= corte;
-    });
-  }
-
-  /* EM BRANCO: os quadradinhos saem todos vazios, mesmo o do que ja esta feito
-     no site. E' a via que ela leva a empresa e marca a mao -- papel que ja chega
-     marcado nao prova serviço nenhum. O banco nao muda: a copia e' so daqui. */
-  if (p.get("embranco")){
-    itens = itens.map(function(d){
-      var c = Object.assign({}, d);
-      c.feito = false;
-      return c;
     });
   }
 
@@ -85,7 +77,13 @@
   window.open  = function(){ return window; };
   window.alert = function(t){ falhou = t; };
   window.print = function(){};          /* o Chrome imprime; a página não pede */
-  try { m28Imprimir(); } catch(e){ falhou = e.message; }
+  /* o corte e o em-branco sao do proprio site desde a v9.62: aqui so se passa
+     as escolhas, em vez de refazer o filtro por fora */
+  var op = {};
+  if (p.get("embranco")){ op.tudo = true; op.emBranco = true; }
+  if (corte) op.corte = corte;
+  if (emitido) op.emitidoEm = emitido;
+  try { m28ImprimirFolha(op); } catch(e){ falhou = e.message; }
   window.open = abrirAntigo; window.alert = alertaAntigo;
 
   if (falhou) return morrer(falhou);
