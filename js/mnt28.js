@@ -427,7 +427,7 @@ function m28RenderLista(){
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
-      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(d.fazer||"")}
+      <div class="m28-fazer m28-linhas">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(d.fazer||"")}
         ${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
         ${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}
         ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
@@ -897,10 +897,10 @@ function m28Imprimir(){
        do selo some, e a palavra é a única coisa que sobra no papel */
     const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
-      +`<span class="f">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}`
+      +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
       +m28FotosFolha(d)+`</span><span class="q">${desde}</span>`
-      +`<span class="o">${esc(d.obs||"")}</span></div>`;
+      +`<span class="o linhas">${esc(d.obs||"")}</span></div>`;
   }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
      não são 22 problemas, é 1. Só existe se ela escreveu. */
@@ -974,6 +974,8 @@ function m28Imprimir(){
   .cab .c,.li .c{text-align:center}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
   .li .o{color:#667085;font-size:11.4px}
+  /* o enter que ela deu vira quebra de linha de verdade, aqui e na tela */
+  .li .linhas{white-space:pre-wrap}
   .num.urgente{background:#fef3f2;border-color:#fecdca}
   .num.urgente span{color:#b42318}
   .num.urgente b{color:#912018}

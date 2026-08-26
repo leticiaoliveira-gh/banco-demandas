@@ -121,6 +121,10 @@
 .m28-item:hover{background:#fafbfa}
 .m28-item.feito .m28-fazer{color:#7a7b85;text-decoration:line-through}
 .m28-fazer{font-size:13.8px;color:#2d2e3a;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+/* O ENTER QUE ELA DA VIRA QUEBRA DE LINHA DE VERDADE (25/08).
+   Antes o texto era guardado com a quebra, mas o HTML juntava tudo numa
+   linha so e virava um paredao que ninguem le. Vale na tela e na folha. */
+.m28-linhas,.m28-obs,.m28-nota{white-space:pre-wrap}
 .m28-obs{font-size:12.5px;color:#5c5d68;line-height:1.5;min-width:0;overflow-wrap:anywhere}
 .m28-vaziotxt{color:#b4b5bd}
 
