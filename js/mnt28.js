@@ -1262,8 +1262,11 @@ function m28ImprimirFolha(op){
   .causa b{display:block;font-size:8.4px;font-weight:700;text-transform:uppercase;
     letter-spacing:.6px;color:#4a6b62;margin-bottom:3px}
   .causa span{display:block;font-size:9.6px;line-height:1.5;color:#344054}
-  .li.urgl{background:#fef3f2;border-left:3px solid #b42318;
-    padding-left:5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* A faixa vermelha entra como SOMBRA INTERNA, nao como borda. Borda ocupa
+     espaco: com border-left + padding-left a linha urgente saia 1px fora do
+     alinhamento das outras e do cabecalho da tabela. Sombra nao empurra nada. */
+  .li.urgl{background:#fef3f2;box-shadow:inset 3px 0 0 #b42318;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li.urgl .f{color:#1f2937}
   /* o selo URGENTE: fundo cheio para saltar na folha de tres paginas. A PALAVRA
      continua escrita porque na fotocopia em preto e branco a cor nao existe. */
