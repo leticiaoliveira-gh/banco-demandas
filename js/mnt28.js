@@ -1115,7 +1115,7 @@ function m28ImprimirFolha(op){
       ${/* a linha fina: quem executa, quem assina, a unidade e a data. Continua
            dentro do verde, so que pequena -- ela pediu para destacar as quatro de
            cima "fora as outras coisas". */""}
-      <div class="pe">
+      <div class="cpe">
         <div><span>${esc(m28T().rotUnidade)}</span><b>${esc(loja)}</b></div>
         ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
@@ -1165,12 +1165,12 @@ function m28ImprimirFolha(op){
     color:rgba(255,255,255,.66)}
   .capa .faixa b{font-size:14px;font-weight:700;letter-spacing:.2px}
   /* a linha fina de baixo, ainda dentro do verde */
-  .capa .pe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
+  .capa .cpe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
     margin-top:9px;padding-top:7px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
-  .capa .pe div{display:flex;align-items:baseline;gap:5px}
-  .capa .pe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.62)}
-  .capa .pe b{font-weight:600;font-size:10.2px}
-  .capa .pe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.72)}
+  .capa .cpe div{display:flex;align-items:baseline;gap:5px}
+  .capa .cpe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.62)}
+  .capa .cpe b{font-weight:600;font-size:10.2px}
+  .capa .cpe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.72)}
   .nums{display:flex;gap:7px;margin-bottom:10px}
   .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:6px 9px;background:#f9fafb;text-align:center}
   .num span{display:block;font-size:7.8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}
@@ -1202,7 +1202,7 @@ function m28ImprimirFolha(op){
   .li .q b{display:block;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
   .li .q i{font-style:normal;display:block;font-size:8.8px}
   .li .q i.grave{color:#b42318;font-weight:600}
-  .ug{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px}
+
   /* orientação técnica com a base legal — a categoria vai ESCRITA entre
      colchetes, porque no papel a cor do selo não existe */
   .li .ori-p{font-style:normal;display:block;font-size:9.4px;color:#5c5d68;
@@ -1213,7 +1213,14 @@ function m28ImprimirFolha(op){
   .causa b{display:block;font-size:8.4px;font-weight:700;text-transform:uppercase;
     letter-spacing:.6px;color:#4a6b62;margin-bottom:3px}
   .causa span{display:block;font-size:9.6px;line-height:1.5;color:#344054}
+  .li.urgl{background:#fef3f2;border-left:3px solid #b42318;
+    padding-left:5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li.urgl .f{color:#1f2937}
+  /* o selo URGENTE: fundo cheio para saltar na folha de tres paginas. A PALAVRA
+     continua escrita porque na fotocopia em preto e branco a cor nao existe. */
+  .ug{display:inline-block;font-style:normal;font-weight:700;letter-spacing:.4px;
+    background:#b42318;color:#fff;border-radius:3px;padding:1px 5px;margin-right:4px;
+    font-size:8.6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .cab .f{text-align:left}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
