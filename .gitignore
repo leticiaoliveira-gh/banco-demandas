@@ -29,3 +29,10 @@ Thumbs.db
 # dados de trabalho do modo rascunho: sao dados reais dela, nunca entram no repositorio publico
 _dados-rascunho.json
 _teste-*.json
+
+# arquivos que o gerador da folha cria e apaga sozinho; se um sobrar por causa
+# de um erro no meio do caminho, ele NAO pode ir para o repositorio publico:
+# tem dado real dela dentro
+dados-da-folha.js
+_folha-em-montagem.html
+_folha-montada.html
