@@ -1073,7 +1073,8 @@ function m28ImprimirFolha(op){
     if(d.piso!==piso){piso=d.piso;area=null;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;
-      blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
+      blocos+=`<div class="bl ar"><span>${esc(area)}</span>`
+        +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`
         +`<div class="bl cab"><span class="c">${esc(m28T().colFeito)}</span><span class="f">${esc(m28T().colFazer)}</span>`
         /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
            não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
@@ -1135,6 +1136,12 @@ function m28ImprimirFolha(op){
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
+  /* "Emitido em" e' a data que ELA escolhe e pode ser de julho; isto aqui e'
+     outra coisa: o momento em que este papel saiu da impressora. */
+  const agora=new Date();
+  const doisD=n=>String(n).padStart(2,"0");
+  const tirada="Folha tirada em "+doisD(agora.getDate())+"/"+doisD(agora.getMonth()+1)
+    +"/"+agora.getFullYear()+" às "+doisD(agora.getHours())+":"+doisD(agora.getMinutes());
 
   const w=window.open("");
   if(!w){alert("O navegador bloqueou a janela de impressão. Libere as janelas para este site e tente de novo.");return;}
@@ -1231,7 +1238,8 @@ function m28ImprimirFolha(op){
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
   .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:space-between;
-    font-size:8.4px;color:#667085;border-top:1px solid #eaecf0;padding-top:5px}
+    gap:12px;font-size:8.4px;color:#667085;border-top:1px solid #eaecf0;padding-top:5px}
+  .pe .tirada{color:#98a2b3}
   .aviso{width:210mm;margin:14px auto;background:#fffaeb;border:1px solid #fedf89;color:#b54708;
     border-radius:8px;padding:12px 15px;font-size:12.5px;line-height:1.5}
   .aviso b{color:#93370d}
@@ -1278,7 +1286,9 @@ function m28ImprimirFolha(op){
     for(var k=0;k<folhas.length;k++){
       var pe=document.createElement("div");
       pe.className="pe";
-      pe.innerHTML='<span>'+window.__TITULO+'</span><span>'+(k+1)+' / '+folhas.length+'</span>';
+      pe.innerHTML='<span>'+window.__TITULO+'</span>'
+        +'<span class="tirada">'+window.__TIRADA+'</span>'
+        +'<span>'+(k+1)+' / '+folhas.length+'</span>';
       folhas[k].appendChild(pe);
     }
   })();`;
@@ -1295,7 +1305,7 @@ function m28ImprimirFolha(op){
     +'<div id="alvo"></div></body></html>');
   doc.close();
   /* passa os dados por variável (nada de montar script dentro de string) */
-  w.__BLOCOS=blocos; w.__CABECALHO=cabecalho; w.__TITULO=titulo;
+  w.__BLOCOS=blocos; w.__CABECALHO=cabecalho; w.__TITULO=titulo; w.__TIRADA=tirada;
   const s=doc.createElement("script");
   s.textContent=PAGINADOR;
   doc.body.appendChild(s);
