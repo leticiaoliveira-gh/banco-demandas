@@ -1,0 +1,93 @@
+/* ==================================================================
+   COMPRAS — a aba de quem compra (26/08/2026)
+   As peças vêm da biblioteca (bd-*); aqui só o que é próprio desta tela.
+   Cores: as mesmas do site. Nenhuma cor nova entra por este arquivo.
+   ================================================================== */
+
+/* o cabeçalho verde, o mesmo desenho que ela escolheu para a folha impressa */
+.cmp-capa{
+  background:linear-gradient(150deg,#0f5b52 0%,#17756a 55%,#2a9d8a 100%);
+  color:#fff;padding:16px 20px;border-radius:10px;margin-bottom:16px;
+}
+.cmp-capa-et{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:rgba(255,255,255,.72)}
+.cmp-capa-tit{font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:4px}
+.cmp-capa-sub{font-size:13px;color:rgba(255,255,255,.86);margin-top:4px}
+
+.cmp-nums{margin-bottom:16px}
+
+/* a barra de filtros: vira coluna no celular, e cada campo mantém 44px de altura */
+.cmp-barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.cmp-barra .bd-campo{min-height:44px;flex:0 1 auto;width:auto;max-width:100%;min-width:0}
+.cmp-barra .bd-btn{min-height:44px}
+.cmp-busca{flex:1 1 220px;min-width:0}
+
+.cmp-aviso{margin-bottom:12px}
+
+/* piso e área */
+.cmp-piso{
+  font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  color:#0f5b52;border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:20px 0 4px;
+}
+.cmp-area{
+  display:flex;justify-content:space-between;align-items:baseline;
+  background:#e8f5f0;border-left:3px solid #1d6b57;padding:7px 12px;margin-top:12px;
+  font-size:13px;font-weight:700;color:#155244;
+}
+.cmp-area b{font-weight:600;color:#667085;font-size:11px}
+
+/* uma linha da lista */
+.cmp-item{
+  display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;
+  padding:12px;border-bottom:1px solid #eaecf0;
+}
+.cmp-item:last-child{border-bottom:0}
+.cmp-n{
+  font-size:13px;font-weight:700;color:#667085;text-align:right;
+  font-variant-numeric:tabular-nums;padding-top:2px;
+}
+.cmp-oque{font-size:15px;line-height:1.45;color:#344054;white-space:pre-wrap}
+.cmp-qtd{font-size:12px;color:#667085;margin-top:2px}
+.cmp-onde{font-size:12.5px;color:#667085;margin-top:3px}
+.cmp-onde b{color:#155244}
+.cmp-obs{font-size:13px;color:#667085;margin-top:4px;white-space:pre-wrap}
+
+/* o campo que é só dela: vermelho e com cadeado, igual ao da folha */
+.cmp-nota{
+  font-size:13px;background:#fef3f2;border-left:3px solid #b42318;color:#7a2b23;
+  padding:6px 10px;border-radius:0 5px 5px 0;margin-top:6px;white-space:pre-wrap;
+}
+.cmp-nota b{display:block;font-size:11px;font-weight:700;margin-bottom:2px}
+
+.cmp-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.cmp-links a{font-size:13px;color:#1d6b57;font-weight:600;text-decoration:underline}
+.cmp-links a:hover{color:#155244}
+
+.cmp-lado{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.cmp-lapis{
+  background:none;border:0;cursor:pointer;font-size:16px;color:#667085;
+  min-width:44px;min-height:44px;border-radius:8px;
+}
+.cmp-lapis:hover{background:#f2f4f7;color:#155244}
+.cmp-lapis:focus-visible{outline:2px solid #2a9d8a;outline-offset:2px}
+
+/* urgente: a cor NUNCA é a única forma de dizer — a palavra vai junto */
+.cmp-item.cmp-urg{background:#fffbfa}
+.cmp-urgselo{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px;font-size:12px}
+
+.cmp-junto .cmp-oque{font-weight:600}
+
+/* o formulário */
+.cmp-item.cmp-editando{background:#f9fafb;border-radius:10px;border-bottom:0}
+.cmp-form{display:flex;flex-direction:column;gap:12px}
+.cmp-form-linha{display:flex;gap:10px;flex-wrap:wrap}
+.cmp-form-linha .bd-grupo{flex:1 1 150px;min-width:0}
+.cmp-form-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.cmp-form-acoes .bd-btn{min-height:44px}
+
+@media (max-width:560px){
+  .cmp-item{grid-template-columns:28px 1fr;gap:8px}
+  .cmp-lado{grid-column:1 / -1;flex-direction:row;align-items:center;
+    justify-content:space-between;margin-top:4px}
+  .cmp-barra .bd-campo,.cmp-barra .bd-btn{flex:1 1 100%;width:100%}
+}

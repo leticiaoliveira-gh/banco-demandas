@@ -303,6 +303,7 @@ const ICO={
   mnt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5 5L4 17v3h3l5.7-5.7a4 4 0 0 1 5-5l-2.5 2.5 1.8 1.8L19.5 11a4 4 0 0 0-4.8-4.7z"/></svg>',
   ck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8.5 12.5l2 2 4.5-4.5"/></svg>',
   ckq:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 .9-4.5 4.2 1.2 6.4L12 16.8 6.3 19.5l1.2-6.4L3 8.9 9 8z"/></svg>',
+  cmp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2.2l2.4 12.1a1.6 1.6 0 0 0 1.6 1.3h8.7a1.6 1.6 0 0 0 1.6-1.3L21 7H5.1"/></svg>',
   add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   hub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'
 };
@@ -312,7 +313,7 @@ const ICO={
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","ind","add"];
+const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","compras","ind","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
@@ -354,6 +355,15 @@ const TABS={
       subtitle:n=>"Obras, consertos e instalações — "+n,
       renderCards(){document.getElementById("cards").innerHTML="";},
       onShow(){currentTipo="mnt28";if(typeof renderMnt28==="function")renderMnt28();}},
+  /* COMPRAS (26/08): a aba de quem compra. Nasceu porque 63 pedidos viviam
+     espalhados na qualidade e na folha de manutencao -- quem compra nunca via a
+     lista, e o numero de nao conformidades da gerencia contava compra como se
+     fosse desvio de manipulacao. */
+  compras:{label:"Compras",tipo:"cmp",panel:"tab-compras",
+      icone:ICO.cmp,cor:"#b3730a",corFundo:"#fdf0e0",hub:true,
+      subtitle:n=>"O que precisa ser comprado — "+n,
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="cmp";if(typeof renderCompras==="function")renderCompras();}},
   ind:{label:"Indicadores",tipo:null,panel:"tab-ind",
       icone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="12" width="3.4" height="7" rx="1"/><rect x="10.3" y="7" width="3.4" height="12" rx="1"/><rect x="15.6" y="10" width="3.4" height="9" rx="1"/></svg>',
       cor:"#0e7490",corFundo:"#e2f1f5",hub:true,
@@ -1863,7 +1873,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.60";
+const APP_VERSAO="9.61";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
