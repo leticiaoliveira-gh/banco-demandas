@@ -80,7 +80,11 @@ const M28_TXT_PADRAO={
   colFeito:"Feito?",colFazer:"Demanda",
   /* "Observacoes" era vago demais, palavra dela em 25/08. Virou "Lembretes".
      CUIDADO: o campo so-dela continua sendo "Letícia revisar urgente", com cadeado. */
-  colData:"Data Registro",colObs:"Lembretes",colObsImp:"Lembretes",
+  colData:"Data Registro",colObs:"Lembretes",
+  /* na FOLHA o recado virou pastilha embaixo da demanda, e o rotulo virou o
+     prefixo dela. Ela escreveu "Obs:" a mao no papel, entao e' "Obs:". Na TELA
+     continua "Lembretes", que e' o nome da coluna la. */
+  colObsImp:"Obs:",
   rotUnidade:"Unidade",rotEmitido:"Emitido em",
   /* LAY-6 (26/08): os tres da faixa e o de quem assina. Como todo rotulo daqui,
      ela troca pelo painel de textos -- nada e' fixo no codigo. */
@@ -1121,7 +1125,9 @@ function m28ImprimirFolha(op){
         +`<div class="bl cab"><span class="c">${esc(m28T().colFeito)}</span><span class="f">${esc(m28T().colFazer)}</span>`
         /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
            não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
-        +`<span class="q">${esc(m28T().colData)}</span><span class="o">${esc(m28T().colObsImp)}</span></div>`;}
+        /* a coluna de lembretes SAIU da tabela (26/08): o recado agora nasce
+           embaixo da propria demanda, e a demanda fica com a largura dela */
+        +`<span class="q">${esc(m28T().colData)}</span></div>`;}
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
@@ -1131,11 +1137,17 @@ function m28ImprimirFolha(op){
        continua guardada no banco e continua saindo no relatorio da gerencia e
        na tela — some so daqui, da folha de marcar. */
     const ori="";
+    /* O RECADO EMBAIXO DA DEMANDA, em pastilha (26/08).
+       Ela desenhou isto na folha impressa: o lembrete saiu da coluna da direita
+       e nasce debaixo da frase, comecando onde a frase comeca -- NUNCA debaixo
+       do quadradinho de marcar, que foi o ponto que ela fez questao de marcar.
+       Com a coluna a menos, a demanda ganhou a largura que faltava. */
+    const recado=(d.obs||"").trim();
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
       +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(m28SemTravessao(d.fazer||""))}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
-      +m28FotosFolha(d)+`</span><span class="q">${desde}</span>`
-      +`<span class="o linhas">${esc(m28SemTravessao(d.obs||""))}</span></div>`;
+      +(recado?`<i class="obs-p linhas"><b>${esc(m28T().colObsImp)}</b>${esc(m28SemTravessao(recado))}</i>`:"")
+      +m28FotosFolha(d)+`</span><span class="q">${desde}</span></div>`;
   }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
      não são 22 problemas, é 1. Só existe se ela escreveu. */
@@ -1251,7 +1263,7 @@ function m28ImprimirFolha(op){
   .ar b{font-weight:700;color:#155244;font-size:10.5px;
     background:#fff;border-radius:10px;padding:1px 8px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .cab,.li{display:grid;grid-template-columns:46px 1fr 66px 18%;gap:8px;padding:4px 8px}
+  .cab,.li{display:grid;grid-template-columns:46px 1fr 66px;gap:8px;padding:4px 8px}
   .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;text-align:center;
     border-bottom:1px solid #eaecf0}
   .cab .c,.li .c{text-align:center}
@@ -1261,6 +1273,12 @@ function m28ImprimirFolha(op){
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
   .li{padding-top:7px;padding-bottom:7px}
   .li .o{color:#667085;font-size:11.4px}
+  /* a pastilha do recado: fundo claro, cantos redondos, e o "Obs:" em negrito
+     na frente para o olho achar sem ler */
+  .li .obs-p{display:block;font-style:normal;font-size:11.2px;line-height:1.45;
+    color:#475467;background:#f2f4f7;border-radius:6px;padding:5px 9px;margin-top:5px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .li .obs-p b{font-weight:700;color:#344054;margin-right:4px}
   /* o enter que ela deu vira quebra de linha de verdade, aqui e na tela */
   .li .linhas{white-space:pre-wrap}
   .num.urgente{background:#fef3f2;border-color:#fecdca}
@@ -1409,7 +1427,7 @@ async function m28GerirTextos(){
     rotExec:"Rótulo acima do responsável",
     colFeito:"Coluna: feito",colFazer:"Coluna: o que fazer",
     colData:"Coluna: data",colObs:"Coluna: observações (na tela)",
-    colObsImp:"Coluna: observações (na folha impressa)",
+    colObsImp:"Folha impressa: o que vem antes do recado",
     rotUnidade:"Rótulo: unidade",rotEmitido:"Rótulo: emitido em",
     rotLoja:"Faixa: loja",rotPiso:"Faixa: piso",rotMes:"Faixa: mês",
     rotRt:"Rótulo: responsável técnica"};
