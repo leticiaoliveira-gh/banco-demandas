@@ -1372,10 +1372,36 @@ function m28ImprimirFolha(op){
       alvo.appendChild(f);
       return f;
     }
+    /* QUANTO O RODAPE OCUPA — MEDIDO, nao chutado (26/08).
+       Aqui havia o numero 58, e ele nao dava conta: na pagina 2 da folha dela
+       sobrava 17px, e o texto acabou impresso POR CIMA do rodape. Ela viu no
+       papel e mandou consertar.
+       O rodape e' position:absolute -- nao empurra nada, so cobre. Entao a conta
+       tem de saber a altura dele de verdade. Ele so e' criado depois, na hora de
+       numerar as paginas; por isso um de mentira e' medido antes e jogado fora. */
+    var RESERVA=(function(){
+      var f=document.createElement("div");
+      f.className="folha";
+      f.style.visibility="hidden";
+      var pe=document.createElement("div");
+      pe.className="pe";
+      pe.innerHTML='<span>x</span><span>x</span><span>1 / 1</span>';
+      f.appendChild(pe);
+      alvo.appendChild(f);
+      var ocupa=f.getBoundingClientRect().bottom-pe.getBoundingClientRect().top;
+      f.remove();
+      /* o que o rodape ocupa, MAIS UM DEDO DE FOLGA (40px, uns 10mm).
+         Com respiro pequeno a conta fechava na tela e estourava no papel: o
+         Chrome recompoe a fonte ao imprimir e uma linha a mais aparece do nada.
+         Foi assim que o texto saiu por cima do rodape na folha dela. Uma linha
+         a menos por pagina e' um preco barato perto de entregar papel ilegivel. */
+      return Math.ceil(ocupa)+40;
+    })();
+
     var folha=novaFolha(true), corpo=folha.querySelector(".corpo");
     function estourou(){
       var f=folha.getBoundingClientRect(), c=corpo.getBoundingClientRect();
-      return (c.bottom-f.top) > (f.height-58);
+      return (c.bottom-f.top) > (f.height-RESERVA);
     }
     for(var i=0;i<fila.length;i++){
       corpo.appendChild(fila[i]);
