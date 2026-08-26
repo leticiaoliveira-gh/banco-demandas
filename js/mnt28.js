@@ -127,7 +127,7 @@ function m28PisoBonito(nome){
    Agora são dois campos, guardados no cabeçalho da aba e trocados pelo lápis.
    Se ela ainda não trocou nada, vale o que ela pediu em 29/07. */
 /* ela tirou "de Producao" em 25/08: a folha vai para fora e o cargo curto basta */
-const M28_RT_LINHA="Nutricionista – RT · CRN-4: 22103217";
+const M28_RT_LINHA="Nutricionista RT · CRN-4: 22103217";
 /* do texto livre antigo, aproveita só a primeira parte (antes da vírgula ou do
    travessão) — que é onde o nome dela está. Nunca fica vazio. */
 function m28RtNome(c){
@@ -429,7 +429,7 @@ function m28RenderLista(){
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
-      <div class="m28-fazer m28-linhas">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(d.fazer||"")}
+      <div class="m28-fazer m28-linhas">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(m28SemTravessao(d.fazer||""))}
         ${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
         ${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}
         ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
@@ -577,8 +577,26 @@ function m28CausaHTML(){
    NUNCA se apaga. Estava escondido no meio do texto cinza. Agora vira um selo
    com a PALAVRA escrita — vermelho ajuda, mas quem informa é a palavra, porque
    cor sozinha não pode ser a única forma de dizer algo (e há quem não a veja). */
+/* O TRAVESSAO LONGO NAO ENTRA, NUNCA (25/08).
+   Regra dela, repetida varias vezes: "eu nao sei nem usar isso, nao sei nem
+   como que faz isso no teclado e nao quero saber, porque eu nao uso. Fica
+   muito inteligente e artificial."
+   Ele volta a aparecer sempre que um texto e colado de fora (Word, WhatsApp,
+   celular), entao a limpeza mora AQUI, na saida: vale para o que ja existe e
+   para o que ainda vier. Vira ponto quando separa duas frases, virgula quando
+   so aparta. */
+function m28SemTravessao(t){
+  if(!t) return t;
+  return String(t)
+    .replace(/\s*[—–]\s*(?=[A-ZÀ-Ü])/g, ". ")
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/([,.;:])\s*([,.;:])/g, "$1")
+    .replace(/[ \t]{2,}/g, " ");
+}
+
 function m28Texto(t){
-  const s=esc(t||"");
+  const s=esc(m28SemTravessao(t||""));
   return s.replace(/^\s*VERIFICAR\b[\s:—-]*/i,'<span class="m28-verificar">Verificar</span>');
 }
 /* Quantos recados impressos ainda são, na verdade, lembrete dela */
@@ -690,7 +708,7 @@ function m28FormHTML(d){
     <div class="bd-grupo">
       <label class="bd-rotulo" for="m28f-fazer">O que fazer?</label>
       <textarea class="bd-campo" id="m28f-fazer" rows="3"
-        placeholder="Escreva o problema e a correção na mesma frase…">${esc(d.fazer||"")}</textarea>
+        placeholder="Escreva o problema e a correção na mesma frase…">${esc(m28SemTravessao(d.fazer||""))}</textarea>
     </div>
     <div class="m28-form-linha">
       <div class="bd-grupo">
@@ -719,7 +737,7 @@ function m28FormHTML(d){
       <div class="bd-grupo">
         <label class="bd-rotulo" for="m28f-obs">Recado para quem vai executar</label>
         <textarea class="bd-campo" id="m28f-obs" rows="2"
-          placeholder="Ex.: usar tinta epóxi, própria para área úmida.">${esc(d.obs||"")}</textarea>
+          placeholder="Ex.: usar tinta epóxi, própria para área úmida.">${esc(m28SemTravessao(d.obs||""))}</textarea>
         <span class="bd-ajuda">Isto <b>sai impresso</b> na folha dele.</span>
       </div>
       <div class="bd-grupo">
@@ -891,7 +909,7 @@ function m28Imprimir(){
     if(d.piso!==piso){piso=d.piso;area=null;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;
-      blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
+      blocos+=`<div class="bl ar"><span>${esc(m28SemTravessao(area))}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
         +`<div class="bl cab"><span class="c">${esc(m28T().colFeito)}</span><span class="f">${esc(m28T().colFazer)}</span>`
         /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
            não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
@@ -906,10 +924,10 @@ function m28Imprimir(){
        na tela — some so daqui, da folha de marcar. */
     const ori="";
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
-      +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}`
+      +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(m28SemTravessao(d.fazer||""))}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
       +m28FotosFolha(d)+`</span><span class="q">${desde}</span>`
-      +`<span class="o linhas">${esc(d.obs||"")}</span></div>`;
+      +`<span class="o linhas">${esc(m28SemTravessao(d.obs||""))}</span></div>`;
   }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
      não são 22 problemas, é 1. Só existe se ela escreveu. */
@@ -938,7 +956,7 @@ function m28Imprimir(){
       <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
-  const titulo="Manutenção e Infraestrutura — "+loja;
+  const titulo="Manutenção e Infraestrutura · "+loja;
 
   const w=window.open("");
   if(!w){alert("O navegador bloqueou a janela de impressão. Libere as janelas para este site e tente de novo.");return;}
