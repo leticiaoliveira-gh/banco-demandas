@@ -507,7 +507,9 @@ async function m28ParaWord(){
     if(d.piso!==piso){piso=d.piso;area=null;doc.p("");doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:24,color:"1D6B57"});}
     if(d.area!==area){area=d.area;doc.p(area,{bold:true,size:21});}
     doc.p((d.feito?"[x] ":"[ ] ")+(d.urg?"URGENTE — ":"")+(d.fazer||""),d.urg?{bold:true,color:"B42318"}:{});
-    const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
+    /* LEG-1 (25/08): a norma nao vai para quem executa, so para a gerencia.
+       Vale em toda forma de entregar a folha dele: PDF, Word e WhatsApp. */
+    const ori="";
     if(ori)doc.p(ori,{size:18,color:"475467"});
     const desde=d.dataRegistro?brDate(d.dataRegistro)+(m28TempoTexto(m28Meses(d.dataRegistro))?" · "+m28TempoTexto(m28Meses(d.dataRegistro)):""):"";
     if(desde)doc.p(desde,{size:17,color:"667085"});
@@ -534,7 +536,9 @@ function m28ParaWhatsApp(){
     if(d.piso!==piso){piso=d.piso;area=null;t+="\n*"+(piso||"Sem piso").toUpperCase()+"*\n";}
     if(d.area!==area){area=d.area;t+="\n_"+area+"_\n";}
     t+=(d.feito?"✅ ":"⬜ ")+(d.urg?"*URGENTE* — ":"")+(d.fazer||"")+"\n";
-    const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
+    /* LEG-1 (25/08): a norma nao vai para quem executa, so para a gerencia.
+       Vale em toda forma de entregar a folha dele: PDF, Word e WhatsApp. */
+    const ori="";
     if(ori)t+="   ↳ "+ori+"\n";
     if(d.obs)t+="   "+d.obs+"\n";
   }
@@ -895,9 +899,12 @@ function m28Imprimir(){
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
-    /* LEG-0: a categoria sai ESCRITA entre colchetes — em preto e branco a cor
-       do selo some, e a palavra é a única coisa que sobra no papel */
-    const ori=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
+    /* LEG-1 (25/08): A NORMA NAO SAI MAIS NA FOLHA DE QUEM EXECUTA.
+       Palavras dela: "isso aqui e pra o Sr. Joao, ele nao vai ficar lendo
+       legislacao; legislacao quem tem que ler e gerencia e dono". A orientacao
+       continua guardada no banco e continua saindo no relatorio da gerencia e
+       na tela — some so daqui, da folha de marcar. */
+    const ori="";
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
       +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(d.fazer||"")}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
