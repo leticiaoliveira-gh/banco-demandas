@@ -345,9 +345,13 @@ const TABS={
      troca, instalação e limpeza pesada. Nasceu porque a folha antiga misturava
      qualidade com manutenção e 180 itens de manipulador de alimento chegavam à
      mão de quem conserta. Aba nova, ao lado; a antiga continua intacta. */
-  mnt28:{label:"MNT 28.07.26",tipo:"mnt28",panel:"tab-mnt28",
+  /* O NOME DA ABA (26/08): era "MNT 28.07.26", a data em que ela nasceu. Servia
+     enquanto era novidade; hoje só confunde quem abre o site. Pedido dela:
+     "o nome do relatório no site virasse Manutenções e Infraestrutura". Vale
+     para as duas lojas, porque o nome da aba é o mesmo em todas. */
+  mnt28:{label:"Manutenções e Infraestrutura",tipo:"mnt28",panel:"tab-mnt28",
       icone:ICO.mnt,cor:"#155244",corFundo:"#e8f5f0",hub:true,
-      subtitle:n=>"Manutenção e Infraestrutura — "+n,
+      subtitle:n=>"Obras, consertos e instalações — "+n,
       renderCards(){document.getElementById("cards").innerHTML="";},
       onShow(){currentTipo="mnt28";if(typeof renderMnt28==="function")renderMnt28();}},
   ind:{label:"Indicadores",tipo:null,panel:"tab-ind",
@@ -1859,7 +1863,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.58";
+const APP_VERSAO="9.59";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
