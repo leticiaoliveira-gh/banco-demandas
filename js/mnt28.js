@@ -127,7 +127,7 @@ function m28PisoBonito(nome){
    Agora são dois campos, guardados no cabeçalho da aba e trocados pelo lápis.
    Se ela ainda não trocou nada, vale o que ela pediu em 29/07. */
 /* ela tirou "de Producao" em 25/08: a folha vai para fora e o cargo curto basta */
-const M28_RT_LINHA="Nutricionista RT · CRN-4: 22103217";
+const M28_RT_LINHA="Nutricionista – RT · CRN-4: 22103217";
 /* do texto livre antigo, aproveita só a primeira parte (antes da vírgula ou do
    travessão) — que é onde o nome dela está. Nunca fica vazio. */
 function m28RtNome(c){
@@ -577,7 +577,11 @@ function m28CausaHTML(){
    NUNCA se apaga. Estava escondido no meio do texto cinza. Agora vira um selo
    com a PALAVRA escrita — vermelho ajuda, mas quem informa é a palavra, porque
    cor sozinha não pode ser a única forma de dizer algo (e há quem não a veja). */
-/* O TRAVESSAO LONGO NAO ENTRA, NUNCA (25/08).
+/* O TRAVESSAO LONGO SAI DO TEXTO, E SO DO TEXTO (25/08).
+   Correcao dela no mesmo dia: "e pra voce manter sim o travessao nos titulos, no
+   cabecalho, no CRN, no nome das areas. Ele so nao e pra ser usado em texto."
+   Entao: demanda, observacao e lembrete passam por aqui; titulo, faixa do topo,
+   linha do CRN e nome de area NAO passam.
    Regra dela, repetida varias vezes: "eu nao sei nem usar isso, nao sei nem
    como que faz isso no teclado e nao quero saber, porque eu nao uso. Fica
    muito inteligente e artificial."
@@ -909,7 +913,7 @@ function m28Imprimir(){
     if(d.piso!==piso){piso=d.piso;area=null;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;
-      blocos+=`<div class="bl ar"><span>${esc(m28SemTravessao(area))}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
+      blocos+=`<div class="bl ar"><span>${esc(area)}</span><b>${nArea[d.piso+"|"+d.area]}</b></div>`
         +`<div class="bl cab"><span class="c">${esc(m28T().colFeito)}</span><span class="f">${esc(m28T().colFazer)}</span>`
         /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
            não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
@@ -956,7 +960,7 @@ function m28Imprimir(){
       <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
-  const titulo="Manutenção e Infraestrutura · "+loja;
+  const titulo="Manutenção e Infraestrutura — "+loja;
 
   const w=window.open("");
   if(!w){alert("O navegador bloqueou a janela de impressão. Libere as janelas para este site e tente de novo.");return;}
