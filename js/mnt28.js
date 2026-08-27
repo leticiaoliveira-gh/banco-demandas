@@ -80,7 +80,7 @@ const M28_TXT_PADRAO={
   colFeito:"Feito?",colFazer:"Demanda",
   /* "Observacoes" era vago demais, palavra dela em 25/08. Virou "Lembretes".
      CUIDADO: o campo so-dela continua sendo "Letícia revisar urgente", com cadeado. */
-  colData:"Data Registro",colObs:"Lembretes",
+  colData:"Data Registrada",colObs:"Lembretes",
   /* na FOLHA o recado virou pastilha embaixo da demanda, e o rotulo virou o
      prefixo dela. Ela escreveu "Obs:" a mao no papel, entao e' "Obs:". Na TELA
      continua "Lembretes", que e' o nome da coluna la. */
@@ -1287,9 +1287,9 @@ function m28ImprimirFolha(op){
   .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;text-align:center;
     border-bottom:1px solid #eaecf0}
   .cab .c,.li .c{text-align:center}
-  /* titulo da coluna nasce onde o conteudo dela nasce -- so o quadradinho
-     "Feito?" fica centralizado, porque ali o conteudo tambem e' centralizado */
-  .cab .q,.cab .o{text-align:left}
+  /* a coluna da data e' centralizada por inteiro: o titulo, a data e o atraso
+     em vermelho, um debaixo do outro no mesmo eixo */
+  .cab .q,.li .q{text-align:center}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
   .li{padding-top:7px;padding-bottom:7px}
   .li .o{color:#667085;font-size:11.4px}
