@@ -1107,9 +1107,10 @@ function m28ImprimirFolha(op){
   const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const feitos=rows.filter(d=>d.feito).length;
   const urgentes=rows.filter(d=>d.urg&&!d.feito).length;
-  /* nome do arquivo e da janela: as duas folhas saem no mesmo dia e ela não pode
-     confundir uma com a outra na hora de imprimir */
-  const sufixo=op.emBranco?" (para marcar)":"";
+  /* NADA de sufixo no titulo (26/08): "(para marcar)" era recado meu para ela
+     nao trocar as duas vias, mas ia impresso no papel que a empresa le, e la
+     nao quer dizer nada. Quem separa as duas e' o nome do arquivo. */
+  const sufixo="";
   const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
 
@@ -1199,17 +1200,13 @@ function m28ImprimirFolha(op){
          feito os dois dao o mesmo numero, e total = a fazer + feitos. Quem conta
          os feitos e ela, no site, depois que ele devolve a folha marcada.
          Na TELA continuam os quatro. */""}
+    ${/* URGENTES a ESQUERDA e demandas gerais a direita, pedido dela em 26/08.
+         O que pede atencao vem primeiro no caminho do olho. */""}
     <div class="nums">
-      <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
+      <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
-  /* "Emitido em" e' a data que ELA escolhe e pode ser de julho; isto aqui e'
-     outra coisa: o momento em que este papel saiu da impressora. */
-  const agora=new Date();
-  const doisD=n=>String(n).padStart(2,"0");
-  const tirada="Folha tirada em "+doisD(agora.getDate())+"/"+doisD(agora.getMonth()+1)
-    +"/"+agora.getFullYear()+" às "+doisD(agora.getHours())+":"+doisD(agora.getMinutes());
 
   const w=window.open("");
   if(!w){alert("O navegador bloqueou a janela de impressão. Libere as janelas para este site e tente de novo.");return;}
@@ -1341,7 +1338,6 @@ function m28ImprimirFolha(op){
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
   .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:space-between;
     gap:12px;font-size:8.4px;color:#667085;border-top:1px solid #eaecf0;padding-top:5px}
-  .pe .tirada{color:#98a2b3}
   .aviso{width:210mm;margin:14px auto;background:#fffaeb;border:1px solid #fedf89;color:#b54708;
     border-radius:8px;padding:12px 15px;font-size:12.5px;line-height:1.5}
   .aviso b{color:#93370d}
@@ -1437,7 +1433,6 @@ function m28ImprimirFolha(op){
       var pe=document.createElement("div");
       pe.className="pe";
       pe.innerHTML='<span>'+window.__TITULO+'</span>'
-        +'<span class="tirada">'+window.__TIRADA+'</span>'
         +'<span>'+(k+1)+' / '+folhas.length+'</span>';
       folhas[k].appendChild(pe);
     }
@@ -1455,7 +1450,7 @@ function m28ImprimirFolha(op){
     +'<div id="alvo"></div></body></html>');
   doc.close();
   /* passa os dados por variável (nada de montar script dentro de string) */
-  w.__BLOCOS=blocos; w.__CABECALHO=cabecalho; w.__TITULO=titulo; w.__TIRADA=tirada;
+  w.__BLOCOS=blocos; w.__CABECALHO=cabecalho; w.__TITULO=titulo;
   w.__TOPO2=topoSeguintes;
   const s=doc.createElement("script");
   s.textContent=PAGINADOR;
