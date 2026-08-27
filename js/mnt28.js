@@ -74,6 +74,13 @@ let M28_ORDEM=null,M28_CAB=null;
    título por extenso, colunas "Feito? | Demanda | Data Registro | Observações".
    Continua tudo editável pelo ✎ — isto é só o novo ponto de partida. */
 const M28_TXT_PADRAO={
+  /* IDENTIDADE C (27/08): ela vai ter relatorio de manutencao, de qualidade e
+     de eletrica, e quer bater o olho e saber qual e' qual sem ler tudo -- e sem
+     repetir a mesma ideia duas vezes, que era o problema do "Relatorio de
+     manutencao" em cima de "Manutencao e Infraestrutura". Agora e' uma frase
+     so: o TIPO em destaque, o resto do nome depois. Os dois continuam
+     editaveis pelo lapis -- nada fixo no codigo. */
+  tipoRelatorio:"Manutenção",
   etiqueta:"Relatório de manutenção",
   tituloPrefixo:"Manutenção e Infraestrutura —",
   rotExec:"Responsável pelos serviços",
@@ -144,6 +151,25 @@ function m28Titulo(c){
    embaixo, dentro do proprio verde.
    Estas tres funcoes existem porque a faixa mostra loja, piso e mes SEPARADOS --
    antes os tres viviam grudados numa frase so, dentro de m28Titulo(). */
+/* A FRASE DE IDENTIDADE: "TIPO · resto do nome", sem repetir a palavra.
+   Se o nome comeca com a mesma palavra do tipo (o caso de hoje: "Manutenção" e
+   "Manutenção e Infraestrutura"), essa palavra sai do resto antes de juntar --
+   senao ela apareceria duas vezes na mesma linha, que era exatamente a queixa
+   dela. Loja que tiver um "tipo" diferente do comeco do nome (ex.: tipo
+   "Elétrica" com nome "Manutenção e Infraestrutura") no futuro simplesmente
+   nao teria nada para cortar, e as duas partes aparecem inteiras. */
+function m28Identidade(){
+  const tipo=(m28T().tipoRelatorio||"").trim();
+  let resto=m28Assunto();
+  if(tipo){
+    const primeira=tipo.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+    const restoSemAcento=resto.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+    if(restoSemAcento.startsWith(primeira)){
+      resto=resto.slice(tipo.length).replace(/^\s*[eE]\s+/,"").trim();
+    }
+  }
+  return {tipo,resto};
+}
 function m28Assunto(){
   /* "Manutencao e Infraestrutura —" e' o comeco do titulo que ela edita pelo lapis.
      Na faixa ele aparece sozinho, entao o travessao do fim sai. */
@@ -1178,20 +1204,20 @@ function m28ImprimirFolha(op){
     .filter(x=>x[1])
     .map(x=>`<div>${esc(x[1])}</div>`).join("");
 
+  const ident=m28Identidade();
   const cabecalho=`<div class="capa">
-      <div class="et">${esc(m28T().etiqueta)}</div>
-      <div class="assunto">${esc(m28Assunto())}</div>
+      <div class="identidade">${ident.tipo?`<b>${esc(ident.tipo.toUpperCase())}</b>`:""}${ident.tipo&&ident.resto?" · ":""}${esc(ident.resto)}</div>
       ${faixa?`<div class="faixa">${faixa}</div>`:""}
-      ${/* a linha fina: quem executa, quem assina, a unidade e a data. Continua
-           dentro do verde, so que pequena -- ela pediu para destacar as quatro de
-           cima "fora as outras coisas". */""}
+      ${/* LINHA DE BAIXO, opcao B (27/08): duas colunas -- unidade e emissao numa
+           linha, executor e responsavel tecnica na outra. Cada item com seu
+           proprio espaco, sem disputar largura numa fileira so. */""}
       <div class="cpe">
         <div><span>${esc(m28T().rotUnidade)}</span><b>${esc(loja)}</b></div>
         ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
         <div><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
-        ${exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
+        ${exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:"<div></div>"}
         <div><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
       </div>
     </div>
@@ -1238,8 +1264,11 @@ function m28ImprimirFolha(op){
   .capa{background:linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%);color:#fff;
     padding:12px 16px;border-radius:8px;margin-bottom:11px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.88)}
-  .capa .assunto{font-size:21px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:3px}
+  /* IDENTIDADE C: uma frase so, "TIPO · resto do nome" -- ela escolheu vendo as
+     opcoes em 27/08. O tipo vem em negrito e maiuscula; o resto, no peso normal
+     do titulo, do mesmo tamanho, para nao competir visualmente. */
+  .capa .identidade{font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.2}
+  .capa .identidade b{font-weight:800;letter-spacing:.3px}
   /* a faixa em tres partes iguais. Cada pedaco leva o NOME do que e' (Loja, Piso,
      Mes) porque no papel a posicao sozinha nao diz -- e ele recebe mais de uma
      folha no mesmo dia. */
@@ -1262,11 +1291,14 @@ function m28ImprimirFolha(op){
   .capa .faixa .mes span{color:rgba(255,255,255,.86)}
   .capa .faixa .mes b{color:#fff}
   /* a linha fina de baixo, ainda dentro do verde */
-  .capa .cpe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
-    margin-top:9px;padding-top:7px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
-  .capa .cpe div{display:flex;align-items:baseline;gap:5px}
+  /* LINHA DE BAIXO, opcao B: duas colunas -- unidade e emissao numa linha,
+     executor e responsavel tecnica na outra. Ela achou a fileira unica
+     "embolada"; cada dupla ganha a largura inteira da coluna dela agora. */
+  .capa .cpe{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;
+    margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
+  .capa .cpe div{display:flex;flex-direction:column;gap:1px}
   .capa .cpe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
-  .capa .cpe b{font-weight:600;font-size:10.2px;color:#fff}
+  .capa .cpe b{font-weight:600;font-size:10.6px;color:#fff}
   .capa .cpe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.88)}
   .nums{display:flex;gap:7px;margin-bottom:10px}
   .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:6px 9px;background:#f9fafb;text-align:center}
@@ -1492,7 +1524,8 @@ async function m28Alternar(chave){
 /* a janelinha com TODOS os textos fixos da folha, cada um num campo */
 async function m28GerirTextos(){
   await m28Config();
-  const ROTS={etiqueta:"Etiqueta pequena do topo",
+  const ROTS={tipoRelatorio:"Tipo do relatório (folha impressa, na frente do título)",
+    etiqueta:"Etiqueta pequena do topo",
     tituloPrefixo:"Começo do título (o mês entra sozinho depois)",
     rotExec:"Rótulo acima do responsável",
     colFeito:"Coluna: feito",colFazer:"Coluna: o que fazer",
