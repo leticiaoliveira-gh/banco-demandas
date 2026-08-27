@@ -1235,7 +1235,7 @@ function m28ImprimirFolha(op){
      degradê MUITO curto que dava profundidade. A diferença dos dois tons aqui é
      pequena de propósito: o degradê largo era justamente o que fazia a ponta
      direita sair lavada no papel. */
-  .capa{background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);color:#fff;
+  .capa{background:linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%);color:#fff;
     padding:12px 16px;border-radius:8px;margin-bottom:11px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.88)}
@@ -1258,9 +1258,9 @@ function m28ImprimirFolha(op){
      vermelha pra identificacao ser mais facil". Vermelho sobre o verde escuro
      seria ilegivel, entao a pastilha do mes ganha fundo claro e o vermelho vai
      no texto -- salta e continua legivel na fotocopia. */
-  .capa .faixa .mes{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .capa .faixa .mes span{color:#7a2b23}
-  .capa .faixa .mes b{color:#b42318}
+  .capa .faixa .mes{background:#b42318;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .capa .faixa .mes span{color:rgba(255,255,255,.86)}
+  .capa .faixa .mes b{color:#fff}
   /* a linha fina de baixo, ainda dentro do verde */
   .capa .cpe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
     margin-top:9px;padding-top:7px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
@@ -1280,7 +1280,7 @@ function m28ImprimirFolha(op){
   .ar b{font-weight:700;color:#155244;font-size:10.5px;
     background:#fff;border-radius:10px;padding:1px 8px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .cab,.li{display:grid;grid-template-columns:46px 1fr 66px;gap:8px;padding:4px 8px}
+  .cab,.li{display:grid;grid-template-columns:46px 1fr 92px;gap:8px;padding:4px 8px}
   .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;text-align:center;
     border-bottom:1px solid #eaecf0}
   .cab .c,.li .c{text-align:center}
@@ -1309,8 +1309,12 @@ function m28ImprimirFolha(op){
   .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
   .li .q{font-size:10.8px;color:#667085}
   .li .q b{display:block;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
-  .li .q i{font-style:normal;display:block;font-size:8.8px}
-  .li .q i.grave{color:#b42318;font-weight:600}
+  /* o tempo de atraso vira PASTILHA: com 66px a data e o tempo se atropelavam,
+     e ela disse que estava embolado. Coluna maior e cada um no seu lugar. */
+  .li .q i{font-style:normal;display:inline-block;font-size:8.6px;margin-top:3px;
+    background:#f2f4f7;border-radius:99px;padding:1px 7px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .li .q i.grave{background:#fef3f2;color:#b42318;font-weight:700}
 
   /* orientação técnica com a base legal — a categoria vai ESCRITA entre
      colchetes, porque no papel a cor do selo não existe */
@@ -1336,8 +1340,9 @@ function m28ImprimirFolha(op){
   .cab .f{text-align:left}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
-  .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:space-between;
-    gap:12px;font-size:8.4px;color:#667085;border-top:1px solid #eaecf0;padding-top:5px}
+  .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:flex-end;
+    font-size:8.4px;color:#667085;border-top:1px solid #eaecf0;padding-top:5px}
+  .pe .pag{font-variant-numeric:tabular-nums}
   .aviso{width:210mm;margin:14px auto;background:#fffaeb;border:1px solid #fedf89;color:#b54708;
     border-radius:8px;padding:12px 15px;font-size:12.5px;line-height:1.5}
   .aviso b{color:#93370d}
@@ -1432,8 +1437,9 @@ function m28ImprimirFolha(op){
     for(var k=0;k<folhas.length;k++){
       var pe=document.createElement("div");
       pe.className="pe";
-      pe.innerHTML='<span>'+window.__TITULO+'</span>'
-        +'<span>'+(k+1)+' / '+folhas.length+'</span>';
+      /* so o numero da pagina, encostado a direita -- escolha dela: discreto e
+         fora do caminho. O nome do relatorio ja esta no alto de toda pagina. */
+      pe.innerHTML='<span class="pag">'+(k+1)+' / '+folhas.length+'</span>';
       folhas[k].appendChild(pe);
     }
   })();`;
