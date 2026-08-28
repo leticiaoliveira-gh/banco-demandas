@@ -1209,7 +1209,7 @@ function m28ImprimirFolha(op){
     if(d.piso!==piso){piso=d.piso;area=null;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;nDemanda=0;
-      blocos+=`<div class="bl ar" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${esc(area)}</span>`
+      blocos+=`<div class="bl ar" data-piso="${esc(m28PisoBonito(d.piso||""))}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${esc(area)}</span>`
         +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`;}
     nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
@@ -1227,7 +1227,7 @@ function m28ImprimirFolha(op){
        do quadradinho de marcar, que foi o ponto que ela fez questao de marcar.
        Com a coluna a menos, a demanda ganhou a largura que faltava. */
     const recado=(d.obs||"").trim();
-    blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
+    blocos+=`<div class="bl li${d.urg?" urgl":""}" data-piso="${esc(m28PisoBonito(d.piso||""))}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
       +`<span class="nm">${nDemanda}.</span>`
       +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(m28SemTravessao(d.fazer||""))}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
@@ -1246,8 +1246,23 @@ function m28ImprimirFolha(op){
      buraco na faixa. */
   /* cada pedaco leva o proprio nome de classe: marcar o mes pela POSICAO daria
      errado assim que a loja ou o piso viessem vazios e a faixa encurtasse */
+  /* O PISO SAI DA FOLHA, NAO DO FILTRO (28/08). Antes vinha so de M28F.piso: se
+     ela mandava imprimir sem ter escolhido o piso no seletor, a faixa e o topo
+     das paginas seguintes saiam SEM o piso, mesmo com a folha inteira sendo de
+     um piso so. Ela viu no papel: "mas cade o piso?". Agora, sem filtro, se
+     todas as demandas forem do mesmo piso, e' esse o piso que sai. */
+  const pisosNaFolha=[...new Set(rows.map(d=>(d.piso||"").trim()).filter(Boolean))]
+    .sort(m28CmpPiso).map(x=>m28PisoBonito(x));
+  /* O PISO NUNCA SOME (28/08). Palavras dela: "mesmo quando eu filtrar todas as
+     areas para o PDF, ele precisa mostrar obrigatoriamente o piso". Sem filtro
+     de piso, sai o piso que a folha realmente tem; com mais de um, saem os dois
+     nomeados. O topo das paginas seguintes vai alem: mostra o piso DAQUELA
+     pagina, escolhido pelo paginador. */
+  const pisoDaFolha=(M28F.piso||"").trim()
+    ? m28PisoBonito((M28F.piso||"").trim())
+    : pisosNaFolha.join(" e ");
   const faixa=[["loja",m28T().rotLoja,(currentStore||"").trim()],
-               ["piso",m28T().rotPiso,m28PisoBonito((M28F.piso||"").trim())],
+               ["piso",m28T().rotPiso,pisoDaFolha],
                ["mes", m28T().rotMes, m28Mes(c)]]
     .filter(x=>x[2])
     .map(x=>`<div class="${x[0]}"><span>${esc(x[1])}</span><b>${esc(x[2])}</b></div>`).join("");
@@ -1256,11 +1271,11 @@ function m28ImprimirFolha(op){
      o piso e o mes. Motivo dela: "pra identificar rapido a empresa, piso e o mes
      que to avaliando e nao ficar retornando pra primeira pagina toda hora".
      So da SEGUNDA pagina em diante -- na primeira o cabecalho verde ja diz tudo. */
-  const topoSeguintes=[[m28T().rotLoja,(currentStore||"").trim()],
-                       [m28T().rotPiso,m28PisoBonito((M28F.piso||"").trim()).toUpperCase()],
-                       [m28T().rotMes,m28Mes(c)]]
+  const topoSeguintes=[[m28T().rotLoja,(currentStore||"").trim(),""],
+                       [m28T().rotPiso,pisoDaFolha.toUpperCase(),"pp"],
+                       [m28T().rotMes,m28Mes(c),""]]
     .filter(x=>x[1])
-    .map(x=>`<div>${esc(x[1])}</div>`).join("");
+    .map(x=>`<div${x[2]?` class="${x[2]}"`:""}>${esc(x[1])}</div>`).join("");
 
   const ident=m28Identidade();
   const cabecalho=`<div class="capa">
@@ -1621,6 +1636,17 @@ function m28ImprimirFolha(op){
          fora do caminho. O nome do relatorio ja esta no alto de toda pagina. */
       pe.innerHTML='<span class="pag">'+(k+1)+' / '+folhas.length+'</span>';
       folhas[k].appendChild(pe);
+    }
+    /* O PISO DA PAGINA (28/08). Com a folha de um piso so, todas as paginas
+       dizem o mesmo. Com mais de um, cada pagina passa a dizer o piso que ELA
+       traz, em vez de repetir "1o e 2o Piso" em todas: e' esse o motivo das
+       tres caixas do alto, nao voltar a primeira pagina para saber onde esta. */
+    var comTopo=alvo.querySelectorAll(".folha .topo2 .pp");
+    for(var t=0;t<comTopo.length;t++){
+      var f2=comTopo[t].closest(".folha");
+      var prim=f2&&f2.querySelector("[data-piso]");
+      if(prim&&prim.getAttribute("data-piso"))
+        comTopo[t].textContent=prim.getAttribute("data-piso").toUpperCase();
     }
     document.body.setAttribute("data-folha-pronta","1");
     }
