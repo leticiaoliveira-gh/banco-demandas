@@ -54,6 +54,12 @@ function m28ItensDaFolha(){
   if(M28F.area)t=t.filter(d=>d.area===M28F.area);
   return t;
 }
+/* O QUE OS NÚMEROS CONTAM (28/08) — o mesmo que vai no papel.
+   O item posto em "Verificar" continua na lista da tela, mas fora dos números:
+   ele não existe na folha do Sr. João, e um total da tela que não bate com o
+   papel é pior que total nenhum. Quantos estão em verificação aparece na
+   pastilha de cada área, em "N a verificar". */
+function m28ItensContados(){ return m28ItensDaFolha().filter(d=>!d.verificar); }
 
 /* ---- itens desta aba, da empresa aberta ---- */
 function m28Itens(){
@@ -272,11 +278,17 @@ function m28PosArea(p,a){const o=m28Ordem();if(!o||!o[p])return 999;const i=o[p]
 /* Cada serviço carrega o número da própria posição (campo "ordem"), calculado
    a partir da lista oficial de áreas. É o que faz a folha continuar na ordem
    certa mesmo se ela importar o arquivo num aparelho novo, sem mais nada. */
+/* A ÁREA MANDA ANTES DA ORDEM (27/08).
+   Antes `ordem` vinha primeiro, e serviços da MESMA área com números de ordem
+   distantes ficavam separados: na folha o "CORREDOR - ACESSO INTERNO" aparecia
+   duas vezes, cada uma dizendo "4 serviços". Com cada área virando um bloco
+   fechado isso ficou impossível de ignorar.
+   Agora a área é sempre contígua, e a ordem dela vale DENTRO da área. */
 function m28Comparar(a,b){
   return m28CmpPiso(a.piso,b.piso)
-    ||((a.ordem??1e9)-(b.ordem??1e9))
     ||m28PosArea(a.piso,a.area)-m28PosArea(b.piso,b.area)
-    ||String(a.area||"").localeCompare(String(b.area||""));
+    ||String(a.area||"").localeCompare(String(b.area||""))
+    ||((a.ordem??1e9)-(b.ordem??1e9));
 }
 
 /* =====================================================================
@@ -332,7 +344,7 @@ async function renderMnt28(){
      Foi por confundir as duas que os numeros do topo passaram meses contando a
      loja inteira embaixo de uma lista de um piso so. */
   const basePlena=m28Itens();
-  const todos=m28ItensDaFolha();
+  const todos=m28ItensContados();   /* fora os "Verificar": contam o mesmo que o papel */
   /* LAY-3: escolhida uma pessoa, TUDO passa a ser a folha dela — capa, números
      e lista. Números da folha inteira embaixo do nome de uma pessoa só seriam
      um número que a prejudica, e isso aqui não pode acontecer. */
@@ -512,19 +524,31 @@ function m28RenderLista(){
   }
   rows.sort(m28Comparar);
 
-  const nPiso={},nArea={},fArea={};
+  /* A CONTAGEM DA TELA CONTA O MESMO QUE O PAPEL (28/08).
+     O item posto em "Verificar" não vai na folha do Sr. João, então também não
+     entra em "N serviços" aqui: número que não bate com o papel é pior que
+     número nenhum, e ela assina esse papel. Ele continua visível na lista e é
+     contado à parte, em "N a verificar", para não sumir da vista dela. */
+  const nPiso={},nArea={},fArea={},vArea={};
   for(const d of rows){
-    nPiso[d.piso]=(nPiso[d.piso]||0)+1;
     const k=d.piso+"|"+d.area;
+    if(d.verificar){vArea[k]=(vArea[k]||0)+1;continue;}
+    nPiso[d.piso]=(nPiso[d.piso]||0)+1;
     nArea[k]=(nArea[k]||0)+1;
     if(d.feito)fArea[k]=(fArea[k]||0)+1;
   }
-  let html="",piso=null,area=null;
+  /* MESMO DESENHO DA FOLHA IMPRESSA (27/08): cada área é um bloco fechado, e a
+     lista é numerada, sem os títulos de coluna. Ela pediu o padrão igual em
+     tudo, tela e papel. `aberto` guarda se já existe um bloco a fechar. */
+  let html="",piso=null,area=null,nDemanda=0,aberto=false;
+  const fecha=()=>{if(aberto){html+="</div>";aberto=false;}};
   for(const d of rows){
-    if(d.piso!==piso){piso=d.piso;area=null;
-      html+=`<div class="m28-piso">${esc(piso||"Sem piso")}<span class="m28-count">${nPiso[d.piso]} ${nPiso[d.piso]===1?"serviço":"serviços"}</span></div>`;}
-    if(d.area!==area){area=d.area;const k=d.piso+"|"+d.area;
-      const f=fArea[k]||0,n=nArea[k];
+    if(d.piso!==piso){piso=d.piso;area=null;fecha();
+      const np=nPiso[d.piso]||0;
+      html+=`<div class="m28-piso">${esc(piso||"Sem piso")}<span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
+    if(d.area!==area){area=d.area;nDemanda=0;const k=d.piso+"|"+d.area;
+      fecha();html+='<div class="m28-grupo">';aberto=true;
+      const f=fArea[k]||0,n=nArea[k]||0,v=vArea[k]||0;
       const fechada=!!M28F.fechadas[k];
       /* Folha 2 dela: cada área pode FECHAR, igual ao Notion — a setinha gira e
          os serviços somem até abrir de novo. Só arruma a vista: nada se apaga. */
@@ -535,10 +559,17 @@ function m28RenderLista(){
         +`<span class="m28-area-nome">${esc(area)}</span>`
         +`<button class="m28-lapis m28-lapis-area" onclick="m28RenomearArea('${esc(d.piso).replace(/'/g,"\'")}','${esc(area).replace(/'/g,"\'")}')"
             title="Renomear esta área (vale para a folha inteira)" aria-label="Renomear a área ${esc(area)}">✎</button>`
-        +`<span class="m28-count">${f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")}</span>`
-        +(fechada?"":`<div class="m28-tab-cab"><span>${esc(m28T().colFeito)}</span><span>${esc(m28T().colFazer)}</span><span>${esc(m28T().colData)}</span><span>${esc(m28T().colObs)}</span></div>`)
+        /* área que só tem item em verificação não diz "0 serviços": diria a ela
+           que não há nada aqui, quando na verdade há algo esperando a conferência */
+        +`<span class="m28-count">${n?(f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")):""}`
+        +(v?`<i class="m28-count-ver">${v} a verificar</i>`:"")+`</span>`
         +`</div>`;}
     if(M28F.fechadas[d.piso+"|"+d.area])continue;
+    /* o item em "Verificar" não recebe número: ele não existe na folha do Sr.
+       João, e ela combina os serviços com ele PELO NÚMERO. Se contasse aqui, o
+       "6" da tela seria o "5" do papel. No lugar do número vai um traço. */
+    if(!d.verificar)nDemanda++;
+    const numero=d.verificar?"—":nDemanda+".";
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
@@ -547,10 +578,12 @@ function m28RenderLista(){
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
-      <div class="m28-fazer m28-linhas">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${esc(m28SemTravessao(d.fazer||""))}
-        ${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?`<span class="m28-origem">${esc(d.origem)}</span>`:""}
-        ${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}
-        ${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
+      <span class="m28-num${d.verificar?" m28-num-ver":""}">${numero}</span>
+      ${/* o texto da demanda vai num <span> proprio com pre-wrap: so o enter que
+           ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
+           a indentacao do proprio codigo aqui embaixo virava linha em branco
+           depois de cada demanda -- era o "espaco" que ela via. */""}
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">🔎 Verificar · não sai na folha</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
             conserta; o LEMBRETE é só dela e nunca é impresso. Antes havia
@@ -559,12 +592,17 @@ function m28RenderLista(){
       <div class="m28-obs">${d.obs?m28Texto(d.obs):(d.nota?"":'<span class="m28-vaziotxt">—</span>')}
         ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 Letícia revisar urgente · não sai na folha</span>${m28Texto(d.nota)}</div>`:""}</div>
       <div class="m28-acts">
+        <button class="btn ghost sm${d.verificar?" m28-ver-on":""}" onclick="m28Verificar(${d.id})"
+          aria-pressed="${d.verificar?"true":"false"}"
+          aria-label="${d.verificar?"Voltar a incluir na folha impressa":"Marcar como “Verificar”: fica na sua tela, mas não sai na folha impressa"}"
+          title="${d.verificar?"Está fora da folha impressa — toque para voltar a incluir":"Marcar “Verificar”: some da folha impressa do Sr. João, continua aqui na sua tela"}">🔎</button>
         <button class="btn ghost sm" onclick="m28ParaQualidade(${d.id})" aria-label="Transferir para o relatório de Qualidade"
           title="Transferir: sai desta folha e vira uma Não Conformidade no relatório de Qualidade">⇄</button>
         <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;
   }
+  fecha();
   html+=m28CausaHTML();
   el.innerHTML=html;
 }
@@ -576,6 +614,7 @@ function m28RenderLista(){
    ===================================================================== */
 function m28Filtradas(){
   let rows=m28ItensDaFolha();   /* pessoa, piso e area ja vem aplicados */
+  rows=rows.filter(d=>!d.verificar);   /* "Verificar": fica na tela, nunca na folha que sai */
   if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
   if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
   return rows.sort(m28Comparar);
@@ -784,6 +823,19 @@ async function m28Marcar(id){
   await putItem(d);dataChanged();
   m28AtualizarTopo();m28RenderLista();
 }
+/* "VERIFICAR" (27/08) — pedido dela: um item que ela ainda precisa conferir na
+   loja NAO pode ir no papel do Sr. Joao (nao e' serviço a entregar), mas tem
+   que continuar aparecendo na tela dela. Antes nao havia jeito: ou estava "a
+   fazer", ou "feito", ou sumia para a Qualidade. Agora e' uma chave: fora da
+   folha impressa e da contagem dela; na tela fica, com o selo escrito.
+   Desmarcar volta tudo — nada se perde. */
+async function m28Verificar(id){
+  const d=DATA.find(x=>x.id===id);if(!d)return;
+  d.verificar=!d.verificar;d.mod=nowISO();
+  await putItem(d);dataChanged();
+  m28AtualizarTopo();m28RenderLista();
+  toast(d.verificar?"Marcado como “Verificar” — não sai na folha impressa":"Volta a sair na folha impressa");
+}
 /* ===== EDITAR NA PRÓPRIA TELA =====
    Antes isto abria a janelinha cinza do navegador (o prompt). Ela odiou, com
    razão: some o resto da tela, não dá para escolher a área numa lista e não
@@ -961,7 +1013,7 @@ async function m28Novo(){
 }
 /* só os números do topo — evita redesenhar a folha inteira a cada toque */
 function m28AtualizarTopo(){
-  const itens=m28ItensDaFolha(),total=itens.length,feitos=itens.filter(d=>d.feito).length;
+  const itens=m28ItensContados(),total=itens.length,feitos=itens.filter(d=>d.feito).length;
   const el=document.getElementById("tab-mnt28");if(!el)return;
   const nums=el.querySelectorAll(".m28-nums .bd-kpi");
   if(nums.length>=3){
@@ -1032,7 +1084,7 @@ function m28FotosFolha(d){
    vai ficar salvo e você não vai mais precisar ficar colocando nada na nuvem".
    ===================================================================== */
 function m28Imprimir(){
-  const itens=m28ItensDaFolha();
+  const itens=m28ItensContados();   /* a janela promete o que a folha vai levar */
   const faltam=itens.filter(d=>!d.feito).length;
   const feitos=itens.filter(d=>d.feito).length;
   /* nada resolvido ainda: as duas folhas seriam iguais, então não há escolha
@@ -1106,6 +1158,10 @@ function m28Imprimir(){
 function m28ImprimirFolha(op){
   op=op||{};
   let rows=m28ItensDaFolha();   /* pessoa, piso e area: a mesma conta da tela */
+  /* os itens que ela marcou "Verificar" ficam na tela dela, mas NUNCA no papel
+     do Sr. João -- são lembrete de conferir na loja, não serviço a entregar.
+     Fora da folha de marcar também: naquela data ela ainda não os confirmou. */
+  rows=rows.filter(d=>!d.verificar);
   /* na folha de marcar, o que ela filtrou na tela não manda: a folha é a foto
      do trabalho inteiro naquela data, feito e não feito */
   if(!op.tudo){
@@ -1140,21 +1196,22 @@ function m28ImprimirFolha(op){
   const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
 
-  /* blocos soltos; quem monta as folhas é o paginador no fim do documento */
+  /* blocos soltos; quem monta as folhas é o paginador no fim do documento.
+     CADA ÁREA VIRA UM BLOCO FECHADO (27/08). Ela viu numa página de comparação
+     e escolheu a opção 1: borda fina e fundo branco, sem sombra (sombra vira
+     mancha cinza no papel e gasta tinta), com a faixa verde cobrindo a linha
+     inteira, inclusive a pastilha da contagem.
+     A LISTA É NUMERADA e os títulos de coluna saíram: caixinha, número, texto.
+     A numeração RECOMEÇA em cada área, como ela pediu. */
   const nArea={};for(const d of rows){const k=d.piso+"|"+d.area;nArea[k]=(nArea[k]||0)+1;}
-  let blocos="",piso=null,area=null;
+  let blocos="",piso=null,area=null,nDemanda=0;
   for(const d of rows){
     if(d.piso!==piso){piso=d.piso;area=null;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
-    if(d.area!==area){area=d.area;
-      blocos+=`<div class="bl ar"><span>${esc(area)}</span>`
-        +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`
-        +`<div class="bl cab"><span class="c">${esc(m28T().colFeito)}</span><span class="f">${esc(m28T().colFazer)}</span>`
-        /* na folha impressa entra SÓ o recado (d.obs). O lembrete dela (d.nota)
-           não aparece aqui em lugar nenhum — é essa a razão de ele existir. */
-        /* a coluna de lembretes SAIU da tabela (26/08): o recado agora nasce
-           embaixo da propria demanda, e a demanda fica com a largura dela */
-        +`<span class="q">${esc(m28T().colData)}</span></div>`;}
+    if(d.area!==area){area=d.area;nDemanda=0;
+      blocos+=`<div class="bl ar" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${esc(area)}</span>`
+        +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`;}
+    nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
       ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
@@ -1171,6 +1228,7 @@ function m28ImprimirFolha(op){
        Com a coluna a menos, a demanda ganhou a largura que faltava. */
     const recado=(d.obs||"").trim();
     blocos+=`<div class="bl li${d.urg?" urgl":""}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
+      +`<span class="nm">${nDemanda}.</span>`
       +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(m28SemTravessao(d.fazer||""))}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
       +(recado?`<i class="obs-p linhas"><b>${esc(m28T().colObsImp)}</b>${esc(m28SemTravessao(recado))}</i>`:"")
@@ -1306,37 +1364,55 @@ function m28ImprimirFolha(op){
   .num b{font-size:16px;color:#101828;font-variant-numeric:tabular-nums}
   h2{font-size:11.5px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
     border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:7px 0 2px}
+  /* O BLOCO DA ÁREA (27/08) — opção 1 escolhida por ela em papel: borda fina,
+     fundo branco, sem sombra. Sombra vira mancha cinza na impressão e gasta
+     tinta; ela imprime colorido e são três páginas. */
+  .grupo{border:1px solid #d7dce2;border-radius:9px;overflow:hidden;margin-top:12px;background:#fff}
+  /* a faixa verde cobre a LINHA INTEIRA, inclusive a pastilha da contagem:
+     antes a pastilha ficava solta fora da faixa e ela pediu para entrar */
   .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
-    border-left:3px solid #1d6b57;padding:5px 9px;margin-top:14px;font-size:12px;font-weight:700;
-    color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    padding:6px 11px;font-size:12px;font-weight:700;
+    color:#155244;border-bottom:1px solid #d7e6e0;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .ar b{font-weight:700;color:#155244;font-size:10.5px;
-    background:#fff;border-radius:10px;padding:1px 8px;
+    background:#fff;border:1px solid #cfe5dd;border-radius:10px;padding:1px 8px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .cab,.li{display:grid;grid-template-columns:46px 1fr 92px;gap:8px;padding:4px 8px}
-  .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;text-align:center;
-    border-bottom:1px solid #eaecf0}
-  .cab .c,.li .c{text-align:center}
-  /* a coluna da data e' centralizada por inteiro: o titulo, a data e o atraso
+  /* a área que continua na página seguinte avisa, para ninguém achar que é outra */
+  .ar i{font-style:normal;font-weight:400;font-size:9px;color:#4a6b62;margin-left:7px;
+    text-transform:none;letter-spacing:0}
+  /* LISTA NUMERADA, sem títulos de coluna (27/08): caixinha, número, texto, data.
+     O número recomeça em cada área. */
+  .li{display:grid;grid-template-columns:26px 20px 1fr 90px;gap:7px;padding:7px 11px}
+  .li .c{text-align:center}
+  .li .nm{font-weight:700;color:#475467;text-align:right;font-variant-numeric:tabular-nums;
+    font-size:12px;padding-top:.5px}
+  /* a coluna da data e' centralizada por inteiro: a data e o atraso
      em vermelho, um debaixo do outro no mesmo eixo */
-  .cab .q,.li .q{text-align:center}
+  .li .q{text-align:center}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
-  .li{padding-top:7px;padding-bottom:7px}
+  .li:last-child{border-bottom:0}
   .li .o{color:#667085;font-size:11.4px}
-  /* a pastilha do recado: fundo claro, cantos redondos, e o "Obs:" em negrito
-     na frente para o olho achar sem ler */
-  .li .obs-p{display:block;font-style:normal;font-size:11.2px;line-height:1.45;
-    color:#475467;background:#f2f4f7;border-radius:6px;padding:5px 9px;margin-top:5px;
+  /* o recado (27/08): ela escolheu vendo em papel a opcao B -- so a palavra
+     "Obs:" ganha a capsula cinza; a frase segue em texto normal, sem fundo,
+     para poluir menos e ainda achar o recado de longe */
+  .li .obs-p{display:block;font-style:normal;font-size:11.2px;line-height:1.5;
+    color:#475467;margin-top:5px}
+  .li .obs-p b{font-weight:700;color:#344054;background:#eceff3;border-radius:5px;
+    padding:1px 7px;margin-right:6px;font-size:10.5px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .li .obs-p b{font-weight:700;color:#344054;margin-right:4px}
   /* o enter que ela deu vira quebra de linha de verdade, aqui e na tela */
   .li .linhas{white-space:pre-wrap}
   .num.urgente{background:#fef3f2;border-color:#fecdca}
   .num.urgente span{color:#b42318}
   .num.urgente b{color:#912018}
   /* a foto vai DENTRO da coluna do servico: nunca se separa dele na quebra */
-  .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
-  .li .fts img{width:32mm;height:24mm;object-fit:cover;
-    border:1px solid #eaecf0;border-radius:3px;
+  .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:flex-start}
+  /* a foto INTEIRA, nunca cortada (27/08): "object-fit:cover" recortava toda
+     foto para um retangulo deitado -- as fotos dela sao em pe e sumia metade
+     (o pedaco de madeira embaixo da lixeira, por exemplo). Agora cada foto
+     entra inteira, dentro de uma caixa maxima, guardando a proporcao dela. */
+  .li .fts img{max-width:54mm;max-height:48mm;width:auto;height:auto;object-fit:contain;
+    border:1px solid #eaecf0;border-radius:3px;background:#f8fafc;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
   .li .q{font-size:10.8px;color:#667085}
@@ -1369,7 +1445,6 @@ function m28ImprimirFolha(op){
   .ug{display:inline-block;font-style:normal;font-weight:700;letter-spacing:.4px;
     background:#b42318;color:#fff;border-radius:3px;padding:1px 5px;margin-right:4px;
     font-size:8.6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .cab .f{text-align:left}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
   .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:flex-end;
@@ -1386,11 +1461,33 @@ function m28ImprimirFolha(op){
   /* O paginador: monta folha por folha, medindo, para a numeração ser NOSSA.
      Assim ela pode desligar o cabeçalho/rodapé do navegador (que traz a data,
      a hora e o "about:blank" que ela detesta) sem perder o número da página. */
+  /* AS FOTOS PRECISAM ESTAR CARREGADAS ANTES DE MEDIR (27/08).
+     A conta de "coube ou não coube" é feita medindo a altura de verdade. Uma
+     foto que ainda não carregou ocupa altura zero: a demanda parecia caber, e
+     a foto aparecia cortada na quebra da página. Aconteceu na folha dela.
+     Então o paginador só começa depois que todas as imagens estão prontas.
+     A foto NUNCA é encolhida para caber: regra fixa dela. */
   const PAGINADOR=`(function(){
     var alvo=document.getElementById("alvo");
     var caixa=document.createElement("div");
     caixa.innerHTML=window.__BLOCOS;
     var fila=Array.prototype.slice.call(caixa.children);
+    var imgs=caixa.querySelectorAll("img");
+    var faltam=0;
+    for(var m=0;m<imgs.length;m++) if(!imgs[m].complete) faltam++;
+    if(faltam){
+      /* sem isto o navegador nem começa a baixar: a caixa está fora da página */
+      caixa.style.cssText="position:absolute;left:-99999px;top:0;width:186mm";
+      document.body.appendChild(caixa);
+      var pronto=function(){ if(--faltam<=0){ caixa.remove(); montar(); } };
+      for(var m2=0;m2<imgs.length;m2++) if(!imgs[m2].complete){
+        imgs[m2].addEventListener("load",pronto);
+        imgs[m2].addEventListener("error",pronto);
+      }
+      return;
+    }
+    montar();
+    function montar(){
     function novaFolha(primeira){
       var f=document.createElement("div");
       f.className="folha";
@@ -1436,29 +1533,80 @@ function m28ImprimirFolha(op){
       var f=folha.getBoundingClientRect(), c=corpo.getBoundingClientRect();
       return (c.bottom-f.top) > (f.height-RESERVA);
     }
+
+    /* CADA ÁREA É UM BLOCO FECHADO E NENHUMA DEMANDA PARTE NO MEIO (27/08).
+       Palavras dela: "pode sim a área começar em uma parte e terminar em outra
+       página; o que eu não quero é uma demanda começando em uma página e o
+       resto ficar para a segunda".
+       Então: a demanda entra dentro do grupo da área; se não coube, ela sai
+       INTEIRA e recomeça na folha seguinte, dentro de uma cópia do mesmo
+       cabeçalho de área, marcada como continuação. */
+    var grupo=null, cabAtual=null;
+    function abreGrupo(cabecalho,continuacao){
+      grupo=document.createElement("div");
+      grupo.className="grupo";
+      var cab=cabecalho.cloneNode(true);
+      if(continuacao){
+        var marca=document.createElement("i");
+        marca.textContent="continuação";
+        cab.querySelector("span").appendChild(marca);
+      }
+      grupo.appendChild(cab);
+      corpo.appendChild(grupo);
+      cabAtual=cabecalho;
+      return grupo;
+    }
+    /* ARMADILHA (27/08): este bloco inteiro é uma template string do arquivo.
+       Uma expressão como /\\bar\\b/ escrita aqui com uma barra só vira o
+       caractere invisível de backspace antes de o navegador ler o código, e o
+       teste nunca casa: TODA área era tratada como demanda e a folha saía com
+       um bloco só. Aqui a comparação é feita pela lista de classes, sem regex. */
+    function tem(cls,nome){ return (" "+cls+" ").indexOf(" "+nome+" ")>=0; }
     for(var i=0;i<fila.length;i++){
-      corpo.appendChild(fila[i]);
-      if(estourou()){
-        corpo.removeChild(fila[i]);
-        var volta=[];
-        while(corpo.lastChild && /(piso|ar|cab)/.test(corpo.lastChild.className||"")){
-          volta.unshift(corpo.lastChild); corpo.removeChild(corpo.lastChild);
+      var el=fila[i], cls=el.className||"";
+      if(tem(cls,"piso")){
+        grupo=null;cabAtual=null;
+        corpo.appendChild(el);
+        if(estourou()){
+          corpo.removeChild(el);
+          folha=novaFolha(false); corpo=folha.querySelector(".corpo");
+          corpo.appendChild(el);
         }
+        continue;
+      }
+      if(tem(cls,"ar")){ abreGrupo(el,false); continue; }
+      /* uma demanda */
+      if(!grupo) grupo=corpo.appendChild(document.createElement("div")),grupo.className="grupo";
+      grupo.appendChild(el);
+      if(estourou()){
+        grupo.removeChild(el);
+        /* o cabeçalho da área tinha acabado de entrar e nada coube: leva o
+           grupo inteiro para a folha seguinte, em vez de deixar um cabeçalho
+           órfão no pé da página */
+        var soCabecalho = grupo.children.length<=1;
+        if(soCabecalho && grupo.parentNode===corpo) corpo.removeChild(grupo);
         folha=novaFolha(false); corpo=folha.querySelector(".corpo");
-        for(var v=0;v<volta.length;v++) corpo.appendChild(volta[v]);
-        corpo.appendChild(fila[i]);
-        /* SE NEM SOZINHO CABE, o texto NAO some (26/08).
+        if(soCabecalho){ corpo.appendChild(grupo); }
+        else if(cabAtual){ abreGrupo(cabAtual,true); }
+        else { grupo=corpo.appendChild(document.createElement("div")); grupo.className="grupo"; }
+        grupo.appendChild(el);
+        /* SE NEM SOZINHA A DEMANDA CABE, o texto NAO some (26/08).
            A folha tem altura fixa e overflow escondido; um servico com texto
            muito longo ou muitas fotos pode passar da folha inteira, e ai nao ha
            para onde empurrar -- o que sobra some sem aviso. Perder o alinhamento
            e' ruim; perder texto de uma folha que ela assina com o CRN e' pior.
-           Nesse caso a folha cresce e deixa o navegador quebrar sozinho. */
+           A foto NUNCA e' encolhida para caber: regra fixa dela. */
         if(estourou()){
           folha.classList.add("solta");
           folha=novaFolha(false); corpo=folha.querySelector(".corpo");
+          grupo=cabAtual?abreGrupo(cabAtual,true):null;
         }
       }
     }
+    /* grupo que ficou so com o cabecalho da area, sem nenhuma demanda dentro,
+       nao vai para o papel: e' sobra do rearranjo, nao conteudo */
+    var gs=alvo.querySelectorAll(".grupo");
+    for(var g=gs.length-1;g>=0;g--) if(gs[g].children.length<=1) gs[g].remove();
     /* folha que sobrou vazia depois de uma solta nao vai para o papel */
     var vazias=alvo.querySelectorAll(".folha");
     for(var z=vazias.length-1;z>=0;z--){
@@ -1473,6 +1621,8 @@ function m28ImprimirFolha(op){
          fora do caminho. O nome do relatorio ja esta no alto de toda pagina. */
       pe.innerHTML='<span class="pag">'+(k+1)+' / '+folhas.length+'</span>';
       folhas[k].appendChild(pe);
+    }
+    document.body.setAttribute("data-folha-pronta","1");
     }
   })();`;
 
@@ -1528,7 +1678,8 @@ async function m28GerirTextos(){
     etiqueta:"Etiqueta pequena do topo",
     tituloPrefixo:"Começo do título (o mês entra sozinho depois)",
     rotExec:"Rótulo acima do responsável",
-    colFeito:"Coluna: feito",colFazer:"Coluna: o que fazer",
+    /* colFeito e colFazer saíram da janela (27/08): os títulos de coluna não
+       existem mais na tela nem na folha, então editá-los não mudaria nada. */
     colData:"Coluna: data",colObs:"Coluna: observações (na tela)",
     colObsImp:"Folha impressa: o que vem antes do recado",
     rotUnidade:"Rótulo: unidade",rotEmitido:"Rótulo: emitido em",

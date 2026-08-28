@@ -437,12 +437,19 @@ async function ncCapFoto(e){
  document.getElementById("nc-cap-thumbs").innerHTML=ncCapFotos.map((d,i)=>
   `<span class="nc-thumb"><img src="${d}"><button onclick="ncCapFotos.splice(${i},1);ncCapFoto({target:{files:[]}})" title="Remover">×</button></span>`).join("");
 }
+/* COMPRESSAO DA FOTO (27/08) — regra fixa dela: a foto NUNCA e cortada, so
+   reduzida, e tem que continuar nitida. 800px + qualidade 0,7 deixava a foto
+   "como se nao tivesse foto nenhuma, nao da pra entender nada". Subimos para
+   1400px no lado maior e qualidade 0,82: continua leve para o app offline dela,
+   mas da para ler o problema na folha. Nunca recorta: e reducao proporcional. */
 function ncComprimir(file){return new Promise(res=>{
  const img=new Image();
- img.onload=()=>{const MAX=800,sc=Math.min(1,MAX/Math.max(img.width,img.height));
+ img.onload=()=>{const MAX=1400,sc=Math.min(1,MAX/Math.max(img.width,img.height));
   const cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);
-  cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
-  URL.revokeObjectURL(img.src);res(cv.toDataURL("image/jpeg",0.7));};
+  const ctx=cv.getContext("2d");
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+  ctx.drawImage(img,0,0,cv.width,cv.height);
+  URL.revokeObjectURL(img.src);res(cv.toDataURL("image/jpeg",0.82));};
  /* iPhone entrega HEIC — navegador não lê, img.onerror dispara. */
  img.onerror=()=>{URL.revokeObjectURL(img.src);
   toast("Não consegui abrir esta foto — se veio do iPhone, salve como JPEG antes.");

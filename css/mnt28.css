@@ -73,14 +73,19 @@
 }
 /* Respiro entre um bloco de área e outro: sem isso a folha vira um paredão
    de linhas e a vista se perde (ela chamou de "zoneado"). */
+/* CADA ÁREA É UM BLOCO FECHADO (27/08) — o mesmo desenho da folha impressa.
+   Ela escolheu vendo em papel: borda fina, fundo branco, sem sombra. */
+.m28-grupo{
+  border:1px solid #d7dce2;border-radius:10px;overflow:hidden;background:#fff;margin-top:18px;
+}
+.m28-piso + .m28-grupo{margin-top:10px}         /* logo abaixo do piso, colado */
+.m28-grupo + .m28-piso{margin-top:34px}         /* troca de piso respira mais */
+/* a faixa verde cobre a linha inteira, inclusive a pastilha da contagem */
 .m28-area{
-  background:#e8f5f0;border-left:3px solid #1d6b57;border-radius:0 8px 8px 0;
-  padding:9px 12px;margin-top:26px;
+  background:#e8f5f0;border-bottom:1px solid #d7e6e0;
+  padding:9px 12px;
   display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;
 }
-.m28-piso + .m28-area{margin-top:10px}          /* logo abaixo do piso, colado */
-.m28-item + .m28-piso{margin-top:34px}          /* troca de piso respira mais */
-.m28-item:last-child{margin-bottom:4px}
 .m28-area-nome{font-size:13.5px;font-weight:700;color:#155244;flex:1;min-width:0}
 .m28-count{font-size:11.5px;font-weight:600;color:#5c5d68;white-space:nowrap}
 
@@ -97,29 +102,30 @@
 .m28-abrefecha:hover{background:rgba(21,82,68,.10)}
 .m28-abrefecha::before{content:"";position:absolute;top:50%;left:50%;
   width:44px;height:44px;transform:translate(-50%,-50%)}
-/* área fechada: os cantos fecham embaixo, porque não há mais lista pendurada */
-.m28-area.fechada{border-radius:0 8px 8px 0;margin-bottom:6px}
+/* área fechada: some a linha de baixo, porque não há mais lista pendurada */
+.m28-area.fechada{border-bottom:0}
 /* o lápis padrão é branco (nasceu para a capa verde). Aqui o fundo é verde
    CLARO — branco sobre verde claro é invisível. Escurece e some o hover branco. */
 .m28-lapis-area{color:#2a6b5c}
 .m28-lapis-area:hover{background:rgba(21,82,68,.10);color:#155244}
 
-/* cabeçalho das 3 colunas — repete em cada área, para não se perder na rolagem */
-.m28-tab-cab{
-  flex-basis:100%;display:grid;grid-template-columns:56px 1fr 78px 17% 88px;gap:10px;
-  margin-top:7px;padding-top:7px;border-top:1px solid rgba(21,82,68,.16);
-  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#4a6b62;
+/* Os títulos de coluna SAÍRAM (27/08). Ela pediu: "acho que nem precisaria ter
+   o 'foi feito?' ou 'o que fazer', talvez ficasse mais limpo sem os títulos".
+   No lugar entrou a numeração, que recomeça em cada área. */
+.m28-num{
+  font-weight:700;color:#475467;text-align:right;font-variant-numeric:tabular-nums;
+  font-size:13.5px;padding-top:1px;
 }
-.m28-tab-cab span:first-child{text-align:center}
 
 /* ─────────── cada serviço ─────────── */
 /* são mais de 100 linhas: o navegador só desenha as que estão à vista.
    contain-intrinsic-size reserva a altura, para a barra de rolagem não pular. */
 .m28-item{
-  display:grid;grid-template-columns:56px 1fr 78px 17% 88px;gap:10px;align-items:start;
+  display:grid;grid-template-columns:44px 22px 1fr 78px 17% 88px;gap:10px;align-items:start;
   padding:10px 12px;border-bottom:1px solid #eceded;background:#fff;
   content-visibility:auto;contain-intrinsic-size:auto 52px;
 }
+.m28-item:last-child{border-bottom:0}
 .m28-item:hover{background:#fafbfa}
 .m28-item.feito .m28-fazer{color:#7a7b85;text-decoration:line-through}
 .m28-fazer{font-size:13.8px;color:#2d2e3a;line-height:1.5;min-width:0;overflow-wrap:anywhere}
@@ -149,6 +155,25 @@
   display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
   background:#fef3f2;border:1px solid #fecdca;color:#b42318;
   font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
+}
+/* selo do item que ela pôs em "Verificar": continua na tela, fora da folha
+   impressa. Tom neutro (não é urgência); a frase escrita já diz tudo. */
+.m28-verselo{
+  display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
+  background:#eef2f6;border:1px solid #cfd8e3;color:#3f5069;
+  font-size:10.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap;
+}
+/* a demanda em verificação fica um tom mais fraca, mas SÓ o texto: os botões
+   continuam com o contraste cheio, senão o alvo de toque fica difícil de achar */
+.m28-item:has(.m28-verselo) .m28-fazer,
+.m28-item:has(.m28-verselo) .m28-desde{opacity:.82}
+/* sem número: ele não existe na folha, e o número é como ela combina com o Sr. João */
+.m28-num-ver{color:#a9aab3;font-weight:400}
+.btn.ghost.sm.m28-ver-on{background:#eef2f6;border-color:#cfd8e3;color:#3f5069}
+/* quantos estão em verificação, ao lado da contagem da área */
+.m28-count-ver{
+  font-style:normal;display:inline-block;margin-left:7px;padding:1px 7px;border-radius:99px;
+  background:#eef2f6;border:1px solid #cfd8e3;color:#3f5069;font-size:10.5px;font-weight:700;white-space:nowrap;
 }
 /* URGENTE é o que ELA marca no lápis. Mesma família do VERIFICAR, um tom mais
    forte — é o único selo que precisa gritar. A palavra vai escrita: quem não
@@ -192,10 +217,11 @@
 
 /* ─────────── fotos ─────────── */
 .m28-fotos{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-.m28-foto{width:56px;height:56px;object-fit:cover;border-radius:7px;border:1px solid #e2e3e7;cursor:pointer}
+/* foto inteira, nunca cortada (27/08) — object-fit:contain e fundo claro */
+.m28-foto{width:56px;height:56px;object-fit:contain;background:#f4f4f6;border-radius:7px;border:1px solid #e2e3e7;cursor:pointer}
 .m28-thumbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .m28-thumb{position:relative;display:inline-block}
-.m28-thumb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e2e3e7;display:block}
+.m28-thumb img{width:64px;height:64px;object-fit:contain;background:#f4f4f6;border-radius:8px;border:1px solid #e2e3e7;display:block}
 .m28-thumb button{
   position:absolute;top:-7px;right:-7px;width:22px;height:22px;min-height:22px;border-radius:50%;
   border:1px solid #e2e3e7;background:#fff;color:#b42318;font-size:14px;line-height:1;cursor:pointer;padding:0;
@@ -238,17 +264,18 @@
   .m28-capa{padding:20px;border-radius:12px}
   .m28-capa h1{font-size:22px}
   .m28-capa-linha{gap:16px}
-  /* a folha vira lista: cada serviço ocupa a largura toda */
-  .m28-tab-cab{display:none}
-  .m28-item{grid-template-columns:44px 1fr;
-    grid-template-areas:"check fazer" ". desde" ". obs" ". acts";row-gap:6px;padding:12px 4px}
+  /* a folha vira lista: cada serviço ocupa a largura toda. O número fica ao lado
+     da caixinha, na mesma linha da demanda. */
+  .m28-item{grid-template-columns:44px 22px 1fr;
+    grid-template-areas:"check num fazer" ". . desde" ". . obs" ". . acts";row-gap:6px;padding:12px 4px}
   .m28-check{grid-area:check;width:44px;height:44px;min-height:44px}
+  .m28-num{grid-area:num;padding-top:12px;font-size:14px}
   .m28-fazer{grid-area:fazer;font-size:14.5px;padding-top:11px}
   .m28-desde{grid-area:desde;display:flex;gap:8px;align-items:baseline}
   .m28-desde .m28-data,.m28-desde .m28-tempo{display:inline}
   .m28-obs{grid-area:obs}
   .m28-acts{grid-area:acts;justify-content:flex-start}
-  .m28-area{border-radius:0 6px 6px 0}
+  .m28-grupo{border-radius:8px}
   .m28-form-linha{grid-template-columns:1fr}
   /* dedo, não mouse: campo e botão do formulário também com 44px */
   .m28-form .bd-campo{min-height:44px;font-size:16px}   /* 16px evita o zoom do iPhone */

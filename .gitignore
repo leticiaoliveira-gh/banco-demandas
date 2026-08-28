@@ -36,3 +36,6 @@ _teste-*.json
 dados-da-folha.js
 _folha-em-montagem.html
 _folha-montada.html
+
+# comparacoes visuais temporarias (mockups que a Le olha na sessao)
+_comparacoes/
