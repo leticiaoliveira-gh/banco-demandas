@@ -18,7 +18,21 @@
 
 /* status próprio: aqui "pendente" é o que ainda não foi feito */
 STATUS_FNS.mnt28={isPend:d=>!d.feito,isDone:d=>!!d.feito};
+/* a FOLHA ENTREGUE (28/08) é outro tipo de item: nasce quando ela manda
+   imprimir a via de trabalho e guarda o que foi ao papel naquele dia. */
+STATUS_FNS.m28f={isPend:d=>d.status==="andamento",isDone:d=>d.status==="concluida"};
 TABS.mnt28.renderCards=function(){const c=document.getElementById("cards");if(c)c.innerHTML="";};
+
+/* AS QUATRO DIVISÕES DA ABA (28/08) — o mesmo desenho dos Checklists, pedido
+   dela vendo a tela de lá. Fica no aparelho, como o CK_SEC: é escolha do
+   momento, não configuração do trabalho. */
+let M28_SEC=localStorage.getItem("m28_sec")||"demandas";
+function m28SetSec(s){
+  M28_SEC=s;localStorage.setItem("m28_sec",s);
+  renderMnt28();
+  if(typeof renderRailTabs==="function")renderRailTabs();
+  if(typeof syncNav==="function")syncNav();
+}
 
 /* filtros da tela (só vivem enquanto ela está na aba) */
 /* exec (03/08, LAY-3): "Folha de: Sr. João · Matheus · Todos". A elétrica é do
@@ -60,6 +74,91 @@ function m28ItensDaFolha(){
    papel é pior que total nenhum. Quantos estão em verificação aparece na
    pastilha de cada área, em "N a verificar". */
 function m28ItensContados(){ return m28ItensDaFolha().filter(d=>!d.verificar); }
+/* o que ela ainda precisa conferir na loja */
+function m28ParaVerificar(){ return m28ItensDaFolha().filter(d=>d.verificar); }
+
+/* =====================================================================
+   AS FOLHAS ENTREGUES (28/08) — o histórico que faltava
+   ---------------------------------------------------------------------
+   Palavras dela: "eu quero ver o que foi concluído dos meses anteriores,
+   quero que isso fique como um histórico".
+   Hoje, quando ela gera a folha de agosto, a de julho deixa de existir no
+   site: sobra o PDF na nuvem e mais nada. A gerência pergunta "o que foi
+   feito no mês passado?" e a resposta não está na ferramenta.
+
+   Cada folha guarda os UIDS dos serviços que foram ao papel naquele dia,
+   nunca as posições: ela renomeia área e edita texto o tempo todo, e o
+   histórico tem de continuar apontando para o mesmo serviço.
+   ===================================================================== */
+function m28Folhas(status){
+  let t=DATA.filter(d=>!d.deleted&&d.tipo==="m28f"&&d.loja===currentStore);
+  if(status)t=t.filter(d=>d.status===status);
+  return t.sort((a,b)=>String(b.emitidoEm||b.criadoEm||"").localeCompare(String(a.emitidoEm||a.criadoEm||"")));
+}
+/* os serviços daquela folha, na ordem da folha. O que ela apagou depois vira
+   um lugar vazio: o total não pode encolher sozinho meses depois. */
+function m28ItensDaEntrega(f){
+  const por={};for(const d of m28Itens())por[d.uid]=d;
+  return (f.itens||[]).map(u=>por[u]||null);
+}
+/* quantos daquela folha já estão feitos HOJE. Enquanto a folha está aberta o
+   número é vivo; ao concluir, ele é congelado em feitosNoFim. */
+function m28AndamentoFolha(f){
+  if(f.status==="concluida")return {feitas:f.feitosNoFim||0,total:f.totalNoFim||(f.itens||[]).length};
+  const itens=m28ItensDaEntrega(f);
+  return {feitas:itens.filter(d=>d&&d.feito).length,total:(f.itens||[]).length};
+}
+function m28NomeFolha(f){
+  const mes=m28Mes({emitidoEm:f.emitidoEm||f.criadoEm||""});
+  return [m28PisoBonito(f.piso||""),mes].filter(Boolean).join(", ")||"Folha";
+}
+function m28AcharFolha(uid){ return DATA.find(d=>d.uid===uid&&d.tipo==="m28f"); }
+
+/* RETOMAR — o mesmo gesto do checklist: volta para a lista de trabalho já com
+   os filtros daquela folha, para ela continuar marcando o que foi feito. */
+function m28Retomar(uid){
+  const f=m28AcharFolha(uid);if(!f)return;
+  M28F.piso=f.piso||"";M28F.exec=f.executor||"";M28F.area="";M28F.ver="todos";
+  M28F.q="";M28F.fechadas={};
+  M28_FOLHA_ABERTA=uid;
+  m28SetSec("demandas");
+  toast("Mostrando a folha de "+m28NomeFolha(f));
+}
+/* VER — a folha do jeito que foi entregue, em leitura. */
+function m28VerFolha(uid){
+  const f=m28AcharFolha(uid);if(!f)return;
+  M28_FOLHA_VER=uid;m28SetSec("ver");
+}
+async function m28ConcluirFolha(uid){
+  const f=m28AcharFolha(uid);if(!f)return;
+  const a=m28AndamentoFolha(f);
+  if(!confirm("Concluir a folha de "+m28NomeFolha(f)+"?\n\n"
+    +"Ela sai de “Em andamento” e vira histórico, com o resultado de agora: "
+    +a.feitas+" de "+a.total+" feitos.\nDá para reabrir depois."))return;
+  f.status="concluida";f.concluidaEm=today();
+  f.feitosNoFim=a.feitas;f.totalNoFim=a.total;f.mod=nowISO();
+  await putItem(f);dataChanged();
+  M28_FOLHA_VER=null;m28SetSec("concluidas");
+}
+async function m28ReabrirFolha(uid){
+  const f=m28AcharFolha(uid);if(!f)return;
+  f.status="andamento";f.concluidaEm=null;
+  delete f.feitosNoFim;delete f.totalNoFim;f.mod=nowISO();
+  await putItem(f);dataChanged();
+  m28SetSec("andamento");toast("Folha reaberta");
+}
+async function m28ExcluirFolha(uid){
+  const f=m28AcharFolha(uid);if(!f)return;
+  if(!confirm("Excluir o registro da folha de "+m28NomeFolha(f)+"?\n\n"
+    +"Os serviços NÃO são apagados: some só o registro desta entrega."))return;
+  f.deleted=true;f.mod=nowISO();
+  await putItem(f);dataChanged();
+  if(M28_FOLHA_VER===uid)M28_FOLHA_VER=null;
+  if(M28_FOLHA_ABERTA===uid)M28_FOLHA_ABERTA=null;
+  renderMnt28();toast("Registro excluído");
+}
+/* qual folha está sendo vista ou retomada; só memória de tela */
+let M28_FOLHA_VER=null,M28_FOLHA_ABERTA=null;
 
 /* ---- itens desta aba, da empresa aberta ---- */
 function m28Itens(){
@@ -483,8 +582,193 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">📊 Planilha</button>
   </div>`;
 
-  el.innerHTML=capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
+  /* AS QUATRO DIVISÕES (28/08) — o desenho dos Checklists, que ela já conhece.
+     As classes vêm prontas do css/app.css (.ck-barra/.ck-secs/.ck-sec), com os
+     44px de toque já garantidos em css/aparencia.css. Nada de peça nova.
+     A CONTAGEM DE CADA DIVISÃO É O .length DA MESMA FUNÇÃO QUE MONTA A LISTA:
+     número que não bate com a lista logo abaixo já deu problema aqui. */
+  const secs=[
+    ["demandas","🔧","Demandas",     m28LinhasDaTela().length],
+    ["andamento","📆","Em andamento", m28Folhas("andamento").length],
+    ["concluidas","✅","Concluídas",  m28Folhas("concluida").length],
+    ["verificar","🔎","Verificar",    m28ParaVerificar().length]];
+  const abas=`<div class="ck-barra"><div class="ck-secs">`
+    +secs.map(([k,ic,nm,n])=>`<button class="ck-sec${M28_SEC===k?" on":""}" onclick="m28SetSec('${k}')"
+        aria-pressed="${M28_SEC===k?"true":"false"}"><span class="ic" aria-hidden="true">${ic}</span>
+        <span class="nm">${nm}</span><span class="qt">${n}</span></button>`).join("")
+    +`</div></div>`;
+
+  if(M28_SEC==="ver"){ el.innerHTML=abas+m28VerFolhaHTML(); return; }
+  if(M28_SEC==="andamento"||M28_SEC==="concluidas"){
+    el.innerHTML=abas+m28ListaFolhasHTML(M28_SEC==="andamento"?"andamento":"concluida");
+    return;
+  }
+  if(M28_SEC==="verificar"){ el.innerHTML=abas+m28VerificarHTML(); return; }
+
+  el.innerHTML=abas+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
   m28RenderLista();
+}
+
+/* =====================================================================
+   AS TELAS DO HISTÓRICO (28/08)
+   Reusam as peças da biblioteca (bd-*) e as classes de tabela do checklist
+   (.ck-tab-wrap/.ck-tab/.ck-and/.ck-td-ac), que já existem no css/app.css.
+   ===================================================================== */
+function m28ListaFolhasHTML(status){
+  const l=m28Folhas(status);
+  if(!l.length)return `<div class="bd-vazio">
+    <div class="bd-vazio-ico" aria-hidden="true">${status==="andamento"?"📆":"✅"}</div>
+    <div class="bd-vazio-tit">${status==="andamento"?"Nenhuma folha entregue ainda":"Nenhuma folha concluída ainda"}</div>
+    <div class="bd-vazio-txt">${status==="andamento"
+      ? "Quando você mandar imprimir a folha de trabalho, ela fica guardada aqui, e o andamento sobe sozinho conforme você marca o que foi feito."
+      : "Quando terminar um mês, abra a folha em “Em andamento” e aperte “Concluir esta folha”. Ela vira histórico aqui."}</div></div>`;
+  return `<div class="ck-tab-wrap"><table class="ck-tab">
+    <thead><tr><th>Entregue em</th><th>Folha</th><th>Responsável</th>
+      <th>${status==="andamento"?"Andamento":"Resultado"}</th><th></th></tr></thead>
+    <tbody>${l.map(f=>{
+      const a=m28AndamentoFolha(f);
+      const pct=a.total?Math.round(a.feitas/a.total*100):0;
+      return `<tr>
+        <td>${esc(brDate(f.emitidoEm||f.criadoEm||""))}</td>
+        <td>${esc(m28NomeFolha(f))}<span class="m28-count-ver" style="margin-left:6px">${f.total} ${f.total===1?"serviço":"serviços"}</span></td>
+        <td>${esc(f.executor||"—")}</td>
+        <td><span class="ck-and">${a.feitas} de ${a.total} feitos</span>${a.total?` <span class="m28-pct">${pct}%</span>`:""}</td>
+        <td class="ck-td-ac">
+          ${status==="andamento"
+            ? `<button class="btn sm" onclick="m28Retomar('${f.uid}')" title="Voltar para a lista com os filtros desta folha">▶ Retomar</button>
+               <button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')" title="Ver os serviços desta folha">🔍</button>`
+            : `<button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')" title="Ver os serviços desta folha, como ela foi entregue">🔍 Ver</button>
+               <button class="btn ghost sm" onclick="m28ReabrirFolha('${f.uid}')" title="Reabrir: volta para Em andamento">↩</button>`}
+          <button class="delbtn" onclick="m28ExcluirFolha('${f.uid}')" title="Excluir só o registro desta entrega">🗑</button>
+        </td></tr>`;}).join("")}</tbody></table></div>`;
+}
+
+/* a folha do jeito que foi entregue. O serviço que ela apagou depois não some:
+   vira um lugar vazio, para o total nunca encolher sozinho meses depois. */
+function m28VerFolhaHTML(){
+  const f=m28AcharFolha(M28_FOLHA_VER);
+  if(!f)return `<div class="bd-vazio"><div class="bd-vazio-tit">Folha não encontrada</div></div>`;
+  const itens=m28ItensDaEntrega(f), a=m28AndamentoFolha(f);
+  let html="",area=null,n=0;
+  for(const d of itens){
+    if(!d){html+=`<div class="m28-item"><span></span><span class="m28-num m28-num-ver">—</span>
+      <div class="m28-fazer"><span class="m28-vaziotxt">serviço removido depois da entrega</span></div>
+      <div></div><div></div><div></div></div>`;continue;}
+    if(d.area!==area){area=d.area;n=0;
+      if(html)html+="</div>";
+      html+=`<div class="m28-grupo"><div class="m28-area"><span class="m28-area-nome">${esc(area||"Sem área")}</span></div>`;}
+    n++;
+    html+=`<div class="m28-item${d.feito?" feito":""}">
+      <span class="m28-check" role="img" aria-label="${d.feito?"feito":"não feito"}">${d.feito?"✓":""}</span>
+      <span class="m28-num">${n}.</span>
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
+      <div class="m28-desde">${m28Desde(d)}</div><div class="m28-obs">${d.obs?m28Texto(d.obs):""}</div><div></div></div>`;
+  }
+  if(html)html+="</div>";
+  return `<div class="m28-folha-topo">
+      <div><b>${esc(m28NomeFolha(f))}</b>
+        <div class="m28-escolha-sub">Entregue em ${esc(brDate(f.emitidoEm||f.criadoEm||""))}${f.executor?" · "+esc(f.executor):""}
+          · ${a.feitas} de ${a.total} feitos</div></div>
+      <div>
+        <button class="btn ghost sm" onclick="m28SetSec('${f.status==="concluida"?"concluidas":"andamento"}')">← Voltar</button>
+        ${f.status==="andamento"
+          ? `<button class="btn sm" onclick="m28ConcluirFolha('${f.uid}')" title="Encerrar esta folha e guardar o resultado">✅ Concluir esta folha</button>`
+          : `<button class="btn ghost sm" onclick="m28ReabrirFolha('${f.uid}')">↩ Reabrir</button>`}
+      </div>
+    </div>${html||'<div class="bd-vazio"><div class="bd-vazio-tit">Esta folha está vazia</div></div>'}`;
+}
+
+/* O QUE ELA PRECISA CONFERIR NA LOJA.
+   Palavras dela: "eu nunca lembro que eu tenho que verificar essas demandas,
+   já caiu no esquecimento várias vezes". */
+function m28VerificarHTML(){
+  const l=m28ParaVerificar().sort(m28Comparar);
+  if(!l.length)return `<div class="bd-vazio">
+    <div class="bd-vazio-ico" aria-hidden="true">🔎</div>
+    <div class="bd-vazio-tit">Nada para conferir na loja</div>
+    <div class="bd-vazio-txt">Quando você marcar uma demanda com a lupa, ela sai da folha do Sr. João e vem parar aqui, esperando você conferir na loja.</div></div>`;
+  let html="",area=null,n=0;
+  for(const d of l){
+    if(d.area!==area){area=d.area;n=0;
+      if(html)html+="</div>";
+      html+=`<div class="m28-grupo"><div class="m28-area"><span class="m28-area-nome">${esc(area||"Sem área")}</span></div>`;}
+    n++;
+    html+=`<div class="m28-item">
+      <button class="m28-check" onclick="m28Verificar(${d.id})" title="Já conferi: volta para a folha do Sr. João"
+        aria-label="Já conferi: ${esc((d.fazer||"").slice(0,60))}"></button>
+      <span class="m28-num">${n}.</span>
+      <div class="m28-fazer"><span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
+      <div class="m28-desde">${m28Desde(d)}</div>
+      <div class="m28-obs">${d.obs?m28Texto(d.obs):""}${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
+      <div class="m28-acts"><button class="btn ghost sm" onclick="m28Editar(${d.id})" title="Mudar este serviço">✎</button></div></div>`;
+  }
+  if(html)html+="</div>";
+  return `<div class="m28-folha-topo">
+      <div><b>${l.length} ${l.length===1?"serviço":"serviços"} para conferir na loja</b>
+        <div class="m28-escolha-sub">Não saem na folha do Sr. João. Marque a caixinha quando conferir: o serviço volta para a folha.</div></div>
+      <div><button class="btn sm" onclick="m28ListaDeBolso()" title="Abre a lista para você levar no celular">📋 Levar para a loja</button></div>
+    </div>${html}`;
+}
+
+/* =====================================================================
+   A LISTA DE BOLSO (28/08) — a peça que quebra o esquecimento
+   ---------------------------------------------------------------------
+   Palavras dela: "eu preciso de alguma forma me lembrar das demandas que eu
+   preciso verificar porque senão vai cair no esquecimento como já caiu
+   várias vezes".
+   A causa do esquecimento não é falta de lista: é que a lista não existe no
+   momento em que ela está NA LOJA. Então esta janela é feita para o celular,
+   de pé, no corredor: letra grande, alvo de dedo, e a caixinha resolve na
+   hora (o serviço volta para a folha do Sr. João).
+   ===================================================================== */
+function m28ListaDeBolso(){
+  const l=m28ParaVerificar().sort(m28Comparar);
+  if(!l.length){toast("Não há nada para conferir na loja");return;}
+  const antigo=document.getElementById("m28-bolso");if(antigo)antigo.remove();
+  const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
+  const m=document.createElement("div");
+  m.className="bd-fundo";m.id="m28-bolso";
+  m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");
+  m.setAttribute("aria-label","Lista para levar para a loja");
+  const fechar=()=>{m.remove();document.removeEventListener("keydown",tecla);renderMnt28();};
+  const tecla=ev=>{if(ev.key==="Escape")fechar();};
+  m.innerHTML=`<div class="bd-janela m28-bolso-janela" onclick="event.stopPropagation()">
+      <div class="bd-janela-topo"><div><b>Conferir na loja</b>
+        <div class="m28-escolha-sub">${esc(loja)}${M28F.piso?" · "+esc(m28PisoBonito(M28F.piso)):""}
+          · <span id="m28-bolso-n">${l.length}</span> para conferir</div></div>
+        <button class="bd-janela-x" aria-label="Fechar">✕</button></div>
+      <div class="bd-janela-corpo m28-bolso-corpo" id="m28-bolso-lista"></div>
+      <div class="bd-janela-rodape"><span class="bd-ajuda">Marcou? O serviço volta para a folha do Sr. João.</span></div>
+    </div>`;
+  m.onclick=fechar;m.querySelector(".bd-janela-x").onclick=fechar;
+  document.body.appendChild(m);
+  document.addEventListener("keydown",tecla);
+  m28BolsoLista();
+}
+function m28BolsoLista(){
+  const box=document.getElementById("m28-bolso-lista");if(!box)return;
+  const l=m28ParaVerificar().sort(m28Comparar);
+  const n=document.getElementById("m28-bolso-n");if(n)n.textContent=l.length;
+  if(!l.length){box.innerHTML=`<div class="bd-vazio"><div class="bd-vazio-ico" aria-hidden="true">✅</div>
+    <div class="bd-vazio-tit">Conferiu tudo</div>
+    <div class="bd-vazio-txt">Todos os serviços voltaram para a folha.</div></div>`;return;}
+  let html="",area=null;
+  for(const d of l){
+    if(d.area!==area){area=d.area;
+      html+=`<div class="m28-bolso-area">${esc(area||"Sem área")}</div>`;}
+    html+=`<button class="m28-bolso-item" onclick="m28BolsoConferir(${d.id})">
+      <span class="m28-bolso-cx" aria-hidden="true"></span>
+      <span class="m28-bolso-txt">${esc(m28SemTravessao(d.fazer||""))}
+        ${d.obs?`<i>${esc(m28SemTravessao(d.obs))}</i>`:""}</span></button>`;
+  }
+  box.innerHTML=html;
+}
+async function m28BolsoConferir(id){
+  const d=DATA.find(x=>x.id===id);if(!d)return;
+  d.verificar=false;d.mod=nowISO();
+  await putItem(d);dataChanged();
+  m28BolsoLista();
+  toast("Conferido, voltou para a folha");
 }
 
 /* QUALQUER filtro refaz a aba inteira (26/08).
@@ -504,10 +788,17 @@ function m28Filtro(k,v){
   renderMnt28();
 }
 
-function m28RenderLista(){
-  const el=document.getElementById("m28-lista");if(!el)return;
+/* O QUE A LISTA DA TELA MOSTRA — UM LUGAR SÓ (28/08).
+   O botão "Demandas" conta o .length DESTA função, e a lista desenha ESTA
+   função. Enquanto eram duas contas separadas, o botão dizia 20 e a lista
+   trazia 26 quando o filtro estava em "Todos". Já deu problema aqui duas
+   vezes; agora não há como divergir. */
+function m28LinhasDaTela(){
   const q=(M28F.q||"").toLowerCase();
-  let rows=m28Itens().filter(d=>{
+  return m28Itens().filter(d=>{
+    /* o que está em "Verificar" tem divisão própria desde 28/08: sai daqui.
+       Quantos há em cada área continua na pastilha, em "N a verificar". */
+    if(d.verificar)return false;
     if(M28F.exec&&(d.executor||"").trim()!==M28F.exec)return false;   /* a folha é de uma pessoa só */
     if(M28F.piso&&d.piso!==M28F.piso)return false;
     if(M28F.area&&d.area!==M28F.area)return false;
@@ -516,6 +807,11 @@ function m28RenderLista(){
     if(M28F.ver==="lembretes"&&!(d.nota||"").trim())return false;   /* o "só pra mim" à vista, sempre */
     if(q&&!((d.fazer||"")+" "+(d.obs||"")+" "+(d.nota||"")+" "+(d.area||"")+" "+(d.piso||"")).toLowerCase().includes(q))return false;
     return true;});
+}
+
+function m28RenderLista(){
+  const el=document.getElementById("m28-lista");if(!el)return;
+  let rows=m28LinhasDaTela();
 
   if(!rows.length){
     el.innerHTML='<div class="m28-vazio">Nenhum serviço com esses filtros. '
@@ -527,16 +823,19 @@ function m28RenderLista(){
   /* A CONTAGEM DA TELA CONTA O MESMO QUE O PAPEL (28/08).
      O item posto em "Verificar" não vai na folha do Sr. João, então também não
      entra em "N serviços" aqui: número que não bate com o papel é pior que
-     número nenhum, e ela assina esse papel. Ele continua visível na lista e é
-     contado à parte, em "N a verificar", para não sumir da vista dela. */
-  const nPiso={},nArea={},fArea={},vArea={};
+     número nenhum, e ela assina esse papel. */
+  const nPiso={},nArea={},fArea={};
   for(const d of rows){
     const k=d.piso+"|"+d.area;
-    if(d.verificar){vArea[k]=(vArea[k]||0)+1;continue;}
     nPiso[d.piso]=(nPiso[d.piso]||0)+1;
     nArea[k]=(nArea[k]||0)+1;
     if(d.feito)fArea[k]=(fArea[k]||0)+1;
   }
+  /* quantos há em verificação em cada área: sai da lista própria deles, porque
+     eles já não estão em `rows`. Assim a pastilha continua avisando que existe
+     algo esperando conferência ali, sem o item ocupar a lista de trabalho. */
+  const vArea={};
+  for(const d of m28ParaVerificar())vArea[d.piso+"|"+d.area]=(vArea[d.piso+"|"+d.area]||0)+1;
   /* MESMO DESENHO DA FOLHA IMPRESSA (27/08): cada área é um bloco fechado, e a
      lista é numerada, sem os títulos de coluna. Ela pediu o padrão igual em
      tudo, tela e papel. `aberto` guarda se já existe um bloco a fechar. */
@@ -565,11 +864,11 @@ function m28RenderLista(){
         +(v?`<i class="m28-count-ver">${v} a verificar</i>`:"")+`</span>`
         +`</div>`;}
     if(M28F.fechadas[d.piso+"|"+d.area])continue;
-    /* o item em "Verificar" não recebe número: ele não existe na folha do Sr.
-       João, e ela combina os serviços com ele PELO NÚMERO. Se contasse aqui, o
-       "6" da tela seria o "5" do papel. No lugar do número vai um traço. */
-    if(!d.verificar)nDemanda++;
-    const numero=d.verificar?"—":nDemanda+".";
+    /* o número da tela é o MESMO número do papel: é assim que ela combina os
+       serviços com o Sr. João. Os "Verificar" já saíram da lista, então aqui a
+       contagem é direta. */
+    nDemanda++;
+    const numero=nDemanda+".";
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
@@ -578,7 +877,7 @@ function m28RenderLista(){
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
-      <span class="m28-num${d.verificar?" m28-num-ver":""}">${numero}</span>
+      <span class="m28-num">${numero}</span>
       ${/* o texto da demanda vai num <span> proprio com pre-wrap: so o enter que
            ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
            a indentacao do proprio codigo aqui embaixo virava linha em branco
@@ -1088,8 +1387,8 @@ function m28Imprimir(){
   const faltam=itens.filter(d=>!d.feito).length;
   const feitos=itens.filter(d=>d.feito).length;
   /* nada resolvido ainda: as duas folhas seriam iguais, então não há escolha
-     a fazer e a janela só atrapalharia */
-  if(!feitos){m28ImprimirFolha({});return;}
+     a fazer e a janela só atrapalharia. É via de trabalho, então registra. */
+  if(!feitos){m28GuardarEntrega({}).then(()=>m28ImprimirFolha({}));return;}
 
   const hoje=today();
   const emitido=(m28Cab(itens)||{}).emitidoEm||hoje;
@@ -1146,8 +1445,11 @@ function m28Imprimir(){
       const marcar=b.getAttribute("data-modo")==="marcar";
       const data=(m.querySelector("#m28-corte-data")||{}).value||"";
       fechar();
-      m28ImprimirFolha(marcar?{tudo:true,emBranco:true,corte:data,emitidoEm:data}
-                             :{emitidoEm:data});
+      /* SÓ A VIA DE TRABALHO VIRA HISTÓRICO (28/08). A via "tudo, para marcar à
+         mão" é a segunda cópia da mesma entrega, para a empresa: se registrasse
+         também, a mesma folha apareceria duas vezes no histórico. */
+      if(marcar){ m28ImprimirFolha({tudo:true,emBranco:true,corte:data,emitidoEm:data}); }
+      else { m28GuardarEntrega({emitidoEm:data}).then(()=>m28ImprimirFolha({emitidoEm:data})); }
     };
   });
   document.addEventListener("keydown",tecla);
@@ -1155,7 +1457,12 @@ function m28Imprimir(){
   const primeiro=m.querySelector(".m28-opcao");if(primeiro)primeiro.focus();
 }
 
-function m28ImprimirFolha(op){
+/* QUEM VAI AO PAPEL — UM LUGAR SÓ (28/08).
+   Este cálculo era feito dentro de m28ImprimirFolha. Agora o registro da folha
+   entregue precisa da MESMA lista, e duas contas separadas para a mesma coisa
+   já foi a origem de defeito aqui antes (o topo dizia 35, o papel trazia 17).
+   Então quem monta o papel e quem guarda o histórico leem daqui. */
+function m28LinhasDaFolha(op){
   op=op||{};
   let rows=m28ItensDaFolha();   /* pessoa, piso e area: a mesma conta da tela */
   /* os itens que ela marcou "Verificar" ficam na tela dela, mas NUNCA no papel
@@ -1174,8 +1481,59 @@ function m28ImprimirFolha(op){
     const quando=String(d.dataRegistro||d.relato||"").slice(0,10);
     return !quando||quando<=op.corte;
   });
+  return rows.sort(m28Comparar);
+}
+
+/* GUARDA A FOLHA ENTREGUE. Só a via de TRABALHO passa por aqui: a via "tudo,
+   para marcar à mão" é uma segunda cópia da mesma entrega e não deve virar uma
+   linha repetida no histórico. Decisão dela em 28/08.
+   Roda ANTES de abrir a janela de impressão, porque pode precisar perguntar, e
+   pergunta atrás de uma janela recém-aberta ninguém vê. */
+async function m28GuardarEntrega(op){
+  const rows=m28LinhasDaFolha(op);
+  if(!rows.length)return;
+  const c=Object.assign({},m28Cab(rows),op.emitidoEm?{emitidoEm:op.emitidoEm}:{});
+  const exec=(M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"").trim();
+  const pisos=[...new Set(rows.map(d=>(d.piso||"").trim()).filter(Boolean))];
+  const piso=(M28F.piso||"").trim()||(pisos.length===1?pisos[0]:"");
+  const emitidoEm=c.emitidoEm||today();
+
+  /* já existe uma folha aberta do mesmo piso e da mesma pessoa? Ela reimprime a
+     mesma folha várias vezes; sem perguntar, o histórico encheria de repetidas. */
+  const aberta=m28Folhas("andamento").find(f=>
+    (f.piso||"")===piso && (f.executor||"")===exec);
+  if(aberta){
+    const nova=confirm("Já existe uma folha aberta"
+      +(piso?" do "+m28PisoBonito(piso):"")+(exec?" do "+exec:"")
+      +", de "+brDate(aberta.emitidoEm||aberta.criadoEm)+".\n\n"
+      +"OK = atualizar essa folha com a lista de agora.\n"
+      +"Cancelar = abrir uma folha nova, guardando a anterior.");
+    if(nova){
+      aberta.itens=rows.map(d=>d.uid);
+      aberta.total=rows.length;
+      aberta.emitidoEm=emitidoEm;
+      aberta.corte=op.corte||"";
+      aberta.mod=nowISO();
+      await putItem(aberta);dataChanged();
+      toast("Folha atualizada no histórico");
+      return;
+    }
+  }
+  const o={uid:newUid(),mod:nowISO(),tipo:"m28f",loja:currentStore,
+    status:"andamento",piso,executor:exec,
+    emitidoEm,criadoEm:today(),concluidaEm:null,corte:op.corte||"",
+    itens:rows.map(d=>d.uid),total:rows.length,
+    feitosNaEntrega:rows.filter(d=>d.feito).length,
+    urgentes:rows.filter(d=>d.urg&&!d.feito).length,
+    criado:"impressao"};
+  o.id=await putItem(o);DATA.push(o);dataChanged();
+  toast("Folha guardada em “Em andamento”");
+}
+
+function m28ImprimirFolha(op){
+  op=op||{};
+  let rows=m28LinhasDaFolha(op);
   if(!rows.length){alert("Nenhum serviço para imprimir com os filtros atuais.");return;}
-  rows.sort(m28Comparar);
   /* EM BRANCO: cópia com o quadradinho vazio, mesmo no que já está feito. Quem
      marca é ela, à mão — papel que chega marcado não prova serviço nenhum.
      É uma cópia: o "feito" continua intacto no banco. */

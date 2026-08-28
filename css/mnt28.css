@@ -165,6 +165,8 @@
 }
 /* a demanda em verificação fica um tom mais fraca, mas SÓ o texto: os botões
    continuam com o contraste cheio, senão o alvo de toque fica difícil de achar */
+/* o selo do "Verificar" agora vive na divisao propria; a lista de trabalho nem
+   mostra esses itens. A regra fica so para a tela de conferencia. */
 .m28-item:has(.m28-verselo) .m28-fazer,
 .m28-item:has(.m28-verselo) .m28-desde{opacity:.82}
 /* sem número: ele não existe na folha, e o número é como ela combina com o Sr. João */
@@ -353,3 +355,54 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 .m28-pessoa b{font-size:16px;font-weight:700;margin-right:4px}
 .m28-pessoa:hover{border-color:#1d6b57;background:#e8f5f0}
 .m28-pessoa:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
+
+/* ═══════════ HISTÓRICO DAS FOLHAS E LISTA DE BOLSO (28/08) ═══════════
+   Pedido dela vendo a aba de Checklists: "eu quero ver o que foi concluído
+   dos meses anteriores, quero que isso fique como um histórico".
+   As tabelas reusam .ck-tab do css/app.css; aqui só o que é próprio daqui. */
+
+/* o topo das telas de folha: nome à esquerda, ações à direita */
+.m28-folha-topo{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  background:#f9fafb;border:1px solid #eaecf0;border-radius:10px;
+  padding:12px 14px;margin-bottom:14px;
+}
+.m28-folha-topo b{font-size:15px;color:#155244}
+.m28-folha-topo > div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+.m28-pct{font-size:12px;color:#667085;margin-left:6px}
+
+/* ─────────── a lista para levar na loja ───────────
+   Feita para o celular, de pé, no corredor: letra grande e alvo de dedo.
+   Não é uma tela nova: é a mesma página do app, então funciona sem internet. */
+.m28-bolso-janela{max-width:560px;width:100%}
+/* o X e' o unico botao da janela: na loja, de pe, tem de ter alvo de dedo */
+.m28-bolso-janela .bd-janela-x{min-width:44px;min-height:44px;
+  display:flex;align-items:center;justify-content:center}
+.m28-bolso-corpo{max-height:70vh;overflow:auto;padding:6px 0}
+.m28-bolso-area{
+  position:sticky;top:0;z-index:1;
+  background:#e8f5f0;color:#155244;font-weight:700;font-size:12.5px;
+  text-transform:uppercase;letter-spacing:.5px;padding:8px 14px;
+  border-top:1px solid #cfe5dd;border-bottom:1px solid #cfe5dd;
+}
+.m28-bolso-item{
+  display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+  background:#fff;border:0;border-bottom:1px solid #eaecf0;
+  padding:14px;min-height:56px;cursor:pointer;font:inherit;color:#344054;
+}
+.m28-bolso-item:hover{background:#f9fafb}
+.m28-bolso-item:active{background:#e8f5f0}
+.m28-bolso-cx{
+  flex:none;width:28px;height:28px;border:2px solid #1d6b57;border-radius:7px;
+  background:#fff;margin-top:1px;
+}
+.m28-bolso-txt{font-size:15.5px;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+.m28-bolso-txt i{display:block;font-style:normal;font-size:13px;color:#667085;margin-top:3px}
+
+@media (max-width:820px){
+  .m28-folha-topo{flex-direction:column;align-items:stretch}
+  .m28-folha-topo > div:last-child button{flex:1}
+  .m28-bolso-corpo{max-height:78vh}
+  .m28-bolso-item{min-height:60px;padding:15px 14px}
+  .m28-bolso-txt{font-size:16px}
+}

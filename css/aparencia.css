@@ -182,7 +182,11 @@
   font:inherit;cursor:pointer;
 }
 .hub-livro-corpo{display:block;padding:16px 18px 18px}
-.hub-livro-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.hub-livro-cab{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+/* o icone empurra os selos para a direita; com dois selos eles quebram a linha
+   em vez de espremer o cartao (28/08, o selo "N para verificar") */
+.hub-livro-cab .hub-livro-ico{margin-right:auto}
+.hub-selo-2{margin-top:2px}
 .hub-livro-ico{
   width:40px;height:40px;flex:none;border-radius:11px;
   display:inline-flex;align-items:center;justify-content:center;

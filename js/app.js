@@ -515,6 +515,14 @@ function renderHub(){
     else if(pend)              selo=`<span class="bd-selo bd-selo-atencao"><i></i>${pend} em aberto</span>`;
     else if(tot)               selo=`<span class="bd-selo bd-selo-ok"><i></i>em dia</span>`;
     else                       selo=`<span class="bd-selo bd-selo-neutro"><i></i>vazio</span>`;
+    /* O QUE FALTA CONFERIR NA LOJA (28/08). Palavras dela: "eu nunca lembro que
+       eu tenho que verificar essas demandas... já caiu no esquecimento várias
+       vezes". O aviso vive aqui porque é a tela por onde ela SEMPRE passa.
+       Só aparece quando existe: ela já mandou tirar poluição deste cartão. */
+    if(a.tipo==="mnt28"){
+      const ver=meus.filter(d=>d.verificar&&!d.feito).length;
+      if(ver)selo+=`<span class="bd-selo bd-selo-info hub-selo-2"><i></i>${ver} para verificar</span>`;
+    }
     return `<button class="bd-card bd-card-clique hub-livro" data-hub="${t}"
         onclick="showTab('${t}')" title="Abrir ${esc(rotuloAba(t))}">
       <span class="bd-card-faixa" style="background:${a.cor}"></span>
@@ -1873,7 +1881,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.79";
+const APP_VERSAO="9.80";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
