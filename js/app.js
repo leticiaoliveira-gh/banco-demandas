@@ -558,7 +558,10 @@ function showHub(){
   }else{h1.contentEditable="false";h1.classList.remove("editando");h1.onblur=h1.onkeydown=null;
     h1.title="Para renomear: ✏️ Editar textos";}
   document.getElementById("appSubtitle").innerHTML=subLivreHTML("hub");
-  renderHub();renderBreadcrumb();syncNav();window.scrollTo(0,0);
+  renderHub();
+  /* a agenda vive acima dos cartoes; global de outro arquivo sempre com typeof */
+  if(typeof agRender==="function")agRender();
+  renderBreadcrumb();syncNav();window.scrollTo(0,0);
   /* com o modo de edição ligado, o Sumário já entra arrastável e com o ✕ */
   if(MODO_EDICAO&&typeof edicaoAplicar==="function")edicaoAplicar(true);
 }
@@ -959,6 +962,8 @@ async function renderHome(){
       Marque abaixo o que deve aparecer nesta tela.</p>
     <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarNumeros?"checked":""}
       onchange="capaMostrar('mostrarNumeros',this.checked)"> Faixa com os <b>números</b> (Quadro Geral, Urgentes, Manutenções, Inspeções)</label>
+    <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarAgenda?"checked":""}
+      onchange="capaMostrar('mostrarAgenda',this.checked)"> <b>Minha agenda</b> dentro de cada empresa: o que tem data marcada, de todos os quadros, e os dias em que você estará na loja</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button class="btn ghost sm" title="A lista continua existindo e sincronizando — só saiu da capa" onclick="gerirPendencias()">📋 Pendências de configuração${pendAbertas.length?" ("+pendAbertas.length+")":""}</button>
       <a class="btn ghost sm" href="modelos/" title="Museu dos desenhos antigos do card de empresa — só olhar, nada muda">🖼 Modelos antigos da capa</a>
@@ -1078,7 +1083,11 @@ async function renderHome(){
    Liga o modo, os cartões das empresas balançam, ela arrasta pela alça para
    colocar na ordem que quiser, e escolhe o que aparece na capa.
    A ORDEM é dela e viaja entre os aparelhos (campo `ordem` na empresa). */
-let CAPA_CFG={mostrarNumeros:false,mostrarPendencias:true},CAPA_CFG_MOD="";
+/* mostrarAgenda: o calendario do Sumario (js/agenda.js). Nasce DESLIGADO,
+   como todo bloco de tela desde 23/07: ela ja mandou tirar cards duas vezes.
+   visitas: por loja, os dias em que ela estara la. Viaja no backup e no sync
+   junto com o resto do capaCfg, sem tocar em js/sync.js. */
+let CAPA_CFG={mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
 let CAPA_ORGANIZANDO=false;
 async function loadCapaCfg(){
   const v=await metaGet("capaCfg");
@@ -1091,7 +1100,12 @@ async function salvarCapaCfg(){
   dataChanged();await renderHome();
 }
 async function capaMostrar(qual,val){CAPA_CFG[qual]=!!val;await salvarCapaCfg();
-  toast(val?"Passou a aparecer na capa ✓":"Saiu da capa ✓");}
+  /* a agenda vive DENTRO da empresa, não na capa: o aviso tem de dizer isso,
+     senão ela liga e não encontra */
+  const naEmpresa=qual==="mostrarAgenda";
+  toast(val?("Passou a aparecer "+(naEmpresa?"no Sumário da empresa":"na capa")+" ✓")
+           :("Saiu "+(naEmpresa?"do Sumário":"da capa")+" ✓"));
+  if(naEmpresa&&typeof agRender==="function")agRender();}
 function toggleOrganizarCapa(){
   CAPA_ORGANIZANDO=!CAPA_ORGANIZANDO;
   document.body.classList.toggle("organizando-capa",CAPA_ORGANIZANDO);
@@ -1881,7 +1895,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.80";
+const APP_VERSAO="9.82";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

@@ -60,6 +60,13 @@ const ckRot=(mapa,k,padrao)=>((mapa[k]||{}).rotulo)||padrao||k;
 /* assinatura dela: desenha UMA vez e o site aplica sozinho em toda inspeção */
 let CK_ASSINATURA="",CK_ASSIN_MOD="";
 
+/* O QUE CONTA COMO PENDENTE (28/08) — sem isto, o cartão da empresa e o
+   "X em aberto" do topo davam ZERO para esta aba: a conta padrão procura
+   status "Pendente", palavra que este tipo nunca usou. */
+/* o MODELO nao e' pendencia: e' o formulario em branco, sempre disponivel. */
+STATUS_FNS.ckp={isPend:d=>d.status==="andamento",isDone:d=>d.status==="concluido"};
+STATUS_FNS.ckm={isPend:()=>false,isDone:()=>false};
+
 /* seção aberta dentro da aba: formularios | enviados | parciais (fica no aparelho) */
 let CK_SEC=localStorage.getItem("ck_sec")||"formularios";
 function ckSetSec(s){CK_SEC=s;localStorage.setItem("ck_sec",s);renderCk();

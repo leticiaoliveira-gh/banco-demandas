@@ -27,6 +27,10 @@ const DG_SIT_PADRAO={
 let DG_PRIOS={...DG_PRIOS_PADRAO},DG_SIT={...DG_SIT_PADRAO},DG_OPC_MOD="";
 /* chaves com papel especial: o site precisa saber qual situação significa "pronto" */
 let DG_CHAVE_CONCLUIDO="concluido",DG_CHAVE_ANDAMENTO="andamento",DG_CHAVE_URGENTE="URGENTE";
+/* O QUE CONTA COMO PENDENTE (28/08) — sem isto, o cartão da empresa e o
+   "X em aberto" do topo davam ZERO para esta aba: a conta padrão procura
+   status "Pendente", palavra que este tipo nunca usou. */
+STATUS_FNS.dg={isPend:d=>d.situacao!==DG_CHAVE_CONCLUIDO,isDone:d=>d.situacao===DG_CHAVE_CONCLUIDO};
 const ordenarOpc=o=>Object.keys(o).sort((a,b)=>(o[a].ordem??99)-(o[b].ordem??99));
 async function dgLoadOpcoes(){
   const g=await metaGet("dgOpcoes");DG_OPC_MOD=await metaGet("dgOpcoesMod")||"";

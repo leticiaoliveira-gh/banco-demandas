@@ -55,6 +55,13 @@ function cmpItens(){
 }
 function cmpTexto(d){ return (d.oque || "").trim(); }
 function cmpSit(d){ return CMP_SIT[d.situacao] ? d.situacao : "pedido"; }
+/* O QUE CONTA COMO PENDENTE (28/08) — sem isto, o cartão da empresa e o
+   "X em aberto" do topo davam ZERO para esta aba: a conta padrão procura
+   status "Pendente", palavra que este tipo nunca usou. */
+/* comprado e a instalar ja sairam da fila de compra; recusado nao conta nem
+   como pendente nem como resolvido, porque a gerencia decidiu nao comprar. */
+STATUS_FNS.cmp={isPend:d=>cmpSit(d)==="pedido",
+  isDone:d=>cmpSit(d)==="comprado"||cmpSit(d)==="instalar"};
 
 /* piso escrito de dois jeitos já fez serviço sumir do filtro da folha em 25/08.
    Aqui a comparação é sempre pela forma limpa, nunca letra por letra. */

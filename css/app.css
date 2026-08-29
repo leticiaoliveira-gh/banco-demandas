@@ -1245,3 +1245,10 @@ body.editando-cards .card-fantasma{opacity:.4}
   body.editando-cards #hub-grid > [data-hub],
   body.editando-cards #store-list .store-row{animation:none}
 }
+
+/* A AGENDA VIROU PEÇA DA BIBLIOTECA (28/08).
+   O calendário não existia em lugar nenhum, então nasceu DENTRO da biblioteca
+   de design (templates/pecas/pecas.css, item 12) e é catalogado lá, com as
+   classes bd-ag-*. Aqui não fica cópia nenhuma: regra número um do projeto,
+   nunca construir do zero e nunca deixar peça solta no site.
+   Ver: biblioteca/pecas.css e o catálogo. */

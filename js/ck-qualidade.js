@@ -17,6 +17,12 @@
      uid@Setor|Area      → escopoS=setor e escopoP=ambiente/tipo:X
 */
 
+/* O QUE CONTA COMO PENDENTE (28/08) — sem isto, o cartão da empresa e o
+   "X em aberto" do topo davam ZERO para esta aba: a conta padrão procura
+   status "Pendente", palavra que este tipo nunca usou. */
+STATUS_FNS.ckqp={isPend:d=>d.status==="andamento",isDone:d=>d.status==="concluido"};
+STATUS_FNS.ckqm={isPend:()=>false,isDone:()=>false};
+
 /* ---------- SETORES POR GRUPO (a pessoa edita pela tela) ---------- */
 const CKQ_SETORES_PADRAO=[
   {chave:"CA",  rotulo:"Consumo & Atendimento", cor:"#1668b8", fundo:"#e7f0f9"},
