@@ -1101,7 +1101,7 @@ function m28TempoTexto(meses){
 function m28Desde(d){
   if(!d.dataRegistro)return '<span class="m28-vaziotxt">—</span>';
   const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
-  const grave=meses!==null&&meses>=12;      /* 1 ano ou mais: destaque */
+  const grave=meses!==null&&meses>=1;       /* 1 mês ou mais: vermelho. Decisão dela (29/08): "1 mês já é tempo demais". */
   return `<span class="m28-data">${brDate(d.dataRegistro)}</span>`
     +(tempo?`<span class="m28-tempo${grave?" grave":""}">${tempo}</span>`:"");
 }
@@ -1572,7 +1572,7 @@ function m28ImprimirFolha(op){
     nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
-      ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=12?' class="grave"':""}>${tempo}</i>`:""}` : "";
+      ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=1?' class="grave"':""}>${tempo}</i>`:""}` : "";
     /* LEG-1 (25/08): A NORMA NAO SAI MAIS NA FOLHA DE QUEM EXECUTA.
        Palavras dela: "isso aqui e pra o Sr. Joao, ele nao vai ficar lendo
        legislacao; legislacao quem tem que ler e gerencia e dono". A orientacao
