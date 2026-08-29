@@ -1092,9 +1092,9 @@ function m28Meses(iso){
 function m28TempoTexto(meses){
   if(meses===null||meses<0)return "";
   if(meses<1)return "este mês";
-  if(meses<12)return "há "+meses+" "+(meses===1?"mês":"meses");
+  if(meses<12)return meses+" "+(meses===1?"mês":"meses");
   const anos=Math.floor(meses/12), resto=meses%12;
-  let t="há "+anos+" "+(anos===1?"ano":"anos");
+  let t=anos+" "+(anos===1?"ano":"anos");
   if(resto)t+=" e "+resto+" "+(resto===1?"mês":"meses");
   return t;
 }
@@ -1755,13 +1755,13 @@ function m28ImprimirFolha(op){
     text-transform:none;letter-spacing:0}
   /* LISTA NUMERADA, sem títulos de coluna (27/08): caixinha, número, texto, data.
      O número recomeça em cada área. */
-  .li{display:grid;grid-template-columns:26px 20px 1fr 90px;gap:7px;padding:7px 11px}
+  .li{display:grid;grid-template-columns:26px 20px 1fr 142px;gap:7px;padding:7px 11px}
   .li .c{text-align:center}
   .li .nm{font-weight:700;color:#475467;text-align:right;font-variant-numeric:tabular-nums;
     font-size:12px;padding-top:.5px}
-  /* a coluna da data e' centralizada por inteiro: a data e o atraso
-     em vermelho, um debaixo do outro no mesmo eixo */
-  .li .q{text-align:center}
+  /* a coluna da data: a data e o tempo na MESMA linha, sempre (pedido dela
+     29/08). Nada de "meses" quebrando para baixo. */
+  .li .q{text-align:center;white-space:nowrap}
   .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
   .li:last-child{border-bottom:0}
   .li .o{color:#667085;font-size:11.4px}
@@ -1789,10 +1789,9 @@ function m28ImprimirFolha(op){
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
   .li .q{font-size:10.8px;color:#667085}
-  .li .q b{display:block;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
-  /* o tempo de atraso vira PASTILHA: com 66px a data e o tempo se atropelavam,
-     e ela disse que estava embolado. Coluna maior e cada um no seu lugar. */
-  .li .q i{font-style:normal;display:inline-block;font-size:8.6px;margin-top:3px;
+  .li .q b{display:inline;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
+  /* o tempo de atraso vira PASTILHA, na MESMA linha da data (29/08). */
+  .li .q i{font-style:normal;display:inline-block;font-size:8.6px;margin-left:5px;
     background:#f2f4f7;border-radius:99px;padding:1px 7px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li .q i.grave{background:#fef3f2;color:#b42318;font-weight:700}
