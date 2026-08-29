@@ -1634,7 +1634,7 @@ function m28ImprimirFolha(op){
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;nDemanda=0;
       blocos+=`<div class="bl ar" data-piso="${esc(m28PisoBonito(d.piso||""))}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${esc(area)}</span>`
-        +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`;}
+        +`<span class="ar-r"><i class="qh">Data registrada</i><b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></span></div>`;}
     nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
@@ -1819,6 +1819,13 @@ function m28ImprimirFolha(op){
   /* a área que continua na página seguinte avisa, para ninguém achar que é outra */
   .ar i{font-style:normal;font-weight:400;font-size:9px;color:#4a6b62;margin-left:7px;
     text-transform:none;letter-spacing:0}
+  /* O TÍTULO DA COLUNA DA DATA (ela aprovou 30/08, "numa linha só"): fica na faixa
+     verde da área, à direita, junto da contagem. Some das outras colunas, que se
+     explicam sozinhas (27/08); a data é a única que precisava dizer o que é.
+     Está na faixa, então o paginador clona junto em toda página que a área ocupa. */
+  .ar .ar-r{display:flex;align-items:baseline;gap:10px;flex-shrink:0}
+  .ar .ar-r .qh{font-style:normal;font-weight:600;font-size:8.2px;margin:0;
+    text-transform:uppercase;letter-spacing:.5px;color:#6b7b76;white-space:nowrap}
   /* LISTA NUMERADA, sem títulos de coluna (27/08): caixinha, número, texto, data.
      O número recomeça em cada área. */
   .li{display:grid;grid-template-columns:26px 20px 1fr 142px;gap:7px;padding:7px 11px}
