@@ -193,6 +193,17 @@
 .m28-urgchk input{width:18px;height:18px;flex:none;margin:0;cursor:pointer;accent-color:#b42318}
 .m28-urgchk .m28-urgselo{margin-right:0}
 
+/* selo do item que ela mandou TAMBÉM para a aba de Compras (29/08). A demanda
+   continua aqui; isto só avisa que ela já está na lista de compras, para não
+   mandar duas vezes. Tom âmbar, diferente do neutro do "Verificar". A palavra
+   diz tudo: a cor sozinha nunca informa. */
+.m28-cmpselo{
+  display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
+  background:#fdf1e3;border:1px solid #eab676;color:#8a5216;
+  font-size:10.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap;
+}
+.btn.ghost.sm.m28-cmp-on{background:#fdf1e3;border-color:#eab676;color:#8a5216}
+
 .m28-origem{
   display:inline-block;margin-left:7px;font-size:10.5px;font-weight:600;color:#5c5d68;
   background:#f1f1f3;border:1px solid #e2e3e7;border-radius:99px;padding:1px 8px;white-space:nowrap;

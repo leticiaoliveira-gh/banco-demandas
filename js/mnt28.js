@@ -98,6 +98,11 @@ function m28Folhas(status){
 /* os serviços daquela folha, na ordem da folha. O que ela apagou depois vira
    um lugar vazio: o total não pode encolher sozinho meses depois. */
 function m28ItensDaEntrega(f){
+  /* FOLHA CONGELADA (29/08): ao concluir o mês, a folha vira uma foto fixa
+     daquele dia (f.snap) e não muda mais, aconteça o que acontecer depois.
+     Pedido dela: "só o relatório do mês atual é atualizado". Folhas antigas
+     concluídas antes desta versão não têm snap: caem no modo antigo (vivo). */
+  if(f&&f.status==="concluida"&&Array.isArray(f.snap))return f.snap;
   const por={};for(const d of m28Itens())por[d.uid]=d;
   return (f.itens||[]).map(u=>por[u]||null);
 }
@@ -136,14 +141,25 @@ async function m28ConcluirFolha(uid){
     +"Ela sai de “Em andamento” e vira histórico, com o resultado de agora: "
     +a.feitas+" de "+a.total+" feitos.\nDá para reabrir depois."))return;
   f.status="concluida";f.concluidaEm=today();
-  f.feitosNoFim=a.feitas;f.totalNoFim=a.total;f.mod=nowISO();
+  f.feitosNoFim=a.feitas;f.totalNoFim=a.total;
+  /* congela a folha: foto fixa dos serviços como estão AGORA. Depois disto,
+     mudança em demanda ou na lista de compras não mexe mais nesta folha. */
+  f.snap=m28ItensDaEntrega(f).map(d=>d?{
+    uid:d.uid,fazer:d.fazer||"",area:d.area||"",piso:d.piso||"",
+    obs:d.obs||"",feito:!!d.feito,urg:!!d.urg,
+    dataRegistro:d.dataRegistro||"",relato:d.relato||"",
+    naCompras:m28TemCompra(d)
+  }:null);
+  f.mod=nowISO();
   await putItem(f);dataChanged();
   M28_FOLHA_VER=null;m28SetSec("concluidas");
 }
 async function m28ReabrirFolha(uid){
   const f=m28AcharFolha(uid);if(!f)return;
   f.status="andamento";f.concluidaEm=null;
-  delete f.feitosNoFim;delete f.totalNoFim;f.mod=nowISO();
+  delete f.feitosNoFim;delete f.totalNoFim;
+  delete f.snap;   /* reabriu para trabalhar: volta a ser folha viva */
+  f.mod=nowISO();
   await putItem(f);dataChanged();
   m28SetSec("andamento");toast("Folha reaberta");
 }
@@ -661,7 +677,7 @@ function m28VerFolhaHTML(){
     html+=`<div class="m28-item${d.feito?" feito":""}">
       <span class="m28-check" role="img" aria-label="${d.feito?"feito":"não feito"}">${d.feito?"✓":""}</span>
       <span class="m28-num">${n}.</span>
-      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${(("naCompras" in d)?d.naCompras:m28TemCompra(d))?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
       <div class="m28-desde">${m28Desde(d)}</div><div class="m28-obs">${d.obs?m28Texto(d.obs):""}</div><div></div></div>`;
   }
   if(html)html+="</div>";
@@ -882,7 +898,7 @@ function m28RenderLista(){
            ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
            a indentacao do proprio codigo aqui embaixo virava linha em branco
            depois de cada demanda -- era o "espaco" que ela via. */""}
-      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">🔎 Verificar · não sai na folha</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">🔎 Verificar · não sai na folha</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
             conserta; o LEMBRETE é só dela e nunca é impresso. Antes havia
@@ -897,6 +913,10 @@ function m28RenderLista(){
           title="${d.verificar?"Está fora da folha impressa — toque para voltar a incluir":"Marcar “Verificar”: some da folha impressa do Sr. João, continua aqui na sua tela"}">🔎</button>
         <button class="btn ghost sm" onclick="m28ParaQualidade(${d.id})" aria-label="Transferir para o relatório de Qualidade"
           title="Transferir: sai desta folha e vira uma Não Conformidade no relatório de Qualidade">⇄</button>
+        <button class="btn ghost sm${m28TemCompra(d)?" m28-cmp-on":""}" onclick="m28ParaCompras(${d.id})"
+          aria-pressed="${m28TemCompra(d)?"true":"false"}"
+          aria-label="${m28TemCompra(d)?"Tirar este item da lista de compras":"Também colocar este item na aba de Compras"}"
+          title="${m28TemCompra(d)?"Está na lista de compras — toque para tirar. A demanda continua aqui.":"Também colocar na aba de Compras. A demanda continua aqui."}">Compras</button>
         <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;
@@ -1116,10 +1136,53 @@ function m28VerFoto(id,i){
 }
 
 /* ---- ações (tudo passa por putItem: o desfazer do site pega) ---- */
+/* =====================================================================
+   TAMBÉM COMPRAR (29/08) — a demanda de manutenção também entra na aba de
+   Compras e CONTINUA aqui (ela escolheu "fica nas duas"). O vínculo é o uid
+   da demanda gravado em `origemMnt` no item de compra. A marca "na lista de
+   compras" é SEMPRE CALCULADA: se o item de compra some (comprado lá, ou
+   excluído), a marca some sozinha, sem bookkeeping.
+   Sai da lista de compras quando: ela toca em "Compras" de novo, marca a
+   demanda como concluída, ou exclui a demanda. Tudo reversível por Ctrl+Z. */
+function m28CompraDe(d){
+  if(!d||!d.uid||typeof DATA==="undefined")return null;
+  return DATA.find(x=>x.tipo==="cmp"&&!x.deleted&&x.origemMnt===d.uid)||null;
+}
+function m28TemCompra(d){ return !!m28CompraDe(d); }
+async function m28ParaCompras(id){
+  const d=DATA.find(x=>x.id===id);if(!d)return;
+  const jaTem=m28CompraDe(d);
+  if(jaTem){
+    if(!confirm("Tirar este item da lista de compras?\n\n"+(d.fazer||"")
+      +"\n\nA demanda continua aqui na manutenção."))return;
+    jaTem.deleted=true;jaTem.mod=nowISO();
+    await putItem(jaTem);dataChanged();
+    m28RenderLista();toast("Tirado da lista de compras (Ctrl+Z desfaz)");
+    return;
+  }
+  const o={uid:newUid(),mod:nowISO(),tipo:"cmp",loja:d.loja||currentStore,
+    piso:d.piso||"",area:d.area||"",
+    oque:(d.fazer||"").trim(),qtd:1,situacao:"pedido",link:"",linkDica:"",
+    obs:(d.obs||d.orientacao||"").trim(),nota:"",urg:!!d.urg,fotos:[],
+    origemMnt:d.uid,
+    dataRegistro:today(),relato:today(),criado:"da-manutencao"};
+  o.id=await putItem(o);DATA.push(o);dataChanged();
+  m28RenderLista();
+  toast("Também na lista de Compras ✓ (a demanda continua aqui)");
+}
+
 async function m28Marcar(id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
   d.feito=!d.feito;d.mod=nowISO();
-  await putItem(d);dataChanged();
+  await putItem(d);
+  /* concluiu a demanda: o item vinculado sai da lista de Compras (pedido dela
+     29/08). Para trazer de volta, ela toca em "Compras" na demanda de novo. */
+  if(d.feito){
+    const c=m28CompraDe(d);
+    if(c){c.deleted=true;c.mod=nowISO();await putItem(c);
+      toast("Concluído. Saiu também da lista de compras.");}
+  }
+  dataChanged();
   m28AtualizarTopo();m28RenderLista();
 }
 /* "VERIFICAR" (27/08) — pedido dela: um item que ela ainda precisa conferir na
@@ -1289,7 +1352,10 @@ async function m28Excluir(id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
   if(!confirm("Excluir este serviço?\n\n"+(d.fazer||"")))return;
   d.deleted=true;d.mod=nowISO();
-  await putItem(d);dataChanged();
+  await putItem(d);
+  const c=m28CompraDe(d);
+  if(c){c.deleted=true;c.mod=nowISO();await putItem(c);}
+  dataChanged();
   m28AtualizarTopo();m28RenderLista();toast("Serviço excluído");
 }
 /* Serviço novo nasce em branco e JÁ ABRE o formulário na tela, com piso e

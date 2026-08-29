@@ -372,7 +372,15 @@ async function cmpSalvar(id){
 
 async function cmpExcluir(id){
   const d = DATA.find(x => x.id === id); if (!d) return;
-  if (!confirm("Excluir este item de compra?\n\n" + cmpTexto(d))) return;
+  /* item que veio da folha de manutenção (botão "Compras" da demanda): ao tirar
+     daqui, a marca "na lista de compras" sai da demanda, mas a demanda continua
+     na manutenção. Ela pediu esse aviso em 29/08. */
+  const msg = d.origemMnt
+    ? "Este item veio da folha de manutenção" + (d.area ? " (" + d.area + ")" : "")
+      + ".\n\nAo tirar daqui, a marca “na lista de compras” sai da demanda, mas a "
+      + "demanda continua na manutenção.\n\nTirar da lista de compras?"
+    : "Excluir este item de compra?\n\n" + cmpTexto(d);
+  if (!confirm(msg)) return;
   d.deleted = true; d.mod = nowISO();
   await putItem(d); dataChanged();
   CMP_EDITANDO = null; renderCompras(); toast("Item excluído");
