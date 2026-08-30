@@ -312,9 +312,29 @@ function m28MesesLista(){
       status:"antiga",antiga:true,folhas:[]};
     mapa[comp].folhas.push(f);
   });
+  /* (c) meses SEM folha nenhuma, tirados da data das próprias demandas.
+     É o caso de quem começou antes de existir bloco de mês (julho): as
+     demandas existem, folha entregue não. Só valem meses já passados —
+     o mês corrente é sempre a folha viva. Bloco só de leitura. */
+  const hoje=m28CompHoje();
+  m28ItensCru().forEach(d=>{
+    const comp=m28CompDe(d.dataRegistro||d.relato||d.criadoEm||"");
+    if(!comp||comp>=hoje||mapa[comp])return;
+    mapa[comp]={comp,titulo:m28TituloComp(comp),uid:null,
+      status:"antiga",antiga:true,derivado:true,folhas:[]};
+  });
   const lista=Object.values(mapa).sort((a,b)=>a.comp.localeCompare(b.comp));
-  lista.forEach(m=>{let fe=0,to=0;m.folhas.forEach(f=>{const a=m28AndamentoFolha(f);fe+=a.feitas;to+=a.total;});
-    m.feitas=fe;m.total=to;m.ano=(m.comp.split("-")[0]||"");});
+  lista.forEach(m=>{
+    if(m.derivado){
+      const its=m28ItensCru().filter(d=>
+        m28CompDe(d.dataRegistro||d.relato||d.criadoEm||"")===m.comp);
+      m.feitas=its.filter(d=>d.feito).length;m.total=its.length;
+    }else{
+      let fe=0,to=0;m.folhas.forEach(f=>{const a=m28AndamentoFolha(f);fe+=a.feitas;to+=a.total;});
+      m.feitas=fe;m.total=to;
+    }
+    m.ano=(m.comp.split("-")[0]||"");
+  });
   return lista;
 }
 
@@ -390,7 +410,9 @@ function m28AbrirMes(uid){
   M28_FOLHA_VER=null;M28_FOLHA_ABERTA=uid;m28SetSec("demandas");
 }
 function m28VerMesAntigo(comp){
-  const m=m28MesesLista().find(x=>x.comp===comp);if(!m||!m.folhas.length)return;
+  const m=m28MesesLista().find(x=>x.comp===comp);if(!m)return;
+  if(m.derivado){M28_MES_ANTIGO=comp;renderMnt28();return;}
+  if(!m.folhas.length)return;
   if(m.folhas.length===1){m28VerFolha(m.folhas[0].uid);return;}
   M28_MES_ANTIGO=comp;renderMnt28();
 }
@@ -487,6 +509,32 @@ function m28MesAntigoHTML(comp){
       <td><span class="ck-and">${a.feitas} de ${a.total} feitos</span></td>
       <td class="ck-td-ac"><button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')">Ver</button></td>
     </tr>`;}).join("")}</tbody></table></div>`;
+}
+/* mês SEM folha entregue (ex.: julho, quando ela começou antes dos blocos):
+   mostra as demandas registradas naquele mês, só leitura. */
+function m28MesDerivadoHTML(comp){
+  const its=m28ItensCru()
+    .filter(d=>m28CompDe(d.dataRegistro||d.relato||d.criadoEm||"")===comp)
+    .sort(m28Comparar);
+  let html="",area=null,n=0;
+  for(const d of its){
+    if(d.area!==area){area=d.area;n=0;
+      if(html)html+="</div>";
+      html+=`<div class="m28-grupo"><div class="m28-area"><span class="m28-area-nome">${esc(area||"Sem área")}</span></div>`;}
+    n++;
+    html+=`<div class="m28-item${d.feito?" feito":""}">
+      <span class="m28-check" role="img" aria-label="${d.feito?"feito":"não feito"}">${d.feito?"✓":""}</span>
+      <span class="m28-num">${n}.</span>
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
+      <div class="m28-desde">${m28Desde(d)}</div><div class="m28-obs">${d.obs?m28Texto(d.obs):""}</div><div></div></div>`;
+  }
+  if(html)html+="</div>";
+  const feitos=its.filter(d=>d.feito).length;
+  return `<div class="m28-folha-topo">
+      <div><b>${esc(m28TituloComp(comp))}</b>
+        <div class="m28-escolha-sub">${its.length} ${its.length===1?"demanda registrada":"demandas registradas"} neste mês${feitos?" · "+feitos+" "+(feitos===1?"feita":"feitas"):""}. Só leitura.</div></div>
+      <div><button class="btn ghost sm" onclick="m28VoltarMeses()">← Meses</button></div>
+    </div>${html||'<div class="bd-vazio"><div class="bd-vazio-tit">Nenhuma demanda neste mês</div></div>'}`;
 }
 
 /* "1º PISO", "1o piso" e "1º Piso" sao o mesmo piso: no titulo sai um so jeito */
@@ -851,7 +899,11 @@ async function renderMnt28(){
 
   /* aba "Demandas": sem mês aberto = a pilha de meses (ou o mês antigo com
      mais de uma folha); com mês aberto = o relatório daquele mês. */
-  if(!M28_FOLHA_ABERTA && M28_MES_ANTIGO){ el.innerHTML=abas+m28MesAntigoHTML(M28_MES_ANTIGO); return; }
+  if(!M28_FOLHA_ABERTA && M28_MES_ANTIGO){
+    const mm=m28MesesLista().find(x=>x.comp===M28_MES_ANTIGO);
+    el.innerHTML=abas+((mm&&mm.derivado)?m28MesDerivadoHTML(M28_MES_ANTIGO):m28MesAntigoHTML(M28_MES_ANTIGO));
+    return;
+  }
   if(!M28_FOLHA_ABERTA){ el.innerHTML=abas+m28PilhaMesesHTML(); return; }
 
   el.innerHTML=abas+m28BarraMesHTML()+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
