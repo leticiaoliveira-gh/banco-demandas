@@ -440,22 +440,27 @@ function m28PilhaMesesHTML(){
   if(M28_PILHA.ordem==="decr")lista=lista.slice().reverse();
   else if(M28_PILHA.ordem==="abc")lista=lista.slice().sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt"));
 
-  const opAno=anos.length>1?`<select class="bd-campo m28-pilha-sel" aria-label="Ver por ano"
+  const opAno=anos.length>1?`<select class="m28-pilha-sel" aria-label="Ver por ano"
       onchange="m28PilhaSet('ano',this.value)">
       <option value="">Todos os anos</option>
       ${anos.map(a=>`<option value="${esc(a)}"${M28_PILHA.ano===a?" selected":""}>${esc(a)}</option>`).join("")}
     </select>`:"";
-  const opOrdem=`<select class="bd-campo m28-pilha-sel" aria-label="Ordenar os meses"
-      onchange="m28PilhaSet('ordem',this.value)">
-      <option value="cresc"${M28_PILHA.ordem==="cresc"?" selected":""}>Mais antigo primeiro</option>
-      <option value="decr"${M28_PILHA.ordem==="decr"?" selected":""}>Mais recente primeiro</option>
-      <option value="abc"${M28_PILHA.ordem==="abc"?" selected":""}>Ordem alfabética</option>
-    </select>`;
-  const barra=`<div class="m28-pilha-barra">
-      <input type="text" class="bd-campo m28-pilha-busca" aria-label="Buscar mês ou ano"
-        placeholder="Buscar mês ou ano. Ex.: setembro, 2027"
-        value="${esc(M28_PILHA.q||"")}" oninput="m28PilhaSet('q',this.value)">
-      <div class="m28-pilha-filtros">${opAno}${opOrdem}</div>
+  const ordens=[["cresc","Mais antigos"],["decr","Mais recentes"],["abc","A–Z"]];
+  const seg=`<div class="m28-pilha-seg" role="group" aria-label="Ordenar os meses">
+      ${ordens.map(([v,txt])=>`<button type="button"${M28_PILHA.ordem===v?' class="on"':""}
+        onclick="m28PilhaSet('ordem','${v}')">${txt}</button>`).join("")}
+    </div>`;
+  const lupa=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+  const barra=`<div class="m28-pilha-faixa">
+      <p class="m28-pilha-rot">Meses</p>
+      <div class="m28-pilha-barra">
+        <div class="m28-pilha-busca-cx">${lupa}
+          <input type="text" aria-label="Buscar mês ou ano"
+            placeholder="Buscar mês ou ano. Ex.: setembro, 2027"
+            value="${esc(M28_PILHA.q||"")}" oninput="m28PilhaSet('q',this.value)">
+        </div>
+        ${seg}${opAno}
+      </div>
     </div>`;
 
   if(!m28MesesLista().length)return barra+`<div class="bd-vazio">
