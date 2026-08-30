@@ -27,6 +27,9 @@ TABS.mnt28.renderCards=function(){const c=document.getElementById("cards");if(c)
    dela vendo a tela de lá. Fica no aparelho, como o CK_SEC: é escolha do
    momento, não configuração do trabalho. */
 let M28_SEC=localStorage.getItem("m28_sec")||"demandas";
+/* 30/08: "Em andamento" e "Concluídas" saíram da barra; "ver" só vive em tela.
+   Estado salvo de uma versão antiga não pode deixar a aba presa num modo morto. */
+if(["andamento","concluidas","ver"].includes(M28_SEC))M28_SEC="demandas";
 function m28SetSec(s){
   M28_SEC=s;localStorage.setItem("m28_sec",s);
   renderMnt28();
@@ -74,8 +77,10 @@ function m28ItensDaFolha(){
    papel é pior que total nenhum. Quantos estão em verificação aparece na
    pastilha de cada área, em "N a verificar". */
 function m28ItensContados(){ return m28ItensDaFolha().filter(d=>!d.verificar); }
-/* o que ela ainda precisa conferir na loja */
-function m28ParaVerificar(){ return m28ItensDaFolha().filter(d=>d.verificar); }
+/* o que ela ainda precisa conferir na loja — a loja TODA, sem depender do
+   filtro de tela nem de mês aberto. Era m28ItensDaFolha() e por isso a aba
+   "Verificar" aparecia zerada. */
+function m28ParaVerificar(){ return m28ItensCru().filter(d=>d.verificar); }
 
 /* =====================================================================
    AS FOLHAS ENTREGUES (28/08) — o histórico que faltava
@@ -103,7 +108,7 @@ function m28ItensDaEntrega(f){
      Pedido dela: "só o relatório do mês atual é atualizado". Folhas antigas
      concluídas antes desta versão não têm snap: caem no modo antigo (vivo). */
   if(f&&f.status==="concluida"&&Array.isArray(f.snap))return f.snap;
-  const por={};for(const d of m28Itens())por[d.uid]=d;
+  const por={};for(const d of m28ItensCru())por[d.uid]=d;
   return (f.itens||[]).map(u=>por[u]||null);
 }
 /* quantos daquela folha já estão feitos HOJE. Enquanto a folha está aberta o
@@ -137,22 +142,15 @@ function m28VerFolha(uid){
 async function m28ConcluirFolha(uid){
   const f=m28AcharFolha(uid);if(!f)return;
   const a=m28AndamentoFolha(f);
-  if(!confirm("Concluir a folha de "+m28NomeFolha(f)+"?\n\n"
-    +"Ela sai de “Em andamento” e vira histórico, com o resultado de agora: "
+  const nome=f.titulo||m28NomeFolha(f);
+  if(!confirm("Concluir "+nome+"?\n\n"
+    +"O mês vira histórico, com o resultado de agora: "
     +a.feitas+" de "+a.total+" feitos.\nDá para reabrir depois."))return;
-  f.status="concluida";f.concluidaEm=today();
-  f.feitosNoFim=a.feitas;f.totalNoFim=a.total;
-  /* congela a folha: foto fixa dos serviços como estão AGORA. Depois disto,
-     mudança em demanda ou na lista de compras não mexe mais nesta folha. */
-  f.snap=m28ItensDaEntrega(f).map(d=>d?{
-    uid:d.uid,fazer:d.fazer||"",area:d.area||"",piso:d.piso||"",
-    obs:d.obs||"",feito:!!d.feito,urg:!!d.urg,
-    dataRegistro:d.dataRegistro||"",relato:d.relato||"",
-    naCompras:m28TemCompra(d)
-  }:null);
-  f.mod=nowISO();
-  await putItem(f);dataChanged();
-  M28_FOLHA_VER=null;m28SetSec("concluidas");
+  /* congela: foto fixa dos serviços como estão AGORA. Depois disto,
+     mudança em demanda ou na lista de compras não mexe mais neste mês. */
+  await m28CongelarFolha(f);
+  M28_FOLHA_VER=null;M28_FOLHA_ABERTA=null;
+  m28VoltarMeses();
 }
 async function m28ReabrirFolha(uid){
   const f=m28AcharFolha(uid);if(!f)return;
@@ -161,7 +159,10 @@ async function m28ReabrirFolha(uid){
   delete f.snap;   /* reabriu para trabalhar: volta a ser folha viva */
   f.mod=nowISO();
   await putItem(f);dataChanged();
-  m28SetSec("andamento");toast("Folha reaberta");
+  M28_FOLHA_VER=null;
+  if(f.competencia){m28AbrirMes(uid);}   /* mês do formato novo: volta para dentro dele */
+  else{M28_MES_ANTIGO=null;m28VoltarMeses();}
+  toast("Reaberto");
 }
 async function m28ExcluirFolha(uid){
   const f=m28AcharFolha(uid);if(!f)return;
@@ -177,8 +178,21 @@ async function m28ExcluirFolha(uid){
 let M28_FOLHA_VER=null,M28_FOLHA_ABERTA=null;
 
 /* ---- itens desta aba, da empresa aberta ---- */
-function m28Itens(){
+/* CRU = a loja inteira, sem recorte de mês. É a base de: pilha de meses,
+   nascimento do mês novo, e a aba "Verificar". */
+function m28ItensCru(){
   return DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&d.loja===currentStore);
+}
+/* m28Itens = o recorte do mês aberto. Fora de um mês (a pilha), é a loja
+   inteira. Dentro de um mês do formato novo em andamento, são só os itens
+   daquele mês — assim capa, números, seletores e lista falam do mês. */
+function m28Itens(){
+  const base=m28ItensCru();
+  if(typeof M28_FOLHA_ABERTA==="undefined"||!M28_FOLHA_ABERTA)return base;
+  const f=m28AcharFolha(M28_FOLHA_ABERTA);
+  if(!f||!f.competencia||f.status!=="andamento")return base;
+  const ids=new Set(f.itens||[]);
+  return base.filter(d=>ids.has(d.uid));
 }
 /* ===== A ORDEM DOS PISOS E ÁREAS E O CABEÇALHO MORAM NO BANCO DELA =====
    Aprendido testando (28/07): se isto dependesse do arquivo da carga, no site
@@ -261,6 +275,218 @@ function m28Titulo(c){
   const onde=pedacos.join(" - ");
   if(!onde)return m28T().tituloPrefixo+(quando?" · "+quando:"");
   return onde+(quando?" · "+quando:"");
+}
+
+/* =====================================================================
+   BLOCOS DE MÊS (30/08) — a aba vira uma pilha de meses
+   ---------------------------------------------------------------------
+   Pedido dela: clicar em "Manutenções" e ver um bloco por mês
+   (Julho, Agosto, Setembro…), em ordem crescente. Clicar num bloco
+   abre o relatório daquele mês; os filtros de piso e pessoa moram
+   dentro do mês. O mês novo nasce sozinho quando a data vira e leva
+   só o que ainda falta fazer. Julho e Agosto NÃO são tocados: o bloco
+   deles é derivado da data das folhas antigas e abre em leitura.
+   ===================================================================== */
+function m28CompDe(iso){const p=String(iso||"").split("-");return (p[0]&&p[1])?p[0]+"-"+p[1]:"";}
+function m28CompHoje(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+function m28TituloComp(comp){
+  const p=String(comp||"").split("-");
+  const mes=M28_MESES[Number(p[1])-1]||"";
+  return mes?(mes.charAt(0).toUpperCase()+mes.slice(1)+"/"+(p[0]||"")):comp;
+}
+
+/* a lista de meses: (a) folhas do formato novo (têm competencia) e
+   (b) as folhas antigas de Jul/Ago, agrupadas pela competência que se
+   deriva da data delas. Ordem crescente por competência. */
+function m28MesesLista(){
+  const todas=m28Folhas();
+  const mapa={};
+  todas.filter(f=>f.competencia).forEach(f=>{
+    mapa[f.competencia]={comp:f.competencia,titulo:f.titulo||m28TituloComp(f.competencia),
+      uid:f.uid,status:f.status,antiga:false,folhas:[f]};
+  });
+  todas.filter(f=>!f.competencia).forEach(f=>{
+    const comp=m28CompDe(f.emitidoEm||f.criadoEm||"");if(!comp)return;
+    if(mapa[comp]&&!mapa[comp].antiga){mapa[comp].folhas.push(f);return;}
+    if(!mapa[comp])mapa[comp]={comp,titulo:m28TituloComp(comp),uid:null,
+      status:"antiga",antiga:true,folhas:[]};
+    mapa[comp].folhas.push(f);
+  });
+  const lista=Object.values(mapa).sort((a,b)=>a.comp.localeCompare(b.comp));
+  lista.forEach(m=>{let fe=0,to=0;m.folhas.forEach(f=>{const a=m28AndamentoFolha(f);fe+=a.feitas;to+=a.total;});
+    m.feitas=fe;m.total=to;m.ano=(m.comp.split("-")[0]||"");});
+  return lista;
+}
+
+/* CONGELAR — a foto fixa do mês, extraída de m28ConcluirFolha para o
+   nascimento automático do mês seguinte também poder usar. */
+async function m28CongelarFolha(f){
+  if(!f||f.status==="concluida")return;
+  const a=m28AndamentoFolha(f);
+  f.status="concluida";f.concluidaEm=today();
+  f.feitosNoFim=a.feitas;f.totalNoFim=a.total;
+  f.snap=m28ItensDaEntrega(f).map(d=>d?{
+    uid:d.uid,fazer:d.fazer||"",area:d.area||"",piso:d.piso||"",
+    obs:d.obs||"",feito:!!d.feito,urg:!!d.urg,
+    dataRegistro:d.dataRegistro||"",relato:d.relato||"",
+    naCompras:m28TemCompra(d)
+  }:null);
+  f.mod=nowISO();
+  await putItem(f);dataChanged();
+}
+async function m28CriarMes(comp,uids){
+  const itens=Array.isArray(uids)?[...new Set(uids)]:[];
+  const o={uid:newUid(),mod:nowISO(),tipo:"m28f",loja:currentStore,status:"andamento",
+    competencia:comp,titulo:m28TituloComp(comp),piso:"",executor:"",
+    emitidoEm:comp+"-01",criadoEm:today(),concluidaEm:null,corte:"",
+    itens,total:itens.length,feitosNaEntrega:0,urgentes:0,criado:"mes-automatico"};
+  o.id=await putItem(o);DATA.push(o);dataChanged();
+  return o;
+}
+/* roda dentro do renderMnt28: garante que o mês corrente existe.
+   Sem relógio nem setInterval — acontece quando ela abre a aba. */
+let M28_MES_CHECADO=false;
+async function m28GarantirMesCorrente(){
+  if(M28_MES_CHECADO)return;
+  M28_MES_CHECADO=true;
+  const hoje=m28CompHoje();
+  const novas=m28Folhas().filter(f=>f.competencia);
+  if(novas.find(f=>f.competencia===hoje))return;
+  const cru=m28ItensCru();
+  const anteriores=novas.filter(f=>f.competencia<hoje)
+    .sort((a,b)=>a.competencia.localeCompare(b.competencia));
+  const ultima=anteriores[anteriores.length-1];
+  let base;
+  if(ultima){
+    if(ultima.status==="andamento")await m28CongelarFolha(ultima);
+    const daUltima=(ultima.itens||[]).filter(u=>{const d=cru.find(x=>x.uid===u);return d&&!d.feito;});
+    const jaEmMes=new Set();novas.forEach(f=>(f.itens||[]).forEach(u=>jaEmMes.add(u)));
+    const soltos=cru.filter(d=>!d.feito&&!jaEmMes.has(d.uid)).map(d=>d.uid);
+    base=[...daUltima,...soltos];
+  }else{
+    /* primeiríssima vez (setembro/2026): todas as demandas vivas em aberto */
+    base=cru.filter(d=>!d.feito).map(d=>d.uid);
+  }
+  await m28CriarMes(hoje,base);
+}
+
+/* qual mês está aberto na tela; só memória de tela */
+let M28_MES_ANTIGO=null;
+/* preferências da pilha (ordem/ano/busca) — escolha do momento, fica no aparelho */
+let M28_PILHA={ordem:"cresc",ano:"",q:""};
+try{const g=JSON.parse(localStorage.getItem("m28_pilha")||"{}");
+  M28_PILHA=Object.assign(M28_PILHA,g);}catch(e){}
+function m28PilhaSet(k,v){
+  M28_PILHA[k]=v;
+  try{localStorage.setItem("m28_pilha",JSON.stringify(M28_PILHA));}catch(e){}
+  renderMnt28();
+}
+
+function m28AbrirMes(uid){
+  const f=m28AcharFolha(uid);if(!f)return;
+  M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
+  M28_MES_ANTIGO=null;
+  if(f.status==="concluida"){M28_FOLHA_ABERTA=null;M28_FOLHA_VER=uid;m28SetSec("ver");return;}
+  M28_FOLHA_VER=null;M28_FOLHA_ABERTA=uid;m28SetSec("demandas");
+}
+function m28VerMesAntigo(comp){
+  const m=m28MesesLista().find(x=>x.comp===comp);if(!m||!m.folhas.length)return;
+  if(m.folhas.length===1){m28VerFolha(m.folhas[0].uid);return;}
+  M28_MES_ANTIGO=comp;renderMnt28();
+}
+function m28VoltarMeses(){
+  M28_FOLHA_ABERTA=null;M28_FOLHA_VER=null;M28_MES_ANTIGO=null;
+  M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
+  m28SetSec("demandas");
+}
+function m28VoltarDoVer(){
+  M28_FOLHA_VER=null;
+  if(M28_MES_ANTIGO){renderMnt28();return;}
+  m28VoltarMeses();
+}
+
+/* A PILHA DE MESES — peça bd-linha-mes da biblioteca, sem emoji.
+   Barra fina em cima: busca longa (uso futuro) e, à direita, o seletor
+   de ordem e, quando há mais de um ano, o seletor de ano. */
+function m28PilhaMesesHTML(){
+  let lista=m28MesesLista();
+  const hoje=m28CompHoje();
+  const anos=[...new Set(lista.map(m=>m.ano))].sort();
+  const q=(M28_PILHA.q||"").trim().toLowerCase();
+  if(q)lista=lista.filter(m=>m.titulo.toLowerCase().includes(q)||m.comp.includes(q));
+  if(M28_PILHA.ano)lista=lista.filter(m=>m.ano===M28_PILHA.ano);
+  if(M28_PILHA.ordem==="decr")lista=lista.slice().reverse();
+  else if(M28_PILHA.ordem==="abc")lista=lista.slice().sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt"));
+
+  const opAno=anos.length>1?`<select class="bd-campo m28-pilha-sel" aria-label="Ver por ano"
+      onchange="m28PilhaSet('ano',this.value)">
+      <option value="">Todos os anos</option>
+      ${anos.map(a=>`<option value="${esc(a)}"${M28_PILHA.ano===a?" selected":""}>${esc(a)}</option>`).join("")}
+    </select>`:"";
+  const opOrdem=`<select class="bd-campo m28-pilha-sel" aria-label="Ordenar os meses"
+      onchange="m28PilhaSet('ordem',this.value)">
+      <option value="cresc"${M28_PILHA.ordem==="cresc"?" selected":""}>Mais antigo primeiro</option>
+      <option value="decr"${M28_PILHA.ordem==="decr"?" selected":""}>Mais recente primeiro</option>
+      <option value="abc"${M28_PILHA.ordem==="abc"?" selected":""}>Ordem alfabética</option>
+    </select>`;
+  const barra=`<div class="m28-pilha-barra">
+      <input type="text" class="bd-campo m28-pilha-busca" aria-label="Buscar mês ou ano"
+        placeholder="Buscar mês ou ano. Ex.: setembro, 2027"
+        value="${esc(M28_PILHA.q||"")}" oninput="m28PilhaSet('q',this.value)">
+      <div class="m28-pilha-filtros">${opAno}${opOrdem}</div>
+    </div>`;
+
+  if(!m28MesesLista().length)return barra+`<div class="bd-vazio">
+    <div class="bd-vazio-tit">Ainda não há nenhum mês</div>
+    <div class="bd-vazio-txt">Assim que você abrir esta aba num dia 1º, o mês começa sozinho.</div></div>`;
+  if(!lista.length)return barra+`<div class="bd-vazio">
+    <div class="bd-vazio-tit">Nenhum mês com esse filtro</div>
+    <div class="bd-vazio-txt">Limpe a busca ou escolha "Todos os anos".</div></div>`;
+
+  const linhas=lista.map(m=>{
+    const atual=(m.comp===hoje)&&!m.antiga&&m.status!=="concluida";
+    const abrir=m.antiga?`m28VerMesAntigo('${m.comp}')`:`m28AbrirMes('${m.uid}')`;
+    return `<button type="button" class="bd-linha-mes${atual?" bd-linha-mes-atual":""}" onclick="${abrir}">
+      <span class="bd-linha-mes-mk${atual?"":" bd-linha-mes-done"}" aria-hidden="true"></span>
+      <span class="bd-linha-mes-nome">${esc(m.titulo)}</span>
+      <span class="bd-linha-mes-selo ${atual?"bd-linha-mes-selo-atual":"bd-linha-mes-selo-fech"}">${atual?"Mês atual":"Fechado"}</span>
+      <span class="bd-linha-mes-chev" aria-hidden="true">&rsaquo;</span>
+    </button>`;
+  }).join("");
+  return barra+`<div class="m28-pilha">${linhas}</div>
+    <div class="bd-aviso bd-aviso-atencao m28-pilha-nota">
+      <span class="bd-aviso-ico" aria-hidden="true">i</span>
+      <div>O mês novo nasce sozinho quando a data vira e leva só o que ainda falta fazer. Você só mexe no mês atual.</div>
+    </div>`;
+}
+/* barra do topo dentro de um mês aberto: voltar + nome + concluir */
+function m28BarraMesHTML(){
+  const f=M28_FOLHA_ABERTA&&m28AcharFolha(M28_FOLHA_ABERTA);
+  const tit=f?(f.titulo||m28TituloComp(f.competencia||m28CompDe(f.emitidoEm||f.criadoEm))):"";
+  return `<div class="m28-mesbar">
+    <button class="btn ghost sm" onclick="m28VoltarMeses()">← Meses</button>
+    <span class="m28-mesbar-tit">${esc(tit)}</span>
+    ${f?`<button class="btn sm" onclick="m28ConcluirFolha('${f.uid}')" title="Encerrar este mês e guardar o resultado">Concluir este mês</button>`:""}
+  </div>`;
+}
+/* mês antigo (Jul/Ago) com mais de uma folha: mini lista para escolher qual ver */
+function m28MesAntigoHTML(comp){
+  const m=m28MesesLista().find(x=>x.comp===comp);
+  const l=(m&&m.folhas)||[];
+  return `<div class="m28-folha-topo">
+      <div><b>${esc(m28TituloComp(comp))}</b>
+        <div class="m28-escolha-sub">${l.length} folha${l.length===1?"":"s"} entregue${l.length===1?"":"s"} neste mês. Toque para ver.</div></div>
+      <div><button class="btn ghost sm" onclick="m28VoltarMeses()">← Meses</button></div>
+    </div>
+    <div class="ck-tab-wrap"><table class="ck-tab">
+    <thead><tr><th>Entregue em</th><th>Folha</th><th>Responsável</th><th>Resultado</th><th></th></tr></thead>
+    <tbody>${l.map(f=>{const a=m28AndamentoFolha(f);return `<tr>
+      <td>${esc(brDate(f.emitidoEm||f.criadoEm||""))}</td>
+      <td>${esc(m28NomeFolha(f))}</td>
+      <td>${esc(f.executor||"—")}</td>
+      <td><span class="ck-and">${a.feitas} de ${a.total} feitos</span></td>
+      <td class="ck-td-ac"><button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')">Ver</button></td>
+    </tr>`;}).join("")}</tbody></table></div>`;
 }
 
 /* "1º PISO", "1o piso" e "1º Piso" sao o mesmo piso: no titulo sai um so jeito */
@@ -373,6 +599,13 @@ function m28Cab(itens){
   }
   if(!cab.rt)cab.rt=RT_INFO||RT_DEFAULT;
   if(!cab.executor&&itens)cab.executor=(itens.find(d=>d.executor)||{}).executor||"";
+  /* Dentro de um mês aberto (bloco novo), o cabeçalho segue a competência do
+     mês -- senão a folha de Setembro sairia com o título e a data do mês de
+     origem, e ela clicaria em setembro e leria agosto (30/08). */
+  if(typeof M28_FOLHA_ABERTA!=="undefined"&&M28_FOLHA_ABERTA){
+    const fm=m28AcharFolha(M28_FOLHA_ABERTA);
+    if(fm&&fm.competencia)cab.emitidoEm=fm.emitidoEm||(fm.competencia+"-01");
+  }
   return cab;
 }
 /* Ordem do piso: pela lista oficial se existir; senão alfabética ("1º PISO"
@@ -452,6 +685,7 @@ async function renderMnt28(){
   const el=document.getElementById("tab-mnt28");if(!el)return;
   await m28Config();
   await m28CargaInicial();
+  await m28GarantirMesCorrente();   /* o mês corrente nasce sozinho quando a data vira */
   /* DUAS BASES, e nao uma -- cada seletor da barra precisa continuar mostrando
      TODOS os caminhos, senao ela escolhe um piso e fica presa nele.
        basePlena = a loja inteira    -> monta os seletores (piso, area, pessoa)
@@ -604,10 +838,8 @@ async function renderMnt28(){
      A CONTAGEM DE CADA DIVISÃO É O .length DA MESMA FUNÇÃO QUE MONTA A LISTA:
      número que não bate com a lista logo abaixo já deu problema aqui. */
   const secs=[
-    ["demandas","🔧","Demandas",     m28LinhasDaTela().length],
-    ["andamento","📆","Em andamento", m28Folhas("andamento").length],
-    ["concluidas","✅","Concluídas",  m28Folhas("concluida").length],
-    ["verificar","🔎","Verificar",    m28ParaVerificar().length]];
+    ["demandas","🔧","Demandas",   M28_FOLHA_ABERTA?m28LinhasDaTela().length:m28MesesLista().length],
+    ["verificar","🔎","Verificar", m28ParaVerificar().length]];
   const abas=`<div class="ck-barra"><div class="ck-secs">`
     +secs.map(([k,ic,nm,n])=>`<button class="ck-sec${M28_SEC===k?" on":""}" onclick="m28SetSec('${k}')"
         aria-pressed="${M28_SEC===k?"true":"false"}"><span class="ic" aria-hidden="true">${ic}</span>
@@ -615,13 +847,14 @@ async function renderMnt28(){
     +`</div></div>`;
 
   if(M28_SEC==="ver"){ el.innerHTML=abas+m28VerFolhaHTML(); return; }
-  if(M28_SEC==="andamento"||M28_SEC==="concluidas"){
-    el.innerHTML=abas+m28ListaFolhasHTML(M28_SEC==="andamento"?"andamento":"concluida");
-    return;
-  }
   if(M28_SEC==="verificar"){ el.innerHTML=abas+m28VerificarHTML(); return; }
 
-  el.innerHTML=abas+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
+  /* aba "Demandas": sem mês aberto = a pilha de meses (ou o mês antigo com
+     mais de uma folha); com mês aberto = o relatório daquele mês. */
+  if(!M28_FOLHA_ABERTA && M28_MES_ANTIGO){ el.innerHTML=abas+m28MesAntigoHTML(M28_MES_ANTIGO); return; }
+  if(!M28_FOLHA_ABERTA){ el.innerHTML=abas+m28PilhaMesesHTML(); return; }
+
+  el.innerHTML=abas+m28BarraMesHTML()+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 
@@ -686,9 +919,9 @@ function m28VerFolhaHTML(){
         <div class="m28-escolha-sub">Entregue em ${esc(brDate(f.emitidoEm||f.criadoEm||""))}${f.executor?" · "+esc(f.executor):""}
           · ${a.feitas} de ${a.total} feitos</div></div>
       <div>
-        <button class="btn ghost sm" onclick="m28SetSec('${f.status==="concluida"?"concluidas":"andamento"}')">← Voltar</button>
+        <button class="btn ghost sm" onclick="m28VoltarDoVer()">← Voltar</button>
         ${f.status==="andamento"
-          ? `<button class="btn sm" onclick="m28ConcluirFolha('${f.uid}')" title="Encerrar esta folha e guardar o resultado">✅ Concluir esta folha</button>`
+          ? `<button class="btn sm" onclick="m28ConcluirFolha('${f.uid}')" title="Encerrar esta folha e guardar o resultado">Concluir esta folha</button>`
           : `<button class="btn ghost sm" onclick="m28ReabrirFolha('${f.uid}')">↩ Reabrir</button>`}
       </div>
     </div>${html||'<div class="bd-vazio"><div class="bd-vazio-tit">Esta folha está vazia</div></div>'}`;
@@ -1372,6 +1605,14 @@ async function m28Novo(){
     feito:false,ordem:(m28PosArea(piso,area)*1000)+999,
     relato:today(),criado:"manual"};
   const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
+  /* nasceu dentro de um mês aberto? entra na lista daquele mês na hora */
+  const fMes=(typeof M28_FOLHA_ABERTA!=="undefined"&&M28_FOLHA_ABERTA)&&m28AcharFolha(M28_FOLHA_ABERTA);
+  if(fMes&&fMes.competencia&&fMes.status==="andamento"){
+    fMes.itens=[...(fMes.itens||[]),o.uid];
+    fMes.total=fMes.itens.length;
+    fMes.mod=nowISO();
+    await putItem(fMes);
+  }
   M28_EDITANDO=id;
   m28AtualizarTopo();m28RenderLista();
   const c=document.querySelector('.m28-form textarea');if(c)c.focus();
@@ -1550,50 +1791,17 @@ function m28LinhasDaFolha(op){
   return rows.sort(m28Comparar);
 }
 
-/* GUARDA A FOLHA ENTREGUE. Só a via de TRABALHO passa por aqui: a via "tudo,
-   para marcar à mão" é uma segunda cópia da mesma entrega e não deve virar uma
-   linha repetida no histórico. Decisão dela em 28/08.
-   Roda ANTES de abrir a janela de impressão, porque pode precisar perguntar, e
-   pergunta atrás de uma janela recém-aberta ninguém vê. */
+/* IMPRIMIR/EXPORTAR (30/08): o mês já é o registro — não se cria mais uma
+   folha nova a cada impressão. Só se atualiza a data e o corte do mês aberto,
+   para o topo da folha impressa sair com o mês certo. */
 async function m28GuardarEntrega(op){
-  const rows=m28LinhasDaFolha(op);
-  if(!rows.length)return;
-  const c=Object.assign({},m28Cab(rows),op.emitidoEm?{emitidoEm:op.emitidoEm}:{});
-  const exec=(M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"").trim();
-  const pisos=[...new Set(rows.map(d=>(d.piso||"").trim()).filter(Boolean))];
-  const piso=(M28F.piso||"").trim()||(pisos.length===1?pisos[0]:"");
-  const emitidoEm=c.emitidoEm||today();
-
-  /* já existe uma folha aberta do mesmo piso e da mesma pessoa? Ela reimprime a
-     mesma folha várias vezes; sem perguntar, o histórico encheria de repetidas. */
-  const aberta=m28Folhas("andamento").find(f=>
-    (f.piso||"")===piso && (f.executor||"")===exec);
-  if(aberta){
-    const nova=confirm("Já existe uma folha aberta"
-      +(piso?" do "+m28PisoBonito(piso):"")+(exec?" do "+exec:"")
-      +", de "+brDate(aberta.emitidoEm||aberta.criadoEm)+".\n\n"
-      +"OK = atualizar essa folha com a lista de agora.\n"
-      +"Cancelar = abrir uma folha nova, guardando a anterior.");
-    if(nova){
-      aberta.itens=rows.map(d=>d.uid);
-      aberta.total=rows.length;
-      aberta.emitidoEm=emitidoEm;
-      aberta.corte=op.corte||"";
-      aberta.mod=nowISO();
-      await putItem(aberta);dataChanged();
-      toast("Folha atualizada no histórico");
-      return;
-    }
-  }
-  const o={uid:newUid(),mod:nowISO(),tipo:"m28f",loja:currentStore,
-    status:"andamento",piso,executor:exec,
-    emitidoEm,criadoEm:today(),concluidaEm:null,corte:op.corte||"",
-    itens:rows.map(d=>d.uid),total:rows.length,
-    feitosNaEntrega:rows.filter(d=>d.feito).length,
-    urgentes:rows.filter(d=>d.urg&&!d.feito).length,
-    criado:"impressao"};
-  o.id=await putItem(o);DATA.push(o);dataChanged();
-  toast("Folha guardada em “Em andamento”");
+  op=op||{};
+  const f=M28_FOLHA_ABERTA&&m28AcharFolha(M28_FOLHA_ABERTA);
+  if(!f||f.status!=="andamento")return;
+  if(op.emitidoEm)f.emitidoEm=op.emitidoEm;
+  if(op.corte!==undefined)f.corte=op.corte||"";
+  f.mod=nowISO();
+  await putItem(f);dataChanged();
 }
 
 function m28ImprimirFolha(op){

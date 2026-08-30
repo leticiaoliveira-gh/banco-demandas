@@ -401,8 +401,33 @@ select.bd-campo{
   .bd-ag-dn{font-size:12px}
 }
 
+/* ══════════════════════ 17. LINHA DE MÊS ══════════════════════
+   Linha compacta de um mês, para uma pilha de meses (Julho, Agosto…).
+   É um <button> de largura total. Traço lateral verde nos meses fechados,
+   avermelhado no mês corrente. Sem emoji. */
+.bd-linha-mes{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:#fff;border:1px solid var(--bd-borda);border-left:4px solid var(--bd-verde);
+  border-radius:var(--bd-r-g);padding:12px 14px;margin-bottom:10px;cursor:pointer;
+  font:inherit;color:inherit;transition:border-color .12s ease,background .12s ease}
+.bd-linha-mes:hover{background:var(--bd-c25)}
+.bd-linha-mes:focus-visible{outline:2px solid var(--bd-verde);outline-offset:2px}
+.bd-linha-mes-atual{border-left-color:#c2620a}
+.bd-linha-mes-mk{width:24px;height:24px;flex:none;border-radius:6px;background:#fff;
+  border:2px solid var(--bd-c300);position:relative}
+.bd-linha-mes-done{border-color:var(--bd-verde-vivo)}
+.bd-linha-mes-done::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:12px;
+  border:solid var(--bd-verde-vivo);border-width:0 3px 3px 0;transform:rotate(42deg)}
+.bd-linha-mes-nome{flex:1;min-width:0;font-size:16px;font-weight:600;color:var(--bd-verde-escuro);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-linha-mes-selo{flex:none;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;padding:3px 9px;border-radius:999px}
+.bd-linha-mes-selo-fech{background:var(--bd-c100);color:var(--bd-c500)}
+.bd-linha-mes-selo-atual{background:#fdece0;color:#9a4e0d}
+.bd-linha-mes-chev{flex:none;color:var(--bd-verde-escuro);font-size:20px;font-weight:700;opacity:.6}
+
 /* ══════════════════════ 13. CELULAR ══════════════════════ */
 @media (max-width:640px){
+  .bd-linha-mes-nome{font-size:15px}
   .bd-kpis{grid-template-columns:1fr}
   .bd-btn{padding:11px 16px}          /* alvo de toque maior */
   .bd-janela-rodape{flex-direction:column-reverse}
