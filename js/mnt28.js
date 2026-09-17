@@ -2111,7 +2111,7 @@ function m28ImprimirFolha(op){
   /* LINHA DE BAIXO, opcao B: duas colunas -- unidade e emissao numa linha,
      executor e responsavel tecnica na outra. Ela achou a fileira unica
      "embolada"; cada dupla ganha a largura inteira da coluna dela agora. */
-  .capa .cpe{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:4px 20px;
+  .capa .cpe{display:grid;grid-template-columns:1fr 1.6fr;gap:4px 20px;
     margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.26);font-size:10.4px}
   .capa .cpe div{display:flex;flex-direction:column;gap:1px}
   .capa .cpe span{font-size:8.2px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}

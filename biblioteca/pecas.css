@@ -425,6 +425,20 @@ select.bd-campo{
 .bd-linha-mes-selo-atual{background:#fdece0;color:#9a4e0d}
 .bd-linha-mes-chev{flex:none;color:var(--bd-verde-escuro);font-size:20px;font-weight:700;opacity:.6}
 
+/* ══════════════════════ 18. VISUALIZADOR DE IMAGEM ══════════════════════
+   Abre uma foto anexada em tela cheia, com botão de girar (cicla 0/90/180/
+   270°) e de fechar. Usada em qualquer lugar do site que anexa foto:
+   demanda, Não Conformidade, manutenção. */
+.bd-visualizador{position:fixed;inset:0;background:rgba(10,10,14,.92);z-index:70;
+  display:none;align-items:center;justify-content:center;padding:16px}
+.bd-visualizador img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .2s}
+.bd-visualizador-btn{position:absolute;top:12px;width:44px;height:44px;border-radius:50%;
+  border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.bd-visualizador-btn:hover{background:rgba(255,255,255,.28)}
+.bd-visualizador-x{right:12px}
+.bd-visualizador-girar{right:64px;font-size:22px}
+
 /* ══════════════════════ 13. CELULAR ══════════════════════ */
 @media (max-width:640px){
   .bd-linha-mes-nome{font-size:15px}

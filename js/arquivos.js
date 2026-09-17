@@ -346,10 +346,10 @@ function verImagemGrande(src){
   IMG_VIEWER_GRAUS=0;
   let m=document.getElementById("img-viewer");
   if(!m){
-    m=document.createElement("div");m.id="img-viewer";m.className="img-viewer-overlay";
+    m=document.createElement("div");m.id="img-viewer";m.className="bd-visualizador";
     m.onclick=e=>{if(e.target===m)fecharImagemGrande();};
-    m.innerHTML=`<button class="img-viewer-fechar" onclick="fecharImagemGrande()" title="Fechar">×</button>
-      <button class="img-viewer-girar" onclick="girarImagemGrande()" title="Girar">⟳</button>
+    m.innerHTML=`<button class="bd-visualizador-btn bd-visualizador-x" onclick="fecharImagemGrande()" title="Fechar">×</button>
+      <button class="bd-visualizador-btn bd-visualizador-girar" onclick="girarImagemGrande()" title="Girar">⟳</button>
       <img id="img-viewer-img" alt="Foto ampliada">`;
     document.body.appendChild(m);
   }
