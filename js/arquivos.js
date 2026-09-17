@@ -332,8 +332,37 @@ async function anexoSelecionado(e){
 function anexosHTML(d){
   if(!d.fotos||!d.fotos.length)return "";
   return `<div class="anexos">${d.fotos.map((f,i)=>
-    `<span class="anexo"><img src="${f}" onclick="window.open('').document.write('<img src=\\''+this.src+'\\' style=\\'max-width:100%\\'>')" title="Clique para ampliar">
+    `<span class="anexo"><img src="${f}" onclick="verImagemGrande('${f}')" title="Clique para ampliar">
       <button onclick="removerAnexo('${d.uid}',${i})" title="Remover">×</button></span>`).join("")}</div>`;
+}
+
+/* ===== VISUALIZADOR DE IMAGEM (17/09) =====
+   Pedido dela: clicar numa foto anexada tem que abrir de verdade (o antigo
+   window.open('') vazio ficava bloqueado pelo navegador) e, uma vez aberta,
+   tem que dar pra girar. Uma peça só, reaproveitada em toda foto do site
+   (demanda, Não Conformidade, manutenção) em vez de repetir o mesmo código. */
+let IMG_VIEWER_GRAUS=0;
+function verImagemGrande(src){
+  IMG_VIEWER_GRAUS=0;
+  let m=document.getElementById("img-viewer");
+  if(!m){
+    m=document.createElement("div");m.id="img-viewer";m.className="img-viewer-overlay";
+    m.onclick=e=>{if(e.target===m)fecharImagemGrande();};
+    m.innerHTML=`<button class="img-viewer-fechar" onclick="fecharImagemGrande()" title="Fechar">×</button>
+      <button class="img-viewer-girar" onclick="girarImagemGrande()" title="Girar">⟳</button>
+      <img id="img-viewer-img" alt="Foto ampliada">`;
+    document.body.appendChild(m);
+  }
+  document.getElementById("img-viewer-img").src=src;
+  document.getElementById("img-viewer-img").style.transform="";
+  m.style.display="flex";
+}
+function girarImagemGrande(){
+  IMG_VIEWER_GRAUS=(IMG_VIEWER_GRAUS+90)%360;
+  document.getElementById("img-viewer-img").style.transform=`rotate(${IMG_VIEWER_GRAUS}deg)`;
+}
+function fecharImagemGrande(){
+  const m=document.getElementById("img-viewer");if(m)m.style.display="none";
 }
 async function removerAnexo(uid,i){
   const d=DATA.find(x=>x.uid===uid&&!x.deleted);if(!d||!d.fotos)return;

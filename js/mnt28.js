@@ -686,9 +686,12 @@ function m28PosArea(p,a){const o=m28Ordem();if(!o||!o[p])return 999;const i=o[p]
    fechado isso ficou impossível de ignorar.
    Agora a área é sempre contígua, e a ordem dela vale DENTRO da área. */
 function m28Comparar(a,b){
+  /* Pedido dela (17/09): URGENTE sempre em 1º dentro da área, na frente dos
+     outros -- fixo, pra ter lógica, não só naquela área que ela marcou. */
   return m28CmpPiso(a.piso,b.piso)
     ||m28PosArea(a.piso,a.area)-m28PosArea(b.piso,b.area)
     ||String(a.area||"").localeCompare(String(b.area||""))
+    ||((b.urg?1:0)-(a.urg?1:0))
     ||((a.ordem??1e9)-(b.ordem??1e9));
 }
 
@@ -1466,12 +1469,7 @@ function m28Desde(d){
 }
 function m28VerFoto(id,i){
   const d=DATA.find(x=>x.id===id);if(!d||!d.fotos||!d.fotos[i])return;
-  const w=window.open("");
-  if(!w){toast("O navegador bloqueou a janela da foto.");return;}
-  w.document.write(`<title>Foto do serviço</title>
-    <body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh">
-    <img src="${d.fotos[i]}" style="max-width:100%;max-height:100vh" alt="Foto do serviço"></body>`);
-  w.document.close();
+  verImagemGrande(d.fotos[i]);
 }
 
 /* ---- ações (tudo passa por putItem: o desfazer do site pega) ---- */
@@ -2021,7 +2019,9 @@ function m28ImprimirFolha(op){
 
   const ident=m28Identidade();
   const cabecalho=`<div class="capa">
-      <div class="identidade">${ident.tipo?`<b>${esc(ident.tipo.toUpperCase())}</b>`:""}${ident.tipo&&ident.resto?" · ":""}${esc(ident.resto)}</div>
+      ${/* Pedido dela (17/09): titulo do cabecalho todo em maiusculo, junto com
+           "e" -- "MANUTENCAO E INFRAESTRUTURA", nao mais "MANUTENCAO · Infraestrutura". */""}
+      <div class="identidade"><b>${esc((ident.tipo+(ident.resto?" e "+ident.resto:"")).toUpperCase())}</b></div>
       ${faixa?`<div class="faixa">${faixa}</div>`:""}
       ${/* LINHA DE BAIXO, opcao B (27/08): duas colunas -- unidade e emissao numa
            linha, executor e responsavel tecnica na outra. Cada item com seu
@@ -2031,11 +2031,10 @@ function m28ImprimirFolha(op){
         ${/* DEFEITO CORRIGIDO (29/07): aqui estava brDate(today()) — a data que
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
+        ${/* Pedido dela (17/09): responsavel tecnica do lado de "Emitido em" na
+             mesma fileira, entao os dois ficaram juntos no fim da grade. */""}
         <div><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
-        ${/* Pedido dela (17/09): por enquanto, tirar o nome de quem executa deste
-             cabeçalho -- a folha e' geral e nem todo servico e' dele. A div vazia
-             so mantem o grid de duas colunas alinhado. */""}
-        <div></div>${false&&exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
+        ${false&&exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
         <div><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
       </div>
     </div>
@@ -2112,7 +2111,7 @@ function m28ImprimirFolha(op){
   /* LINHA DE BAIXO, opcao B: duas colunas -- unidade e emissao numa linha,
      executor e responsavel tecnica na outra. Ela achou a fileira unica
      "embolada"; cada dupla ganha a largura inteira da coluna dela agora. */
-  .capa .cpe{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;
+  .capa .cpe{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:4px 20px;
     margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.26);font-size:10.4px}
   .capa .cpe div{display:flex;flex-direction:column;gap:1px}
   .capa .cpe span{font-size:8.2px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}

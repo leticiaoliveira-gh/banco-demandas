@@ -626,8 +626,8 @@ async function ncArrFim(){
   dataChanged();renderNC();toast("Ordem salva ✓");
 }
 
-function ncVerFoto(id,i){const d=DATA.find(x=>x.id===id);if(!d)return;
- const w=window.open("");w.document.write(`<body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${d.fotos[i]}" style="max-width:100%;max-height:100vh"></body>`);}
+function ncVerFoto(id,i){const d=DATA.find(x=>x.id===id);if(!d||!d.fotos||!d.fotos[i])return;
+ verImagemGrande(d.fotos[i]);}
 
 async function ncResolver(id){const d=DATA.find(x=>x.id===id);if(!d)return;
  d.status="Resolvida";d.resolvida_em=today();await ncPut(d);
