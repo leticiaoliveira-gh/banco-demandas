@@ -1,5 +1,28 @@
 # PENDÊNCIAS — Central de Demandas NP
-### atualizado em 24/08/2026 · este arquivo é a memória entre conversas
+### atualizado em 16/09/2026 · este arquivo é a memória entre conversas
+
+---
+
+## 🟡 16/09 — item "2º piso de Arraial": ela já passou os itens; foco agora é só Manutenções
+
+O `status.json` trazia um item sem detalhe: **"2º piso de Arraial inteiro, config
+igual ao 1º"**. Reconstruído a partir dos arquivos (sem folha separada por
+piso — piso é filtro dentro da folha única de Arraial; o 1º piso recebeu em
+julho uma arrumação fina contra as 3 folhas marcadas à caneta por ela: nome e
+ordem de área, VERIFICAR nos dois campos, cabeçalho; o 2º piso só teve a folha
+impressa crua em 25/08, `4. TAREFAS\CODE - Folhas Sr Joao Arraial (25-08-26)\`,
+nunca passou pela arrumação).
+
+**Ela confirmou em 16/09: já passou os itens/anotações do 2º piso.** Esta
+sessão **não achou** esse material nos arquivos do repositório nem nas fotos
+enviadas nela mesma — pode estar numa conversa/sessão diferente, no Notion ou
+no grupo do WhatsApp/Telegram. **A próxima sessão precisa localizar onde isso
+foi passado antes de perguntar a ela de novo** (REG-3): procurar em sessões
+recentes, no Notion (`notion-search`), e conferir o estado real do banco (via
+sincronização) antes de tratar o 2º piso como "ainda cru".
+
+**Foco pedido por ela agora: só Manutenções.** Não tocar em Qualidade
+([[MNT-QUA-1]], bloco por área no relatório) até ela pedir de novo.
 
 ---
 

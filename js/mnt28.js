@@ -1947,7 +1947,11 @@ function m28ImprimirFolha(op){
     if(d.piso!==piso){piso=d.piso;area=null;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
     if(d.area!==area){area=d.area;nDemanda=0;
-      blocos+=`<div class="bl ar" data-piso="${esc(m28PisoBonito(d.piso||""))}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${esc(area)}</span>`
+      /* Pedido dela (17/09): o piso tambem aparece AQUI, na faixa de cada area --
+         nao so uma vez no topo da secao. Assim nenhuma pagina fica sem dizer de
+         qual piso e', mesmo que a area continue depois de uma quebra. */
+      const pisoArea=m28PisoBonito(d.piso||"");
+      blocos+=`<div class="bl ar" data-piso="${esc(pisoArea)}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${pisoArea?`<i class="ar-piso">${esc(pisoArea)}</i>`:""}${esc(area)}</span>`
         +`<span class="ar-r"><i class="qh">Data registrada</i><b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></span></div>`;}
     nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
@@ -2028,7 +2032,10 @@ function m28ImprimirFolha(op){
              ela trocava pelo lápis aparecia certa na tela e voltava para a data
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
         <div><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
-        ${exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:"<div></div>"}
+        ${/* Pedido dela (17/09): por enquanto, tirar o nome de quem executa deste
+             cabeçalho -- a folha e' geral e nem todo servico e' dele. A div vazia
+             so mantem o grid de duas colunas alinhado. */""}
+        <div></div>${false&&exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
         <div><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
       </div>
     </div>
@@ -2040,8 +2047,8 @@ function m28ImprimirFolha(op){
     ${/* URGENTES a ESQUERDA e demandas gerais a direita, pedido dela em 26/08.
          O que pede atencao vem primeiro no caminho do olho. */""}
     <div class="nums">
-      <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
       <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
+      <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
 
@@ -2051,7 +2058,7 @@ function m28ImprimirFolha(op){
   @page{size:A4;margin:0}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    color:#344054;font-size:12.4px;line-height:1.5;background:#e9ebee}
+    color:#344054;font-size:13.2px;line-height:1.5;background:#e9ebee}
   .folha{width:210mm;height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
     position:relative;box-shadow:0 4px 18px rgba(16,24,40,.14);overflow:hidden}
   /* a folha que precisou crescer para nao engolir texto: sem altura fixa e sem
@@ -2062,7 +2069,7 @@ function m28ImprimirFolha(op){
   /* as tres caixas do alto das paginas 2 em diante */
   .topo2{display:flex;border:1px solid #cfd8d5;border-radius:5px;overflow:hidden;margin-bottom:10px}
   .topo2 div{flex:1;padding:5px 10px;border-right:1px solid #cfd8d5;text-align:center;
-    font-size:11.5px;font-weight:700;color:#155244}
+    font-size:12.3px;font-weight:700;color:#155244}
   .topo2 div:last-child{border-right:0}
   /* LAY-6 (26/08): o bloco verde continua -- o que mudou foi o tamanho de cada
      coisa dentro dele. Em cima o assunto e a faixa com loja, piso e mes; embaixo,
@@ -2073,12 +2080,12 @@ function m28ImprimirFolha(op){
      pequena de propósito: o degradê largo era justamente o que fazia a ponta
      direita sair lavada no papel. */
   .capa{background:linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%);color:#fff;
-    padding:12px 16px;border-radius:8px;margin-bottom:11px;
+    padding:9px 14px;border-radius:8px;margin-bottom:9px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* IDENTIDADE C: uma frase so, "TIPO · resto do nome" -- ela escolheu vendo as
      opcoes em 27/08. O tipo vem em negrito e maiuscula; o resto, no peso normal
      do titulo, do mesmo tamanho, para nao competir visualmente. */
-  .capa .identidade{font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.2}
+  .capa .identidade{font-size:20px;font-weight:600;letter-spacing:-.2px;line-height:1.15}
   .capa .identidade b{font-weight:800;letter-spacing:.3px}
   /* a faixa em tres partes iguais. Cada pedaco leva o NOME do que e' (Loja, Piso,
      Mes) porque no papel a posicao sozinha nao diz -- e ele recebe mais de uma
@@ -2086,14 +2093,14 @@ function m28ImprimirFolha(op){
   /* A FAIXA. Ela pediu "aquele fundinho claro, painel de vidro" e letras "mais
      vivas": os rotulos estavam em 66% de branco e sumiam no papel. Fundo mais
      presente e texto quase branco. */
-  .capa .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.34);
+  .capa .faixa{display:flex;margin-top:7px;border:1px solid rgba(255,255,255,.34);
     border-radius:6px;overflow:hidden;background:rgba(255,255,255,.14);
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .capa .faixa div{flex:1;padding:7px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
+  .capa .faixa div{flex:1;padding:5px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
   .capa .faixa div:last-child{border-right:0}
-  .capa .faixa span{display:block;font-size:7.4px;text-transform:uppercase;letter-spacing:1px;
+  .capa .faixa span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:1px;
     color:rgba(255,255,255,.92);font-weight:600}
-  .capa .faixa b{font-size:14.5px;font-weight:700;letter-spacing:.2px;color:#fff}
+  .capa .faixa b{font-size:15.5px;font-weight:700;letter-spacing:.2px;color:#fff}
   /* O MES EM VERMELHO, pedido dela: "quero que todos os meses sejam da cor
      vermelha pra identificacao ser mais facil". Vermelho sobre o verde escuro
      seria ilegivel, entao a pastilha do mes ganha fundo claro e o vermelho vai
@@ -2105,18 +2112,18 @@ function m28ImprimirFolha(op){
   /* LINHA DE BAIXO, opcao B: duas colunas -- unidade e emissao numa linha,
      executor e responsavel tecnica na outra. Ela achou a fileira unica
      "embolada"; cada dupla ganha a largura inteira da coluna dela agora. */
-  .capa .cpe{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;
-    margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
+  .capa .cpe{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;
+    margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.26);font-size:10.4px}
   .capa .cpe div{display:flex;flex-direction:column;gap:1px}
-  .capa .cpe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
-  .capa .cpe b{font-weight:600;font-size:10.6px;color:#fff}
-  .capa .cpe i{font-style:normal;font-size:8.6px;color:rgba(255,255,255,.88)}
-  .nums{display:flex;gap:7px;margin-bottom:10px}
-  .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:6px 9px;background:#f9fafb;text-align:center}
-  .num span{display:block;font-size:7.8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}
-  .num b{font-size:16px;color:#101828;font-variant-numeric:tabular-nums}
-  h2{font-size:11.5px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
-    border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:7px 0 2px}
+  .capa .cpe span{font-size:8.2px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
+  .capa .cpe b{font-weight:600;font-size:11.4px;color:#fff}
+  .capa .cpe i{font-style:normal;font-size:9.2px;color:rgba(255,255,255,.88)}
+  .nums{display:flex;gap:7px;margin-bottom:9px}
+  .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:5px 9px;background:#f9fafb;text-align:center}
+  .num span{display:block;font-size:8.4px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}
+  .num b{font-size:17px;color:#101828;font-variant-numeric:tabular-nums}
+  h2{font-size:12.3px;font-weight:700;color:#0f5b52;text-transform:uppercase;letter-spacing:.6px;
+    border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:6px 0 2px}
   /* O BLOCO DA ÁREA (27/08) — opção 1 escolhida por ela em papel: borda fina,
      fundo branco, sem sombra. Sombra vira mancha cinza na impressão e gasta
      tinta; ela imprime colorido e são três páginas. */
@@ -2124,7 +2131,7 @@ function m28ImprimirFolha(op){
   /* a faixa verde cobre a LINHA INTEIRA, inclusive a pastilha da contagem:
      antes a pastilha ficava solta fora da faixa e ela pediu para entrar */
   .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
-    padding:6px 11px;font-size:12px;font-weight:700;
+    padding:6px 11px;font-size:12.8px;font-weight:700;
     color:#155244;border-bottom:1px solid #d7e6e0;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .ar b{font-weight:700;color:#155244;font-size:10.5px;
@@ -2133,6 +2140,13 @@ function m28ImprimirFolha(op){
   /* a área que continua na página seguinte avisa, para ninguém achar que é outra */
   .ar i{font-style:normal;font-weight:400;font-size:9px;color:#4a6b62;margin-left:7px;
     text-transform:none;letter-spacing:0}
+  /* O PISO NA PRÓPRIA FAIXA DA ÁREA (17/09) — pedido dela vendo a folha impressa:
+     nao basta aparecer uma vez la em cima, tem que repetir aqui tambem. Pastilha
+     pequena antes do nome da area, no mesmo tom verde do resto da faixa. */
+  .ar .ar-piso{font-style:normal;font-weight:700;font-size:9px;color:#0f5b52;
+    background:#fff;border:1px solid #cfe5dd;border-radius:10px;padding:1px 7px;
+    margin-right:7px;text-transform:uppercase;letter-spacing:.4px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* O TÍTULO DA COLUNA DA DATA (ela aprovou 30/08, "numa linha só"): fica na faixa
      verde da área, à direita, junto da contagem. Some das outras colunas, que se
      explicam sozinhas (27/08); a data é a única que precisava dizer o que é.
@@ -2149,9 +2163,9 @@ function m28ImprimirFolha(op){
   /* a coluna da data: a data e o tempo na MESMA linha, sempre (pedido dela
      29/08). Nada de "meses" quebrando para baixo. */
   .li .q{text-align:center;white-space:nowrap}
-  .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:12.4px}
+  .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:13.2px}
   .li:last-child{border-bottom:0}
-  .li .o{color:#667085;font-size:11.4px}
+  .li .o{color:#667085;font-size:12.2px}
   /* o recado (27/08): ela escolheu vendo em papel a opcao B -- so a palavra
      "Obs:" ganha a capsula cinza; a frase segue em texto normal, sem fundo,
      para poluir menos e ainda achar o recado de longe */
