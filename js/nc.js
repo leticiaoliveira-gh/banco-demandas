@@ -898,47 +898,52 @@ async function ncRelatorioPrint(){
  w.document.close();
 }
 
+/* 16/09: mesmo layout do relatório impresso/PDF (ncRelatorio) — faixa verde
+   no topo, os quatro números coloridos, bloco por área e cartão por item —
+   em tabelas e parágrafos de Word de verdade, para ela continuar editando. */
 async function ncRelatorioDocx(){
  const ym=document.getElementById("nc-r-mes").value||today().slice(0,7);
  const r=ncDadosRelatorio(ym);
  const rt=(typeof RT_INFO!=="undefined"&&RT_INFO)||RT_DEFAULT;   /* o banner da RT saiu do HTML em 19/07 */
  const doc=new DocxLite();
- doc.p("Relatório de Não Conformidades — "+currentStoreName+" ("+currentStore+")",{bold:true,size:32});
- doc.p("Referência: "+ncTituloMes(ym)+" · Emitido em "+brDate(today())+" · "+rt,{color:"777777",size:20});
+ doc.table([[{lines:[
+   {text:"Relatório de Não Conformidades",bold:true,color:"FFFFFF",size:30,align:"left"},
+   {text:currentStoreName+" ("+currentStore+")   ·   "+ncTituloMes(ym)+"   ·   Emitido em "+brDate(today()),color:"E5F3F0",size:19,align:"left"},
+   {text:rt,color:"E5F3F0",size:18,align:"left"}
+ ],fill:"1D6B57"}]],{widths:[1],noBorder:true});
  doc.p("");
- doc.p("Resumo",{bold:true,size:26});
  doc.table([
-  [{text:"Em aberto",bold:true,fill:"EEF0EE",color:"555555"},
-   {text:"Urgentes",bold:true,fill:"FDECEA",color:"C0392B"},
-   {text:"Reincidentes",bold:true,fill:"FDF4E3",color:"9A6B1F"},
-   {text:"Resolvidas",bold:true,fill:"E3F1EC",color:"1D6B57"}],
-  [{text:String(r.abertas.length)},{text:String(r.cont("URGENTE"))},
-   {text:String(r.reinc)},{text:String(r.resolvidas.length)}]]);
+  [{lines:[{text:"EM ABERTO",bold:true,color:"555555",size:15},{text:String(r.abertas.length),bold:true,color:"333333",size:28}],fill:"EEF0EE"},
+   {lines:[{text:"URGENTES",bold:true,color:"C0392B",size:15},{text:String(r.cont("URGENTE")),bold:true,color:"C0392B",size:28}],fill:"FDECEA"},
+   {lines:[{text:"REINCIDENTES",bold:true,color:"9A6B1F",size:15},{text:String(r.reinc),bold:true,color:"9A6B1F",size:28}],fill:"FDF4E3"},
+   {lines:[{text:"RESOLVIDAS",bold:true,color:"1D6B57",size:15},{text:String(r.resolvidas.length),bold:true,color:"1D6B57",size:28}],fill:"E3F1EC"}]
+ ],{widths:[0.25,0.25,0.25,0.25],borderColor:"E4E7EC"});
  doc.p("");
  if(!r.abertas.length)doc.p("Nenhuma não conformidade em aberto.",{color:"777777"});
  await ncRelOrdenar(r.abertas);
  let piso=null,area=null;
  for(const d of r.abertas){
-  if(d.piso!==piso){piso=d.piso;area=null;doc.p("");doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:26,color:"1D6B57"});}
-  if(d.area!==area){area=d.area;doc.p(area,{bold:true,size:23});}
+  if(d.piso!==piso){piso=d.piso;area=null;doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:24,color:"1D6B57",borderBottom:"1D6B57",spacingBefore:200,spacingAfter:100});}
+  if(d.area!==area){area=d.area;doc.table([[{text:area,bold:true,color:"333333",align:"left"}]],{widths:[1],noBorder:true,fill:"F3F7F4"});}
   const m=ncMeses(d,ym),urg=d.urgencia==="URGENTE";
-  doc.p(ncRelProblema(d),urg?{bold:true,color:"C0392B"}:{});
-  doc.p("✔ Ação corretiva: "+ncRelAcao(d),{color:"1D6B57"});
+  const linhas=[{text:ncRelProblema(d),bold:urg,color:urg?"C0392B":"333333",size:20,align:"left"},
+    {text:"✔ Ação corretiva: "+ncRelAcao(d),color:"1D5245",size:18,align:"left"}];
   /* LEG-0: a base legal também no Word, que é o que ela entrega assinado */
   const oriW=(typeof orientacaoTexto==="function")?orientacaoTexto(d):"";
-  if(oriW)doc.p(oriW,{color:"475467",size:19});
-  if(d.obs)doc.p("👁 Observação: "+d.obs,{color:"9A6B1F"});
-  if(m>=2)doc.p("Reincidente — "+ncOrdinal(m),{bold:true,color:"9A6B1F",size:18});
+  if(oriW)linhas.push({text:oriW,color:"475467",size:17,align:"left"});
+  if(d.obs)linhas.push({text:"👁 Observação: "+d.obs,color:"7A561A",size:18,align:"left"});
+  if(m>=2)linhas.push({text:"Reincidente — "+ncOrdinal(m),bold:true,color:"9A6B1F",size:16,align:"left"});
+  doc.table([[{lines:linhas,align:"left"}]],{widths:[1],borderColor:urg?"C0392B":"E2E7E3"});
   for(const f of (d.fotos||[]))await doc.image(f,{maxWidthPx:340});
   doc.p("");
  }
  if(r.resolvidas.length){
-  doc.p("Resolvidas no mês",{bold:true,size:26});
+  doc.p("Resolvidas no mês",{bold:true,size:24,color:"1D6B57"});
   for(const d of r.resolvidas)doc.p("• "+d.area+": "+ncTextoRelatorio(d)+" (resolvida em "+brDate(d.resolvida_em)+")");
   doc.p("");
  }
- doc.p("Conclusão técnica",{bold:true,size:26});
- doc.p(ncConclusao(r,ym));
+ doc.p("Conclusão técnica",{bold:true,size:24,color:"1D6B57"});
+ doc.table([[{text:ncConclusao(r,ym),color:"333333",align:"left"}]],{widths:[1],noBorder:true,fill:"F3F7F4"});
  doc.p("");doc.p("");
  doc.p("_______________________________");
  doc.p(rt);

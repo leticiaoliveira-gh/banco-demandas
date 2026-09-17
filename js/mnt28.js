@@ -1250,38 +1250,87 @@ function m28ParaPlanilha(){
   download(m28NomeArquivo()+".csv","﻿"+csv,"text/csv");
   toast("Planilha exportada ✓ ("+rows.length+" serviços)");
 }
-/* F-4: a folha em Word, para ela editar ou anexar num relatório */
+/* F-4 (16/09 refeito): a folha em Word no MESMO LAYOUT da folha impressa/PDF
+   (m28ImprimirFolha) — cabeçalho verde, faixa loja/piso/mês, números,
+   bloco por área e lista numerada — só que em tabelas e parágrafos de Word
+   de verdade, então ela continua editando e formatando à vontade. */
 async function m28ParaWord(){
   if(typeof DocxLite!=="function"){toast("O gerador de Word não carregou — recarregue a página.");return;}
   const rows=m28Filtradas();
   if(!rows.length){alert("Nenhum serviço para gerar com os filtros atuais.");return;}
   const c=m28Cab(rows);
-  const exec=M28F.exec||c.executor||"";
+  const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
+  const urgentes=rows.filter(d=>d.urg&&!d.feito).length;
+  const ident=m28Identidade();
+  const pisosNaFolha=[...new Set(rows.map(d=>(d.piso||"").trim()).filter(Boolean))]
+    .sort(m28CmpPiso).map(x=>m28PisoBonito(x));
+  const pisoDaFolha=(M28F.piso||"").trim()
+    ? m28PisoBonito((M28F.piso||"").trim())
+    : pisosNaFolha.join(" e ");
+
   const doc=new DocxLite();
-  doc.p(m28T().etiqueta,{size:16,color:"6B7280"});
-  doc.p(m28Titulo(c),{bold:true,size:32,color:"155244"});
-  if(exec)doc.p(m28T().rotExec+": "+exec,{size:21});
-  doc.p(m28T().rotUnidade+": "+loja+"    "+m28T().rotEmitido+": "+brDate(c.emitidoEm||today()),{size:19,color:"5C5D68"});
-  doc.p(m28RtNome(c),{bold:true,size:21});
-  doc.p(m28RtLinha(c),{size:18,color:"5C5D68"});
+
+  /* CABEÇALHO — mesmo verde da capa impressa, com identidade, a faixa de
+     loja/piso/mês e os dados de emissão/executor/responsável técnico. */
+  const faixaTxt=[loja,pisoDaFolha,m28Mes(c)].filter(Boolean).join("   ·   ");
+  const cpeTxt1=m28T().rotUnidade+": "+loja+"     "+m28T().rotEmitido+": "+brDate(c.emitidoEm||today());
+  const cpeTxt2=(exec?m28T().rotExec+": "+exec+"     ":"")+m28RtNome(c)+" — "+m28RtLinha(c);
+  doc.table([[{lines:[
+    {text:(ident.tipo?ident.tipo.toUpperCase()+(ident.resto?" · "+ident.resto:""):m28Titulo(c)),bold:true,color:"FFFFFF",size:30,align:"left"},
+    {text:faixaTxt,bold:true,color:"FFFFFF",size:22,align:"left"},
+    {text:cpeTxt1,color:"E5F3F0",size:18,align:"left"},
+    {text:cpeTxt2,color:"E5F3F0",size:18,align:"left"}
+  ],fill:"1A7A70"}]],{widths:[1],noBorder:true});
+
+  /* OS DOIS NÚMEROS — mesma ordem da folha impressa: urgentes primeiro. */
+  doc.table([[
+    {lines:[{text:"URGENTES",bold:true,color:"B42318",size:16},{text:String(urgentes),bold:true,color:"912018",size:30}],fill:"FEF3F2"},
+    {lines:[{text:"DEMANDAS GERAIS",bold:true,color:"667085",size:16},{text:String(rows.length),bold:true,color:"101828",size:30}],fill:"F9FAFB"}
+  ]],{widths:[0.5,0.5],borderColor:"EAECF0"});
   doc.p("");
-  let piso=null,area=null;
+
+  /* CADA ÁREA VIRA UM BLOCO: faixa verde com o nome + tabela dos serviços,
+     numeração recomeçando em cada área, igual ao papel. */
+  let piso=null,area=null,itens=[],nDemanda=0;
+  const flush=()=>{
+    if(!itens.length)return;
+    doc.table(itens,{widths:[0.1,0.65,0.25],borderColor:"D7DCE2"});
+    itens=[];
+  };
   for(const d of rows){
-    if(d.piso!==piso){piso=d.piso;area=null;doc.p("");doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:24,color:"1D6B57"});}
-    if(d.area!==area){area=d.area;doc.p(area,{bold:true,size:21});}
-    doc.p((d.feito?"[x] ":"[ ] ")+(d.urg?"URGENTE — ":"")+(d.fazer||""),d.urg?{bold:true,color:"B42318"}:{});
-    /* LEG-1 (25/08): a norma nao vai para quem executa, so para a gerencia.
-       Vale em toda forma de entregar a folha dele: PDF, Word e WhatsApp. */
-    const ori="";
-    if(ori)doc.p(ori,{size:18,color:"475467"});
-    const desde=d.dataRegistro?brDate(d.dataRegistro)+(m28TempoTexto(m28Meses(d.dataRegistro))?" · "+m28TempoTexto(m28Meses(d.dataRegistro)):""):"";
-    if(desde)doc.p(desde,{size:17,color:"667085"});
+    if(d.piso!==piso){
+      flush();
+      piso=d.piso;area=null;
+      doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:24,color:"0F5B52",borderBottom:"1D6B57",spacingBefore:200,spacingAfter:100});
+    }
+    if(d.area!==area){
+      flush();
+      area=d.area;nDemanda=0;
+      doc.table([[{text:area,bold:true,color:"155244",align:"left"}]],{widths:[1],noBorder:true,fill:"E8F5F0"});
+    }
+    nDemanda++;
+    const meses=m28Meses(d.dataRegistro),tempo=m28TempoTexto(meses);
+    const linhas=[{text:(d.urg?"URGENTE — ":"")+(d.fazer||""),bold:!!d.urg,color:d.urg?"B42318":"1F2937",size:19,align:"left"}];
+    if((d.obs||"").trim())linhas.push({text:"Obs: "+m28SemTravessao((d.obs||"").trim()),color:"475467",size:17,align:"left"});
     /* o lembrete 🔒 dela NUNCA sai — nem aqui */
-    if(d.obs)doc.p(d.obs,{size:18,color:"5C5D68"});
+    itens.push([
+      {text:(d.feito?"[x]":"[ ]")+" "+nDemanda+".",bold:true,color:"475467"},
+      {lines:linhas,align:"left"},
+      {lines:[{text:d.dataRegistro?brDate(d.dataRegistro):"",color:"344054",size:17},
+        {text:tempo||"",color:meses>=1?"B42318":"667085",bold:meses>=1,size:16}]}
+    ]);
   }
+  flush();
+
   const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
-  if(ct||cx){doc.p("");doc.p(ct||"Por que isto se repete",{bold:true,size:19,color:"4A6B62"});doc.p(cx,{size:18});}
+  if(ct||cx){
+    doc.p("");
+    doc.table([[{lines:[
+      {text:(ct||"Por que isto se repete").toUpperCase(),bold:true,color:"4A6B62",size:16,align:"left"},
+      {text:cx,color:"344054",size:19,align:"left"}
+    ],fill:"F9FAFB"}]],{widths:[1],noBorder:true});
+  }
   download(m28NomeArquivo()+".docx",await doc.blob());
   toast("Word gerado ✓ ("+rows.length+" serviços)");
 }

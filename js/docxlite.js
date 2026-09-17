@@ -38,26 +38,49 @@ function DocxLite(){
 }
 DocxLite.prototype.esc=function(s){return String(s==null?"":s)
  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
-/* parágrafo: opts {bold,color:"RRGGBB",size:half-points,align:"center"} */
+/* parágrafo: opts {bold,italic,color:"RRGGBB",size:half-points,align,
+   shade:"RRGGBB" (fundo do parágrafo), borderBottom:"RRGGBB" (linha embaixo,
+   tipo sublinhado de título), spacingBefore/spacingAfter (em twips, 20=1pt) */
 DocxLite.prototype.p=function(text,opts){opts=opts||{};
- const rPr=(opts.bold?"<w:b/>":"")+(opts.color?`<w:color w:val="${opts.color}"/>`:"")
+ const rPr=(opts.bold?"<w:b/>":"")+(opts.italic?"<w:i/>":"")
+  +(opts.color?`<w:color w:val="${opts.color}"/>`:"")
   +(opts.size?`<w:sz w:val="${opts.size}"/><w:szCs w:val="${opts.size}"/>`:"");
- const pPr=(opts.align?`<w:pPr><w:jc w:val="${opts.align}"/></w:pPr>`:"");
+ const spacing=(opts.spacingBefore!=null||opts.spacingAfter!=null)
+  ?`<w:spacing${opts.spacingBefore!=null?` w:before="${opts.spacingBefore}"`:""}${opts.spacingAfter!=null?` w:after="${opts.spacingAfter}"`:""}/>`:"";
+ const shd=opts.shade?`<w:shd w:val="clear" w:color="auto" w:fill="${opts.shade}"/>`:"";
+ const bdr=opts.borderBottom?`<w:pBdr><w:bottom w:val="single" w:sz="12" w:space="4" w:color="${opts.borderBottom}"/></w:pBdr>`:"";
+ const jc=opts.align?`<w:jc w:val="${opts.align}"/>`:"";
+ const pPr=(spacing||shd||bdr||jc)?`<w:pPr>${spacing}${shd}${bdr}${jc}</w:pPr>`:"";
  this.body.push(`<w:p>${pPr}<w:r>${rPr?`<w:rPr>${rPr}</w:rPr>`:""}<w:t xml:space="preserve">${this.esc(text)}</w:t></w:r></w:p>`);
 };
-/* tabela: rows = [[{text,bold,fill:"RRGGBB",color:"RRGGBB"}...]] */
-DocxLite.prototype.table=function(rows){
- const cols=rows[0].length,w=Math.floor(9000/cols);
- const border='<w:tblBorders>'+["top","left","bottom","right","insideH","insideV"]
-  .map(s=>`<w:${s} w:val="single" w:sz="4" w:color="BBBBBB"/>`).join("")+'</w:tblBorders>';
- let xml=`<w:tbl><w:tblPr><w:tblW w:w="${w*cols}" w:type="dxa"/>${border}</w:tblPr>`
-  +`<w:tblGrid>${Array(cols).fill(`<w:gridCol w:w="${w}"/>`).join("")}</w:tblGrid>`;
+/* tabela: rows = [[{text,bold,fill:"RRGGBB",color:"RRGGBB",align,colSpan,
+   lines:[{text,bold,color,size,align}...]}...]]
+   opts: {widths:[frações somando 1], noBorder:true, borderColor:"RRGGBB"} */
+DocxLite.prototype.table=function(rows,opts){opts=opts||{};
+ const cols=rows[0].reduce((n,c)=>n+(c.colSpan||1),0);
+ const total=9000;
+ const colW=opts.widths?opts.widths.map(f=>Math.floor(total*f)):Array(cols).fill(Math.floor(total/cols));
+ const border=opts.noBorder
+  ?'<w:tblBorders>'+["top","left","bottom","right","insideH","insideV"].map(s=>`<w:${s} w:val="none" w:sz="0" w:color="auto"/>`).join("")+'</w:tblBorders>'
+  :'<w:tblBorders>'+["top","left","bottom","right","insideH","insideV"].map(s=>`<w:${s} w:val="single" w:sz="4" w:color="${opts.borderColor||"BBBBBB"}"/>`).join("")+'</w:tblBorders>';
+ let xml=`<w:tbl><w:tblPr><w:tblW w:w="${total}" w:type="dxa"/>${border}</w:tblPr>`
+  +`<w:tblGrid>${colW.map(w=>`<w:gridCol w:w="${w}"/>`).join("")}</w:tblGrid>`;
  for(const row of rows){
   xml+="<w:tr>";
+  let col=0;
   for(const c of row){
-   const rPr=(c.bold?"<w:b/>":"")+(c.color?`<w:color w:val="${c.color}"/>`:"");
-   xml+=`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${c.fill?`<w:shd w:val="clear" w:color="auto" w:fill="${c.fill}"/>`:""}</w:tcPr>`
-    +`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r>${rPr?`<w:rPr>${rPr}</w:rPr>`:""}<w:t xml:space="preserve">${this.esc(c.text)}</w:t></w:r></w:p></w:tc>`;
+   const span=c.colSpan||1;
+   const w=colW.slice(col,col+span).reduce((a,b)=>a+b,0);
+   col+=span;
+   const align=c.align||"center";
+   const paras=c.lines&&c.lines.length?c.lines:[{text:c.text,bold:c.bold,color:c.color,size:c.size,align:c.align}];
+   const ps=paras.map(ln=>{
+    const rPr=(ln.bold?"<w:b/>":"")+(ln.color?`<w:color w:val="${ln.color}"/>`:"")
+     +(ln.size?`<w:sz w:val="${ln.size}"/><w:szCs w:val="${ln.size}"/>`:"");
+    return `<w:p><w:pPr><w:jc w:val="${ln.align||align}"/></w:pPr><w:r>${rPr?`<w:rPr>${rPr}</w:rPr>`:""}<w:t xml:space="preserve">${this.esc(ln.text)}</w:t></w:r></w:p>`;
+   }).join("");
+   xml+=`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${span>1?`<w:gridSpan w:val="${span}"/>`:""}${c.fill?`<w:shd w:val="clear" w:color="auto" w:fill="${c.fill}"/>`:""}</w:tcPr>`
+    +ps+`</w:tc>`;
   }
   xml+="</w:tr>";
  }
