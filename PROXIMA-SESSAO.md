@@ -38,22 +38,23 @@ Abrir o **caderno vivo do plano** e trabalhar em cima dele:
 ## Em uma frase
 
 A mudança para a Cloudflare **não está fechada**. O site novo está no ar, os
-dois quadros estão no cofre e o selo de salvamento agora é honesto para os dois
-sistemas. Falta terminar a **Parte 1** (arrumar o que está torto) antes de ir
-para segurança dos dados e login.
+dois quadros estão no cofre, o selo de salvamento é honesto para os dois
+sistemas, e agora só um endereço responde. Falta terminar a **Parte 1**
+(arrumar o que está torto) antes de ir para segurança dos dados e login.
 
 ## Estado real, conferido em 20/09
 
 | Coisa | Situação |
 |---|---|
 | Site novo na Cloudflare | no ar, `conexaoempresas.leticiaoliveira.workers.dev` |
-| Endereço antigo `central-demandas...` | **ainda no ar também** — dois sites iguais |
+| Endereço antigo | **desligado em 20/09** — só `conexaoempresas` responde agora |
 | Quadros migrados | `mnt28` e `cmp`, 184 fichas |
 | Fotos | resolvido em 20/09: 48 fotos no cofre, 37 fichas religadas |
 | Sistema antigo (GitHub) | continua ligado e gravando. Só desliga quando ela mandar |
 | Tela avisa quando o cofre novo falha | **feito em 20/09** |
 | Selo com os três recados (GitHub + cofre novo juntos) | **feito em 20/09** |
-| Versão publicada | Cloudflare 10.1 · GitHub Pages 10.2 (commit 249a75f) |
+| Um endereço só respondendo | **feito em 20/09** |
+| Versão publicada | Cloudflare 10.1 · GitHub Pages 10.2 · Plano v13 |
 
 ## Decisões dela que não se discutem mais
 
@@ -72,30 +73,42 @@ para segurança dos dados e login.
 - **Cópia das 20h no PC dela:** recomendação escrita no plano é **manter**.
   Ela ainda não respondeu — é o único ❓ aberto.
 - Nunca escolher nome/domínio por conta própria.
+- Endereço de teste/duplicado que não serve mais: **desligar de vez**, sem
+  deixar aviso no ar. Decisão dela em 20/09, depois de eu ter perguntado.
 
 ## A PRÓXIMA DEMANDA (é este o item que a próxima sessão executa)
 
-**Item 3 da Parte 1 do plano: deixar um endereço só respondendo.**
+**Item 4 da Parte 1 do plano: refazer os 3 cofres de ensaio.**
 
-Hoje existem dois sites iguais no ar: o novo (`conexaoempresas`) e o antigo
-(`central-demandas...`). A tarefa é publicar o worker com
-`wrangler deploy` usando o nome `conexaoempresas` como definitivo, e aposentar
-o endereço `central-demandas` (sem apagar nada de dado, só parar de publicar
-ali — ver a regra de nada-vai-para-arquivo-morto).
+O item 3 (deixar um endereço só respondendo) **já foi feito em 20/09**: o
+`central-demandas` principal já tinha sido renomeado numa sessão anterior;
+apareceu um worker de teste esquecido (`central-demandas-teste`, vazio, sem
+dado nenhum) ainda no ar — foi desligado por ordem dela (ela preferiu desligar
+de vez a deixar um aviso). Confirmado: só `conexaoempresas` responde.
 
-- Arquivo de configuração: `wrangler.toml` (raiz do repositório).
-- Servidor: `servidor/index.js` e `servidor/schema.sql`.
-- Conta Cloudflare: `4566ede1efe9ba567dcc8cc72330e624`.
-- Como saber que terminou: abrir os dois endereços no navegador — só
-  `conexaoempresas` deve responder com o site; o antigo deve mostrar aviso
-  claro (não erro cru) explicando que mudou de endereço, ou redirecionar.
-  Testar em computador e em celular (375px/768px). Rodar `revisor-do-site`
-  antes de publicar.
-- Depois desta, seguem na mesma ordem: item 4 (refazer os 3 cofres de ensaio,
-  que foram apagados), item 5 (impedir resposta velha em cache do cofre —
-  `cache: "no-store"` nas leituras), item 6 (acertar as anotações: tirar o
-  "fechado" e trocar o endereço velho pelo novo em `status.json`, `CLAUDE.md`,
-  `CONTINUIDADE.md`).
+Agora falta o **cofre de ensaio**: antes de qualquer mudança arriscada no
+banco, existiam 3 cofres D1 de teste (cópias dos cofres reais `central-demandas`,
+`central-fotos`, `central-copias`) para ensaiar sem risco. Eles foram apagados
+durante os testes de 20/09 e precisam ser recriados, para voltar a existir um
+lugar seguro de testar antes de publicar mudança de banco.
+
+- Como criar cofre D1 novo: `npx wrangler d1 create <nome>` (conta Cloudflare
+  `4566ede1efe9ba567dcc8cc72330e624`, já autenticada nesta máquina — não pedir
+  login de novo).
+- Cofres reais para copiar a estrutura: `central-demandas` (DB),
+  `central-fotos` (FOTOS), `central-copias` (COPIAS) — ver `wrangler.toml` e
+  `servidor/schema.sql`.
+- Sugestão de nome para os cofres de ensaio: `central-demandas-ensaio`,
+  `central-fotos-ensaio`, `central-copias-ensaio` (evitar o nome
+  "-teste" sozinho, que foi o que confundiu nesta sessão).
+- Como saber que terminou: os 3 cofres de ensaio existem na conta Cloudflare,
+  com a mesma estrutura de tabelas dos reais (rodar `servidor/schema.sql`
+  neles), vazios ou com dado de mentira — nunca dado real de Le. Anotar no
+  plano onde ficam e como usar para ensaiar antes de publicar.
+- Depois desta, seguem na mesma ordem: item 5 (impedir resposta velha em
+  cache do cofre — `cache: "no-store"` nas leituras em `servidor/index.js`),
+  item 6 (acertar as anotações: tirar o "fechado" e trocar o endereço velho
+  pelo novo em `CLAUDE.md`, `CONTINUIDADE.md`).
 
 ### O que vem depois (não é para agora)
 
