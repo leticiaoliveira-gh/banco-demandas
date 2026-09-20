@@ -1,0 +1,38 @@
+# =====================================================================
+#  O QUE NUNCA VAI PARA O AR
+#  O site inteiro e publicado a partir desta pasta. Tudo listado aqui
+#  fica de fora: dados reais dela, rascunhos, documentos de trabalho e
+#  as ferramentas internas.
+#  Espelha o .gitignore de proposito - a diferenca e que o wrangler
+#  publica do disco, nao do git, entao a lista precisa existir nos dois.
+# =====================================================================
+
+# dados reais
+banco.json
+dados/
+- BACKUPS/
+_dados-rascunho.json
+_teste-*.json
+dados-da-folha.js
+_folha-em-montagem.html
+_folha-montada.html
+_comparacoes/
+*.bak
+
+# o programa do servidor NAO e arquivo do site (ele atende o site)
+servidor/
+wrangler.toml
+.assetsignore
+
+# ferramentas internas e documentos de trabalho
+ferramentas/
+modelos/
+*.md
+
+# pastas tecnicas
+.git/
+.github/
+.claude/
+node_modules/
+.DS_Store
+Thumbs.db

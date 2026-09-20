@@ -1,4 +1,4 @@
-const RT_DEFAULT="Responsável Técnica";
+﻿const RT_DEFAULT="Responsável Técnica";
 
 /* ===== Empresas dinâmicas (gerenciáveis pela Central de Empresas) ===== */
 /* Grupo = conjunto de lojas que dividem a MESMA agenda de Demandas Gerais.
@@ -1895,11 +1895,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.93";
+const APP_VERSAO="9.94";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="17/09/2026";
+const APP_DATA="19/09/2026";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
@@ -2148,6 +2148,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  goHome();
  atalhoRapido();          /* ?rapido=CF abre direto no registro de NC daquela loja */
  if(window.syncInit)syncInit();
+ if(window.nuvemInit)nuvemInit();   /* o carteiro novo: fica quieto se o cofre nao estiver ligado */
  /* PWA: service worker só em https (GitHub Pages); no file:// é ignorado */
  if("serviceWorker" in navigator&&location.protocol==="https:"){
    navigator.serviceWorker.register("sw.js").catch(()=>{});

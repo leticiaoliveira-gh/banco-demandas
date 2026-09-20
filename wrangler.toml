@@ -1,0 +1,85 @@
+# =====================================================================
+#  CENTRAL DE DEMANDAS - configuracao do cofre na Cloudflare (Fase 1)
+#
+#  Este arquivo e so uma ETIQUETA: diz qual programa atende o site
+#  (servidor/index.js), qual pasta e o site (esta aqui) e quais cofres
+#  ele pode abrir. Nao roda nada sozinho e nao muda o site local:
+#  o index.html continua abrindo com duplo clique, sem internet.
+#
+#  Os numeros "database_id" ficam em branco ate os cofres existirem.
+#  Eles nascem com `npx wrangler d1 create <nome>`, que so pode rodar
+#  depois da autorizacao de acesso (o unico momento da Le).
+# =====================================================================
+
+name = "central-demandas"
+main = "servidor/index.js"
+compatibility_date = "2026-09-19"
+
+# ---------------------------------------------------------------------
+#  O SITE
+#  directory = "." -> a propria pasta do repositorio e o site.
+#  O que NAO pode ir para o ar (dados reais, rascunhos, documentos de
+#  trabalho) esta listado em .assetsignore, ao lado deste arquivo.
+#  not_found_handling = "none" -> caminho que nao e arquivo cai no
+#  programa, que e quem atende /api/.
+# ---------------------------------------------------------------------
+[assets]
+directory = "."
+binding = "ASSETS"
+not_found_handling = "none"
+
+# ---------------------------------------------------------------------
+#  OS TRES COFRES
+#  Separados de proposito: problema em um nao leva os outros junto.
+# ---------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "central-demandas"
+database_id = "PREENCHER-APOS-CRIAR"
+
+[[d1_databases]]
+binding = "FOTOS"
+database_name = "central-fotos"
+database_id = "PREENCHER-APOS-CRIAR"
+
+[[d1_databases]]
+binding = "COPIAS"
+database_name = "central-copias"
+database_id = "PREENCHER-APOS-CRIAR"
+
+# ---------------------------------------------------------------------
+#  ENSAIO ANTES DO REAL (item 5 do plano)
+#  A migracao roda PRIMEIRO nestes cofres de teste, as contagens sao
+#  conferidas, e so entao ela e feita nos cofres de verdade.
+#  Os cofres de teste sao apagados depois.
+#  Uso: npx wrangler deploy --env teste
+# ---------------------------------------------------------------------
+[env.teste]
+name = "central-demandas-teste"
+
+[env.teste.assets]
+directory = "."
+binding = "ASSETS"
+not_found_handling = "none"
+
+[[env.teste.d1_databases]]
+binding = "DB"
+database_name = "teste-demandas"
+database_id = "PREENCHER-APOS-CRIAR"
+
+[[env.teste.d1_databases]]
+binding = "FOTOS"
+database_name = "teste-fotos"
+database_id = "PREENCHER-APOS-CRIAR"
+
+[[env.teste.d1_databases]]
+binding = "COPIAS"
+database_name = "teste-copias"
+database_id = "PREENCHER-APOS-CRIAR"
+
+# ---------------------------------------------------------------------
+#  SEGREDO
+#  CHAVE_MESTRA cria a PRIMEIRA chave de acesso, uma vez so. Nunca fica
+#  escrito neste arquivo (que vai para o GitHub). Entra por:
+#     npx wrangler secret put CHAVE_MESTRA
+# ---------------------------------------------------------------------
