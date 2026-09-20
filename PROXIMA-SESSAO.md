@@ -3,6 +3,21 @@
 > Escrito em 20/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md nem PENDENCIAS.md para começar a trabalhar.**
 
+## COMO ESTA SESSÃO TRABALHA (ordem dela, 20/09/2026)
+
+1. **Investigar antes de perguntar.** Dúvida se resolve olhando este arquivo, o
+   caderno vivo, o histórico do git e os arquivos. No máximo **uma** pergunta
+   por sessão, e só se for gosto, dinheiro ou risco — com opções e recomendação.
+   Nunca perguntar o que já está em "Decisões dela que não se discutem mais".
+2. **Uma demanda por sessão** = um item numerado da lista lá embaixo. Terminou,
+   roda o `/fechar-sessao` e avisa que ela pode abrir uma nova conversa.
+3. **Nada se apaga e nada vai para arquivo morto.** O que não serve mais fica
+   **riscado no lugar, com o motivo escrito**, e ela é informada.
+4. **Abertura barata:** no começo, ler só este arquivo. Não abrir o plano
+   inteiro, o PDF, o `CONTINUIDADE.md` nem o `PENDENCIAS.md`.
+
+Detalhe completo: seção 9 do `CLAUDE.md`. Guardiões: seção 7.
+
 ## PASSO 0 — antes de qualquer outra coisa (ordem dela, 20/09)
 
 Abrir o **caderno vivo do plano** e trabalhar em cima dele:
@@ -103,9 +118,11 @@ que ela escolheu: **1) arrumar o que foi feito errado · 2) segurança dos dados
 ### Parte 4 — arrumação das pastas (ela cobrou em 20/09; não é opcional)
 17. `Desktop\Site Trabalho (claudflare)`: há **dois PDFs idênticos** do plano
     ("2." e "3."). Deixar um só, o mais novo. Separar em `Planos\` e `Backups\`.
-18. Raiz do repositório: tirar do caminho os rascunhos `_comparacoes`,
-    `_dados-rascunho.json`, `_teste-joao.json`, `cofre.json` — **mover para
-    arquivo morto, nunca apagar**.
+18. Raiz do repositório: os rascunhos `_comparacoes`, `_dados-rascunho.json`,
+    `_teste-joao.json`, `cofre.json`. ~~Mover para arquivo morto~~ —
+    **riscado em 20/09 por ordem dela: NADA vai para arquivo morto.** No lugar
+    disso: deixar cada um onde está, marcar no `README.md` que não são usados e
+    avisá-la. Nada sai do lugar, nada é apagado.
 19. `- Site Trabalho (Claude Code)\`: `scratch-2piso.txt` e
     `scratch-2piso-full.txt` soltos → guardar com as planilhas.
 20. Quatro folhas de instrução concorrendo: `CONTINUIDADE.md`,

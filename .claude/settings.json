@@ -10,6 +10,13 @@
             "statusMessage": "Sincronizando a biblioteca de design...",
             "timeout": 60,
             "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\sincronizar-biblioteca.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s } else { Write-Output 'Aviso: abra a sessao dentro da pasta do banco-demandas para a biblioteca sincronizar sozinha.' }"
+          },
+          {
+            "type": "command",
+            "shell": "powershell",
+            "statusMessage": "Guardando a copia do plano (o 'antes' desta sessao)...",
+            "timeout": 45,
+            "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\guardiao-do-plano.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s -Modo abertura }"
           }
         ]
       }
@@ -39,6 +46,14 @@
             "statusMessage": "Guardiao da versao conferindo antes de publicar...",
             "timeout": 45,
             "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\guardiao-versao.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s; exit $LASTEXITCODE }"
+          },
+          {
+            "type": "command",
+            "shell": "powershell",
+            "if": "Bash(git commit*)",
+            "statusMessage": "Guardiao do plano conferindo se nada sumiu...",
+            "timeout": 45,
+            "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\guardiao-do-plano.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s -Modo commit; exit $LASTEXITCODE }"
           }
         ]
       }

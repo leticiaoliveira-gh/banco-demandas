@@ -183,9 +183,11 @@ Relatórios — qual caminho usar:
 | `ferramentas\sincronizar-biblioteca.ps1` | início de toda sessão | traz a biblioteca nova e sobe o cache sozinho |
 | `ferramentas\guardiao-offline.ps1` | depois de cada Write/Edit | arquivo ligado no index que ficou fora da lista `SHELL` do sw.js, `?v=` desalinhado do `CACHE`, arquivo solto que ninguém usa |
 | `ferramentas\guardiao-versao.ps1` | antes de cada `git commit` | `APP_VERSAO`, `CACHE`, `?v=` e `status.json` contando versões diferentes |
+| `ferramentas\guardiao-do-plano.ps1` | início de toda sessão e antes de cada `git commit` | guarda a cópia do plano (o "antes" da sessão) e barra se a contagem de itens caiu, se um item sumiu em vez de ficar riscado, ou se o plano mudou sem subir a versão |
 | subagente **revisor-do-site** (`.claude/agents/`) | antes de publicar mudança de tela | navegador de verdade, 375/768px, 44px, peças da biblioteca, regras de gráfico, offline, privacidade |
+| subagente **auditor-da-sessao** (`.claude/agents/`) | no fechamento da sessão | se a demanda do dia foi mesmo feita, se mexeu em algo fora do combinado, se sumiu alguma coisa, se versão, commit e publicação batem |
 
-Os três scripts saem com **código 2** quando acham problema — o Claude Code
+Os quatro scripts saem com **código 2** quando acham problema — o Claude Code
 mostra o aviso e devolve para corrigir. Não alteram nada sozinhos.
 
 Para chamar o revisor: peça o subagente `revisor-do-site` antes do commit de
@@ -215,3 +217,47 @@ O que fica ligado (as mesmas opções do `/config`):
 Vale só para o **Claude Code no PC** (terminal e VS Code) — não para o chat do
 claude.ai nem para o Cowork. O PC precisa ficar ligado e com o Claude aberto:
 o celular é uma janela para a conversa que roda na máquina dela.
+
+---
+
+## 9. COMO A SESSÃO TRABALHA (ordem dela, 20/09/2026)
+
+Três camadas. A proteção de verdade mora nos **programas que rodam sozinhos**
+(seção 7) — texto o modelo pode pular, programa não. Vale igual em Opus e em
+Sonnet: **baixar o modelo para economizar não enfraquece nada.**
+
+### 9.1 Investigar antes de perguntar
+- Dúvida se resolve **investigando**: o `PROXIMA-SESSAO.md`, o caderno vivo do
+  plano, o histórico do git e os arquivos envolvidos. Como detetive.
+- **Proibido** perguntar o que já está decidido (ver "Decisões dela que não se
+  discutem mais", no `PROXIMA-SESSAO.md`) e proibido transformar dúvida de
+  execução em pergunta para ela.
+- **No máximo uma pergunta por sessão**, e só quando for gosto, dinheiro ou
+  risco. Vem com as opções, a recomendação e o motivo de não ter dado para
+  resolver sozinha.
+- Dúvida de tela ou de formato não vira texto: monta a tela e mostra.
+
+### 9.2 Uma demanda por sessão
+- **Uma demanda = um item numerado do plano.** Não se começa outra com a atual
+  aberta. Dois itens inseparáveis: avisar na primeira resposta e esperar o "pode".
+- Terminou? Rodar o `/fechar-sessao` (`.claude/commands/`): conferir no
+  navegador · corrigir · auditar · publicar · atualizar o plano e mandar o PDF ·
+  deixar a próxima demanda escrita. Só então o cartão de fechamento e o aviso
+  **"esta sessão terminou, abra uma nova"**.
+- Ela mandou outra demanda depois disso: avisar **uma vez** que sai da regra e,
+  se ela mantiver, fazer. Quem decide é ela.
+
+### 9.3 Nada se apaga
+**Nada vai para arquivo morto.** Item, linha ou arquivo que não serve mais fica
+**riscado no lugar, com o motivo escrito**, e ela é informada. Não existe mover
+para uma pasta esquecida, não existe sumir da vista. O guardião do plano barra o
+commit quando um item desaparece em vez de ficar riscado.
+
+### 9.4 Isto não pode ficar caro
+- A abertura lê **uma página só**: o `PROXIMA-SESSAO.md`. É proibido abrir o
+  plano inteiro, o PDF, `CONTINUIDADE.md` ou `PENDENCIAS.md` no começo.
+- Quem conta os itens do plano é o **programa**; a sessão recebe uma linha.
+- O caderno vivo só é aberto **no fim**, para marcar e acrescentar — editando o
+  trecho, nunca reescrevendo o arquivo.
+- Investigar é sob demanda. Não existe varredura de abertura.
+- A auditoria roda em **conversa separada** (subagente), no fechamento.

@@ -24,6 +24,7 @@ Thumbs.db
 !.claude/settings.json
 !.claude/launch.json
 !.claude/agents/
+!.claude/commands/
 !.claude/skills/
 
 # dados de trabalho do modo rascunho: sao dados reais dela, nunca entram no repositorio publico
