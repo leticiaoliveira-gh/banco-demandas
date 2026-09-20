@@ -28,8 +28,21 @@ que ela escolheu: **1) arrumar o que foi feito errado · 2) segurança dos dados
 
 - Endereço fica `conexaoempresas`. **No celular nada muda até tudo estar pronto.**
 - Entrada: **e-mail e senha**, com caixinha escrita exatamente **"manter conectado"**.
+  - **Marcada** = PC dela: sessão longa, só pede de novo se ela sair do Chrome
+    e entrar do zero.
+  - **Desmarcada** = o site entende sozinho que o PC não é dela e exige
+    **segunda etapa: aprovação vinda do celular** (lógica de verificação em
+    duas etapas). O "Entrar pelo celular" do plano v5 **não foi descartado** —
+    é exatamente esta segunda etapa.
+  - Nesse caso, **nenhum rastro fica naquele PC**: nada gravado em disco, tudo
+    apagado ao fechar a aba.
 - Trava com **20 minutos** parada; acesso morre **no fim do dia**.
 - **A cada atualização do site, gerar e mandar um PDF novo. Sem ela pedir.**
+- **O PDF é CUMULATIVO: nada sai do plano, nunca.** Checklist com 5 situações
+  (✅ Feito · 🔄 Fazendo · 🕐 Depois · ❌ Não entra · ❓ Decidir). Item
+  descartado fica **riscado com o motivo**, não some. A contagem só cresce.
+  Fonte do PDF: `Plano atualizado - migracao Cloudflare (20-09-26).html`
+  (hoje na **versão 7**, 102 itens, 12 páginas).
 - Nunca escolher nome/domínio por conta própria.
 
 ## O que fazer, na ordem (é isto que a próxima sessão executa)
