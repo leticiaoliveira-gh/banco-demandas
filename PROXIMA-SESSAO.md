@@ -26,7 +26,7 @@ Abrir o **caderno vivo do plano** e trabalhar em cima dele:
 4. TAREFAS\CODE - Plano migracao Cloudflare (20-09-26)\Plano atualizado - migracao Cloudflare (20-09-26).html
 ```
 
-- É o arquivo mais atual (**versão 14**). O PDF ao lado é só a fotografia dele.
+- É o arquivo mais atual (**versão 18**). O PDF ao lado é só a fotografia dele.
 - **Nunca escrever um plano novo do zero.** Só riscar, marcar e acrescentar
   linha neste. Ele descende do primeiro plano; nenhum item foi ou será apagado.
 - Se o HTML sumir, **reconstruir a partir do PDF mais recente** antes de
@@ -39,7 +39,7 @@ Abrir o **caderno vivo do plano** e trabalhar em cima dele:
 A mudança para a Cloudflare **não está fechada**, mas a **Parte 1 fechou em
 20/09**: o site novo está no ar num endereço só, os dois quadros estão no cofre,
 o selo é honesto, existe de novo um lugar seguro de ensaiar, e o site nunca mais
-mostra dado velho. A próxima é a **Parte 2, segurança dos dados**.
+mostra dado velho. A **Parte 2 (segurança dos dados) fechou também em 20/09**, na mesma sessão, com autorização dela para adiantar. A próxima é a **Parte 3, entrada com e-mail e senha**.
 
 ## Estado real, conferido em 20/09
 
@@ -56,7 +56,10 @@ mostra dado velho. A próxima é a **Parte 2, segurança dos dados**.
 | Cofres de ensaio | **refeitos em 20/09**, vazios, fora do site publicado |
 | Dado sempre fresco (`no-store`) | **feito em 20/09**, conferido no ar |
 | **PARTE 1** | **FECHADA em 20/09** |
-| Versão publicada | Cloudflare 10.2 · GitHub Pages 10.2 · Plano v14 |
+| **PARTE 2** (segurança dos dados) | **FECHADA em 20/09**, os 4 itens, publicada |
+| Cópia automática de madrugada | agendada às 02:10 (cron do Worker). **Ainda não foi vista nascer** |
+| Conferência dessa cópia | tarefa automática diária `conferir-copia-madrugada`, criada em 20/09 |
+| Versão publicada | Cloudflare **10.4** · GitHub **10.4** · Plano **v18** (150 itens) |
 
 ## Decisões dela que não se discutem mais
 
@@ -72,28 +75,56 @@ mostra dado velho. A próxima é a **Parte 2, segurança dos dados**.
 - **A cada atualização do site, gerar e mandar um PDF novo. Sem ela pedir.**
 - **O plano é CUMULATIVO: nada sai, nunca.** Item descartado fica **riscado
   com o motivo**, não some. A contagem só cresce.
-- **Cópia das 20h no PC dela:** recomendação escrita no plano é **manter**.
-  Ela ainda não respondeu — é o único ❓ aberto.
+- **Cópia das 20h no PC dela:** foi **mantida** em 20/09, seguindo a minha
+  recomendação, para não travar a entrega. Ela ainda pode mudar: está na
+  lista de revisão do plano v18.
 - Nunca escolher nome/domínio por conta própria.
 - Endereço de teste/duplicado que não serve mais: **desligar de vez**, sem
   deixar aviso no ar. Decisão dela em 20/09, depois de eu ter perguntado.
 
 ## A PRÓXIMA DEMANDA (é este o item que a próxima sessão executa)
 
-**Parte 2 do plano: segurança dos dados.** São quatro coisas, na ordem:
+**Parte 3 do plano: a entrada no site.** Na ordem escrita no plano:
 
-1. **Aviso antes de fechar** com alteração ainda não salva
-   (`beforeunload`, olhando a fila do selo).
-2. **Aviso entre duas abas abertas** do site, para uma não apagar o que a outra
-   escreveu (`BroadcastChannel`).
-3. **`navigator.storage.persist()`**: pedir ao navegador para nunca apagar a
-   cópia que fica no aparelho dela.
-4. **Aba "Cópias de segurança" completa**: cópia automática de madrugada, teste
-   de verdade todo domingo, botões Baixar e **Restaurar** (o nome é escolha
-   dela), e a faixa vermelha quando passa um dia sem cópia.
+1. **E-mail e senha**, com a caixinha escrita exatamente **"manter conectado"**.
+2. **Segunda etapa pelo celular** quando a caixinha não estiver marcada
+   (funciona pela internet, sem Bluetooth e sem instalar nada).
+3. **Nenhum rastro no computador emprestado**: nada gravado em disco.
+4. O celular mostra **qual** computador pede, **de onde** e **quando**, e pede
+   para conferir o código. O código vale 2 minutos e só funciona uma vez.
+5. Prazo na hora de liberar: 1 hora, 4 horas ou até as 18h.
+6. Trava sozinha com **20 minutos** parada; o acesso morre **no fim do dia**.
+7. A digital como **atalho**, nunca obrigatória.
+8. Lista **"Computadores conectados"** no celular, com Desconectar.
+9. PDF com **10 códigos de emergência** e a folha "Como recuperar tudo".
 
-O cofre `central-copias` existe e está **vazio**: é nesta parte que ele começa a
-ser usado. Ensaiar primeiro em `central-copias-ensaio`.
+### Antes disso, quando ela quiser (não é obrigatório)
+
+Passar com ela a seção **"Para você revisar depois"** do plano v18: são
+**12 escolhas** que eu tomei sozinho na aba "Cópias de segurança" e que ela
+ainda pode mudar (horário da madrugada, dia do teste, quando a faixa vermelha
+acende, quantos botões por linha, colunas da planilha, manter ou não a cópia
+das 20h, onde a aba fica no menu, os nomes que aparecem, e outras).
+Ela disse, em 20/09: **"depois, pq eu nao vou revisar agr"**.
+
+### A CONFERÊNCIA QUE FICOU PENDENTE (importante)
+
+Em 20/09 publiquei a Parte 2 inteira, mas **não cheguei a ver a primeira cópia
+automática nascer**. O horário (02:10) ainda não tinha chegado, e a tentativa
+de forçar uma à mão no computador dela travou num laço do programa de teste.
+Isso não afeta o site no ar.
+
+Para não depender da memória dela nem da minha, criei a tarefa automática
+**`conferir-copia-madrugada`** (`~/.claude/scheduled-tasks/`), que roda todo dia
+de manhã, olha o cofre `central-copias`, conserta sozinha se a rotina não tiver
+rodado e só chama a Lê se precisar dela. Depois de 7 dias certos, ela pergunta
+se continua diária ou passa a semanal.
+
+Conferir à mão, se quiser:
+
+```
+npx wrangler d1 execute central-copias --remote --command "SELECT id, data, tipo, n_itens, testada FROM copias ORDER BY data DESC LIMIT 5"
+```
 
 ### Já dá para ensaiar sem risco (feito em 20/09)
 
@@ -113,6 +144,26 @@ npx wrangler d1 execute central-demandas-ensaio --remote --file=<arquivo>.sql
 
 ### O que foi feito em 20/09 (não refazer)
 
+**PARTE 2 INTEIRA** (os 4 itens, com autorização dela para adiantar na mesma
+sessão, porque são o mesmo assunto: não perder o que ela escreve):
+
+- **Item 1:** aviso antes de fechar com alteração ainda viajando (`js/sync.js`,
+  olhando a mesma fila do selo, então a verdade é uma só no site inteiro).
+- **Item 2:** duas abas do site se avisam (`BroadcastChannel`, fila de 400ms).
+  Cuidado que ficou: a tela **não** se redesenha enquanto o cursor está dentro
+  de um campo; o redesenho espera o `focusout`.
+- **Item 3:** `navigator.storage.persist()` pedido no `load`.
+- **Item 4:** aba **Cópias de segurança** (`js/copias.js` + rotas `/api/copias`
+  em `servidor/index.js` + `scheduled()` + `[triggers] crons` no `wrangler.toml`).
+  Retenção: 30 dias de diárias, a primeira de cada mês vira mensal por 12 meses,
+  e a cópia velha perde o conteúdo pesado mas **a linha continua na lista com o
+  motivo escrito** (foi assim que as duas regras dela couberam juntas).
+
+Publicado: Cloudflare **10.4**, GitHub **10.4**, `CACHE` `np-demandas-v175`,
+`?v=175`. Revisor do site aprovou. Plano na **v18**, 150 itens, nada removido.
+
+### O que foi feito antes, em 20/09 (não refazer)
+
 Itens 4, 5 e 6 da Parte 1, juntos, com autorização dela:
 
 - **Item 4:** os 3 cofres de ensaio, recriados e conferidos.
@@ -127,10 +178,7 @@ Itens 4, 5 e 6 da Parte 1, juntos, com autorização dela:
 
 ### O que vem depois (não é para agora)
 
-**Parte 2 — segurança dos dados:** aviso antes de fechar com coisa não salva +
-aviso entre duas abas abertas · `navigator.storage.persist()` · aba **Cópias
-de segurança** completa (cópia automática de madrugada, teste todo domingo,
-botão Restaurar).
+~~**Parte 2, segurança dos dados.**~~ **FEITA em 20/09** (os 4 itens, publicada na 10.4).
 
 **Parte 3 — a entrada no site:** e-mail e senha + "manter conectado" · trava
 de 20 min · lista "Computadores conectados" · digital como atalho · PDF de
