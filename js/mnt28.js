@@ -914,7 +914,7 @@ async function renderMnt28(){
   }
   if(!M28_FOLHA_ABERTA){ el.innerHTML=abas+m28PilhaMesesHTML(); return; }
 
-  el.innerHTML=abas+m28BarraMesHTML()+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+'<div id="m28-lista"></div>';
+  el.innerHTML=abas+m28BarraMesHTML()+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 
@@ -1467,7 +1467,8 @@ function m28Desde(d){
   const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
   const grave=meses!==null&&meses>=1;       /* 1 mês ou mais: vermelho. Decisão dela (29/08): "1 mês já é tempo demais". */
   return `<span class="m28-data">${brDate(d.dataRegistro)}</span>`
-    +(tempo?`<span class="m28-tempo${grave?" grave":""}">${tempo}</span>`:"");
+    +(tempo?`<span class="m28-tempo${grave?" grave":""}">${tempo}</span>`:"")
+    +(typeof paradaSelo==="function"?paradaSelo(d):"");
 }
 function m28VerFoto(id,i){
   const d=DATA.find(x=>x.id===id);if(!d||!d.fotos||!d.fotos[i])return;

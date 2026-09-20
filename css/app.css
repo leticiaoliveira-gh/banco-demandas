@@ -1275,3 +1275,25 @@ body.editando-cards .card-fantasma{opacity:.4}
 .hst-quando{flex:0 0 76px;color:var(--muted,#566);font-size:13px}
 .hst-o-que{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 .hst-o-que small{color:var(--muted,#566)}
+
+/* ===== AVISO DE DEMANDA PARADA (19/09) ===== */
+.prd-faixa{align-items:flex-start;gap:12px;margin:0 0 16px}
+.prd-faixa-txt{flex:1 1 auto;min-width:0}
+.prd-faixa-txt div{font-size:13px;margin-top:2px}
+.prd-bt{min-height:44px;flex:0 0 auto}
+.prd-selo{margin-left:8px}
+.prd-ajuste{margin:0 0 16px}
+.prd-dias{max-width:120px}
+.prd-lista{max-height:48vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.prd-linha{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--linha,#eef2f0)}
+.prd-linha:last-child{border-bottom:0}
+.prd-txt{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.prd-txt small{display:block;color:var(--muted,#566);margin-top:2px}
+.prd-marca{margin-top:6px}
+.prd-marca .prd-selo{margin-left:0}
+.prd-relogio{flex:0 0 44px;width:44px;min-height:44px;padding:0}
+@media(max-width:520px){
+  .prd-faixa{flex-wrap:wrap}
+  .prd-bt{width:100%}
+  .prd-selo{margin-left:0}
+}

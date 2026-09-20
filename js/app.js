@@ -888,6 +888,7 @@ async function recarregarConfig(){
   if(window.m28RecarregarConfig)await m28RecarregarConfig();
   if(window.ckAmbCarregarTodas)await ckAmbCarregarTodas();
   if(window.ckqCarregarSetores)await ckqCarregarSetores();
+  if(typeof paradaCarregar!=="undefined")await paradaCarregar();
   if(window.fillExecSelects)fillExecSelects();
   renderTabs();aplicarTextos();
   if(currentStore&&currentTab)updateSubtitle(currentTab);
@@ -1904,7 +1905,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.97";
+const APP_VERSAO="9.98";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
@@ -2149,7 +2150,7 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
    }
  }finally{HIST_LIGADO=true;}
  await loadEmpresas();await loadExecutores();await loadPendencias();await loadRtInfo();await loadAreasAll();await loadAbaNomes();await loadAbaSub();await loadTextos();await loadCapaCfg();
-  if(window.loadHubCfg)await loadHubCfg();   /* ordem e escondidos do Sumário (05/08) */if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();await loadStatusSite();
+  if(window.loadHubCfg)await loadHubCfg();   /* ordem e escondidos do Sumário (05/08) */if(window.dgLoadOpcoes)await dgLoadOpcoes();if(window.ckLoadOpcoes)await ckLoadOpcoes();if(window.ncLoadUrgencias)await ncLoadUrgencias();if(window.ckqCarregarSetores)await ckqCarregarSetores();if(window.ckqMigrarPerguntasReais)await ckqMigrarPerguntasReais();if(typeof paradaCarregar!=="undefined")await paradaCarregar();await loadStatusSite();
  document.getElementById("fmData").value=today();
  renderTabs();fillExecSelects();initAtalhos();carimbarVersao();
  await histCarregar();   /* as setas já nascem com o que dá para desfazer (05/08) */

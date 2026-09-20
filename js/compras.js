@@ -123,6 +123,8 @@ async function renderCompras(){
         <div class="bd-kpi-num">${conta.recusado}</div></div>
     </div>
 
+    ${typeof paradaFaixa==="function"?paradaFaixa("cmp"):""}
+
     <div class="cmp-barra">
       <input autocomplete="off" spellcheck="false" type="search" class="bd-campo cmp-busca" id="cmp-q" placeholder="Procurar o que comprar…"
              value="${esc(CMPF.q)}" oninput="cmpFiltro('q',this.value)">
@@ -259,6 +261,7 @@ function cmpLinha(d, n){
     </div>
     <div class="cmp-lado">
       <span class="bd-selo ${CMP_SIT[s].selo}">${CMP_SIT[s].rot}</span>
+      ${typeof paradaSelo==="function"?paradaSelo(d):""}
       <button class="cmp-lapis" onclick="histoAbrir(${d.id})" aria-label="Ver o histórico deste item"
         title="A história deste item: quando nasceu e o que mudou">🕘</button>
       <button class="cmp-lapis" onclick="cmpEditar(${d.id})" aria-label="Editar este item">✎</button>
