@@ -602,7 +602,8 @@ function renderMobileNav(){const b=document.getElementById("mobileNav");
   /* no celular a barra lateral some, então o DESFAZER também mora aqui */
   if(b)b.innerHTML=`<button class="ricon nav-item" title="Hub da empresa" aria-label="Hub da empresa" onclick="showHub()">${ICO.hub}</button>`
     +TAB_ORDER.map(navItemHTML).join("")
-    +`<button class="ricon" id="btDesfazerM" onclick="desfazer()" title="Desfazer" aria-label="Desfazer">←</button>`;}
+    +`<button class="ricon" id="btDesfazerM" onclick="desfazer()" title="Desfazer" aria-label="Desfazer">←</button>`
+    +`<button class="ricon" id="btSegurancaM" onclick="segurancaAbrir()" title="Segurança" aria-label="Segurança">🔒</button>`;}
 /* destaque da aba atual — única função que marca "active" em TODAS as navegações */
 function syncNav(){
   document.querySelectorAll("[data-tab]").forEach(el=>{
@@ -1905,11 +1906,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.0";
+const APP_VERSAO="11.1";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="20/09/2026 · 11:00";
+const APP_DATA="20/09/2026 · 12:30";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

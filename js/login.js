@@ -59,7 +59,9 @@ function loginTelaEntrada(msg){
     '<div id="loginMsg" class="bd-ajuda" style="min-height:18px;margin-top:8px">'+(msg||"")+'</div>' +
     '<button class="bd-btn bd-btn-principal bd-btn-largo bd-btn-g" style="width:100%;margin-top:6px" onclick="loginEntrar()">Entrar</button>' +
     '<div style="text-align:center;margin-top:16px">' +
-    '<span class="back-link" style="font-size:12.5px;cursor:pointer" onclick="loginTelaEmergencia()">Perdi o celular, tenho um código de emergência</span></div>'
+    '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
+    'onclick="loginTelaEmergencia()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEmergencia();}">' +
+    'Perdi o celular, tenho um código de emergência</span></div>'
   );
   setTimeout(()=>{const e=document.getElementById("loginEmail");if(e)e.focus();},50);
 }
@@ -155,7 +157,8 @@ function loginTelaEmergencia(){
     '<div id="loginEmMsg" class="bd-ajuda" style="min-height:18px;margin-top:8px"></div>' +
     '<button class="bd-btn bd-btn-principal bd-btn-largo bd-btn-g" style="width:100%;margin-top:6px" onclick="loginUsarEmergencia()">Entrar com o código</button>' +
     '<div style="text-align:center;margin-top:16px">' +
-    '<span class="back-link" style="font-size:12.5px;cursor:pointer" onclick="loginTelaEntrada()">Voltar</span></div>'
+    '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
+    'onclick="loginTelaEntrada()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEntrada();}">Voltar</span></div>'
   );
 }
 async function loginUsarEmergencia(){
@@ -190,7 +193,8 @@ function loginTelaTrava(){
     '<div id="loginTravaMsg" class="bd-ajuda" style="min-height:18px;margin-top:8px"></div>' +
     '<button class="bd-btn bd-btn-principal bd-btn-largo bd-btn-g" style="width:100%;margin-top:6px" onclick="loginDestravar()">Destravar</button>' +
     '<div style="text-align:center;margin-top:16px">' +
-    '<span class="back-link" style="font-size:12.5px;cursor:pointer" onclick="loginSair()">Sair (fecha a sessão neste aparelho)</span></div>'
+    '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
+    'onclick="loginSair()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginSair();}">Sair (fecha a sessão neste aparelho)</span></div>'
   );
   setTimeout(function(){const e=document.getElementById("loginTravaSenha");if(e)e.focus();},50);
 }

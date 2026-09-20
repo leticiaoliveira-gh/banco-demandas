@@ -180,8 +180,8 @@ th{box-shadow:inset 0 -1px 0 var(--border)}   /* a linha acompanha o cabeçalho 
   .btn.sm{min-height:44px;padding:10px 14px}
   .ricon,.delbtn,.dg-lupa,.dg-del{min-width:44px;min-height:44px}
   .filtro-cfg button{min-height:44px}
-  .bd-btn{min-height:44px}
-  .bd-btn-p{min-height:40px}
+  .bd-btn,.bd-btn-p{min-height:44px}
+  .bd-janela-x{min-width:44px;min-height:44px}
   .form-actions{flex-direction:column-reverse}
   .form-actions .btn{width:100%}
   .grid2{grid-template-columns:1fr}
@@ -222,8 +222,22 @@ th{box-shadow:inset 0 -1px 0 var(--border)}   /* a linha acompanha o cabeçalho 
   .btn,.btn.sm{min-height:44px}
   .ricon,.delbtn,.dg-lupa,.dg-del{min-width:44px;min-height:44px}
   .filtro-cfg button,.tab{min-height:44px}
-  .bd-btn{min-height:44px}
-  .bd-btn-p{min-height:40px}
+  .bd-btn,.bd-btn-p{min-height:44px}
+  .bd-janela-x{min-width:44px;min-height:44px}
+}
+
+/* ═══════ 16. LINK PEQUENO DA TELA DE ENTRADA (Parte 3, 20/09/2026) ═══════
+   "Perdi o celular", "Voltar" e "Sair" dentro da tela de login são texto
+   pequeno (o design pede isso ali), mas viram botão de verdade: dá pra
+   chegar com Tab e o dedo tem 44px de área ao redor, igual à chavinha
+   do item 14-B — o texto continua do mesmo tamanho na tela. */
+#loginTrava .back-link{position:relative;display:inline-block}
+#loginTrava .back-link::after{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:100%;min-width:44px;height:44px;
+}
+#loginTrava .back-link:focus-visible{
+  outline:2px solid var(--accent);outline-offset:3px;border-radius:6px;
 }
 
 /* ═══════ 15. TOQUE MAIS RÁPIDO NO CELULAR ═══════
