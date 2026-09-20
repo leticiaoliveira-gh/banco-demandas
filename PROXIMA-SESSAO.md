@@ -59,7 +59,7 @@ mostra dado velho. A **Parte 2 (segurança dos dados) fechou também em 20/09**,
 | **PARTE 2** (segurança dos dados) | **FECHADA em 20/09**, os 4 itens, publicada |
 | Cópia automática de madrugada | agendada às 02:10 (cron do Worker). **Ainda não foi vista nascer** |
 | Conferência dessa cópia | tarefa automática diária `conferir-copia-madrugada`, criada em 20/09 |
-| Versão publicada | Cloudflare **10.4** · GitHub **10.4** · Plano **v18** (150 itens) |
+| Versão publicada | Cloudflare **10.4** · GitHub **10.4** · Plano **v21** (153 itens contados pelo guardião; o placar da folha mostra 148, que é o mesmo número sem as 5 linhas da legenda. Nada mudou no site) |
 
 ## Decisões dela que não se discutem mais
 
@@ -78,6 +78,11 @@ mostra dado velho. A **Parte 2 (segurança dos dados) fechou também em 20/09**,
 - **Cópia das 20h no PC dela:** foi **mantida** em 20/09, seguindo a minha
   recomendação, para não travar a entrega. Ela ainda pode mudar: está na
   lista de revisão do plano v18.
+- **Item adiado não é item esquecido.** O que ficou como "depois" ou "você
+  decide" no fim do plano **eu** trago de volta falando com ela quando chegar a
+  vez dele. Não basta estar escrito lá esperando ela ler. Pedido dela em
+  20/09/2026. **Sem criar rotina, agendamento ou lembrete automático** para
+  isso: o combinado é não parar de falar com ela, não montar mecanismo.
 - Nunca escolher nome/domínio por conta própria.
 - Endereço de teste/duplicado que não serve mais: **desligar de vez**, sem
   deixar aviso no ar. Decisão dela em 20/09, depois de eu ter perguntado.
