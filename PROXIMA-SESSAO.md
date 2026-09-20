@@ -1,9 +1,24 @@
 # PRÓXIMA SESSÃO — comece por aqui, não releia mais nada
 
 > Escrito em 20/09/2026. Este arquivo é autossuficiente: **não precisa abrir
-> CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
-> O plano completo em PDF (versão 6) está em
-> `4. TAREFAS\CODE - Plano migracao Cloudflare (20-09-26)\`.
+> CONTINUIDADE.md nem PENDENCIAS.md para começar a trabalhar.**
+
+## PASSO 0 — antes de qualquer outra coisa (ordem dela, 20/09)
+
+Abrir o **caderno vivo do plano** e trabalhar em cima dele:
+
+```
+4. TAREFAS\CODE - Plano migracao Cloudflare (20-09-26)\Plano atualizado - migracao Cloudflare (20-09-26).html
+```
+
+- É o arquivo mais atual (**versão 8, 107 itens**). O PDF ao lado é só a
+  fotografia dele.
+- **Nunca escrever um plano novo do zero.** Só riscar, marcar e acrescentar
+  linha neste. Ele descende do primeiro plano; nenhum item foi ou será apagado.
+- Se o HTML sumir, **reconstruir a partir do PDF mais recente** antes de
+  trabalhar.
+- Ao terminar qualquer mudança no site: atualizar o HTML, gerar o PDF novo
+  (subindo a versão e a linhagem no rodapé) e mandar para ela, sem ela pedir.
 
 ## Em uma frase
 
@@ -42,7 +57,10 @@ que ela escolheu: **1) arrumar o que foi feito errado · 2) segurança dos dados
   (✅ Feito · 🔄 Fazendo · 🕐 Depois · ❌ Não entra · ❓ Decidir). Item
   descartado fica **riscado com o motivo**, não some. A contagem só cresce.
   Fonte do PDF: `Plano atualizado - migracao Cloudflare (20-09-26).html`
-  (hoje na **versão 7**, 102 itens, 12 páginas).
+  (hoje na **versão 8**, 107 itens, 13 páginas). Ver o **Passo 0** acima.
+- **Cópia das 20h no PC dela:** minha recomendação escrita no plano é
+  **manter** (única cópia numa máquina dela). Ela vai responder se aceita —
+  é o único ❓ aberto. Se disser que não, a linha fica riscada com o motivo.
 - Nunca escolher nome/domínio por conta própria.
 
 ## O que fazer, na ordem (é isto que a próxima sessão executa)
