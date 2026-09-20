@@ -42,14 +42,45 @@ function b64decUtf8(b64){const bin=atob((b64||"").replace(/\s/g,""));const arr=n
 /* ---- estado visual ----
    Capa (syncPillHome): botão permanente, é ONDE se configura.
    Dentro da empresa (syncPill): só aparece quando está sincronizando ou com
-   problema — quando está tudo certo, some para não poluir a barra. */
-function setSyncState(s){
- const map={off:"⚙ Sincronização",sync:"⇅ Sincronizando…",ok:"✓ Sincronizado",err:"⚠ Sync com erro",offline:"⚠ Sem conexão"};
- const cor=(s==="err"||s==="offline")?"var(--amber)":(s==="ok"?"var(--green)":"");
+   problema — quando está tudo certo, some para não poluir a barra.
+   O selo é UM só para os dois sistemas (GitHub + cofre novo da Cloudflare):
+   se qualquer um dos dois estiver com algo pendente ou falhando, o selo
+   avisa — nunca diz "tudo salvo" enquanto um dos dois ainda não confirmou.
+
+   OS TRÊS RECADOS (pedido dela, 20/09):
+   "Tudo salvo às 14:32"        → pode fechar tranquila
+   "3 alterações esperando"     → está salvando, aguarde
+   "Não salvou, tentar de novo" → o site tenta sozinho em poucos segundos */
+let syncUltimoEstado="off";
+let seloPendentes=0;
+function seloMarcarAlteracao(){seloPendentes++;aplicarSeloConexao();}
+function setSyncState(s){ syncUltimoEstado=s; aplicarSeloConexao(); }
+
+function aplicarSeloConexao(){
+ const githubLigado=syncUltimoEstado!=="off";
+ const nuvemLig=typeof nuvemLigada==="function"&&nuvemLigada();
+ const nuvemErro=typeof nuvemTemErro==="function"&&nuvemTemErro();
+ const nuvemPendente=nuvemLig&&((typeof nuvemDirty!=="undefined"&&nuvemDirty)||(typeof nuvemBusy!=="undefined"&&nuvemBusy));
+ let s,texto,cor="";
+ if(!githubLigado&&!nuvemLig){
+   s="off";texto="⚙ Sincronização";
+ }else if(syncUltimoEstado==="err"||syncUltimoEstado==="offline"||nuvemErro){
+   s="err";cor="var(--amber)";
+   texto=syncUltimoEstado==="offline"?"⚠ Sem conexão":"⚠ Não salvou, tentar de novo";
+ }else if(syncUltimoEstado==="sync"||nuvemPendente||seloPendentes>0){
+   s="sync";
+   texto=seloPendentes>0
+     ?(seloPendentes+(seloPendentes===1?" alteração esperando":" alterações esperando"))
+     :"⇅ Sincronizando…";
+ }else{
+   seloPendentes=0;s="ok";cor="var(--green)";
+   const h=new Date();
+   texto="✓ Tudo salvo às "+String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0");
+ }
  const home=document.getElementById("syncPillHome");
- if(home){home.textContent=map[s]||map.off;home.style.color=cor;}
+ if(home){home.textContent=texto;home.style.color=cor;}
  const pill=document.getElementById("syncPill");
- if(pill){pill.textContent=map[s]||map.off;pill.style.color=cor;
+ if(pill){pill.textContent=texto;pill.style.color=cor;
   pill.style.display=(s==="sync"||s==="err"||s==="offline")?"":"none";}
 }
 
@@ -300,6 +331,7 @@ async function syncPush(isRetry){
  }
  if(!r.ok)throw new Error("PUT "+r.status);
  const j=await r.json();syncSha=j.content&&j.content.sha||null;syncDirty=false;
+ if(typeof seloPendentes!=="undefined")seloPendentes=0;
  /* NOT-2 (30/07): cada envio bem-sucedido À NUVEM é um backup de verdade —
     o repositório guarda TODAS as versões e sobrevive a trocar de PC.
     A capa passa a mostrar isso, em vez de fingir que só a pasta local conta.

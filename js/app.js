@@ -1742,7 +1742,7 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
 
 /* ---- backup automático em pasta (Chrome/Edge no computador) ---- */
 let backupT=null;
-function dataChanged(){scheduleBackup();if(window.syncSchedule)syncSchedule();}
+function dataChanged(){scheduleBackup();if(typeof seloMarcarAlteracao==="function")seloMarcarAlteracao();if(window.syncSchedule)syncSchedule();if(window.nuvemSchedule)nuvemSchedule();}
 function scheduleBackup(){clearTimeout(backupT);backupT=setTimeout(doBackup,30000);}
 
 async function setupAutoBackup(){
@@ -1905,7 +1905,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="10.1";
+const APP_VERSAO="10.2";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

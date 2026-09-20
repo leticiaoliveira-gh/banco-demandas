@@ -30,6 +30,11 @@ const NUVEM_INTERVALO = 5 * 60000;
 
 let nuvemT = null, nuvemBusy = false, nuvemDirty = false, nuvemLast = 0;
 
+/* guarda o ultimo erro para o selo (js/sync.js) nunca dizer "Sincronizado"
+   enquanto o cofre novo esta falhando por baixo */
+let nuvemUltimoErro = null;
+function nuvemTemErro() { return nuvemLigada() && !!nuvemUltimoErro; }
+
 /* ---------------------------------------------------------------------
    ONDE MORA A CHAVE
    Mesmo cuidado do sync.js: no aparelho dela fica guardado de verdade;
@@ -164,6 +169,7 @@ async function nuvemPush() {
   }
 
   nuvemDirty = false;
+  if (typeof seloPendentes !== "undefined") seloPendentes = 0;
   await metaSet("nuvemUltimoEnvio", nowISO());
 }
 
@@ -181,12 +187,16 @@ async function nuvemNow() {
     }
     if (nuvemDirty || (res && res.localAhead)) await nuvemPush();
     nuvemLast = Date.now();
+    nuvemUltimoErro = null;
     await metaSet("nuvemUltimaConversa", nowISO());
   } catch (e) {
-    /* falhar aqui NAO pode assustar nem travar nada: o sistema de hoje
-       continua gravando no GitHub, e a copia do aparelho e a principal */
-    console.warn("nuvem:", e && e.message || e);
+    /* falhar aqui NAO pode travar nada: o sistema de hoje continua gravando
+       no GitHub, e a copia do aparelho e a principal. Mas o selo TEM que
+       avisar — antes ficava calado e dizia "Sincronizado" mentindo. */
+    nuvemUltimoErro = e && e.message || String(e);
+    console.warn("nuvem:", nuvemUltimoErro);
   }
+  if (typeof aplicarSeloConexao === "function") aplicarSeloConexao();
   nuvemBusy = false;
 }
 
@@ -246,7 +256,7 @@ async function nuvemFotoBaixar(id) {
     /* a partir da 2a tentativa pede a foto de novo do cofre, ignorando a
        copia guardada no aparelho: e o que resolve uma foto que ficou
        guardada em branco */
-    const modo = tentativa ? { headers: hdr, cache: "reload" } : { headers: hdr };
+    const modo = tentativa ? { headers: hdr, cache: "reload" } : { headers: hdr, cache: "no-store" };
     try { r = await fetch(nuvemFotoURL(id), modo); }
     catch (e) { ultimo = 0; continue; }
     if (r.ok) {
@@ -364,6 +374,8 @@ function nuvemDesconectar() {
       localStorage.removeItem(k); sessionStorage.removeItem(k);
     });
   } catch (e) {}
+  nuvemUltimoErro = null;
+  if (typeof aplicarSeloConexao === "function") aplicarSeloConexao();
 }
 
 /* ---------------------------------------------------------------------
