@@ -92,3 +92,58 @@ CREATE TABLE IF NOT EXISTS pareamentos (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pareamentos_expira ON pareamentos(expira_em);
+
+-- ---------------------------------------------------------------------
+-- ENTRADA COM E-MAIL E SENHA (Parte 3, 20/09/2026)
+--
+-- usuarios: quem pode entrar no site. Guarda so o HASH da senha (PBKDF2),
+-- nunca a senha em si.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS usuarios (
+  id          TEXT PRIMARY KEY,
+  email       TEXT NOT NULL UNIQUE,
+  hash_senha  TEXT NOT NULL,
+  sal         TEXT NOT NULL,
+  criado      TEXT NOT NULL
+);
+
+-- acessos ganha o dono (usuario_id): sem isso nao da para saber de quem e
+-- cada sessao, nem listar "Computadores conectados" por pessoa.
+ALTER TABLE acessos ADD COLUMN usuario_id TEXT;
+
+-- ---------------------------------------------------------------------
+-- aprovacoes: o pedido que o computador emprestado faz e que so o celular
+-- dela pode aceitar. O codigo de 6 numeros aparece nos DOIS lados; ela
+-- confere que sao iguais antes de aprovar, para ninguem aprovar um pedido
+-- que nao e o dela.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS aprovacoes (
+  id          TEXT PRIMARY KEY,
+  usuario_id  TEXT NOT NULL,
+  codigo      TEXT NOT NULL,
+  aparelho    TEXT,
+  ip          TEXT,
+  prazo_min   INTEGER NOT NULL,
+  situacao    TEXT NOT NULL DEFAULT 'esperando',  -- esperando | aprovada | negada | expirada
+  criado      TEXT NOT NULL,
+  expira_em   TEXT NOT NULL,
+  acesso_id   TEXT,
+  entregue    INTEGER NOT NULL DEFAULT 0           -- a chave so sai do servidor uma vez
+);
+
+CREATE INDEX IF NOT EXISTS idx_aprov_usuario  ON aprovacoes(usuario_id, situacao);
+CREATE INDEX IF NOT EXISTS idx_aprov_situacao ON aprovacoes(situacao, expira_em);
+
+-- ---------------------------------------------------------------------
+-- codigos_emergencia: os 10 codigos de socorro para quando ela perder o
+-- celular. Cada um funciona uma vez so.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS codigos_emergencia (
+  id          TEXT PRIMARY KEY,
+  usuario_id  TEXT NOT NULL,
+  hash        TEXT NOT NULL,
+  usado_em    TEXT,
+  criado      TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_emerg_usuario ON codigos_emergencia(usuario_id);

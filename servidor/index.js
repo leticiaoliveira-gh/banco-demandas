@@ -68,13 +68,282 @@ async function autenticar(req, env) {
   if (!chave) return null;
   const h = await sha256(chave);
   const row = await env.DB.prepare(
-    "SELECT id, rotulo FROM acessos WHERE hash = ?1 AND revogado = 0"
+    `SELECT a.id, a.rotulo, a.usuario_id, s.id sessao_id, s.expira_em, s.encerrada
+       FROM acessos a LEFT JOIN sessoes s ON s.acesso_id = a.id
+      WHERE a.hash = ?1 AND a.revogado = 0`
   ).bind(h).first();
   if (!row) return null;
+  /* sessao com prazo (aparelho emprestado): vencido ou desconectado, fora */
+  if (row.sessao_id) {
+    if (row.encerrada) return null;
+    if (row.expira_em && row.expira_em < AGORA()) return null;
+    env.DB.prepare("UPDATE sessoes SET visto_em = ?1 WHERE id = ?2")
+      .bind(AGORA(), row.sessao_id).run().catch(() => {});
+  }
   /* carimbo de "usado agora", sem travar a resposta */
   env.DB.prepare("UPDATE acessos SET usado_em = ?1 WHERE id = ?2")
     .bind(AGORA(), row.id).run().catch(() => {});
   return row;
+}
+
+/* =====================================================================
+   ENTRADA COM E-MAIL E SENHA (Parte 3, 20/09/2026)
+
+   EM UMA FRASE: ela digita e-mail e senha; se marcar "manter conectado"
+   entra na hora (aparelho dela); se nao marcar, o pedido fica esperando
+   o celular dela aprovar - e o celular so aprova depois de conferir que
+   o codigo mostrado no computador e o mesmo que apareceu nele.
+
+   A "chave" que sai daqui e a MESMA coisa que a tela de Sincronizacao ja
+   usa (nuvem_chave/X-Chave). Login vira so um jeito mais facil de
+   conseguir essa chave: acaba a chave de pendrive e a senha do cofre
+   antigo, sem trocar nada por baixo.
+   ===================================================================== */
+
+const ITERACOES_SENHA = 210000;   /* recomendacao OWASP 2023 para PBKDF2-SHA256 */
+
+function bytesParaHex(b) { return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); }
+function hexParaBytes(h) { const a = new Uint8Array(h.length / 2); for (let i = 0; i < a.length; i++) a[i] = parseInt(h.substr(i * 2, 2), 16); return a; }
+
+async function hashSenha(senha, saltHex) {
+  const salt = saltHex ? hexParaBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+  const chaveBase = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations: ITERACOES_SENHA }, chaveBase, 256);
+  return { hash: bytesParaHex(bits), sal: bytesParaHex(salt) };
+}
+
+function tokenAleatorio(bytes) {
+  return bytesParaHex(crypto.getRandomValues(new Uint8Array(bytes || 32)));
+}
+
+function codigoDeSeisNumeros() {
+  return String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+}
+
+/* fim do dia dela (America/Sao_Paulo, sem horario de verao desde 2019) */
+function fimDoDiaISO() {
+  const agora = new Date(Date.now() - 3 * 3600e3);   /* joga para o "relogio dela" */
+  const fim = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate(), 23, 59, 59));
+  return new Date(fim.getTime() + 3 * 3600e3).toISOString();   /* volta para UTC de verdade */
+}
+
+/* cria a sessao (acesso + sessao juntos) e devolve a chave em texto puro,
+   que so existe aqui - dai pra frente o banco so guarda o hash dela */
+async function criarSessaoLogin(env, usuarioId, tipo, aparelho, prazoMin) {
+  const chave = tokenAleatorio(32);
+  const acessoId = crypto.randomUUID();
+  const sessaoId = crypto.randomUUID();
+  const agora = AGORA();
+  let expira = fimDoDiaISO();
+  if (prazoMin) {
+    const porPrazo = new Date(Date.now() + prazoMin * 60000).toISOString();
+    if (porPrazo < expira) expira = porPrazo;
+  } else if (tipo === "confiavel") {
+    expira = new Date(Date.now() + 5 * 365 * 864e5).toISOString();   /* "para sempre", na pratica */
+  }
+  await env.DB.prepare(
+    "INSERT INTO acessos (id, hash, tipo, rotulo, criado, usuario_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6)"
+  ).bind(acessoId, await sha256(chave), tipo, aparelho || null, agora, usuarioId).run();
+  await env.DB.prepare(
+    "INSERT INTO sessoes (id, acesso_id, aparelho, criado, visto_em, expira_em) VALUES (?1, ?2, ?3, ?4, ?4, ?5)"
+  ).bind(sessaoId, acessoId, aparelho || null, agora, expira).run();
+  return { chave, acessoId, sessaoId, expira };
+}
+
+function nomeDoAparelho(req) {
+  const ua = req.headers.get("User-Agent") || "";
+  if (/Windows/.test(ua)) return "Computador (Windows)";
+  if (/Mac OS/.test(ua)) return "Computador (Mac)";
+  if (/Android/.test(ua)) return "Celular (Android)";
+  if (/iPhone|iPad/.test(ua)) return "Celular (iPhone)";
+  return "Aparelho";
+}
+
+/* POST /api/login  { email, senha, manterConectado } */
+async function rotaLogin(req, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const email = String((corpo && corpo.email) || "").trim().toLowerCase();
+  const senha = String((corpo && corpo.senha) || "");
+  if (!email || !senha) return erro("faltou e-mail ou senha");
+
+  const usuario = await env.DB.prepare("SELECT id, hash_senha, sal FROM usuarios WHERE email = ?1").bind(email).first();
+  if (!usuario) return erro("e-mail ou senha errados", 401);
+  const conf = await hashSenha(senha, usuario.sal);
+  if (conf.hash !== usuario.hash_senha) return erro("e-mail ou senha errados", 401);
+
+  const aparelho = nomeDoAparelho(req);
+  const ip = req.headers.get("CF-Connecting-IP") || "";
+  const local = req.headers.get("CF-IPCity") || req.headers.get("CF-IPCountry") || "";
+
+  if (corpo.manterConectado) {
+    const s = await criarSessaoLogin(env, usuario.id, "confiavel", aparelho, null);
+    return ok({ ok: true, entrou: true, chave: s.chave });
+  }
+
+  /* nao marcou "manter conectado": fica esperando o celular aprovar */
+  const id = crypto.randomUUID();
+  const codigo = codigoDeSeisNumeros();
+  const agora = AGORA();
+  const expira = new Date(Date.now() + 2 * 60000).toISOString();
+  await env.DB.prepare(
+    `INSERT INTO aprovacoes (id, usuario_id, codigo, aparelho, ip, prazo_min, situacao, criado, expira_em)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'esperando', ?7, ?8)`
+  ).bind(id, usuario.id, codigo, aparelho + (local ? " - " + local : ""), ip, 60, agora, expira).run();
+
+  return ok({ ok: true, entrou: false, aprovacaoId: id, codigo });
+}
+
+/* GET /api/aprovacoes/<id> - o computador emprestado fica perguntando isto
+   ate a situacao mudar. Sem chave nenhuma: ele ainda nao tem uma. */
+async function rotaAprovacaoConsultar(id, env) {
+  const a = await env.DB.prepare("SELECT * FROM aprovacoes WHERE id = ?1").bind(id).first();
+  if (!a) return erro("pedido nao encontrado", 404);
+  if (a.situacao === "esperando" && a.expira_em < AGORA()) {
+    await env.DB.prepare("UPDATE aprovacoes SET situacao = 'expirada' WHERE id = ?1").bind(id).run();
+    return ok({ ok: true, situacao: "expirada" });
+  }
+  if (a.situacao === "aprovada" && !a.entregue) {
+    /* a chave so sai do servidor esta unica vez */
+    const chave = APROVACOES_CHAVE.get(id) || null;
+    await env.DB.prepare("UPDATE aprovacoes SET entregue = 1 WHERE id = ?1").bind(id).run();
+    APROVACOES_CHAVE.delete(id);
+    return ok({ ok: true, situacao: "aprovada", chave });
+  }
+  return ok({ ok: true, situacao: a.situacao });
+}
+
+/* GET /api/aprovacoes - a tela do celular: pedidos esperando dela */
+async function rotaAprovacoesListar(quem, env) {
+  const r = await env.DB.prepare(
+    `SELECT id, codigo, aparelho, ip, criado, expira_em FROM aprovacoes
+      WHERE usuario_id = ?1 AND situacao = 'esperando' AND expira_em > ?2
+      ORDER BY criado DESC`
+  ).bind(quem.usuario_id, AGORA()).all();
+  return ok({ ok: true, pedidos: r.results || [] });
+}
+
+/* POST /api/aprovacoes/<id>/decidir  { aprovar, codigoConfirmado, prazoMin }
+   Chamado pelo CELULAR, ja logado. Confere o codigo antes de aprovar - e
+   isso que impede aprovar um pedido que nao e o dela. */
+async function rotaAprovacaoDecidir(id, req, quem, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const a = await env.DB.prepare("SELECT * FROM aprovacoes WHERE id = ?1 AND usuario_id = ?2").bind(id, quem.usuario_id).first();
+  if (!a) return erro("pedido nao encontrado", 404);
+  if (a.situacao !== "esperando") return erro("este pedido ja foi respondido");
+  if (a.expira_em < AGORA()) { await env.DB.prepare("UPDATE aprovacoes SET situacao='expirada' WHERE id=?1").bind(id).run(); return erro("o pedido venceu, peca para tentar de novo"); }
+
+  if (!corpo.aprovar) {
+    await env.DB.prepare("UPDATE aprovacoes SET situacao = 'negada' WHERE id = ?1").bind(id).run();
+    return ok({ ok: true, situacao: "negada" });
+  }
+  if (String(corpo.codigoConfirmado || "") !== a.codigo) return erro("o codigo nao bateu");
+
+  const prazoMin = [60, 240, null].includes(corpo.prazoMin) ? corpo.prazoMin : 60;
+  const s = await criarSessaoLogin(env, quem.usuario_id, "temporario", a.aparelho, prazoMin);
+  /* guarda a chave so ate o computador que pediu vir buscar (rotaAprovacaoConsultar) */
+  await env.DB.prepare("UPDATE aprovacoes SET situacao = 'aprovada', acesso_id = ?1 WHERE id = ?2").bind(s.acessoId, id).run();
+  APROVACOES_CHAVE.set(id, s.chave);
+  return ok({ ok: true, situacao: "aprovada" });
+}
+
+/* a chave de uma sessao temporaria passa pela memoria do Worker, nunca pelo
+   banco - assim ela nunca fica gravada em lugar nenhum alem do proprio
+   navegador do computador emprestado. Dura pouco: o Worker recicla o
+   processo o tempo todo, e a busca (rotaAprovacaoConsultar) acontece em
+   segundos, por polling do computador que esta esperando. */
+const APROVACOES_CHAVE = new Map();
+
+/* GET /api/dispositivos - "Computadores conectados" */
+async function rotaDispositivosListar(quem, env) {
+  const r = await env.DB.prepare(
+    `SELECT s.id, a.tipo, a.rotulo, s.aparelho, s.criado, s.visto_em, s.expira_em
+       FROM sessoes s JOIN acessos a ON a.id = s.acesso_id
+      WHERE a.usuario_id = ?1 AND s.encerrada = 0 AND a.revogado = 0 AND s.expira_em > ?2
+      ORDER BY s.visto_em DESC`
+  ).bind(quem.usuario_id, AGORA()).all();
+  return ok({ ok: true, dispositivos: r.results || [], estaSessao: quem.sessao_id });
+}
+
+/* POST /api/dispositivos/<sessaoId>/desconectar */
+async function rotaDispositivoDesconectar(sessaoId, quem, env) {
+  const s = await env.DB.prepare(
+    `SELECT s.id, a.usuario_id FROM sessoes s JOIN acessos a ON a.id = s.acesso_id WHERE s.id = ?1`
+  ).bind(sessaoId).first();
+  if (!s || s.usuario_id !== quem.usuario_id) return erro("nao encontrado", 404);
+  await env.DB.prepare("UPDATE sessoes SET encerrada = 1 WHERE id = ?1").bind(sessaoId).run();
+  return ok({ ok: true, desconectado: sessaoId });
+}
+
+/* POST /api/verificar-senha - so confere, nao cria nada. Usado para
+   destravar a tela depois dos 20 minutos parada. */
+async function rotaVerificarSenha(req, quem, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const usuario = await env.DB.prepare("SELECT hash_senha, sal FROM usuarios WHERE id = ?1").bind(quem.usuario_id).first();
+  if (!usuario) return erro("nao encontrado", 404);
+  const conf = await hashSenha(String(corpo.senha || ""), usuario.sal);
+  if (conf.hash !== usuario.hash_senha) return erro("senha errada", 401);
+  return ok({ ok: true });
+}
+
+/* POST /api/emergencia/gerar - os 10 codigos novos. Os antigos somem: nunca
+   dois lotes validos ao mesmo tempo, senao ela nao saberia qual PDF vale. */
+async function rotaEmergenciaGerar(quem, env) {
+  await env.DB.prepare("DELETE FROM codigos_emergencia WHERE usuario_id = ?1").bind(quem.usuario_id).run();
+  const codigos = [];
+  const comandos = [];
+  for (let i = 0; i < 10; i++) {
+    const cod = tokenAleatorio(5).toUpperCase().match(/.{1,4}/g).join("-");   /* ex: A1B2-C3D4-E5 */
+    codigos.push(cod);
+    comandos.push(env.DB.prepare(
+      "INSERT INTO codigos_emergencia (id, usuario_id, hash, criado) VALUES (?1, ?2, ?3, ?4)"
+    ).bind(crypto.randomUUID(), quem.usuario_id, await sha256(cod), AGORA()));
+  }
+  await env.DB.batch(comandos);
+  return ok({ ok: true, codigos });
+}
+
+/* POST /api/emergencia/usar { email, codigo } - sem estar logada, para
+   quando perdeu o celular. Cada codigo funciona uma vez so. */
+async function rotaEmergenciaUsar(req, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const email = String((corpo && corpo.email) || "").trim().toLowerCase();
+  const codigo = String((corpo && corpo.codigo) || "").trim().toUpperCase();
+  const usuario = await env.DB.prepare("SELECT id FROM usuarios WHERE email = ?1").bind(email).first();
+  if (!usuario) return erro("e-mail ou codigo errados", 401);
+  const h = await sha256(codigo);
+  const linha = await env.DB.prepare(
+    "SELECT id FROM codigos_emergencia WHERE usuario_id = ?1 AND hash = ?2 AND usado_em IS NULL"
+  ).bind(usuario.id, h).first();
+  if (!linha) return erro("codigo invalido ou ja usado", 401);
+  await env.DB.prepare("UPDATE codigos_emergencia SET usado_em = ?1 WHERE id = ?2").bind(AGORA(), linha.id).run();
+  const s = await criarSessaoLogin(env, usuario.id, "confiavel", "Entrada por codigo de emergencia", null);
+  const restantes = await env.DB.prepare(
+    "SELECT COUNT(*) n FROM codigos_emergencia WHERE usuario_id = ?1 AND usado_em IS NULL"
+  ).bind(usuario.id).first();
+  return ok({ ok: true, chave: s.chave, codigosRestantes: (restantes && restantes.n) || 0 });
+}
+
+/* POST /api/primeiro-usuario  { email, senha } - roda uma vez, com o
+   segredo CHAVE_MESTRA, igual a rotaAcessoCriar. Cria a conta dela. */
+async function rotaPrimeiroUsuario(req, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const mestra = (req.headers.get("X-Mestra") || "").trim();
+  if (!env.CHAVE_MESTRA || mestra !== env.CHAVE_MESTRA) return erro("nao autorizado", 401);
+  const email = String((corpo && corpo.email) || "").trim().toLowerCase();
+  const senha = String((corpo && corpo.senha) || "");
+  if (!email || senha.length < 8) return erro("e-mail vazio ou senha curta demais");
+  const h = await hashSenha(senha);
+  const id = crypto.randomUUID();
+  await env.DB.prepare(
+    "INSERT INTO usuarios (id, email, hash_senha, sal, criado) VALUES (?1, ?2, ?3, ?4, ?5)"
+  ).bind(id, email, h.hash, h.sal, AGORA()).run();
+  return ok({ ok: true, id });
 }
 
 /* ---------------------------------------------------------------------
@@ -584,8 +853,37 @@ export default {
       /* "estou vivo?" - nao devolve dado nenhum, so serve para o selo de conexao */
       if (cam === "/api/ping") return cors(req, ok({ ok: true, agora: AGORA() }));
 
+      /* rotas de entrada que ainda nao tem chave nenhuma */
+      if (cam === "/api/primeiro-usuario" && req.method === "POST")
+        return cors(req, await rotaPrimeiroUsuario(req, env));
+      if (cam === "/api/login" && req.method === "POST")
+        return cors(req, await rotaLogin(req, env));
+      if (cam === "/api/emergencia/usar" && req.method === "POST")
+        return cors(req, await rotaEmergenciaUsar(req, env));
+      if (cam.startsWith("/api/aprovacoes/") && req.method === "GET" && !cam.endsWith("/decidir")) {
+        const id = decodeURIComponent(cam.slice("/api/aprovacoes/".length));
+        return cors(req, await rotaAprovacaoConsultar(id, env));
+      }
+
       const quem = await autenticar(req, env);
       if (!quem) return cors(req, erro("nao autorizado", 401));
+
+      if (cam === "/api/aprovacoes" && req.method === "GET")
+        return cors(req, await rotaAprovacoesListar(quem, env));
+      if (cam.startsWith("/api/aprovacoes/") && cam.endsWith("/decidir") && req.method === "POST") {
+        const id = decodeURIComponent(cam.slice("/api/aprovacoes/".length, -"/decidir".length));
+        return cors(req, await rotaAprovacaoDecidir(id, req, quem, env));
+      }
+      if (cam === "/api/dispositivos" && req.method === "GET")
+        return cors(req, await rotaDispositivosListar(quem, env));
+      if (cam.startsWith("/api/dispositivos/") && cam.endsWith("/desconectar") && req.method === "POST") {
+        const id = decodeURIComponent(cam.slice("/api/dispositivos/".length, -"/desconectar".length));
+        return cors(req, await rotaDispositivoDesconectar(id, quem, env));
+      }
+      if (cam === "/api/verificar-senha" && req.method === "POST")
+        return cors(req, await rotaVerificarSenha(req, quem, env));
+      if (cam === "/api/emergencia/gerar" && req.method === "POST")
+        return cors(req, await rotaEmergenciaGerar(quem, env));
 
       if (cam === "/api/situacao" && req.method === "GET")
         return cors(req, await rotaSituacao(env));
