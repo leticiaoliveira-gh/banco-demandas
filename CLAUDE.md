@@ -5,6 +5,15 @@ Site de trabalho da Lê (Central de Demandas NP). **HTML, CSS e JS puro** — se
 > Este arquivo é lido automaticamente em TODA sessão aberta nesta pasta.
 > Ele é autossuficiente: não depende de nenhuma conversa anterior.
 
+> ## ⚠️ 20/09/2026 — LEIA `PROXIMA-SESSAO.md` E COMECE POR ELE
+> A mudança para a Cloudflare **não está fechada**. `PROXIMA-SESSAO.md` (raiz
+> deste repositório) traz o estado real conferido ao vivo, as decisões dela e a
+> lista numerada do que executar, na ordem. **Não é preciso reler
+> `CONTINUIDADE.md`, `PENDENCIAS.md` nem o PDF do plano.**
+>
+> Regra permanente dela: **a cada atualização do site, gerar e mandar um PDF
+> novo do plano, sem ela pedir.**
+
 ---
 
 ## 0. PRIMEIRA COISA DE TODA SESSÃO (automática)
