@@ -69,9 +69,28 @@ que ela escolheu: **1) arrumar o que foi feito errado · 2) segurança dos dados
     As tabelas `sessoes` e `pareamentos` já existem vazias em
     `servidor/schema.sql` — reusar.
 
+### Parte 4 — arrumação das pastas (ela cobrou em 20/09; não é opcional)
+17. `Desktop\Site Trabalho (claudflare)`: há **dois PDFs idênticos** do plano
+    ("2." e "3."). Deixar um só, o mais novo. Separar em `Planos\` e `Backups\`.
+18. Raiz do repositório: tirar do caminho os rascunhos `_comparacoes`,
+    `_dados-rascunho.json`, `_teste-joao.json`, `cofre.json` — **mover para
+    arquivo morto, nunca apagar**.
+19. `- Site Trabalho (Claude Code)\`: `scratch-2piso.txt` e
+    `scratch-2piso-full.txt` soltos → guardar com as planilhas.
+20. Quatro folhas de instrução concorrendo: `CONTINUIDADE.md`,
+    `PENDENCIAS.md`, `PROMPT-PROXIMO-CHAT.md`, `METODO-ORGANIZACAO.md`.
+    **`PROXIMA-SESSAO.md` passa a ser a única que manda**; as outras viram
+    histórico declarado.
+21. Aplicar o modelo de pastas dela (`modelo-pastas-v1`): `ferramentas/`,
+    `memorias/`, `projetos/`, `regras/`, `templates/`, `README.md`.
+
+⚠️ **Arquivo que está na lista `SHELL` do `sw.js` ou ligado no `index.html` não
+sai do lugar** sem atualizar as duas coisas, senão o site para de abrir offline.
+Mostrar a lista a ela antes de mover. Conferir no navegador entre cada passo.
+
 ### Só depois (não entra agora)
 Ideias 4 (buscar em todas as lojas) e 5 (resumo do mês) · trocar o app do
-celular para o endereço novo · arrumação das pastas · os outros quadros.
+celular para o endereço novo · os outros quadros.
 
 ## Dados técnicos que evitam pesquisa
 
