@@ -26,8 +26,7 @@ Abrir o **caderno vivo do plano** e trabalhar em cima dele:
 4. TAREFAS\CODE - Plano migracao Cloudflare (20-09-26)\Plano atualizado - migracao Cloudflare (20-09-26).html
 ```
 
-- É o arquivo mais atual (**versão 12, 135 itens**). O PDF ao lado é só a
-  fotografia dele.
+- É o arquivo mais atual (**versão 14**). O PDF ao lado é só a fotografia dele.
 - **Nunca escrever um plano novo do zero.** Só riscar, marcar e acrescentar
   linha neste. Ele descende do primeiro plano; nenhum item foi ou será apagado.
 - Se o HTML sumir, **reconstruir a partir do PDF mais recente** antes de
@@ -37,10 +36,10 @@ Abrir o **caderno vivo do plano** e trabalhar em cima dele:
 
 ## Em uma frase
 
-A mudança para a Cloudflare **não está fechada**. O site novo está no ar, os
-dois quadros estão no cofre, o selo de salvamento é honesto para os dois
-sistemas, e agora só um endereço responde. Falta terminar a **Parte 1**
-(arrumar o que está torto) antes de ir para segurança dos dados e login.
+A mudança para a Cloudflare **não está fechada**, mas a **Parte 1 fechou em
+20/09**: o site novo está no ar num endereço só, os dois quadros estão no cofre,
+o selo é honesto, existe de novo um lugar seguro de ensaiar, e o site nunca mais
+mostra dado velho. A próxima é a **Parte 2, segurança dos dados**.
 
 ## Estado real, conferido em 20/09
 
@@ -54,7 +53,10 @@ sistemas, e agora só um endereço responde. Falta terminar a **Parte 1**
 | Tela avisa quando o cofre novo falha | **feito em 20/09** |
 | Selo com os três recados (GitHub + cofre novo juntos) | **feito em 20/09** |
 | Um endereço só respondendo | **feito em 20/09** |
-| Versão publicada | Cloudflare 10.1 · GitHub Pages 10.2 · Plano v13 |
+| Cofres de ensaio | **refeitos em 20/09**, vazios, fora do site publicado |
+| Dado sempre fresco (`no-store`) | **feito em 20/09**, conferido no ar |
+| **PARTE 1** | **FECHADA em 20/09** |
+| Versão publicada | Cloudflare 10.2 · GitHub Pages 10.2 · Plano v14 |
 
 ## Decisões dela que não se discutem mais
 
@@ -78,37 +80,50 @@ sistemas, e agora só um endereço responde. Falta terminar a **Parte 1**
 
 ## A PRÓXIMA DEMANDA (é este o item que a próxima sessão executa)
 
-**Item 4 da Parte 1 do plano: refazer os 3 cofres de ensaio.**
+**Parte 2 do plano: segurança dos dados.** São quatro coisas, na ordem:
 
-O item 3 (deixar um endereço só respondendo) **já foi feito em 20/09**: o
-`central-demandas` principal já tinha sido renomeado numa sessão anterior;
-apareceu um worker de teste esquecido (`central-demandas-teste`, vazio, sem
-dado nenhum) ainda no ar — foi desligado por ordem dela (ela preferiu desligar
-de vez a deixar um aviso). Confirmado: só `conexaoempresas` responde.
+1. **Aviso antes de fechar** com alteração ainda não salva
+   (`beforeunload`, olhando a fila do selo).
+2. **Aviso entre duas abas abertas** do site, para uma não apagar o que a outra
+   escreveu (`BroadcastChannel`).
+3. **`navigator.storage.persist()`**: pedir ao navegador para nunca apagar a
+   cópia que fica no aparelho dela.
+4. **Aba "Cópias de segurança" completa**: cópia automática de madrugada, teste
+   de verdade todo domingo, botões Baixar e **Restaurar** (o nome é escolha
+   dela), e a faixa vermelha quando passa um dia sem cópia.
 
-Agora falta o **cofre de ensaio**: antes de qualquer mudança arriscada no
-banco, existiam 3 cofres D1 de teste (cópias dos cofres reais `central-demandas`,
-`central-fotos`, `central-copias`) para ensaiar sem risco. Eles foram apagados
-durante os testes de 20/09 e precisam ser recriados, para voltar a existir um
-lugar seguro de testar antes de publicar mudança de banco.
+O cofre `central-copias` existe e está **vazio**: é nesta parte que ele começa a
+ser usado. Ensaiar primeiro em `central-copias-ensaio`.
 
-- Como criar cofre D1 novo: `npx wrangler d1 create <nome>` (conta Cloudflare
-  `4566ede1efe9ba567dcc8cc72330e624`, já autenticada nesta máquina — não pedir
-  login de novo).
-- Cofres reais para copiar a estrutura: `central-demandas` (DB),
-  `central-fotos` (FOTOS), `central-copias` (COPIAS) — ver `wrangler.toml` e
-  `servidor/schema.sql`.
-- Sugestão de nome para os cofres de ensaio: `central-demandas-ensaio`,
-  `central-fotos-ensaio`, `central-copias-ensaio` (evitar o nome
-  "-teste" sozinho, que foi o que confundiu nesta sessão).
-- Como saber que terminou: os 3 cofres de ensaio existem na conta Cloudflare,
-  com a mesma estrutura de tabelas dos reais (rodar `servidor/schema.sql`
-  neles), vazios ou com dado de mentira — nunca dado real de Le. Anotar no
-  plano onde ficam e como usar para ensaiar antes de publicar.
-- Depois desta, seguem na mesma ordem: item 5 (impedir resposta velha em
-  cache do cofre — `cache: "no-store"` nas leituras em `servidor/index.js`),
-  item 6 (acertar as anotações: tirar o "fechado" e trocar o endereço velho
-  pelo novo em `CLAUDE.md`, `CONTINUIDADE.md`).
+### Já dá para ensaiar sem risco (feito em 20/09)
+
+Os três cofres de ensaio existem de novo, com a mesma estrutura dos de verdade
+e **vazios**. De propósito **não** entram como binding no `wrangler.toml`: o
+site publicado nunca enxerga o ensaio.
+
+| Cofre de ensaio | id |
+|---|---|
+| `central-demandas-ensaio` | `37d4e542-de2b-4ca6-b456-6a940eef31a2` |
+| `central-fotos-ensaio` | `cb137aaf-7bce-4902-b7f8-3aa2bde42db6` |
+| `central-copias-ensaio` | `84d7a983-90b0-4250-9a1a-80f42f9c3917` |
+
+```
+npx wrangler d1 execute central-demandas-ensaio --remote --file=<arquivo>.sql
+```
+
+### O que foi feito em 20/09 (não refazer)
+
+Itens 4, 5 e 6 da Parte 1, juntos, com autorização dela:
+
+- **Item 4:** os 3 cofres de ensaio, recriados e conferidos.
+- **Item 5:** `JSON_H` (`servidor/index.js`) passou a mandar
+  `cache-control: no-store, no-cache, must-revalidate`. Conferido no ar em
+  `/api/ping`. A foto continua `immutable` **de propósito**: o id dela é o
+  SHA-256 do próprio conteúdo, então nunca muda.
+- **Item 6:** anotações acertadas. `CONTINUIDADE.md` ganhou a seção de 20/09;
+  o que venceu ficou **riscado no lugar, com o motivo** (o `[env.teste]` do
+  `wrangler.toml`, a lista "O que falta" de 19/09). `PROMPT-PROXIMO-CHAT.md`
+  ficou marcada como **folha vencida** no topo, sem ser apagada.
 
 ### O que vem depois (não é para agora)
 

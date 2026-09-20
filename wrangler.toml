@@ -48,8 +48,22 @@ database_name = "central-copias"
 database_id = "5a911a6a-4026-4e3b-8680-ee3d057359fa"
 
 # ---------------------------------------------------------------------
-#  O ensaio (cofres de teste) ja cumpriu o papel dele e foi apagado
-#  em 20/09. So os 3 cofres de verdade acima continuam.
+#  OS COFRES DE ENSAIO (refeitos em 20/09)
+#  Existem na conta, mas de proposito NAO entram como binding aqui: o
+#  site publicado nunca deve enxergar o ensaio. Servem para testar
+#  mudanca de banco antes de mexer no cofre de verdade, assim:
+#
+#     npx wrangler d1 execute central-demandas-ensaio --remote --file=<arquivo>.sql
+#
+#  Estrutura conferida em 20/09: identica a dos cofres de verdade.
+#  Regra: nunca colocar dado real da Le neles.
+#
+#     central-demandas-ensaio  37d4e542-de2b-4ca6-b456-6a940eef31a2
+#     central-fotos-ensaio     cb137aaf-7bce-4902-b7f8-3aa2bde42db6
+#     central-copias-ensaio    84d7a983-90b0-4250-9a1a-80f42f9c3917
+#
+#  (Os cofres de ensaio anteriores foram apagados durante os testes de
+#  20/09; estes sao os que os substituem.)
 # ---------------------------------------------------------------------
 #  SEGREDO
 #  CHAVE_MESTRA cria a PRIMEIRA chave de acesso, uma vez so. Nunca fica

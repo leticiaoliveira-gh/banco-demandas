@@ -20,7 +20,16 @@
      env.CHAVE_MESTRA -> segredo, usado UMA vez para criar o primeiro acesso
    ===================================================================== */
 
-const JSON_H = { "content-type": "application/json; charset=utf-8" };
+/* "no-store" = ninguem no caminho (navegador, celular, rede da Cloudflare)
+   pode guardar esta resposta e devolver depois. Sem isto, ela abre o site e
+   ve a lista de ontem achando que e a de hoje. Vale para TODA resposta de
+   dados; a foto e o unico caso contrario (ver rotaFotoBaixar), porque o id
+   da foto e o proprio conteudo e nunca muda. */
+const JSON_H = {
+  "content-type": "application/json; charset=utf-8",
+  "cache-control": "no-store, no-cache, must-revalidate",
+  "pragma": "no-cache"
+};
 const AGORA = () => new Date().toISOString();
 
 /* Nada de "*" na origem: o site e servido por este mesmo Worker, entao a
