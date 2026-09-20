@@ -99,11 +99,41 @@ function segurancaRenderizar(corpo,aprov,disp,estaSessao){
     }
   }
 
+  html+='<div style="font-size:13.5px;font-weight:620;color:var(--bd-c900);margin:14px 0 8px">Trocar minha senha</div>';
+  html+='<div class="field"><label class="bd-rotulo">Senha de agora</label>' +
+    '<input id="segSenhaAtual" class="bd-campo" type="password" autocomplete="current-password"></div>';
+  html+='<div class="field" style="margin-top:8px"><label class="bd-rotulo">Nova senha</label>' +
+    '<input id="segSenhaNova" class="bd-campo" type="password" autocomplete="new-password" placeholder="pelo menos 8 caracteres"></div>';
+  html+='<div class="field" style="margin-top:8px"><label class="bd-rotulo">Digite de novo</label>' +
+    '<input id="segSenhaNova2" class="bd-campo" type="password" autocomplete="new-password"></div>';
+  html+='<div id="segSenhaMsg" class="bd-ajuda" style="min-height:18px;margin-top:6px"></div>';
+  html+='<button class="bd-btn bd-btn-secundario bd-btn-largo" style="width:100%" onclick="segurancaTrocarSenha()">Trocar a senha</button>';
+
   html+='<div style="font-size:13.5px;font-weight:620;color:var(--bd-c900);margin:14px 0 8px">Código de emergência</div>';
   html+='<div class="bd-ajuda" style="margin-bottom:8px">Gera 10 códigos de uso único e um PDF para imprimir e guardar, caso perca o celular.</div>';
   html+='<button class="bd-btn bd-btn-secundario bd-btn-largo" style="width:100%" onclick="segurancaGerarEmergencia()">Gerar novos códigos de emergência</button>';
 
   corpo.innerHTML=html;
+}
+
+async function segurancaTrocarSenha(){
+  const m=document.getElementById("segSenhaMsg");
+  const atual=document.getElementById("segSenhaAtual").value||"";
+  const n1=document.getElementById("segSenhaNova").value||"";
+  const n2=document.getElementById("segSenhaNova2").value||"";
+  const aviso=function(t,erro){if(!m)return;m.style.color=erro?"var(--bd-erro-texto)":"var(--bd-c500)";m.textContent=t;};
+  if(n1.length<8){aviso("A senha nova precisa de pelo menos 8 caracteres.",true);return;}
+  if(n1!==n2){aviso("As duas senhas novas não são iguais.",true);return;}
+  aviso("Trocando...",false);
+  try{
+    const r=await fetch(loginApiBase()+"/api/trocar-senha",{method:"POST",headers:nuvemHdrs(),
+      body:JSON.stringify({senhaAtual:atual,senhaNova:n1})});
+    const j=await r.json();
+    if(!j.ok){aviso(j.erro||"Não deu para trocar agora.",true);return;}
+    aviso("",false);
+    toast("Senha trocada ✓");
+    segurancaCarregar();
+  }catch(e){aviso("Sem internet agora.",true);}
 }
 
 async function segurancaDecidir(id,aprovar){

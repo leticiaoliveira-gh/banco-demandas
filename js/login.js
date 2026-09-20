@@ -90,6 +90,7 @@ async function loginEntrar(){
       body:JSON.stringify({email:email,senha:senha,manterConectado:manter})});
     const j=await r.json();
     if(!j.ok){loginMsgErro("loginMsg",j.erro||"E-mail ou senha errados.");return;}
+    if(j.precisaDefinir){loginTelaCriarSenha(email);return;}
     if(j.entrou){
       const erro=await nuvemConectar(loginApiBase(),j.chave,false);
       if(erro){loginMsgErro("loginMsg",erro);return;}
@@ -106,6 +107,48 @@ function loginEntrarComSucesso(){
   loginIniciarVigilancia();
   toast("Entrou ✓");
   if(window.renderHome)renderHome();
+}
+
+/* ---------------------------------------------------------------------
+   TELA 1B — primeira vez: ela cria a própria senha
+   A senha é escolhida aqui, na tela. A primeira, criada por fora em 20/09,
+   chegou deformada ao cofre e nunca abriu a porta.
+   --------------------------------------------------------------------- */
+function loginTelaCriarSenha(email){
+  loginMostrar(
+    '<p style="font-size:13.5px;color:var(--bd-c700);line-height:1.55">Esta conta ainda não tem senha. Crie a sua agora — só você vai saber.</p>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo">E-mail</label>' +
+    '<input id="loginNovaEmail" class="bd-campo" type="email" autocomplete="username" value="'+(email||"").replace(/"/g,"&quot;")+'"></div>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo">Nova senha</label>' +
+    '<input id="loginNovaSenha" class="bd-campo" type="password" autocomplete="new-password" placeholder="pelo menos 8 caracteres"></div>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo">Digite de novo</label>' +
+    '<input id="loginNovaSenha2" class="bd-campo" type="password" autocomplete="new-password" placeholder="a mesma senha" ' +
+    'onkeydown="if(event.key===\'Enter\'){event.preventDefault();loginCriarSenha();}"></div>' +
+    '<div id="loginNovaMsg" class="bd-ajuda" style="min-height:18px;margin-top:8px"></div>' +
+    '<button class="bd-btn bd-btn-principal bd-btn-largo bd-btn-g" style="width:100%;margin-top:6px" onclick="loginCriarSenha()">Criar minha senha e entrar</button>' +
+    '<div style="text-align:center;margin-top:16px">' +
+    '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
+    'onclick="loginTelaEntrada()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEntrada();}">Voltar</span></div>'
+  );
+  setTimeout(()=>{const e=document.getElementById("loginNovaSenha");if(e)e.focus();},50);
+}
+
+async function loginCriarSenha(){
+  const email=(document.getElementById("loginNovaEmail").value||"").trim();
+  const s1=document.getElementById("loginNovaSenha").value||"";
+  const s2=document.getElementById("loginNovaSenha2").value||"";
+  if(s1.length<8){loginMsgErro("loginNovaMsg","A senha precisa de pelo menos 8 caracteres.");return;}
+  if(s1!==s2){loginMsgErro("loginNovaMsg","As duas senhas não são iguais.");return;}
+  loginMsgInfo("loginNovaMsg","Criando...");
+  try{
+    const r=await fetch(loginApiBase()+"/api/definir-senha",{method:"POST",headers:{"content-type":"application/json"},
+      body:JSON.stringify({email:email,senha:s1})});
+    const j=await r.json();
+    if(!j.ok){loginMsgErro("loginNovaMsg",j.erro||"Não deu para criar a senha.");return;}
+    const erro=await nuvemConectar(loginApiBase(),j.chave,false);
+    if(erro){loginMsgErro("loginNovaMsg",erro);return;}
+    loginEntrarComSucesso();
+  }catch(e){loginMsgErro("loginNovaMsg","Sem internet para criar a senha agora.");}
 }
 
 /* ---------------------------------------------------------------------

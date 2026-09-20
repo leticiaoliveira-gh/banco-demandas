@@ -170,6 +170,8 @@ async function rotaLogin(req, env) {
 
   const usuario = await env.DB.prepare("SELECT id, hash_senha, sal FROM usuarios WHERE email = ?1").bind(email).first();
   if (!usuario) return erro("e-mail ou senha errados", 401);
+  /* conta sem senha definida: a tela pede para ela criar a dela agora */
+  if (!usuario.hash_senha || !usuario.sal) return ok({ ok: true, precisaDefinir: true });
   const conf = await hashSenha(senha, usuario.sal);
   if (conf.hash !== usuario.hash_senha) return erro("e-mail ou senha errados", 401);
 
@@ -193,6 +195,48 @@ async function rotaLogin(req, env) {
   ).bind(id, usuario.id, codigo, aparelho + (local ? " - " + local : ""), ip, 60, agora, expira).run();
 
   return ok({ ok: true, entrou: false, aprovacaoId: id, codigo });
+}
+
+/* POST /api/definir-senha { email, senha } - primeira vez, ou depois de a
+   senha ter sido zerada. So funciona enquanto a conta esta SEM senha, por isso
+   nao precisa de chave: quem nao tem senha nao tem como provar quem e. Assim a
+   senha e escolhida por ela na tela, sem passar por linha de comando (foi ali
+   que a primeira se deformou, em 20/09). */
+async function rotaDefinirSenha(req, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const email = String((corpo && corpo.email) || "").trim().toLowerCase();
+  const senha = String((corpo && corpo.senha) || "");
+  if (!email || senha.length < 8) return erro("e-mail vazio ou senha com menos de 8 caracteres");
+
+  const usuario = await env.DB.prepare("SELECT id, hash_senha FROM usuarios WHERE email = ?1").bind(email).first();
+  if (!usuario) return erro("e-mail nao encontrado", 404);
+  if (usuario.hash_senha) return erro("esta conta ja tem senha", 409);
+
+  const h = await hashSenha(senha);
+  await env.DB.prepare("UPDATE usuarios SET hash_senha = ?1, sal = ?2 WHERE id = ?3")
+    .bind(h.hash, h.sal, usuario.id).run();
+
+  const s = await criarSessaoLogin(env, usuario.id, "confiavel", nomeDoAparelho(req), null);
+  return ok({ ok: true, entrou: true, chave: s.chave });
+}
+
+/* POST /api/trocar-senha { senhaAtual, senhaNova } - estando logada */
+async function rotaTrocarSenha(req, quem, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const nova = String((corpo && corpo.senhaNova) || "");
+  if (nova.length < 8) return erro("a senha nova precisa de pelo menos 8 caracteres");
+
+  const usuario = await env.DB.prepare("SELECT hash_senha, sal FROM usuarios WHERE id = ?1").bind(quem.usuario_id).first();
+  if (!usuario) return erro("nao encontrado", 404);
+  const conf = await hashSenha(String((corpo && corpo.senhaAtual) || ""), usuario.sal);
+  if (conf.hash !== usuario.hash_senha) return erro("senha atual errada", 401);
+
+  const h = await hashSenha(nova);
+  await env.DB.prepare("UPDATE usuarios SET hash_senha = ?1, sal = ?2 WHERE id = ?3")
+    .bind(h.hash, h.sal, quem.usuario_id).run();
+  return ok({ ok: true });
 }
 
 /* GET /api/aprovacoes/<id> - o computador emprestado fica perguntando isto
@@ -852,6 +896,8 @@ export default {
         return cors(req, await rotaPrimeiroUsuario(req, env));
       if (cam === "/api/login" && req.method === "POST")
         return cors(req, await rotaLogin(req, env));
+      if (cam === "/api/definir-senha" && req.method === "POST")
+        return cors(req, await rotaDefinirSenha(req, env));
       if (cam === "/api/emergencia/usar" && req.method === "POST")
         return cors(req, await rotaEmergenciaUsar(req, env));
       if (cam.startsWith("/api/aprovacoes/") && req.method === "GET" && !cam.endsWith("/decidir")) {
@@ -876,6 +922,8 @@ export default {
       }
       if (cam === "/api/verificar-senha" && req.method === "POST")
         return cors(req, await rotaVerificarSenha(req, quem, env));
+      if (cam === "/api/trocar-senha" && req.method === "POST")
+        return cors(req, await rotaTrocarSenha(req, quem, env));
       if (cam === "/api/emergencia/gerar" && req.method === "POST")
         return cors(req, await rotaEmergenciaGerar(quem, env));
 
