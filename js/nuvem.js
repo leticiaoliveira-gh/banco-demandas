@@ -365,3 +365,26 @@ function nuvemDesconectar() {
     });
   } catch (e) {}
 }
+
+/* ---------------------------------------------------------------------
+   ATIVAR ESTE APARELHO (20/09) — o passo dela.
+   Formulario simples de duas caixas (endereco e chave), sem nada do
+   GitHub. Quem gera a chave e uma pessoa com acesso ao painel da
+   Cloudflare (nunca este botao sozinho: criar chave sem checagem de
+   quem esta pedindo abriria o cofre para qualquer um que achasse o link).
+   --------------------------------------------------------------------- */
+async function nuvemAtivarComFormulario() {
+  const end = document.getElementById("nuvemEndereco");
+  const cha = document.getElementById("nuvemChaveInput");
+  const msg = document.getElementById("nuvemAtivarMsg");
+  const endereco = (end && end.value || location.origin).trim();
+  const chave = (cha && cha.value || "").trim();
+  if (!chave) { if (msg) { msg.textContent = "Cole a chave que foi gerada para este aparelho."; msg.style.color = "var(--amber)"; } return; }
+  if (msg) { msg.textContent = "Ativando…"; msg.style.color = ""; }
+  const erro = await nuvemConectar(endereco, chave, false);
+  if (erro) { if (msg) { msg.textContent = erro; msg.style.color = "var(--amber)"; } return; }
+  if (msg) { msg.textContent = "Ativado ✓"; msg.style.color = "var(--green)"; }
+  toast("Aparelho ativado ✓");
+  if (typeof closeSyncModal === "function") setTimeout(closeSyncModal, 700);
+  if (typeof renderHome === "function") renderHome();
+}

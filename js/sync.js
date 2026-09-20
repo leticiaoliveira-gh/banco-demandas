@@ -390,6 +390,16 @@ function openSyncModal(){
    <h2>⚙ Sincronização</h2>
    <p class="desc" style="margin-bottom:6px">${estado}</p>
    <p class="desc" style="font-size:12.5px" data-txt="sync.explica">O que você fizer aqui sobe na hora para a nuvem; seus outros aparelhos recebem quando abrirem o site.</p>
+   <div style="margin:14px 0;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card)">
+     ${typeof nuvemLigada==="function"&&nuvemLigada()?
+       '<p class="desc" style="font-size:12.5px;margin:0">✓ Este aparelho já está ativado no cofre novo.</p>'
+     :`<p class="desc" style="font-size:12.5px;margin:0 0 10px">Ative este aparelho no cofre novo: cole a chave que foi gerada para ele.</p>
+     <input id="nuvemEndereco" type="hidden" value="">
+     <input id="nuvemChaveInput" type="password" placeholder="Cole aqui a chave deste aparelho"
+       style="width:100%;padding:12px;font-size:15px;margin-bottom:8px">
+     <button class="btn" style="width:100%;padding:13px;font-size:14.5px" onclick="nuvemAtivarComFormulario()">🔑 Ativar este aparelho</button>`}
+     <div id="nuvemAtivarMsg" style="font-size:12.5px;margin-top:8px;min-height:16px"></div>
+   </div>
    ${ligada?`
    <div style="margin:16px 0 6px">
      <button class="btn" style="width:100%;padding:13px;font-size:14.5px" onclick="document.getElementById('arqChave').click()"><span data-txt="sync.entrarChave">🔑 Entrar com a minha chave</span></button>
