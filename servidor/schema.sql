@@ -128,7 +128,8 @@ CREATE TABLE IF NOT EXISTS aprovacoes (
   criado      TEXT NOT NULL,
   expira_em   TEXT NOT NULL,
   acesso_id   TEXT,
-  entregue    INTEGER NOT NULL DEFAULT 0           -- a chave so sai do servidor uma vez
+  entregue    INTEGER NOT NULL DEFAULT 0,          -- a chave so sai do servidor uma vez
+  chave_temp  TEXT                                 -- chave em texto puro, so ate ser entregue
 );
 
 CREATE INDEX IF NOT EXISTS idx_aprov_usuario  ON aprovacoes(usuario_id, situacao);

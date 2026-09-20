@@ -1905,11 +1905,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="10.4";
+const APP_VERSAO="11.0";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="20/09/2026 · 09:40";
+const APP_DATA="20/09/2026 · 11:00";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
@@ -2127,7 +2127,7 @@ function mapaDoSite(){
 /* (avatar/foto removidos a pedido da usuária em 17/07 — era só estético) */
 let toastT;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2000);}
 
-(async function(){await openDB();await seedIfEmpty();DATA=await getAll();
+(async function(){await loginAguardarEntrada();await openDB();await seedIfEmpty();DATA=await getAll();
  /* migrações aditivas e idempotentes (nunca removem nada).
     HIST_LIGADO=false: sem isso o loop enche o histórico e o primeiro Ctrl+Z
     desfaz a migração em vez da última ação da usuária. */

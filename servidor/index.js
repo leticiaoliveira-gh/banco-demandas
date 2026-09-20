@@ -100,7 +100,7 @@ async function autenticar(req, env) {
    antigo, sem trocar nada por baixo.
    ===================================================================== */
 
-const ITERACOES_SENHA = 210000;   /* recomendacao OWASP 2023 para PBKDF2-SHA256 */
+const ITERACOES_SENHA = 100000;   /* teto que a Cloudflare permite para PBKDF2 */
 
 function bytesParaHex(b) { return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); }
 function hexParaBytes(h) { const a = new Uint8Array(h.length / 2); for (let i = 0; i < a.length; i++) a[i] = parseInt(h.substr(i * 2, 2), 16); return a; }
@@ -205,11 +205,9 @@ async function rotaAprovacaoConsultar(id, env) {
     return ok({ ok: true, situacao: "expirada" });
   }
   if (a.situacao === "aprovada" && !a.entregue) {
-    /* a chave so sai do servidor esta unica vez */
-    const chave = APROVACOES_CHAVE.get(id) || null;
-    await env.DB.prepare("UPDATE aprovacoes SET entregue = 1 WHERE id = ?1").bind(id).run();
-    APROVACOES_CHAVE.delete(id);
-    return ok({ ok: true, situacao: "aprovada", chave });
+    /* a chave so sai do servidor esta unica vez; depois disso some do banco */
+    await env.DB.prepare("UPDATE aprovacoes SET entregue = 1, chave_temp = NULL WHERE id = ?1").bind(id).run();
+    return ok({ ok: true, situacao: "aprovada", chave: a.chave_temp || null });
   }
   return ok({ ok: true, situacao: a.situacao });
 }
@@ -243,18 +241,14 @@ async function rotaAprovacaoDecidir(id, req, quem, env) {
 
   const prazoMin = [60, 240, null].includes(corpo.prazoMin) ? corpo.prazoMin : 60;
   const s = await criarSessaoLogin(env, quem.usuario_id, "temporario", a.aparelho, prazoMin);
-  /* guarda a chave so ate o computador que pediu vir buscar (rotaAprovacaoConsultar) */
-  await env.DB.prepare("UPDATE aprovacoes SET situacao = 'aprovada', acesso_id = ?1 WHERE id = ?2").bind(s.acessoId, id).run();
-  APROVACOES_CHAVE.set(id, s.chave);
+  /* guarda a chave so ate o computador que pediu vir buscar (rotaAprovacaoConsultar);
+     dura segundos (o computador fica perguntando sem parar) e some assim que
+     e entregue - nunca fica junto do resto dos dados dela. */
+  await env.DB.prepare(
+    "UPDATE aprovacoes SET situacao = 'aprovada', acesso_id = ?1, chave_temp = ?2 WHERE id = ?3"
+  ).bind(s.acessoId, s.chave, id).run();
   return ok({ ok: true, situacao: "aprovada" });
 }
-
-/* a chave de uma sessao temporaria passa pela memoria do Worker, nunca pelo
-   banco - assim ela nunca fica gravada em lugar nenhum alem do proprio
-   navegador do computador emprestado. Dura pouco: o Worker recicla o
-   processo o tempo todo, e a busca (rotaAprovacaoConsultar) acontece em
-   segundos, por polling do computador que esta esperando. */
-const APROVACOES_CHAVE = new Map();
 
 /* GET /api/dispositivos - "Computadores conectados" */
 async function rotaDispositivosListar(quem, env) {

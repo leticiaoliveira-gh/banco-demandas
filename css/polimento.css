@@ -180,6 +180,8 @@ th{box-shadow:inset 0 -1px 0 var(--border)}   /* a linha acompanha o cabeçalho 
   .btn.sm{min-height:44px;padding:10px 14px}
   .ricon,.delbtn,.dg-lupa,.dg-del{min-width:44px;min-height:44px}
   .filtro-cfg button{min-height:44px}
+  .bd-btn{min-height:44px}
+  .bd-btn-p{min-height:40px}
   .form-actions{flex-direction:column-reverse}
   .form-actions .btn{width:100%}
   .grid2{grid-template-columns:1fr}
@@ -220,6 +222,8 @@ th{box-shadow:inset 0 -1px 0 var(--border)}   /* a linha acompanha o cabeçalho 
   .btn,.btn.sm{min-height:44px}
   .ricon,.delbtn,.dg-lupa,.dg-del{min-width:44px;min-height:44px}
   .filtro-cfg button,.tab{min-height:44px}
+  .bd-btn{min-height:44px}
+  .bd-btn-p{min-height:40px}
 }
 
 /* ═══════ 15. TOQUE MAIS RÁPIDO NO CELULAR ═══════

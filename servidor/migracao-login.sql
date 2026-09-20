@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS aprovacoes (
 CREATE INDEX IF NOT EXISTS idx_aprov_usuario  ON aprovacoes(usuario_id, situacao);
 CREATE INDEX IF NOT EXISTS idx_aprov_situacao ON aprovacoes(situacao, expira_em);
 
+ALTER TABLE aprovacoes ADD COLUMN chave_temp TEXT;
+
 CREATE TABLE IF NOT EXISTS codigos_emergencia (
   id          TEXT PRIMARY KEY,
   usuario_id  TEXT NOT NULL,
