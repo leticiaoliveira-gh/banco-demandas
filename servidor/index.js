@@ -324,6 +324,232 @@ async function rotaAcessoCriar(req, env) {
   return ok({ ok: true, id });
 }
 
+/* =====================================================================
+   COPIAS DE SEGURANCA (Parte 2, item 4 - 20/09/2026)
+
+   A ideia em uma frase: toda madrugada o cofre tira uma fotografia inteira
+   de tudo e guarda num armario separado (central-copias). Todo domingo ele
+   ABRE uma dessas fotografias e confere de verdade - porque copia que nunca
+   foi aberta nao e copia, e esperanca.
+
+   Por que num banco separado: problema no cofre principal nao leva as
+   copias junto.
+
+   NADA SOME DA LISTA DELA. Passados os 30 dias, a copia diaria perde o
+   conteudo pesado para o armario nao estourar, mas a LINHA continua na
+   lista com a data, os numeros e o motivo escrito. A primeira copia de
+   cada mes vira "mensal" e fica inteira por 12 meses.
+   ===================================================================== */
+
+const COPIA_LOTE = 200;
+
+function idCopia() {
+  return AGORA().replace(/[-:.TZ]/g, "").slice(0, 14) + "-" + crypto.randomUUID().slice(0, 8);
+}
+
+/* tira a fotografia inteira: fichas + configuracoes */
+async function copiaFazer(env, tipo, nota) {
+  const id = idCopia();
+  const agora = AGORA();
+
+  const itens = (await env.DB.prepare("SELECT uid, dados, mod, apagado FROM itens").all()).results || [];
+  const meta = (await env.DB.prepare("SELECT k, v, mod FROM meta").all()).results || [];
+  let nFotos = 0;
+  try {
+    const f = await env.FOTOS.prepare("SELECT COUNT(*) n FROM fotos").first();
+    nFotos = (f && f.n) || 0;
+  } catch (e) { nFotos = 0; }
+
+  await env.COPIAS.prepare(
+    "INSERT INTO copias (id, data, tipo, n_itens, n_meta, n_fotos, testada, nota) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7)"
+  ).bind(id, agora, tipo || "diaria", itens.length, meta.length, nFotos, nota || null).run();
+
+  for (let i = 0; i < itens.length; i += COPIA_LOTE) {
+    await env.COPIAS.batch(itens.slice(i, i + COPIA_LOTE).map(l => env.COPIAS.prepare(
+      "INSERT OR REPLACE INTO copias_itens (copia_id, uid, dados, mod, apagado) VALUES (?1, ?2, ?3, ?4, ?5)"
+    ).bind(id, l.uid, l.dados, l.mod, l.apagado || 0)));
+  }
+  for (let i = 0; i < meta.length; i += COPIA_LOTE) {
+    await env.COPIAS.batch(meta.slice(i, i + COPIA_LOTE).map(l => env.COPIAS.prepare(
+      "INSERT OR REPLACE INTO copias_meta (copia_id, k, v, mod) VALUES (?1, ?2, ?3, ?4)"
+    ).bind(id, l.k, l.v, l.mod)));
+  }
+  return { id: id, data: agora, tipo: tipo || "diaria", n_itens: itens.length, n_meta: meta.length, n_fotos: nFotos };
+}
+
+/* O TESTE - abre a copia e confere ficha por ficha. Nao e "o arquivo
+   existe?": e ler cada ficha de volta, ver se o texto ainda faz sentido e
+   conferir se as fotos citadas estao mesmo no cofre de fotos. */
+async function copiaTestar(env, id) {
+  const cab = await env.COPIAS.prepare("SELECT * FROM copias WHERE id = ?1").bind(id).first();
+  if (!cab) return { ok: false, erro: "copia nao encontrada" };
+
+  const linhas = (await env.COPIAS.prepare("SELECT uid, dados FROM copias_itens WHERE copia_id = ?1").bind(id).all()).results || [];
+  const metas = (await env.COPIAS.prepare("SELECT k, v FROM copias_meta WHERE copia_id = ?1").bind(id).all()).results || [];
+
+  const falhas = [];
+  if (linhas.length !== cab.n_itens) falhas.push("faltam fichas: guardei " + cab.n_itens + ", li " + linhas.length);
+  if (metas.length !== cab.n_meta) falhas.push("faltam configuracoes: guardei " + cab.n_meta + ", li " + metas.length);
+
+  const refsFoto = [];
+  for (const l of linhas) {
+    let d = null;
+    try { d = JSON.parse(l.dados); } catch (e) { d = null; }
+    if (!d || typeof d !== "object") { falhas.push("ficha ilegivel: " + l.uid); continue; }
+    if (Array.isArray(d.fotos)) for (const f of d.fotos)
+      if (typeof f === "string" && f.indexOf("foto:") === 0) refsFoto.push(f.slice(5));
+  }
+  for (const m of metas) { try { JSON.parse(m.v); } catch (e) { falhas.push("configuracao ilegivel: " + m.k); } }
+
+  /* abre algumas fotos de verdade (ate 12, espalhadas pela lista) */
+  let fotosOk = 0, fotosVistas = 0;
+  if (refsFoto.length) {
+    const passo = Math.max(1, Math.floor(refsFoto.length / 12));
+    for (let i = 0; i < refsFoto.length && fotosVistas < 12; i += passo) {
+      fotosVistas++;
+      let r = null;
+      try { r = await env.FOTOS.prepare("SELECT LENGTH(bytes) tam FROM fotos WHERE id = ?1").bind(refsFoto[i]).first(); } catch (e) { r = null; }
+      if (r && r.tam > 0) fotosOk++; else falhas.push("foto nao abriu: " + refsFoto[i]);
+    }
+  }
+
+  const passou = falhas.length === 0;
+  const nota = passou
+    ? ("Testada em " + AGORA() + ": " + linhas.length + " fichas, " + metas.length + " configuracoes e " + fotosOk + " de " + fotosVistas + " fotos abertas. Tudo certo.")
+    : ("Teste FALHOU em " + AGORA() + ": " + falhas.slice(0, 5).join(" | "));
+
+  await env.COPIAS.prepare("UPDATE copias SET testada = ?1, nota = ?2 WHERE id = ?3").bind(passou ? 1 : 0, nota, id).run();
+  return { ok: passou, id: id, nota: nota, falhas: falhas.slice(0, 20) };
+}
+
+/* A ARRUMACAO DO ARMARIO - a linha NUNCA some, so o conteudo pesado. */
+async function copiaArrumarArmario(env) {
+  const agora = Date.now();
+  const corte30 = new Date(agora - 30 * 864e5).toISOString();
+  const corte12m = new Date(agora - 366 * 864e5).toISOString();
+  let liberadas = 0, promovidas = 0;
+
+  const velhas = (await env.COPIAS.prepare(
+    "SELECT id, data, tipo, nota FROM copias WHERE data < ?1 ORDER BY data"
+  ).bind(corte30).all()).results || [];
+
+  const mesJaTem = new Set(((await env.COPIAS.prepare(
+    "SELECT DISTINCT substr(data,1,7) m FROM copias WHERE tipo = 'mensal'"
+  ).all()).results || []).map(r => r.m));
+
+  for (const c of velhas) {
+    const mes = String(c.data).slice(0, 7);
+    if (c.tipo === "diaria" && !mesJaTem.has(mes)) {
+      await env.COPIAS.prepare("UPDATE copias SET tipo = 'mensal' WHERE id = ?1").bind(c.id).run();
+      mesJaTem.add(mes); promovidas++; continue;
+    }
+    if (c.tipo === "mensal" && c.data >= corte12m) continue;
+    if (String(c.nota || "").indexOf("Conteudo liberado") === 0) continue;
+
+    await env.COPIAS.prepare("DELETE FROM copias_itens WHERE copia_id = ?1").bind(c.id).run();
+    await env.COPIAS.prepare("DELETE FROM copias_meta WHERE copia_id = ?1").bind(c.id).run();
+    await env.COPIAS.prepare("UPDATE copias SET nota = ?1 WHERE id = ?2").bind(
+      "Conteudo liberado em " + AGORA() + " para o armario nao estourar. A linha fica aqui de proposito: nada some da sua lista.", c.id).run();
+    liberadas++;
+  }
+  return { liberadas: liberadas, promovidas: promovidas };
+}
+
+/* GET /api/copias - a lista que a tela dela mostra */
+async function rotaCopiasListar(env) {
+  const r = await env.COPIAS.prepare(
+    "SELECT id, data, tipo, n_itens, n_meta, n_fotos, testada, nota FROM copias ORDER BY data DESC LIMIT 400"
+  ).all();
+  const lista = r.results || [];
+  const ultima = lista.length ? lista[0].data : "";
+  const horas = ultima ? (Date.now() - new Date(ultima).getTime()) / 3600e3 : null;
+  const testada = lista.find(c => c.testada);
+  return ok({
+    ok: true,
+    copias: lista,
+    ultima: ultima,
+    atrasada: horas === null || horas > 26,   /* e isto que acende a faixa vermelha */
+    ultimaTestada: (testada && testada.data) || ""
+  });
+}
+
+/* POST /api/copias - o botao "Fazer agora" */
+async function rotaCopiaAgora(env) {
+  const r = await copiaFazer(env, "manual", "Feita por voce, no botao Fazer agora.");
+  const t = await copiaTestar(env, r.id);
+  return ok({ ok: true, copia: r, teste: t });
+}
+
+/* GET /api/copias/<id> - baixar inteira, no mesmo formato que o site importa */
+async function rotaCopiaBaixar(id, env) {
+  const cab = await env.COPIAS.prepare("SELECT * FROM copias WHERE id = ?1").bind(id).first();
+  if (!cab) return erro("copia nao encontrada", 404);
+  const linhas = (await env.COPIAS.prepare("SELECT uid, dados, mod, apagado FROM copias_itens WHERE copia_id = ?1").bind(id).all()).results || [];
+  const metas = (await env.COPIAS.prepare("SELECT k, v, mod FROM copias_meta WHERE copia_id = ?1").bind(id).all()).results || [];
+
+  const pacote = { versao: 6, exportadoEm: cab.data, copiaDe: id, itens: [] };
+  for (const l of linhas) {
+    let d = {};
+    try { d = JSON.parse(l.dados); } catch (e) { d = {}; }
+    d.uid = l.uid; d.mod = l.mod;
+    if (l.apagado) d.deleted = true;
+    pacote.itens.push(d);
+  }
+  for (const m of metas) {
+    try { pacote[m.k] = JSON.parse(m.v); } catch (e) { pacote[m.k] = m.v; }
+    pacote[m.k + "Mod"] = m.mod;
+  }
+  return ok(pacote);
+}
+
+/* POST /api/copias/<id>/restaurar
+   ANTES DE QUALQUER COISA tira uma copia do jeito que esta agora: se a
+   restauracao nao for o que ela esperava, da para voltar.
+
+   A LICAO DAS FOTOS: nao basta reescrever o dado; o carimbo "mod" tem de
+   subir, senao o proprio servidor recusa a versao restaurada por achar que
+   o que ja estava la e mais novo. */
+async function rotaCopiaRestaurar(id, env) {
+  const cab = await env.COPIAS.prepare("SELECT * FROM copias WHERE id = ?1").bind(id).first();
+  if (!cab) return erro("copia nao encontrada", 404);
+  if (String(cab.nota || "").indexOf("Conteudo liberado") === 0)
+    return erro("esta copia e so o registro: o conteudo dela ja foi liberado", 409);
+
+  const antes = await copiaFazer(env, "antes-de-restaurar",
+    "Tirada automaticamente antes de restaurar a copia de " + cab.data + ".");
+
+  const linhas = (await env.COPIAS.prepare("SELECT uid, dados, mod, apagado FROM copias_itens WHERE copia_id = ?1").bind(id).all()).results || [];
+  const metas = (await env.COPIAS.prepare("SELECT k, v FROM copias_meta WHERE copia_id = ?1").bind(id).all()).results || [];
+
+  const agora = AGORA();
+  for (let i = 0; i < linhas.length; i += COPIA_LOTE) {
+    await env.DB.batch(linhas.slice(i, i + COPIA_LOTE).map(l => env.DB.prepare(
+      "INSERT INTO itens (uid, dados, mod, apagado, criado) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(uid) DO UPDATE SET dados = ?2, mod = ?3, apagado = ?4"
+    ).bind(l.uid, l.dados, agora, l.apagado || 0, agora)));
+  }
+  for (let i = 0; i < metas.length; i += COPIA_LOTE) {
+    await env.DB.batch(metas.slice(i, i + COPIA_LOTE).map(m => env.DB.prepare(
+      "INSERT INTO meta (k, v, mod) VALUES (?1, ?2, ?3) ON CONFLICT(k) DO UPDATE SET v = ?2, mod = ?3"
+    ).bind(m.k, m.v, agora)));
+  }
+  return ok({ ok: true, restaurada: id, fichas: linhas.length, configuracoes: metas.length, copiaDeAntes: antes.id });
+}
+
+/* POST /api/copias/<id>/testar - o teste a pedido, fora de domingo */
+async function rotaCopiaTestar(id, env) {
+  return ok(await copiaTestar(env, id));
+}
+
+/* O RELOGIO DO COFRE: madrugada tira a copia; domingo abre e confere.
+   Funciona com o computador dela desligado - quem trabalha e a nuvem. */
+async function relogioDoCofre(evento, env) {
+  const r = await copiaFazer(env, "diaria", null);
+  const domingo = new Date().getUTCDay() === 0;
+  if (domingo) await copiaTestar(env, r.id);
+  await copiaArrumarArmario(env);
+  return r;
+}
+
 /* ---------------------------------------------------------------------
    PORTA DE ENTRADA
    --------------------------------------------------------------------- */
@@ -380,9 +606,27 @@ export default {
       if (cam === "/api/foto" && req.method === "POST")
         return cors(req, await rotaFotoEnviar(req, env));
 
+      if (cam === "/api/copias" && req.method === "GET")
+        return cors(req, await rotaCopiasListar(env));
+      if (cam === "/api/copias" && req.method === "POST")
+        return cors(req, await rotaCopiaAgora(env));
+      if (cam.startsWith("/api/copias/")) {
+        const resto = cam.slice("/api/copias/".length).split("/");
+        const idc = decodeURIComponent(resto[0] || "");
+        if (!resto[1] && req.method === "GET") return cors(req, await rotaCopiaBaixar(idc, env));
+        if (resto[1] === "restaurar" && req.method === "POST") return cors(req, await rotaCopiaRestaurar(idc, env));
+        if (resto[1] === "testar" && req.method === "POST") return cors(req, await rotaCopiaTestar(idc, env));
+      }
+
       return cors(req, erro("caminho desconhecido", 404));
     } catch (e) {
       return cors(req, erro("falha no servidor: " + (e && e.message || e), 500));
     }
+  },
+
+  /* o relogio: madrugada tira a copia, domingo abre e confere.
+     Roda na nuvem - o computador dela pode estar desligado. */
+  async scheduled(evento, env, ctx) {
+    ctx.waitUntil(relogioDoCofre(evento, env).catch(e => console.log("copia falhou:", e && e.message || e)));
   }
 };

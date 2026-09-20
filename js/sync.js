@@ -751,3 +751,157 @@ function disableSync(){
  try{["gh_sync_token","gh_sync_owner","gh_sync_repo","gh_sync_token_date"].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});}catch(e){}
  setSyncState("off");closeSyncModal();toast("Desconectada deste aparelho ✓");
 }
+
+/* ---------------------------------------------------------------------
+   AVISO ANTES DE FECHAR (Parte 2, item 1 — 20/09/2026)
+
+   O que resolve: ela escreve, fecha a aba no mesmo segundo e a alteração
+   ainda não tinha terminado de viajar para o cofre. O que ficou no
+   aparelho não se perde (isso já está gravado), mas o outro aparelho
+   dela nunca receberia. Agora o navegador pergunta antes.
+
+   Olha a MESMA fila do selo — é uma verdade só no site inteiro:
+   se o selo não pode dizer "Tudo salvo", a pergunta aparece.
+
+   Sem nenhum sistema de sincronização ligado não pergunta nada: nesse
+   caso o aparelho é o único lugar do dado e ele já está gravado.
+   O texto é escolha do navegador (nenhum navegador deixa escrever o
+   próprio aviso); o que se pode fazer é aparecer ou não aparecer.
+   --------------------------------------------------------------------- */
+function temCoisaNaoSalva(){
+ const githubLigado=typeof syncEnabled==="function"&&syncEnabled();
+ const nuvemLig=typeof nuvemLigada==="function"&&nuvemLigada();
+ if(!githubLigado&&!nuvemLig)return false;
+ if(seloPendentes>0)return true;
+ if(githubLigado&&(syncDirty||syncBusy))return true;
+ if(nuvemLig&&((typeof nuvemDirty!=="undefined"&&nuvemDirty)||(typeof nuvemBusy!=="undefined"&&nuvemBusy)))return true;
+ if(typeof nuvemTemErro==="function"&&nuvemTemErro())return true;
+ return false;
+}
+window.addEventListener("beforeunload",function(ev){
+ if(!temCoisaNaoSalva())return;
+ ev.preventDefault();
+ ev.returnValue="";   /* exigido pelos navegadores antigos */
+ return "";
+});
+
+/* ---------------------------------------------------------------------
+   AVISO ENTRE DUAS ABAS DO SITE (Parte 2, item 2 — 20/09/2026)
+
+   O que resolve: o site aberto em duas abas ao mesmo tempo. Cada aba
+   carrega os dados na memória quando abre. Se ela mexe numa ficha na
+   aba A e depois mexe na MESMA ficha na aba B, a aba B ainda estava
+   com a versão velha na memória — e gravava por cima, apagando o que
+   foi feito na aba A. Ninguém percebia.
+
+   Como funciona: as abas passam a conversar entre si (é o telefone
+   interno do navegador, não sai para a internet). Quem grava avisa;
+   quem recebe o aviso vai buscar aquela ficha no banco do aparelho e
+   troca a cópia velha da memória pela nova.
+
+   Cuidado com o que ela está digitando: se o cursor estiver dentro de
+   um campo, a tela NÃO é redesenhada na hora (senão o texto meio
+   escrito sumiria). O dado já entra na memória; a tela se acerta
+   assim que ela sai do campo.
+   --------------------------------------------------------------------- */
+let abasCanal=null, abasFilaItens=new Set(), abasFilaMeta=false, abasT=null, abasAplicando=false;
+let abasPendenteRedesenho=false;
+
+function abasAvisar(tipo,id){
+ if(!abasCanal||abasAplicando)return;
+ if(tipo==="meta")abasFilaMeta=true; else if(id!==undefined&&id!==null)abasFilaItens.add(id);
+ clearTimeout(abasT);
+ abasT=setTimeout(()=>{
+   try{abasCanal.postMessage({itens:[...abasFilaItens],meta:abasFilaMeta});}catch(e){}
+   abasFilaItens=new Set(); abasFilaMeta=false;
+ },400);
+}
+
+function abasDigitando(){
+ const a=document.activeElement;
+ if(!a)return false;
+ const t=(a.tagName||"").toLowerCase();
+ return t==="input"||t==="textarea"||t==="select"||a.isContentEditable===true;
+}
+
+async function abasReceber(msg){
+ if(!msg)return;
+ abasAplicando=true;
+ try{
+   let mudou=false;
+   for(const id of (msg.itens||[])){
+     const novo=await getOne(id);
+     const i=DATA.findIndex(d=>d.id===id);
+     if(novo){ if(i>=0)DATA[i]=novo; else DATA.push(novo); mudou=true; }
+     else if(i>=0){ DATA.splice(i,1); mudou=true; }
+   }
+   if(msg.meta&&typeof recarregarConfig==="function"){ await recarregarConfig(); mudou=true; }
+   if(!mudou)return;
+   if(abasDigitando()){ abasPendenteRedesenho=true; return; }
+   if(typeof syncRefreshViews==="function")syncRefreshViews();
+ }catch(e){ console.warn("abas:",e&&e.message||e); }
+ finally{ abasAplicando=false; }
+}
+
+let abasIniciado=false;
+function abasInit(){
+ if(abasIniciado)return; abasIniciado=true;
+ if(typeof BroadcastChannel==="undefined")return;      /* navegador antigo: segue como era */
+ try{ abasCanal=new BroadcastChannel("central-demandas"); }catch(e){ abasCanal=null; return; }
+ abasCanal.onmessage=ev=>abasReceber(ev&&ev.data);
+
+ /* o funil de gravação do site inteiro é putItem/delDB/metaSet — avisar aqui
+    cobre TODA tela de uma vez, sem caçar cada botão de salvar */
+ if(typeof putItem==="function"){
+   const _put=putItem;
+   putItem=async function(o){ const id=await _put(o); abasAvisar("item",id); return id; };
+ }
+ if(typeof delDB==="function"){
+   const _del=delDB;
+   delDB=async function(id){ const r=await _del(id); abasAvisar("item",id); return r; };
+ }
+ if(typeof metaSet==="function"){
+   const _meta=metaSet;
+   metaSet=async function(k,v){ const r=await _meta(k,v); abasAvisar("meta"); return r; };
+ }
+
+ /* o redesenho que ficou esperando ela terminar de digitar */
+ document.addEventListener("focusout",()=>{
+   if(!abasPendenteRedesenho)return;
+   setTimeout(()=>{
+     if(abasDigitando())return;
+     abasPendenteRedesenho=false;
+     if(typeof syncRefreshViews==="function")syncRefreshViews();
+   },150);
+ });
+}
+
+/* ---------------------------------------------------------------------
+   PEDIR AO NAVEGADOR PARA NUNCA APAGAR (Parte 2, item 3 — 20/09/2026)
+
+   O que resolve: quando o aparelho fica sem espaço, o navegador limpa
+   sozinho os dados dos sites — e o iPhone apaga os de site que não foi
+   instalado depois de uns dias parado. Este pedido marca o site como
+   "não apague este aqui".
+
+   Não abre janela nenhuma para ela: o navegador decide sozinho, e
+   costuma dizer sim para site instalado na tela inicial. Se disser não,
+   nada quebra — continua tudo como é hoje.
+   --------------------------------------------------------------------- */
+async function guardarParaSempre(){
+ try{
+   if(!navigator.storage||!navigator.storage.persist)return null;
+   if(await navigator.storage.persisted())return true;
+   const ok=await navigator.storage.persist();
+   try{ if(typeof metaSet==="function")await metaSet("guardaPermanente",ok?"sim":"nao"); }catch(e){}
+   return ok;
+ }catch(e){ return null; }
+}
+
+/* REDE DE SEGURANCA (20/09): o js/app.js chama estas duas no fim da abertura,
+   mas a abertura dele comeca antes deste arquivo terminar de carregar — em
+   maquina rapida a chamada podia acontecer com a funcao ainda inexistente e
+   o aviso entre abas simplesmente nao ligava. Ligar de novo quando a pagina
+   termina de carregar resolve, e chamar duas vezes nao faz nada (abasIniciado).
+   Sem isto o defeito so aparece as vezes, que e o pior tipo de defeito. */
+window.addEventListener("load",()=>{ try{abasInit();}catch(e){} try{guardarParaSempre();}catch(e){} });

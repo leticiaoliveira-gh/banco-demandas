@@ -47,6 +47,16 @@ binding = "COPIAS"
 database_name = "central-copias"
 database_id = "5a911a6a-4026-4e3b-8680-ee3d057359fa"
 
+
+# ---------------------------------------------------------------------
+#  O RELOGIO DO COFRE (20/09)
+#  05:10 UTC = 02:10 no horario dela. Toda madrugada a nuvem tira a
+#  copia inteira sozinha - o computador dela pode estar desligado.
+#  Aos domingos a mesma passagem ABRE a copia e confere ficha por ficha.
+# ---------------------------------------------------------------------
+[triggers]
+crons = ["10 5 * * *"]
+
 # ---------------------------------------------------------------------
 #  OS COFRES DE ENSAIO (refeitos em 20/09)
 #  Existem na conta, mas de proposito NAO entram como binding aqui: o

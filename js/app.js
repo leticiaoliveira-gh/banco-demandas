@@ -1905,11 +1905,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="10.2";
+const APP_VERSAO="10.4";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="20/09/2026 · 05:26";
+const APP_DATA="20/09/2026 · 09:40";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
@@ -2159,6 +2159,10 @@ let toastT;function toast(m){const t=document.getElementById("toast");t.textCont
  atalhoRapido();          /* ?rapido=CF abre direto no registro de NC daquela loja */
  if(window.syncInit)syncInit();
  if(window.nuvemInit)nuvemInit();   /* o carteiro novo: fica quieto se o cofre nao estiver ligado */
+ /* duas abas do site abertas ao mesmo tempo: uma avisa a outra, nada some (20/09) */
+ if(window.abasInit)abasInit();
+ /* pede ao navegador para nunca apagar a copia que fica no aparelho dela (20/09) */
+ if(window.guardarParaSempre)guardarParaSempre();
  /* PWA: service worker só em https (GitHub Pages); no file:// é ignorado */
  if("serviceWorker" in navigator&&location.protocol==="https:"){
    navigator.serviceWorker.register("sw.js").catch(()=>{});
