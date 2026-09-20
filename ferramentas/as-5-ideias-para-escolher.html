@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>As 5 ideias, do jeito que ficariam</title>
+<link rel="stylesheet" href="../biblioteca/pecas.css">
+<style>
+  body{ margin:0; background:var(--bd-fundo,#f6f8f7); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:#1f2a27; }
+  .env{ max-width:880px; margin:0 auto; padding:16px 16px 48px; }
+  .topo{ padding:24px 0 8px; }
+  .topo h1{ font-size:24px; margin:0 0 4px; }
+  .topo p{ margin:0; color:#4b5a56; }
+  .tela{ display:none; }
+  .tela-ativa{ display:block; }
+  .expl{ background:#e8f5f0; border-radius:12px; padding:12px 16px; margin:16px 0; }
+  .expl b{ display:block; margin-bottom:4px; }
+  .quadro{ background:#fff; border:1px solid #dbe5e1; border-radius:14px; padding:16px; }
+  .quadro h2{ font-size:16px; margin:0 0 12px; }
+  .linha{ display:flex; gap:12px; align-items:center; justify-content:space-between;
+          padding:12px 0; border-bottom:1px solid #eef2f0; flex-wrap:wrap; }
+  .linha:last-child{ border-bottom:0; }
+  .linha .txt{ flex:1 1 220px; min-width:0; }
+  .linha .txt strong{ display:block; font-weight:600; }
+  .linha .txt small{ color:#566; }
+  .acoes{ display:flex; gap:8px; flex-wrap:wrap; }
+  .bd-btn{ min-height:44px; }
+  .aba-nav{ margin:16px 0; }
+  .aba-nav .bd-aba{ min-height:44px; }
+  .passo{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid #eef2f0; }
+  .passo:last-child{ border-bottom:0; }
+  .passo .quando{ flex:0 0 92px; color:#566; font-size:13px; }
+  .grupo-loja{ margin-top:16px; }
+  .grupo-loja h3{ font-size:14px; margin:0 0 4px; color:#155244; }
+</style>
+</head>
+<body>
+<div class="env">
+
+  <div class="topo">
+    <h1>As 5 ideias, do jeito que ficariam</h1>
+    <p>Toque no nome de cada uma para ver a tela. É só um desenho: ainda não mexe em nada do site.</p>
+  </div>
+
+  <div class="bd-abas aba-nav" id="abas">
+    <button class="bd-aba bd-aba-ativa" data-t="t1">1. Lixeira</button>
+    <button class="bd-aba" data-t="t2">2. Histórico</button>
+    <button class="bd-aba" data-t="t3">3. Demanda parada</button>
+    <button class="bd-aba" data-t="t4">4. Busca geral</button>
+    <button class="bd-aba" data-t="t5">5. Relatório do mês</button>
+  </div>
+
+  <!-- 1 -->
+  <section class="tela tela-ativa" id="t1">
+    <div class="expl">
+      <b>O que muda para você</b>
+      Demanda apagada sem querer não some mais. Ela fica guardada aqui e você traz de volta com um toque, do jeito que estava.
+    </div>
+    <div class="quadro">
+      <h2>Lixeira</h2>
+      <div class="linha">
+        <div class="txt"><strong>Limpar o esterilizador de facas.</strong>
+          <small>COZINHA · Arraial · apagada em 18/09</small></div>
+        <div class="acoes"><button class="bd-btn bd-btn-secundario">Restaurar</button></div>
+      </div>
+      <div class="linha">
+        <div class="txt"><strong>Trocar a lâmpada queimada do depósito.</strong>
+          <small>DEPÓSITO (1º piso) · Cabo Frio · apagada em 16/09</small></div>
+        <div class="acoes"><button class="bd-btn bd-btn-secundario">Restaurar</button></div>
+      </div>
+      <div class="linha">
+        <div class="txt"><strong>Consertar a porta da câmara fria.</strong>
+          <small>CÂMARA: RESFRIADOS · Búzios · apagada em 02/09</small></div>
+        <div class="acoes"><button class="bd-btn bd-btn-secundario">Restaurar</button></div>
+      </div>
+      <p style="margin:16px 0 0;color:#566;font-size:13px">
+        Nada é apagado de verdade. O que sai daqui volta inteiro, com foto, observação e data.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="tela" id="t2">
+    <div class="expl">
+      <b>O que muda para você</b>
+      Cada demanda passa a contar a própria história: quando nasceu, o que mudou e quando foi concluída. Serve de prova na hora de cobrar.
+    </div>
+    <div class="quadro">
+      <h2>Trocar a torneira do lavatório.</h2>
+      <p style="margin:0 0 12px;color:#566;font-size:13px">COZINHA · Arraial</p>
+      <div class="passo"><div class="quando">02/09</div>
+        <div>Registrada por você. <span class="bd-selo bd-selo-neutro"><i></i>Aberta</span></div></div>
+      <div class="passo"><div class="quando">05/09</div>
+        <div>Responsável passou para Sr. João.</div></div>
+      <div class="passo"><div class="quando">11/09</div>
+        <div>Observação acrescentada: peça comprada, falta instalar.</div></div>
+      <div class="passo"><div class="quando">17/09</div>
+        <div>Foto anexada.</div></div>
+      <div class="passo"><div class="quando">19/09</div>
+        <div>Concluída. <span class="bd-selo bd-selo-ok"><i></i>Concluída</span></div></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="tela" id="t3">
+    <div class="expl">
+      <b>O que muda para você</b>
+      O site avisa sozinho quando uma demanda ficou parada tempo demais, em vez de você ter que lembrar de procurar.
+    </div>
+    <div class="bd-aviso bd-aviso-atencao" style="margin-bottom:16px">
+      <span class="bd-aviso-ico">!</span>
+      <div><strong>3 demandas estão paradas há mais de 30 dias.</strong>
+        <div>Elas aparecem primeiro na lista até alguém mexer.</div></div>
+    </div>
+    <div class="quadro">
+      <h2>Paradas</h2>
+      <div class="linha">
+        <div class="txt"><strong>Consertar a goteira do corredor quando chove.</strong>
+          <small>CORREDOR · Cabo Frio · Paulo</small></div>
+        <div class="acoes"><span class="bd-selo bd-selo-erro"><i></i>Parada há 46 dias</span></div>
+      </div>
+      <div class="linha">
+        <div class="txt"><strong>Revisar a fiação do salão.</strong>
+          <small>SALÃO (2º piso) · Búzios · Matheus</small></div>
+        <div class="acoes"><span class="bd-selo bd-selo-atencao"><i></i>Parada há 38 dias</span></div>
+      </div>
+      <div class="linha">
+        <div class="txt"><strong>Trocar a borracha da câmara.</strong>
+          <small>CÂMARA: CONGELADOS · Arraial · Sr. João</small></div>
+        <div class="acoes"><span class="bd-selo bd-selo-atencao"><i></i>Parada há 31 dias</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="tela" id="t4">
+    <div class="expl">
+      <b>O que muda para você</b>
+      Você escreve uma palavra e ele procura em todas as lojas de uma vez, sem precisar entrar loja por loja.
+    </div>
+    <div class="quadro">
+      <h2>Buscar em todas as lojas</h2>
+      <div class="bd-grupo">
+        <label class="bd-rotulo" for="busca">Palavra a procurar</label>
+        <div class="bd-campo-ico">
+          <input class="bd-campo" id="busca" type="search" value="câmara" placeholder="Ex.: torneira, câmara, lâmpada">
+        </div>
+        <div class="bd-ajuda">7 demandas encontradas em 3 lojas.</div>
+      </div>
+
+      <div class="grupo-loja">
+        <h3>Arraial (3)</h3>
+        <div class="linha"><div class="txt"><strong>Trocar a borracha da câmara.</strong>
+          <small>CÂMARA: CONGELADOS</small></div>
+          <div class="acoes"><span class="bd-selo bd-selo-neutro"><i></i>Aberta</span></div></div>
+        <div class="linha"><div class="txt"><strong>Regular a temperatura da câmara.</strong>
+          <small>CÂMARA: RESFRIADOS</small></div>
+          <div class="acoes"><span class="bd-selo bd-selo-ok"><i></i>Concluída</span></div></div>
+      </div>
+
+      <div class="grupo-loja">
+        <h3>Búzios (2)</h3>
+        <div class="linha"><div class="txt"><strong>Consertar a porta da câmara fria.</strong>
+          <small>CÂMARA: RESFRIADOS</small></div>
+          <div class="acoes"><span class="bd-selo bd-selo-atencao"><i></i>Em andamento</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="tela" id="t5">
+    <div class="expl">
+      <b>O que muda para você</b>
+      No fim do mês o relatório já está montado, com os números do mês. Você confere, assina e manda.
+    </div>
+    <div class="quadro">
+      <h2>Setembro de 2026</h2>
+      <div class="bd-kpis" style="margin-bottom:16px">
+        <div class="bd-kpi"><div class="bd-kpi-nome">Registradas</div><div class="bd-kpi-num">42</div></div>
+        <div class="bd-kpi"><div class="bd-kpi-nome">Concluídas</div><div class="bd-kpi-num">28</div></div>
+        <div class="bd-kpi"><div class="bd-kpi-nome">Em acompanhamento</div><div class="bd-kpi-num">14</div></div>
+      </div>
+      <div class="linha"><div class="txt"><strong>Arraial</strong><small>16 registradas, 12 concluídas</small></div>
+        <div class="acoes"><span class="bd-selo bd-selo-ok"><i></i>Pronto</span></div></div>
+      <div class="linha"><div class="txt"><strong>Cabo Frio</strong><small>15 registradas, 9 concluídas</small></div>
+        <div class="acoes"><span class="bd-selo bd-selo-ok"><i></i>Pronto</span></div></div>
+      <div class="linha"><div class="txt"><strong>Búzios</strong><small>11 registradas, 7 concluídas</small></div>
+        <div class="acoes"><span class="bd-selo bd-selo-ok"><i></i>Pronto</span></div></div>
+      <div style="margin-top:16px">
+        <button class="bd-btn bd-btn-principal bd-btn-largo">Abrir o relatório de setembro</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+document.getElementById("abas").addEventListener("click", function(ev){
+  var b = ev.target.closest(".bd-aba"); if(!b) return;
+  this.querySelectorAll(".bd-aba").forEach(function(x){ x.classList.remove("bd-aba-ativa"); });
+  b.classList.add("bd-aba-ativa");
+  document.querySelectorAll(".tela").forEach(function(s){ s.classList.remove("tela-ativa"); });
+  document.getElementById(b.dataset.t).classList.add("tela-ativa");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+</script>
+</body>
+</html>

@@ -1252,3 +1252,16 @@ body.editando-cards .card-fantasma{opacity:.4}
    classes bd-ag-*. Aqui não fica cópia nenhuma: regra número um do projeto,
    nunca construir do zero e nunca deixar peça solta no site.
    Ver: biblioteca/pecas.css e o catálogo. */
+
+/* ===== LIXEIRA (19/09) — lista do que foi excluído, dentro da janela.
+   Nada de peça nova: usa o bd-vazio da biblioteca para a lista vazia e
+   o botão padrão do site. Só o espaçamento das linhas mora aqui. */
+.lix-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.lix-lista{max-height:52vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.lix-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--linha,#eef2f0)}
+.lix-linha:last-child{border-bottom:0}
+.lix-txt{flex:1 1 220px;min-width:0;overflow-wrap:anywhere}
+.lix-txt strong{display:block;font-weight:600}
+.lix-txt small{color:var(--muted,#566)}
+.lix-bt{min-height:44px}
