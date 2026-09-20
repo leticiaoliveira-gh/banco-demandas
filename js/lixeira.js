@@ -48,6 +48,12 @@ function lixeiraEmpresa(code){
 function lixeiraQuando(d){
   const s=String(d.mod||"");
   if(s.length<10)return "";
+  /* o "mod" é hora universal; a data que ela lê é a do relógio dela */
+  const dt=new Date(s);
+  if(!isNaN(dt)){
+    const z=n=>String(n).padStart(2,"0");
+    return z(dt.getDate())+"/"+z(dt.getMonth()+1)+"/"+dt.getFullYear();
+  }
   return s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4);
 }
 

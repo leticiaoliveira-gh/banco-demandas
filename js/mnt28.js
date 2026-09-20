@@ -1210,6 +1210,8 @@ function m28RenderLista(){
           aria-pressed="${m28TemCompra(d)?"true":"false"}"
           aria-label="${m28TemCompra(d)?"Tirar este item da lista de compras":"Também colocar este item na aba de Compras"}"
           title="${m28TemCompra(d)?"Está na lista de compras — toque para tirar. A demanda continua aqui.":"Também colocar na aba de Compras. A demanda continua aqui."}">Compras</button>
+        <button class="btn ghost sm" onclick="histoAbrir(${d.id})" aria-label="Ver o histórico desta demanda"
+          title="A história desta demanda: quando nasceu, o que mudou e quando foi concluída">🕘</button>
         <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
         <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
       </div></div>`;

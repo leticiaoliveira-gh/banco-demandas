@@ -1265,3 +1265,13 @@ body.editando-cards .card-fantasma{opacity:.4}
 .lix-txt strong{display:block;font-weight:600}
 .lix-txt small{color:var(--muted,#566)}
 .lix-bt{min-height:44px}
+
+
+/* ===== HISTÓRICO DE CADA DEMANDA (19/09) ===== */
+.hst-cab{margin:0 0 12px;overflow-wrap:anywhere}
+.hst-lista{max-height:52vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.hst-passo{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--linha,#eef2f0)}
+.hst-passo:last-child{border-bottom:0}
+.hst-quando{flex:0 0 76px;color:var(--muted,#566);font-size:13px}
+.hst-o-que{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.hst-o-que small{color:var(--muted,#566)}

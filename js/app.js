@@ -708,7 +708,12 @@ function getOne(id){return new Promise(r=>{const q=tx(STORE,"readonly").get(id);
 /* Toda gravação passa por aqui — é por isso que o DESFAZER funciona no site inteiro:
    antes de gravar/apagar, guardamos como o item estava. */
 async function putItem(o){
-  if(HIST_LIGADO&&o&&o.id!==undefined)await histRegistrar({tipo:"put",id:o.id,antes:await getOne(o.id),depois:JSON.parse(JSON.stringify(o))});
+  /* o "antes" serve a duas coisas: ao desfazer (Ctrl+Z) e ao histórico de cada
+     demanda (js/historico.js), que anota na própria demanda o que mudou. */
+  const temHisto=(typeof histoAnotar==="function");
+  const antesDoPut=(o&&o.id!==undefined&&(HIST_LIGADO||temHisto))?await getOne(o.id):null;
+  if(temHisto)histoAnotar(antesDoPut,o);
+  if(HIST_LIGADO&&o&&o.id!==undefined)await histRegistrar({tipo:"put",id:o.id,antes:antesDoPut,depois:JSON.parse(JSON.stringify(o))});
   const id=await new Promise(r=>{const q=tx(STORE,"readwrite").put(o);q.onsuccess=()=>r(q.result);});
   if(HIST_LIGADO&&(o.id===undefined))await histRegistrar({tipo:"put",id,antes:null,depois:JSON.parse(JSON.stringify({...o,id}))});
   return id;
@@ -1715,6 +1720,9 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
     PENDENCIAS=parsed.pendencias;await savePendencias();
   }
   let novaEmp=false,novos=0,pulados=0;
+  const _phImp=(typeof HISTO_PAUSA!=="undefined")?HISTO_PAUSA:false;
+  if(typeof HISTO_PAUSA!=="undefined")HISTO_PAUSA=true;   /* o backup já traz a linha do tempo */
+  try{
   const jaTenho=new Set(DATA.map(d=>d.uid));
   for(const o of arr){const {id,...rest}=o;
    if(!rest.tipo)rest.tipo="mnt";if(!rest.uid)rest.uid=newUid();if(!rest.mod)rest.mod=nowISO();
@@ -1722,6 +1730,7 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
    /* o código do GRUPO (ex.: SF) não é empresa — não pode virar uma linha na capa */
    if(rest.loja&&rest.loja!==GRUPO_SF&&!empresa(rest.loja)){EMPRESAS.push({code:rest.loja,name:rest.loja,ativa:true});novaEmp=true;}
    const nid=await putItem(rest);rest.id=nid;DATA.push(rest);jaTenho.add(rest.uid);novos++;}
+  }finally{ if(typeof HISTO_PAUSA!=="undefined")HISTO_PAUSA=_phImp; }
   if(novaEmp)await saveEmpresas();
   fillLojaSelects();
   toast(novos+(novos===1?" item importado":" itens importados")+(pulados?" · "+pulados+" já estavam aqui":"")+" ✓");
@@ -1895,7 +1904,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="9.96";
+const APP_VERSAO="9.97";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

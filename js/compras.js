@@ -259,6 +259,8 @@ function cmpLinha(d, n){
     </div>
     <div class="cmp-lado">
       <span class="bd-selo ${CMP_SIT[s].selo}">${CMP_SIT[s].rot}</span>
+      <button class="cmp-lapis" onclick="histoAbrir(${d.id})" aria-label="Ver o histórico deste item"
+        title="A história deste item: quando nasceu e o que mudou">🕘</button>
       <button class="cmp-lapis" onclick="cmpEditar(${d.id})" aria-label="Editar este item">✎</button>
     </div>
   </div>`;

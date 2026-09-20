@@ -68,6 +68,14 @@ async function syncMergeEnvelope(env){
  finally{ if(typeof HIST_LIGADO!=="undefined")HIST_LIGADO=_hist; }
 }
 async function _syncMergeEnvelope(env){
+ /* o que chega de outro aparelho JÁ traz a própria linha do tempo dentro dele.
+    Anotar aqui inventaria "alteração" toda vez que os aparelhos conversam. */
+ const _ph=(typeof HISTO_PAUSA!=="undefined")?HISTO_PAUSA:false;
+ if(typeof HISTO_PAUSA!=="undefined")HISTO_PAUSA=true;
+ try{ return await _syncMergeEnvelope2(env); }
+ finally{ if(typeof HISTO_PAUSA!=="undefined")HISTO_PAUSA=_ph; }
+}
+async function _syncMergeEnvelope2(env){
  let changed=false,localAhead=false;
  const remoteItens=Array.isArray(env&&env.itens)?env.itens:[];
  const remoteByUid=new Map(remoteItens.filter(r=>r&&r.uid).map(r=>[r.uid,r]));
