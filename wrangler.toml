@@ -11,7 +11,7 @@
 #  depois da autorizacao de acesso (o unico momento da Le).
 # =====================================================================
 
-name = "central-demandas"
+name = "conexaoempresas"
 main = "servidor/index.js"
 compatibility_date = "2026-09-19"
 
