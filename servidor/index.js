@@ -259,7 +259,14 @@ async function rotaFotoBaixar(id, env) {
     "SELECT imagem, mime FROM fotos WHERE id = ?1 AND apagada_em IS NULL"
   ).bind(id).first();
   if (!r) return erro("foto nao encontrada", 404);
-  return new Response(r.imagem, {
+  /* O cofre devolve a imagem como lista de numeros. Sem esta conversao a
+     resposta sai vazia e a foto some da tela. */
+  const bruto = r.imagem;
+  const corpo = bruto instanceof ArrayBuffer ? new Uint8Array(bruto)
+              : ArrayBuffer.isView(bruto)    ? new Uint8Array(bruto.buffer, bruto.byteOffset, bruto.byteLength)
+              : Array.isArray(bruto)         ? new Uint8Array(bruto)
+              : bruto;
+  return new Response(corpo, {
     headers: {
       "content-type": r.mime || "image/jpeg",
       /* imutavel: a foto de um id nunca muda, entao o aparelho pode guardar para sempre */
@@ -322,6 +329,14 @@ export default {
       r.headers.set("Access-Control-Allow-Headers", "content-type, X-Chave, X-Mestra");
       return cors(req, r);
     }
+
+    /* A pasta dados/ nunca vai para o ar (dados reais dela). O index.html
+       ainda chama dados/mnt28-carga.js, que so existe no computador dela.
+       Aqui esse caminho devolve um arquivo vazio: o site funciona igual e
+       o console nao mostra erro vermelho. */
+    if (cam.startsWith("/dados/") && cam.endsWith(".js"))
+      return new Response("/* sem carga local no site publicado */", {
+        headers: { "content-type": "application/javascript; charset=utf-8" } });
 
     /* tudo que nao comeca com /api/ e o site em si */
     if (!cam.startsWith("/api/")) return env.ASSETS.fetch(req);

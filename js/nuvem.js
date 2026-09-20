@@ -233,10 +233,32 @@ async function nuvemFotoEnviar(id, blob) {
   return r.json();
 }
 
+/* Quando muitas fotos sao pedidas ao mesmo tempo, o cofre pode responder
+   "estou ocupado" (429/503). Nao e erro: e so esperar um instante e pedir de
+   novo. Tenta ate 4 vezes, esperando cada vez um pouco mais, para nenhuma
+   foto faltar na tela dela. */
 async function nuvemFotoBaixar(id) {
-  const r = await fetch(nuvemFotoURL(id), { headers: { "X-Chave": nuvemCfg().chave } });
-  if (!r.ok) throw new Error("GET foto " + r.status);
-  return r.blob();
+  const hdr = { "X-Chave": nuvemCfg().chave };
+  let ultimo = 0;
+  for (let tentativa = 0; tentativa < 4; tentativa++) {
+    if (tentativa) await new Promise(f => setTimeout(f, 400 * tentativa));
+    let r;
+    /* a partir da 2a tentativa pede a foto de novo do cofre, ignorando a
+       copia guardada no aparelho: e o que resolve uma foto que ficou
+       guardada em branco */
+    const modo = tentativa ? { headers: hdr, cache: "reload" } : { headers: hdr };
+    try { r = await fetch(nuvemFotoURL(id), modo); }
+    catch (e) { ultimo = 0; continue; }
+    if (r.ok) {
+      const b = await r.blob();
+      if (b.size) return b;
+      ultimo = 0;          /* veio em branco: nao serve, tenta de novo */
+      continue;
+    }
+    ultimo = r.status;
+    if (r.status !== 429 && r.status !== 503 && r.status < 500) break;
+  }
+  throw new Error("GET foto " + ultimo);
 }
 
 /* O NOME DA FOTO E A PROPRIA FOTO.
@@ -276,6 +298,9 @@ async function nuvemFotosParaCofre(d) {
   for (const f of d.fotos) {
     if (typeof f !== "string") continue;
     if (!f.startsWith("data:")) { saida.push(f); continue; }  /* ja e referencia */
+    /* foto sem imagem nenhuma (sobra de uma conversa que caiu) nao vai para
+       o cofre: o cofre recusa e a ficha ficaria tentando para sempre */
+    if (f.length < 64) continue;
     const id = await nuvemFotoId(f);
     await nuvemFotoEnviar(id, nuvemDataParaBlob(f));
     saida.push("foto:" + id);
