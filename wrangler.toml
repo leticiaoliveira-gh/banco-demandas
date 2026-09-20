@@ -35,17 +35,17 @@ not_found_handling = "none"
 [[d1_databases]]
 binding = "DB"
 database_name = "central-demandas"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "279bda6d-31a1-4829-bf14-c8b9e7b2b7e8"
 
 [[d1_databases]]
 binding = "FOTOS"
 database_name = "central-fotos"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "7265443c-94b1-4670-9929-cb521dbbd136"
 
 [[d1_databases]]
 binding = "COPIAS"
 database_name = "central-copias"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "5a911a6a-4026-4e3b-8680-ee3d057359fa"
 
 # ---------------------------------------------------------------------
 #  ENSAIO ANTES DO REAL (item 5 do plano)
@@ -65,17 +65,17 @@ not_found_handling = "none"
 [[env.teste.d1_databases]]
 binding = "DB"
 database_name = "teste-demandas"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "ecf3e1fc-36bd-4cba-8d26-d2008ce523fc"
 
 [[env.teste.d1_databases]]
 binding = "FOTOS"
 database_name = "teste-fotos"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "329edc08-08d5-4ba4-905e-cfd19387b2b6"
 
 [[env.teste.d1_databases]]
 binding = "COPIAS"
 database_name = "teste-copias"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "a6a64389-d2de-4b89-a4a7-6d7bd6161ab2"
 
 # ---------------------------------------------------------------------
 #  SEGREDO

@@ -39,3 +39,6 @@ _folha-montada.html
 
 # comparacoes visuais temporarias (mockups que a Le olha na sessao)
 _comparacoes/
+wrangler.local.toml
+.wrangler/
+.dev.vars

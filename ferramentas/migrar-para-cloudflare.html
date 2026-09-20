@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mudança para o cofre próprio</title>
+<!-- PEÇAS DA BIBLIOTECA (nada construído do zero) -->
+<link rel="stylesheet" href="../biblioteca/pecas.css">
+<style>
+  body{margin:0;background:#f5f7f8;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1f2a2e}
+  .env{max-width:760px;margin:0 auto;padding:16px 16px 48px}
+  h1{font-size:22px;margin:24px 0 4px}
+  .sub{color:#5b6b70;margin:0 0 20px}
+  .linha{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .linha>*{flex:1 1 240px}
+  .passo{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:16px;margin:0 0 16px}
+  .passo h2{font-size:16px;margin:0 0 12px}
+  .reg{font:13px/1.45 ui-monospace,Consolas,monospace;background:#0f1a1d;color:#d7e6e1;border-radius:10px;
+       padding:12px;max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+  button{min-height:44px}
+</style>
+</head>
+<body>
+<div class="env">
+
+  <h1>Mudança para o cofre próprio</h1>
+  <p class="sub">Leva as fichas de <strong>Manutenções e Infraestrutura</strong> e de
+     <strong>Compras</strong>, de todas as empresas, para o cofre novo.
+     O site atual não é tocado: nada é apagado e nada muda de lugar aqui.</p>
+
+  <!-- 1 -------------------------------------------------------------- -->
+  <section class="passo">
+    <h2>1. Onde fica o cofre</h2>
+    <div class="linha">
+      <label class="bd-grupo">
+        <span class="bd-rotulo">Endereço do cofre</span>
+        <input id="endereco" class="bd-campo" type="url" placeholder="https://central-demandas...workers.dev">
+      </label>
+      <label class="bd-grupo">
+        <span class="bd-rotulo">Chave de acesso</span>
+        <input id="chave" class="bd-campo" type="password" autocomplete="off">
+      </label>
+    </div>
+    <p style="margin:12px 0 0"><button id="btTestar" class="bd-btn bd-btn-secundario">Testar a conexão</button>
+      <span id="selo"></span></p>
+  </section>
+
+  <!-- 2 -------------------------------------------------------------- -->
+  <section class="passo">
+    <h2>2. O arquivo de backup do site</h2>
+    <p class="sub" style="margin:0 0 10px">O “Backup completo do site (.json)” que o botão ⬇ Backup gera.</p>
+    <input id="arquivo" class="bd-campo" type="file" accept=".json,application/json">
+    <div id="resumo" class="bd-kpis" style="margin-top:14px"></div>
+  </section>
+
+  <!-- 3 -------------------------------------------------------------- -->
+  <section class="passo">
+    <h2>3. Ensaio e mudança</h2>
+    <p class="sub" style="margin:0 0 10px">O ensaio manda tudo para um cofre de teste primeiro.
+      Só depois de as contagens baterem é que se faz o de verdade.</p>
+    <p><button id="btIr" class="bd-btn bd-btn-principal" disabled>Enviar para o cofre</button>
+       <button id="btConferir" class="bd-btn bd-btn-secundario" disabled>Conferir as contagens</button></p>
+    <div id="barra" class="bd-barra" hidden><span style="width:0%"></span></div>
+    <div id="placar" class="bd-kpis" style="margin-top:14px"></div>
+  </section>
+
+  <section class="passo">
+    <h2>Registro</h2>
+    <div id="reg" class="reg">Aguardando.</div>
+  </section>
+
+</div>
+
+<script>
+/* =====================================================================
+   MUDANÇA PARA O COFRE PRÓPRIO (Fase 1)
+   Página de ferramenta: NÃO vai para o ar (está fora do .assetsignore
+   por causa da pasta ferramentas/). Abre com duplo clique.
+
+   Manda para o cofre APENAS os dois quadros decididos por ela:
+   Manutenções e Infraestrutura (mnt28) e Compras (cmp), em todas as
+   empresas. Nada é apagado do arquivo de origem: a leitura é só leitura.
+   ===================================================================== */
+const QUADROS = ["mnt28", "cmp"];
+
+/* a mesma lista de configurações que o carteiro (js/nuvem.js) usa —
+   se nascer uma configuração nova, ela entra nos dois lugares */
+const CFG_PARES = [
+  ["empresas","empresasMod"],["pendencias","pendenciasMod"],["rtInfo","rtInfoMod"],
+  ["abaNomes","abaNomesMod"],["abaSub","abaSubMod"],["capaCfg","capaCfgMod"],
+  ["textos","textosMod"],["dgOpcoes","dgOpcoesMod"],["ncUrgencias","ncUrgenciasMod"],
+  ["ckOpcoes","ckOpcoesMod"],["areas","areasMod"],["executores","executoresMod"],
+  ["assinaturaRT","assinaturaRTMod"],["ambTipos","ambTiposMod"],
+  ["ckqSetores","ckqSetoresMod"],["ncPalavras","ncPalavrasMod"],["folhasCfg","folhasCfgMod"]
+];
+
+const $ = s => document.querySelector(s);
+let ENVELOPE = null, ESCOLHIDOS = [], FOTOS_ESPERADAS = 0, ENVIADOS = 0;
+
+function reg(t){ const r=$("#reg"); r.textContent = (r.textContent==="Aguardando."?"":r.textContent+"\n") + t; r.scrollTop = r.scrollHeight; }
+function endereco(){ return $("#endereco").value.trim().replace(/\/+$/,""); }
+function hdrs(){ return { "X-Chave": $("#chave").value.trim(), "content-type":"application/json" }; }
+function cartao(rot, val, cor){
+  return `<div class="bd-kpi"><div class="bd-kpi-nome">${rot}</div>
+          <div class="bd-kpi-num" ${cor?`style="color:${cor}"`:""}>${val}</div></div>`;
+}
+function barra(p){ const b=$("#barra"); b.hidden=false; b.firstElementChild.style.width=Math.round(p*100)+"%"; }
+
+/* ---- fotos: a imagem viaja separada da ficha ---------------------- */
+async function fotoId(dataUrl){
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(dataUrl));
+  return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,"0")).join("").slice(0,32);
+}
+function dataParaBlob(dataUrl){
+  const [cab,b64] = String(dataUrl).split(",");
+  const mime = (cab.match(/data:([^;]+)/)||[,"image/jpeg"])[1];
+  const bin = atob(b64||""); const u8 = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+  return new Blob([u8],{type:mime});
+}
+async function mandarFoto(id, blob){
+  const r = await fetch(endereco()+"/api/foto?id="+encodeURIComponent(id), {
+    method:"POST", headers:{ "X-Chave": $("#chave").value.trim(), "content-type": blob.type||"image/jpeg" }, body: blob });
+  if(!r.ok) throw new Error("foto "+r.status);
+}
+async function prepararFicha(d){
+  const { id, ...resto } = d;                 /* o "id" é número local, não viaja */
+  if(!Array.isArray(resto.fotos) || !resto.fotos.length) return resto;
+  const saida = [];
+  for(const f of resto.fotos){
+    if(typeof f!=="string"){ continue; }
+    if(!f.startsWith("data:")){ saida.push(f); continue; }
+    const fid = await fotoId(f);
+    await mandarFoto(fid, dataParaBlob(f));
+    saida.push("foto:"+fid);
+  }
+  return { ...resto, fotos: saida };
+}
+
+/* ---- 1. testar ---------------------------------------------------- */
+$("#btTestar").onclick = async () => {
+  $("#selo").innerHTML = `<span class="bd-selo bd-selo-neutro">testando…</span>`;
+  try{
+    const r = await fetch(endereco()+"/api/situacao", { headers: hdrs(), cache:"no-store" });
+    if(r.status===401){ $("#selo").innerHTML = `<span class="bd-selo bd-selo-erro">Chave não aceita</span>`; return; }
+    if(!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    $("#selo").innerHTML = `<span class="bd-selo bd-selo-ok">Conectado</span>`;
+    reg(`Cofre respondeu: ${j.itens} fichas, ${j.meta} configurações, ${j.fotos} fotos.`);
+    if(ESCOLHIDOS.length) $("#btIr").disabled = false;
+    $("#btConferir").disabled = false;
+  }catch(e){
+    $("#selo").innerHTML = `<span class="bd-selo bd-selo-erro">Não respondeu</span>`;
+    reg("Erro ao testar: "+e.message);
+  }
+};
+
+/* ---- 2. ler o backup ---------------------------------------------- */
+$("#arquivo").onchange = async ev => {
+  const f = ev.target.files[0]; if(!f) return;
+  try{
+    ENVELOPE = JSON.parse(await f.text());
+  }catch(e){ reg("Esse arquivo não é um backup do site."); return; }
+
+  const todos = Array.isArray(ENVELOPE.itens) ? ENVELOPE.itens : [];
+  ESCOLHIDOS = todos.filter(d => d && QUADROS.indexOf(d.tipo) >= 0);
+  FOTOS_ESPERADAS = ESCOLHIDOS.reduce((n,d)=> n + (Array.isArray(d.fotos)
+      ? d.fotos.filter(x=>typeof x==="string" && x.startsWith("data:")).length : 0), 0);
+  const cfgs = CFG_PARES.filter(([,m]) => ENVELOPE[m]).length;
+  const empresas = new Set(ESCOLHIDOS.map(d=>d.loja).filter(Boolean)).size;
+
+  $("#resumo").innerHTML =
+      cartao("Fichas no arquivo", todos.length)
+    + cartao("Vão para o cofre", ESCOLHIDOS.length, "#1d6b57")
+    + cartao("Empresas", empresas)
+    + cartao("Fotos", FOTOS_ESPERADAS)
+    + cartao("Configurações", cfgs);
+  reg(`Arquivo lido: ${todos.length} fichas, ${ESCOLHIDOS.length} dos dois quadros, ${FOTOS_ESPERADAS} fotos.`);
+  if($("#selo").textContent.indexOf("Conectado")>=0) $("#btIr").disabled = false;
+};
+
+/* ---- 3. enviar ----------------------------------------------------- */
+$("#btIr").onclick = async () => {
+  $("#btIr").disabled = true; ENVIADOS = 0;
+  try{
+    for(let i=0; i<ESCOLHIDOS.length; i+=200){
+      const lote = [];
+      for(const d of ESCOLHIDOS.slice(i, i+200)) lote.push(await prepararFicha(d));
+      const r = await fetch(endereco()+"/api/itens", {
+        method:"POST", headers: hdrs(), body: JSON.stringify({ itens: lote }) });
+      if(!r.ok) throw new Error("fichas "+r.status);
+      ENVIADOS += lote.length;
+      barra(ENVIADOS/Math.max(1,ESCOLHIDOS.length));
+      reg(`Enviadas ${ENVIADOS} de ${ESCOLHIDOS.length}.`);
+    }
+
+    const pacote = {};
+    for(const [k,km] of CFG_PARES){
+      const mod = ENVELOPE[km] || ""; if(!mod) continue;
+      pacote[k] = { v: ENVELOPE[k], mod };
+    }
+    if(Object.keys(pacote).length){
+      const r = await fetch(endereco()+"/api/meta", {
+        method:"POST", headers: hdrs(), body: JSON.stringify({ meta: pacote }) });
+      if(!r.ok) throw new Error("configurações "+r.status);
+      reg(`Enviadas ${Object.keys(pacote).length} configurações.`);
+    }
+    reg("Envio terminado. Agora confira as contagens.");
+    $("#btConferir").disabled = false;
+  }catch(e){
+    reg("PAROU: "+e.message+". Nada foi perdido — pode mandar de novo, o cofre não duplica.");
+    $("#btIr").disabled = false;
+  }
+};
+
+/* ---- 4. conferir --------------------------------------------------- */
+$("#btConferir").onclick = async () => {
+  try{
+    const j = await (await fetch(endereco()+"/api/situacao",{headers:hdrs(),cache:"no-store"})).json();
+    const vivos = ESCOLHIDOS.filter(d=>!d.deleted).length;
+    const igual = (a,b) => a===b
+      ? `<span class="bd-selo bd-selo-ok">igual ✓</span>`
+      : `<span class="bd-selo bd-selo-erro">difere</span>`;
+    $("#placar").innerHTML =
+        cartao("Fichas aqui", vivos) + cartao("Fichas no cofre", j.itens)
+      + `<div class="bd-kpi">${igual(vivos, j.itens)}</div>`
+      + cartao("Fotos aqui", FOTOS_ESPERADAS) + cartao("Fotos no cofre", j.fotos)
+      + `<div class="bd-kpi">${igual(FOTOS_ESPERADAS, j.fotos)}</div>`;
+    reg(`Conferência: fichas ${vivos} x ${j.itens} · fotos ${FOTOS_ESPERADAS} x ${j.fotos}.`);
+  }catch(e){ reg("Não deu para conferir: "+e.message); }
+};
+</script>
+</body>
+</html>

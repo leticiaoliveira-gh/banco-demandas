@@ -36,3 +36,6 @@ modelos/
 node_modules/
 .DS_Store
 Thumbs.db
+wrangler.local.toml
+.dev.vars
+.wrangler/

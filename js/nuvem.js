@@ -91,7 +91,7 @@ async function nuvemPull() {
     const r = await fetch(u, { headers: nuvemHdrs(), cache: "no-store" });
     if (!r.ok) throw new Error("GET itens " + r.status);
     const j = await r.json();
-    for (const it of (j.itens || [])) itens.push(it);
+    for (const it of (j.itens || [])) itens.push(await nuvemFotosParaCa(it));
     desde = j.proxDesde || desde;
     cursor = j.proxCursor || cursor;
     if (!j.temMais) break;
@@ -137,10 +137,11 @@ async function nuvemPush() {
 
   /* em lotes, para nao estourar a memoria do celular nem o limite da API */
   for (let i = 0; i < lista.length; i += 400) {
-    const lote = lista.slice(i, i + 400).map(d => {
+    const lote = [];
+    for (const d of lista.slice(i, i + 400)) {
       const { id, ...resto } = d;   /* o "id" e numero local, nao viaja */
-      return resto;
-    });
+      lote.push(await nuvemFotosParaCofre(resto));
+    }
     const r = await fetch(c.endereco + "/api/itens", {
       method: "POST", headers: nuvemHdrs(), body: JSON.stringify({ itens: lote })
     });
@@ -236,6 +237,68 @@ async function nuvemFotoBaixar(id) {
   const r = await fetch(nuvemFotoURL(id), { headers: { "X-Chave": nuvemCfg().chave } });
   if (!r.ok) throw new Error("GET foto " + r.status);
   return r.blob();
+}
+
+/* O NOME DA FOTO E A PROPRIA FOTO.
+   O id sai do conteudo da imagem (impressao digital). Duas copias da mesma
+   foto viram um arquivo so no cofre, e reenviar a mesma foto nunca duplica. */
+async function nuvemFotoId(dataUrl) {
+  const b = new TextEncoder().encode(dataUrl);
+  const h = await crypto.subtle.digest("SHA-256", b);
+  return Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+function nuvemDataParaBlob(dataUrl) {
+  const [cab, b64] = String(dataUrl).split(",");
+  const mime = (cab.match(/data:([^;]+)/) || [, "image/jpeg"])[1];
+  const bin = atob(b64 || "");
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], { type: mime });
+}
+function nuvemBlobParaData(blob) {
+  return new Promise((res, rej) => {
+    const f = new FileReader();
+    f.onload = () => res(f.result); f.onerror = rej;
+    f.readAsDataURL(blob);
+  });
+}
+
+/* ---------------------------------------------------------------------
+   A FOTO VIAJA SEPARADA DA FICHA
+   No cofre a ficha guarda so "foto:<id>" — ficha pequena, viagem leve.
+   NO APARELHO a foto continua inteira dentro da ficha, exatamente como
+   e hoje: e isso que faz o site continuar mostrando as fotos sem
+   internet. Nada muda na tela dela.
+   --------------------------------------------------------------------- */
+async function nuvemFotosParaCofre(d) {
+  if (!d || !Array.isArray(d.fotos) || !d.fotos.length) return d;
+  const saida = [];
+  for (const f of d.fotos) {
+    if (typeof f !== "string") continue;
+    if (!f.startsWith("data:")) { saida.push(f); continue; }  /* ja e referencia */
+    const id = await nuvemFotoId(f);
+    await nuvemFotoEnviar(id, nuvemDataParaBlob(f));
+    saida.push("foto:" + id);
+  }
+  return { ...d, fotos: saida };
+}
+
+async function nuvemFotosParaCa(d) {
+  if (!d || !Array.isArray(d.fotos) || !d.fotos.length) return d;
+  const saida = [];
+  for (const f of d.fotos) {
+    if (typeof f !== "string") continue;
+    if (!f.startsWith("foto:")) { saida.push(f); continue; }  /* ja e a imagem */
+    try {
+      saida.push(await nuvemBlobParaData(await nuvemFotoBaixar(f.slice(5))));
+    } catch (e) {
+      /* foto que nao veio nao derruba a ficha: a ficha entra, a foto tenta
+         de novo na proxima conversa */
+      console.warn("[nuvem] foto nao veio:", f, e);
+      saida.push(f);
+    }
+  }
+  return { ...d, fotos: saida };
 }
 
 /* ---------------------------------------------------------------------
