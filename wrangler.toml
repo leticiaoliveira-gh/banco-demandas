@@ -48,35 +48,8 @@ database_name = "central-copias"
 database_id = "5a911a6a-4026-4e3b-8680-ee3d057359fa"
 
 # ---------------------------------------------------------------------
-#  ENSAIO ANTES DO REAL (item 5 do plano)
-#  A migracao roda PRIMEIRO nestes cofres de teste, as contagens sao
-#  conferidas, e so entao ela e feita nos cofres de verdade.
-#  Os cofres de teste sao apagados depois.
-#  Uso: npx wrangler deploy --env teste
-# ---------------------------------------------------------------------
-[env.teste]
-name = "central-demandas-teste"
-
-[env.teste.assets]
-directory = "."
-binding = "ASSETS"
-not_found_handling = "none"
-
-[[env.teste.d1_databases]]
-binding = "DB"
-database_name = "teste-demandas"
-database_id = "ecf3e1fc-36bd-4cba-8d26-d2008ce523fc"
-
-[[env.teste.d1_databases]]
-binding = "FOTOS"
-database_name = "teste-fotos"
-database_id = "329edc08-08d5-4ba4-905e-cfd19387b2b6"
-
-[[env.teste.d1_databases]]
-binding = "COPIAS"
-database_name = "teste-copias"
-database_id = "a6a64389-d2de-4b89-a4a7-6d7bd6161ab2"
-
+#  O ensaio (cofres de teste) ja cumpriu o papel dele e foi apagado
+#  em 20/09. So os 3 cofres de verdade acima continuam.
 # ---------------------------------------------------------------------
 #  SEGREDO
 #  CHAVE_MESTRA cria a PRIMEIRA chave de acesso, uma vez so. Nunca fica
