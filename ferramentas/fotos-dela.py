@@ -29,7 +29,9 @@ import datetime
 import pathlib
 import shutil
 
-DESKTOP = pathlib.Path.home() / "Desktop"
+# 21/09/2026: a CLAUDE (CENTRAL) foi para dentro do OneDrive. O cofre antigo
+# de fotos e os robos do Telegram continuam la, na Site Trabalho.
+DESKTOP = pathlib.Path.home() / "OneDrive" / "- Letícia Oliveira"
 
 # ONDE O CHAT GUARDA O QUE ELA ANEXA. Era isto que faltava em 25/08: ela mandava
 # a foto na conversa, eu enxergava e dizia que nao tinha o arquivo. Tinha: o

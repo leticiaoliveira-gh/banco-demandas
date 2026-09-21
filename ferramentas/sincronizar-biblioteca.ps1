@@ -19,11 +19,17 @@ $ErrorActionPreference = 'Stop'
 
 $projeto    = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $biblioteca = Resolve-Path (Join-Path $projeto '..\..\biblioteca-design') -ErrorAction SilentlyContinue
-$destino    = Join-Path $projeto 'biblioteca'
+# 21/09/2026: o site saiu da 6. REPOSITORIOS e foi para a (CENTRAL) SOFTWARES,
+# entao a biblioteca deixou de ser vizinha. Procura no endereco fixo dela
+# (o nome da pasta do OneDrive tem acento, por isso vai por busca).
+if (-not $biblioteca) {
+  $biblioteca = Resolve-Path (Join-Path $env:USERPROFILE 'OneDrive\*\CLAUDE (CENTRAL)\6. REPOSITORIOS (meus-projetos)\biblioteca-design') -ErrorAction SilentlyContinue | Select-Object -First 1
+}
+$destino   = Join-Path $projeto 'biblioteca'
 $swjs       = Join-Path $projeto 'sw.js'
 
 if (-not $biblioteca) {
-  Write-Output "BIBLIOTECA NAO ENCONTRADA em ..\..\biblioteca-design - nada foi copiado."
+  Write-Output "BIBLIOTECA NAO ENCONTRADA - nada foi copiado."
   Write-Output "Confira se a pasta 'biblioteca-design' continua em 6. REPOSITORIOS (meus-projetos)."
   exit 1
 }

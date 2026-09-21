@@ -35,6 +35,19 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "statusMessage": "Conferindo se o plano mudou para gerar o PDF...",
+            "timeout": 120,
+            "command": "$p = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { (Get-Location).Path }; $s = Join-Path $p 'ferramentas\\gatilho-pdf-plano.ps1'; if (Test-Path $s) { & powershell -NoProfile -ExecutionPolicy Bypass -File $s }"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|PowerShell",

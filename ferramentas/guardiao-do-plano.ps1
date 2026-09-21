@@ -37,12 +37,17 @@ function Ler-Utf8($caminho) {
 #  21/09/2026: sao DOIS planos vigiados.
 #   1) migracao Cloudflare -> o HTML "Plano atualizado*" mais novo em 4. TAREFAS
 #   2) migracao OneDrive   -> o HTML "Plano atualizado*" dentro de
-#      Desktop\Site Trabalho (claudflare)\ (pasta "Migracao - One Drive";
-#      o nome tem acento, por isso e achado por busca e nao escrito aqui)
+#      (CENTRAL) SOFTWARES\...\3. Transferencia (One Drive)
+#      (21/09: tudo foi para o OneDrive; os nomes tem acento, por isso as
+#      pastas sao achadas por busca e nao escritas aqui)
+#  21/09 (depois): o site passou a usar a pasta que SOBE para a nuvem
+#  (USERPROFILE\OneDrive) e o plano Cloudflare foi morar em
+#  2. Transferencia (CloudFlare)\Plano - caderno vivo.
+$od = Join-Path $env:USERPROFILE 'OneDrive\*'
 $bases = @(
-  (Join-Path $env:USERPROFILE 'Desktop\CLAUDE (CENTRAL)\4. TAREFAS'),
-  (Join-Path $env:USERPROFILE 'Desktop\Site Trabalho (claudflare)')
-)
+  (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\2. Transfer*\Plano - caderno vivo') -ErrorAction SilentlyContinue | Select-Object -First 1),
+  (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\3. Transfer*') -ErrorAction SilentlyContinue | Select-Object -First 1)
+) | Where-Object { $_ } | ForEach-Object { $_.Path }
 $planos = @()
 foreach ($b in $bases) {
   if (-not (Test-Path $b)) { continue }

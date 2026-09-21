@@ -32,8 +32,11 @@ Chamar o subagente `auditor-da-sessao`, dizendo qual era a demanda do dia.
 - **Nada se apaga e nada vai para arquivo morto.** Item que não serve mais fica
   **riscado no lugar, com o motivo escrito**, e ela é informada.
 - Subir a versão do plano e a linhagem no rodapé. A contagem de itens só cresce.
-- Gerar o PDF novo com Chrome headless (Edge não funciona neste PC) e mandar
-  para ela com `SendUserFile` — **sem ela pedir**.
+- Rodar `powershell -ExecutionPolicy Bypass -File ferramentas\entregar-pdf-plano.ps1`:
+  ele gera o PDF de cada plano que mudou de versão, já numerado, direto nas
+  pastas dela (`2. Transferência (CloudFlare)\Atualizações Plano\` e
+  `3. Transferência (One Drive)\`). Mandar cada "PDF NOVO" com `SendUserFile`
+  — **sem ela pedir**.
 
 ## 6. Preparar a próxima sessão
 Reescrever `PROXIMA-SESSAO.md` em **uma página**, com:
