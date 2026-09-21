@@ -33,17 +33,26 @@ function Ler-Utf8($caminho) {
   return [System.IO.File]::ReadAllText($caminho, [System.Text.Encoding]::UTF8)
 }
 
-# --- acha o caderno vivo (o HTML mais novo do plano) -------------------
-$base = Join-Path $env:USERPROFILE 'Desktop\CLAUDE (CENTRAL)\4. TAREFAS'
-if (-not (Test-Path $base)) { exit 0 }
+# --- acha os cadernos vivos -------------------------------------------
+#  21/09/2026: sao DOIS planos vigiados.
+#   1) migracao Cloudflare -> o HTML "Plano atualizado*" mais novo em 4. TAREFAS
+#   2) migracao OneDrive   -> o HTML "Plano atualizado*" dentro de
+#      Desktop\Site Trabalho (claudflare)\ (pasta "Migracao - One Drive";
+#      o nome tem acento, por isso e achado por busca e nao escrito aqui)
+$bases = @(
+  (Join-Path $env:USERPROFILE 'Desktop\CLAUDE (CENTRAL)\4. TAREFAS'),
+  (Join-Path $env:USERPROFILE 'Desktop\Site Trabalho (claudflare)')
+)
+$planos = @()
+foreach ($b in $bases) {
+  if (-not (Test-Path $b)) { continue }
+  $achado = Get-ChildItem -Path $b -Recurse -Filter '*.html' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'Plano atualizado*' -and $_.DirectoryName -notlike '*copias-antes*' } |
+            Sort-Object LastWriteTime -Descending | Select-Object -First 1
+  if ($achado) { $planos += $achado }
+}
 
-$plano = Get-ChildItem -Path $base -Recurse -Filter '*.html' -ErrorAction SilentlyContinue |
-         Where-Object { $_.Name -like 'Plano atualizado*' } |
-         Sort-Object LastWriteTime -Descending | Select-Object -First 1
-
-if (-not $plano) { exit 0 }   # sem caderno vivo por perto: nada a conferir
-
-$copias = Join-Path $plano.DirectoryName 'copias-antes'
+if (-not $planos) { exit 0 }   # sem caderno vivo por perto: nada a conferir
 
 # --- como se mede o plano ---------------------------------------------
 function Contar-Itens($txt) {
@@ -52,6 +61,9 @@ function Contar-Itens($txt) {
 
 function Ler-Versao($txt) {
   $m = [regex]::Match($txt, 'class="selo">[^<]*?vers.{1,2}o\s+(\d+)')
+  if ($m.Success) { return [int]$m.Groups[1].Value }
+  # cabecalho novo (v24 em diante): <span>Versao NN</span> no canto da capa
+  $m = [regex]::Match($txt, '<span>Vers.{1,2}o\s+(\d+)</span>')
   if ($m.Success) { return [int]$m.Groups[1].Value }
   return 0
 }
@@ -76,64 +88,70 @@ function Digitais($txt) {
   return $set
 }
 
-$agora    = Ler-Utf8 $plano.FullName
-$nItens   = Contar-Itens $agora
-$nVersao  = Ler-Versao $agora
+$barrou = $false
+foreach ($plano in $planos) {
+  $copias = Join-Path $plano.DirectoryName 'copias-antes'
+  $agora    = Ler-Utf8 $plano.FullName
+  $nItens   = Contar-Itens $agora
+  $nVersao  = Ler-Versao $agora
 
-# =====================================================================
-#  MODO ABERTURA — guarda o "antes" da sessao
-# =====================================================================
-if ($Modo -eq 'abertura') {
-  if (-not (Test-Path $copias)) { New-Item -ItemType Directory -Path $copias | Out-Null }
-  $destino = Join-Path $copias ('antes-' + (Get-Date).ToString('yyyyMMdd-HHmmss') + '.html')
-  Copy-Item $plano.FullName $destino
-  Write-Output ("Plano: v" + $nVersao + ", " + $nItens + " itens. Copia do antes guardada (nenhuma copia e apagada).")
-  exit 0
-}
-
-# =====================================================================
-#  MODO COMMIT — compara com o "antes" e barra se sumiu alguma coisa
-# =====================================================================
-if (-not (Test-Path $copias)) { exit 0 }
-
-$antesArq = Get-ChildItem -Path $copias -Filter 'antes-*.html' -ErrorAction SilentlyContinue |
-            Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $antesArq) { exit 0 }
-
-$antes   = Ler-Utf8 $antesArq.FullName
-$aItens  = Contar-Itens $antes
-$aVersao = Ler-Versao $antes
-$mudou   = ($antes -ne $agora)
-
-$problemas = @()
-
-if ($nItens -lt $aItens) {
-  $problemas += ("a contagem caiu de " + $aItens + " para " + $nItens + " itens - o plano so pode crescer")
-}
-
-if ($mudou -and $nVersao -le $aVersao) {
-  $problemas += ("o plano mudou mas a versao continua " + $nVersao + " - suba a versao e a linhagem no rodape")
-}
-
-if ($mudou) {
-  $dAntes = Digitais $antes
-  $dAgora = Digitais $agora
-  $sumidos = @()
-  foreach ($d in $dAntes) { if (-not $dAgora.Contains($d)) { $sumidos += $d } }
-  if ($sumidos.Count -gt 0) {
-    $problemas += ($sumidos.Count.ToString() + " item(ns) sumiram do plano em vez de ficar riscados:")
-    foreach ($s in ($sumidos | Select-Object -First 5)) { $problemas += ("   -> " + $s) }
-    if ($sumidos.Count -gt 5) { $problemas += ("   -> (e mais " + ($sumidos.Count - 5) + ")") }
+  # =====================================================================
+  #  MODO ABERTURA — guarda o "antes" da sessao
+  # =====================================================================
+  if ($Modo -eq 'abertura') {
+    if (-not (Test-Path $copias)) { New-Item -ItemType Directory -Path $copias | Out-Null }
+    $destino = Join-Path $copias ('antes-' + (Get-Date).ToString('yyyyMMdd-HHmmss') + '.html')
+    Copy-Item $plano.FullName $destino
+    Write-Output ($plano.BaseName + ": v" + $nVersao + ", " + $nItens + " itens. Copia do antes guardada (nenhuma copia e apagada).")
+    continue
   }
-}
 
-if ($problemas) {
-  Write-Output "=== GUARDIAO DO PLANO - NAO PUBLIQUE AINDA ==="
-  foreach ($p in $problemas) { Write-Output ("  ! " + $p) }
-  Write-Output ("  O 'antes' desta sessao esta em: " + $antesArq.FullName)
-  Write-Output "  Regra dela: NADA se apaga e NADA vai para arquivo morto. Item que nao serve mais"
-  Write-Output "  fica RISCADO no lugar, com o motivo escrito, e ela e informada."
-  exit 2
-}
+  # =====================================================================
+  #  MODO COMMIT — compara com o "antes" e barra se sumiu alguma coisa
+  # =====================================================================
+  if (-not (Test-Path $copias)) { continue }
 
-Write-Output ("Plano integro: v" + $nVersao + ", " + $nItens + " itens, nada removido.")
+  $antesArq = Get-ChildItem -Path $copias -Filter 'antes-*.html' -ErrorAction SilentlyContinue |
+              Sort-Object Name -Descending | Select-Object -First 1
+  if (-not $antesArq) { continue }
+
+  $antes   = Ler-Utf8 $antesArq.FullName
+  $aItens  = Contar-Itens $antes
+  $aVersao = Ler-Versao $antes
+  $mudou   = ($antes -ne $agora)
+
+  $problemas = @()
+
+  if ($nItens -lt $aItens) {
+    $problemas += ("a contagem caiu de " + $aItens + " para " + $nItens + " itens - o plano so pode crescer")
+  }
+
+  if ($mudou -and $nVersao -le $aVersao) {
+    $problemas += ("o plano mudou mas a versao continua " + $nVersao + " - suba a versao e a linhagem no rodape")
+  }
+
+  if ($mudou) {
+    $dAntes = Digitais $antes
+    $dAgora = Digitais $agora
+    $sumidos = @()
+    foreach ($d in $dAntes) { if (-not $dAgora.Contains($d)) { $sumidos += $d } }
+    if ($sumidos.Count -gt 0) {
+      $problemas += ($sumidos.Count.ToString() + " item(ns) sumiram do plano em vez de ficar riscados:")
+      foreach ($s in ($sumidos | Select-Object -First 5)) { $problemas += ("   -> " + $s) }
+      if ($sumidos.Count -gt 5) { $problemas += ("   -> (e mais " + ($sumidos.Count - 5) + ")") }
+    }
+  }
+
+  if ($problemas) {
+    Write-Output ("=== GUARDIAO DO PLANO - NAO PUBLIQUE AINDA (" + $plano.BaseName + ") ===")
+    foreach ($p in $problemas) { Write-Output ("  ! " + $p) }
+    Write-Output ("  O 'antes' desta sessao esta em: " + $antesArq.FullName)
+    Write-Output "  Regra dela: NADA se apaga e NADA vai para arquivo morto. Item que nao serve mais"
+    Write-Output "  fica RISCADO no lugar, com o motivo escrito, e ela e informada."
+    $barrou = $true; continue
+  }
+
+  Write-Output ($plano.BaseName + " - integro: v" + $nVersao + ", " + $nItens + " itens, nada removido.")
+}
+if ($barrou) { exit 2 }
+exit 0
