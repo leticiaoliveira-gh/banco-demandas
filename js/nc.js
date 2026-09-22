@@ -896,6 +896,7 @@ async function ncRelatorioPrint(){
  <div class="ass"><div class="linha"></div>${esc(rt)}</div>
  </body></html>`);
  w.document.close();
+ if(typeof revisarAtivar==="function")revisarAtivar(w,{chave:"nc-"+currentStore+"-"+ym,titulo:"Relatório de Não Conformidades — "+ncTituloMes(ym)});
 }
 
 /* 16/09: mesmo layout do relatório impresso/PDF (ncRelatorio) — faixa verde

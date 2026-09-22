@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-09-22",
- "versao": "11.4",
- "qa": "QA 22/09 (v11.4): ABRIR E GIRAR FOTO EM TODA TELA DE EDICAO. O visualizador de foto (abrir grande + girar) ja existia desde 17/09, mas so funcionava nas listas prontas (manutencao, nao conformidade). Nas telas de EDITAR um item (o 'mudar aqui mesmo, sem sair da tela'), a miniatura da foto nao tinha o toque de abrir - foi isso que ela viu no 1o piso de AC Manutencoes e nao conseguiu abrir a imagem. Ligado agora em manutencao, nao conformidade, PPR (item avulso) e checklist de qualidade, todos chamando o mesmo visualizador.",
- "ondeParamos": "22/09: abrir/girar foto ligado tambem no modo de edicao, em todos os relatorios que tem foto.",
- "proximoPasso": "Aguardando Le revisar no site publicado e mandar a proxima melhoria."
+ "versao": "11.5",
+ "qa": "QA 22/09 (v11.5): BOTAO REVISAR NOS RELATORIOS. Pedido dela: em vez de imprimir, anotar a mao e mandar corrigir, agora ela clica em 'Revisar' dentro do relatorio (o mesmo modelo que ja vira PDF), clica no trecho que quer mudar e escreve o pedido num painel do lado, igual comentario do Word. No fim aperta 'Copiar pedidos' e cola pra mim, que faco as mudancas. Ligado por enquanto no relatorio de Nao Conformidades e no de Checklist de Qualidade.",
+ "ondeParamos": "22/09: botao Revisar funcionando nos relatorios de Nao Conformidades e Checklist de Qualidade.",
+ "proximoPasso": "Aguardando Le testar o Revisar no site publicado; se aprovar, ligar nos demais relatorios (manutencao, PPR etc)."
 }

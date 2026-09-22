@@ -936,6 +936,7 @@ function ckqAbrirRelatorio(uid){
       @media print{.barra{display:none!important}body{padding:0}}
     </style></head><body>${barra}${html}</body></html>`);
   w.document.close();
+  if(typeof revisarAtivar==="function")revisarAtivar(w,{chave:"ckq-"+uid,titulo:(m.titulo||"Relatório de Qualidade")});
 }
 function ckqRelatorioHTML(p,m){
   const cls=ckqClassificar(p.nota);
