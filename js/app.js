@@ -1,4 +1,4 @@
-﻿const RT_DEFAULT="Responsável Técnica";
+const RT_DEFAULT="Responsável Técnica";
 
 /* ===== Empresas dinâmicas (gerenciáveis pela Central de Empresas) ===== */
 /* Grupo = conjunto de lojas que dividem a MESMA agenda de Demandas Gerais.
@@ -1910,7 +1910,7 @@ const APP_VERSAO="11.4";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="21/09/2026 · 22:57";
+const APP_DATA="22/09/2026 · 12:08";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
