@@ -1,7 +1,7 @@
 {
- "atualizadoEm": "2026-09-20",
- "versao": "11.2",
- "qa": "QA 20/09 (v11.2): CONSERTO DA ENTRADA. A conta dela existia desde 10:23, mas a senha que ela escolheu na conversa foi gravada por fora (linha de comando) e chegou deformada ao cofre - o site respondia 'e-mail ou senha errados' com a senha certa. Pior: nao havia NENHUMA rota de trocar ou recuperar senha (porta trancada sem saida). Conserto: (1) servidor/index.js ganhou /api/definir-senha (so funciona com a conta sem senha, nao precisa de chave porque quem nao tem senha nao tem como provar quem e) e /api/trocar-senha (exige sessao valida, confere a senha atual); rotaLogin agora responde {precisaDefinir:true} quando hash_senha e NULL, em vez de 'senha errada'. (2) js/login.js: tela 1B 'Primeira vez: crie sua senha' (senha + confirmacao, minimo 8, peças bd-*, Enter funciona, link Voltar com area de toque de 44px). (3) js/seguranca.js: bloco 'Trocar minha senha' dentro da tela Seguranca que ja existia. (4) O hash da senha velha foi zerado no cofre (UPDATE usuarios SET hash_senha=NULL, sal=NULL) - so a senha; fichas, fotos e copias intactas. LICAO: senha nunca mais e gravada por linha de comando nem passa por conversa; quem digita e ela, na tela.",
- "ondeParamos": "20/09 (quinta sessao do dia): entrada consertada e publicada. A Le cria a propria senha na tela, na primeira entrada, e pode troca-la em Seguranca.",
- "proximoPasso": "Parte 4: arrumacao de pastas (nao comecar sem ela pedir)."
+ "atualizadoEm": "2026-09-21",
+ "versao": "11.3",
+ "qa": "QA 21/09 (v11.3): CONSERTO DA ENTRADA (SEGUNDA VEZ). O hash de senha dela ficou gravado como texto vazio em vez de NULL numa tentativa anterior, e o campo NOT NULL do banco nao aceitava NULL puro - o site voltou a nao deixar logar. Zerado de novo com string vazia ('') em vez de NULL, que o codigo trata igual (falsy), e funcionou: ela criou senha nova na tela e entrou. ORDEM URGENTES/DEMANDAS GERAIS: na folha impressa de manutencao (js/mnt28.js), o comentario do codigo dizia 'Urgentes a esquerda, pedido dela em 26/08' mas o HTML estava invertido, mostrando Demandas gerais primeiro. Corrigido para bater com a decisao registrada: Urgentes aparece primeiro.",
+ "ondeParamos": "21/09: entrada resolvida de novo e a ordem Urgentes/Demandas gerais da folha impressa corrigida. Le vai mandar as melhorias do 1º piso de AC Manutenções.",
+ "proximoPasso": "Aguardando Le mandar o que quer melhorar no 1º piso de AC Manutenções."
 }

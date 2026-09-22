@@ -2049,8 +2049,8 @@ function m28ImprimirFolha(op){
     ${/* URGENTES a ESQUERDA e demandas gerais a direita, pedido dela em 26/08.
          O que pede atencao vem primeiro no caminho do olho. */""}
     <div class="nums">
-      <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
+      <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
 
