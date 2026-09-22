@@ -160,7 +160,7 @@ function pprDesenha(){
                   <b style="${i.resolvidoEm?"text-decoration:line-through;opacity:.65":""}">☐ ${esc(i.titulo)}</b>
                   ${i.comentario?`<span class="d">${esc(i.comentario)}</span>`:""}
                   <span class="d" style="opacity:.6">${esc(brDate(i.data))} · ${esc(i.fonte)}</span>
-                  ${(i.fotos||[]).length?`<span class="d">${i.fotos.map(f=>`<img src="${f}" style="max-height:52px;border-radius:6px;margin:3px 4px 0 0">`).join("")}</span>`:""}
+                  ${(i.fotos||[]).length?`<span class="d">${i.fotos.map(f=>`<img src="${f}" style="max-height:52px;border-radius:6px;margin:3px 4px 0 0" onclick="verImagemGrande('${f}')" title="Toque para ver grande">`).join("")}</span>`:""}
                 </div>
                 <div style="display:flex;gap:6px;align-items:center">
                   <label style="font-size:11.5px;white-space:nowrap;cursor:pointer">
@@ -212,7 +212,7 @@ function pprAvulso(uid){
     </div>`);
 }
 function pprAvThumbs(){
-  return PPR_AV_FOTOS.map((f,i)=>`<span class="nc-thumb"><img src="${f}">
+  return PPR_AV_FOTOS.map((f,i)=>`<span class="nc-thumb"><img src="${f}" onclick="verImagemGrande('${f}')" title="Toque para ver grande">
     <button onclick="pprAvFotoDel(${i})" title="Remover">×</button></span>`).join("");
 }
 async function pprAvFoto(e){

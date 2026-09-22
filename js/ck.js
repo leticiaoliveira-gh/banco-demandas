@@ -1680,7 +1680,7 @@ function ckFotoHTML(q,r,chave){
       ${fotos.length>=CK_MAX_FOTOS?txt("ck.fotomax","Limite de fotos atingido"):txt("ck.tirarfoto","Tirar / escolher foto")}</button>
     ${q.foto==="obrigatoria"&&!fotos.length?`<span class="ck-obrig" data-txt="ck.fotoobrig">Foto obrigatória</span>`:""}
     <div class="ck-thumbs">${fotos.map((f,i)=>`<span class="ck-thumb">
-      <img src="${f}"><button onclick="ckDelFoto('${k}',${i})" title="Remover">×</button></span>`).join("")}</div>
+      <img src="${f}" onclick="verImagemGrande('${f}')" title="Toque para ver grande"><button onclick="ckDelFoto('${k}',${i})" title="Remover">×</button></span>`).join("")}</div>
   </div>`;
 }
 /* LIMITE DE PESO: o banco inteiro vai num arquivo só para o GitHub, que trava perto

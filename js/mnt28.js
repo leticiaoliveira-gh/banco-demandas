@@ -1571,7 +1571,8 @@ function m28FormHTML(d){
   const pisoAtual=pisos.includes(d.piso)?d.piso:(pisos[0]||d.piso);
   const opPiso=pisos.map(p=>`<option value="${esc(p)}"${p===d.piso?" selected":""}>${esc(p)}</option>`).join("");
   const opArea=(por[pisoAtual]||[]).sort().map(a=>`<option value="${esc(a)}"${a===d.area?" selected":""}>${esc(a)}</option>`).join("");
-  const fotos=(d.fotos||[]).map((f,i)=>`<span class="m28-thumb"><img src="${f}" width="64" height="64" alt="Foto ${i+1} deste serviço">
+  const fotos=(d.fotos||[]).map((f,i)=>`<span class="m28-thumb"><img src="${f}" width="64" height="64" alt="Foto ${i+1} deste serviço"
+      onclick="verImagemGrande('${f}')" title="Toque para ver grande">
       <button type="button" onclick="m28TirarFoto(${d.id},${i})" aria-label="Remover a foto ${i+1}" title="Remover">×</button></span>`).join("");
   /* a lista de quem executa é a MESMA da aba antiga (ela já cadastra e renomeia
      por lá) — nunca uma segunda lista para ela manter em dois lugares */

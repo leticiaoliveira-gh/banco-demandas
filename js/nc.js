@@ -435,7 +435,7 @@ async function ncCapFoto(e){
  for(const f of e.target.files){const d=await ncComprimir(f);if(d)ncCapFotos.push(d);}
  e.target.value="";
  document.getElementById("nc-cap-thumbs").innerHTML=ncCapFotos.map((d,i)=>
-  `<span class="nc-thumb"><img src="${d}"><button onclick="ncCapFotos.splice(${i},1);ncCapFoto({target:{files:[]}})" title="Remover">×</button></span>`).join("");
+  `<span class="nc-thumb"><img src="${d}" onclick="verImagemGrande('${d}')" title="Toque para ver grande"><button onclick="ncCapFotos.splice(${i},1);ncCapFoto({target:{files:[]}})" title="Remover">×</button></span>`).join("");
 }
 /* COMPRESSAO DA FOTO (27/08) — regra fixa dela: a foto NUNCA e cortada, so
    reduzida, e tem que continuar nitida. 800px + qualidade 0,7 deixava a foto
@@ -674,7 +674,7 @@ async function ncEditar(id){
        Recomendação ou Dica funcional. A mesma peça da folha de manutenção. */""}
   ${typeof orientacaoFormHTML==="function"?orientacaoFormHTML(d,"nc-e"):""}
   <div class="field"><label><input type="checkbox" id="nc-e-rev" ${d.revisar?"checked":""} style="width:auto;margin-right:6px">Marcada para revisão</label></div>
-  <div class="field"><label>Fotos</label><div class="nc-thumbs">${(d.fotos||[]).map((f,i)=>`<span class="nc-thumb"><img src="${f}"><button onclick="ncEditRef.fotos.splice(${i},1);ncEditar(${d.id})" title="Remover">×</button></span>`).join("")}</div>
+  <div class="field"><label>Fotos</label><div class="nc-thumbs">${(d.fotos||[]).map((f,i)=>`<span class="nc-thumb"><img src="${f}" onclick="verImagemGrande('${f}')" title="Toque para ver grande"><button onclick="ncEditRef.fotos.splice(${i},1);ncEditar(${d.id})" title="Remover">×</button></span>`).join("")}</div>
    <input type="file" accept="image/*" capture="environment" multiple onchange="ncEditFoto(event,${d.id})"></div>
   <div class="form-actions">
    <button class="btn" onclick="ncSalvarEdicao(${d.id})">Salvar</button>

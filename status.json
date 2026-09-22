@@ -1,7 +1,7 @@
 {
- "atualizadoEm": "2026-09-21",
- "versao": "11.3",
- "qa": "QA 21/09 (v11.3): CONSERTO DA ENTRADA (SEGUNDA VEZ). O hash de senha dela ficou gravado como texto vazio em vez de NULL numa tentativa anterior, e o campo NOT NULL do banco nao aceitava NULL puro - o site voltou a nao deixar logar. Zerado de novo com string vazia ('') em vez de NULL, que o codigo trata igual (falsy), e funcionou: ela criou senha nova na tela e entrou. ORDEM URGENTES/DEMANDAS GERAIS: na folha impressa de manutencao (js/mnt28.js), o comentario do codigo dizia 'Urgentes a esquerda, pedido dela em 26/08' mas o HTML estava invertido, mostrando Demandas gerais primeiro. Corrigido para bater com a decisao registrada: Urgentes aparece primeiro.",
- "ondeParamos": "21/09: entrada resolvida de novo e a ordem Urgentes/Demandas gerais da folha impressa corrigida. Le vai mandar as melhorias do 1º piso de AC Manutenções.",
- "proximoPasso": "Aguardando Le mandar o que quer melhorar no 1º piso de AC Manutenções."
+ "atualizadoEm": "2026-09-22",
+ "versao": "11.4",
+ "qa": "QA 22/09 (v11.4): ABRIR E GIRAR FOTO EM TODA TELA DE EDICAO. O visualizador de foto (abrir grande + girar) ja existia desde 17/09, mas so funcionava nas listas prontas (manutencao, nao conformidade). Nas telas de EDITAR um item (o 'mudar aqui mesmo, sem sair da tela'), a miniatura da foto nao tinha o toque de abrir - foi isso que ela viu no 1o piso de AC Manutencoes e nao conseguiu abrir a imagem. Ligado agora em manutencao, nao conformidade, PPR (item avulso) e checklist de qualidade, todos chamando o mesmo visualizador.",
+ "ondeParamos": "22/09: abrir/girar foto ligado tambem no modo de edicao, em todos os relatorios que tem foto.",
+ "proximoPasso": "Aguardando Le revisar no site publicado e mandar a proxima melhoria."
 }
