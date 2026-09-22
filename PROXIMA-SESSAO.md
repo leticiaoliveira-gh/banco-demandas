@@ -16,18 +16,27 @@
 
 ## Onde está hoje
 
-Login (e-mail/senha + "manter conectado") já está no ar. Nesta sessão (22/09)
-foi corrigido: dentro do modo de edição de um item ("mudar este serviço aqui
-mesmo sem sair da tela"), a foto anexada agora abre grande e gira, em
-manutenção, não conformidade, PPR e checklist de qualidade — antes só
-funcionava nas listas prontas. Publicado, versão **11.4**, conferido no site
-no ar. Plano em **v27**, PDF novo já mandado.
+Nesta sessão (22/09) entrou o botão **Revisar** nos relatórios: dentro do
+relatório (o mesmo modelo que já vira PDF), ela clica num trecho e escreve
+o que quer mudar ali, num painel do lado, igual comentário do Word. No fim
+aperta "Copiar pedidos" e cola na conversa, para as mudanças serem feitas.
+Ligado por enquanto em dois relatórios: Não Conformidades e Checklist de
+Qualidade. Publicado, versão **11.5**, conferido pelos programas-guardião
+(versão, cache e `status.json` batendo). Plano em **v28**, PDF novo já mandado.
 
 ## A PRÓXIMA DEMANDA
 
-**Nenhuma aberta.** Ela vai revisar o conserto de hoje no site publicado e
-mandar a próxima melhoria. Não iniciar nada por conta própria — só investigar
-e escrever aqui quando ela mandar.
+**Nenhuma aberta, mas já hà um próximo passo natural esperando aprovação
+dela:** ela testar o botão Revisar no site publicado e, se aprovar, eu ligo
+o mesmo botão nos demais relatórios do site (manutenção, PPR etc). Não
+iniciar isso por conta própria, só quando ela mandar.
+
+Uma decisão pequena em aberto, para ela responder quando quiser (sem
+pressa, não trava nada): o painel do Revisar hoje foi construído direto no
+arquivo do site (não é uma "peça" igual as outras da biblioteca de design,
+por ser uma função e não um visual fixo). Perguntar a ela se quer que eu
+depois organize isso dentro da biblioteca também, ou se pode ficar como
+está.
 
 ## O que não pode ser mexido
 
@@ -40,16 +49,17 @@ e escrever aqui quando ela mandar.
 
 ## Arquivos envolvidos no conserto de hoje (se precisar revisar)
 
-`js/arquivos.js` (o visualizador `verImagemGrande`/`girarImagemGrande`,
-já existia) · `js/mnt28.js`, `js/nc.js`, `js/ppr.js`, `js/ck.js` (as
-miniaturas do modo de edição, que não chamavam o visualizador — corrigido).
+`js/revisar.js` (o painel novo, chamado de dentro de cada relatório) ·
+`js/nc.js` e `js/ck-qualidade.js` (onde o botão foi ligado, um por relatório).
 
 ## Como saber que terminou
 
-Site publicado mostra versão **11.4** (rodapé/barra lateral/topo do celular).
-`status.json.proximoPasso` diz "aguardando Le revisar e mandar a próxima
-melhoria". Plano em `2. Transferência (CloudFlare)\Plano - caderno vivo\
-Plano atualizado - migracao Cloudflare (20-09-26).html`, versão 27, 156 itens.
+Site publicado mostra versão **11.5** (rodapé/barra lateral/topo do celular).
+Abrir um relatório de Não Conformidades ou de Checklist de Qualidade mostra
+o botão "✎ Revisar" no canto. `status.json.proximoPasso` diz "aguardando Le
+testar e aprovar, para ligar nos demais relatórios". Plano em
+`2. Transferência (CloudFlare)\Plano - caderno vivo\Plano atualizado -
+migracao Cloudflare (20-09-26).html`, versão 28, 159 itens.
 
 ## Dados técnicos que evitam pesquisa
 
@@ -61,9 +71,14 @@ Plano atualizado - migracao Cloudflare (20-09-26).html`, versão 27, 156 itens.
   `/api/foto` `/api/ping` `/api/acesso`. Autenticação pelo cabeçalho `X-Chave`.
 - `juntarCampos()` (servidor/index.js:82) descarta o lote se o `mod` guardado
   for mais novo — publicar correção de dados exige subir o `mod` junto.
+- Publicação é manual: `npx wrangler deploy` (não tem robô de publicação
+  automática rodando sozinho).
 - PDF do plano: `powershell -ExecutionPolicy Bypass -File
   ferramentas\entregar-pdf-plano.ps1` (roda sozinho a cada atualização de
   site, cai direto nas pastas dela, manda com `SendUserFile`).
 - Caderno vivo real do plano fica em `2. Transferência (CloudFlare)\Plano -
   caderno vivo\`, não em `4. TAREFAS` (lá existe uma cópia antiga parada,
   não usada pelo script do PDF — não editar ela, editar a de cima).
+- O carimbo de versão da tela de login só troca DEPOIS que ela entra de
+  verdade (fica escrito "v9.12" por fora até o login acontecer) — isso é
+  normal, não é bug.
