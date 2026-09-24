@@ -121,9 +121,11 @@
 /* são mais de 100 linhas: o navegador só desenha as que estão à vista.
    contain-intrinsic-size reserva a altura, para a barra de rolagem não pular. */
 .m28-item{
-  display:grid;grid-template-columns:44px 22px 1fr 78px 17% 88px;gap:10px;align-items:start;
-  padding:10px 12px;border-bottom:1px solid #eceded;background:#fff;
-  content-visibility:auto;contain-intrinsic-size:auto 52px;
+  /* 24/09 (pedido dela): texto com mais espaco, data curta (dd/mm/aa) numa
+     coluna estreita, observacao menor e mais ar entre uma demanda e outra */
+  display:grid;grid-template-columns:44px 22px minmax(0,1fr) 64px 15% auto;gap:12px;align-items:start;
+  padding:14px 12px;border-bottom:1px solid #eceded;background:#fff;
+  content-visibility:auto;contain-intrinsic-size:auto 60px;
 }
 .m28-item:last-child{border-bottom:0}
 .m28-item:hover{background:#fafbfa}
@@ -218,7 +220,8 @@
 }
 .m28-check:hover{border-color:#1d6b57}
 .m28-check[aria-checked="true"]{border-color:#067647;background:#ecfdf3}
-.m28-acts{display:flex;gap:4px;justify-content:flex-end;align-items:center}
+.m28-acts{display:flex;gap:4px;justify-content:flex-end;align-items:center;flex-wrap:wrap;max-width:190px}
+.m28-acts .btn,.m28-acts .delbtn{display:inline-flex;align-items:center;justify-content:center;gap:5px}
 
 /* ─────────── desde quando está parado ───────────
    A data prova; o tempo cobra. Passou de um ano, fica vermelho — é o que
@@ -292,15 +295,16 @@
   .m28-capa-linha{gap:16px}
   /* a folha vira lista: cada serviço ocupa a largura toda. O número fica ao lado
      da caixinha, na mesma linha da demanda. */
-  .m28-item{grid-template-columns:44px 22px 1fr;
-    grid-template-areas:"check num fazer" ". . desde" ". . obs" ". . acts";row-gap:6px;padding:12px 4px}
+  .m28-item{grid-template-columns:44px 22px minmax(0,1fr);
+    grid-template-areas:"check num fazer" ". . desde" ". . obs" "acts acts acts";row-gap:6px;padding:16px 4px}
   .m28-check{grid-area:check;width:44px;height:44px;min-height:44px}
   .m28-num{grid-area:num;padding-top:12px;font-size:14px}
   .m28-fazer{grid-area:fazer;font-size:14.5px;padding-top:11px}
   .m28-desde{grid-area:desde;display:flex;gap:8px;align-items:baseline}
   .m28-desde .m28-data,.m28-desde .m28-tempo{display:inline}
   .m28-obs{grid-area:obs}
-  .m28-acts{grid-area:acts;justify-content:flex-start}
+  .m28-acts{grid-area:acts;justify-content:flex-start;max-width:none;padding-left:0;gap:6px}
+  .m28-acts .btn.sm{padding-left:10px;padding-right:10px;min-width:44px}
   .m28-grupo{border-radius:8px}
   .m28-form-linha{grid-template-columns:1fr}
   /* dedo, não mouse: campo e botão do formulário também com 44px */

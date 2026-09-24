@@ -458,6 +458,15 @@ select.bd-campo{
   font-weight:600;color:#93370d;background:#fef0c7;border-radius:var(--bd-r-m);padding:5px 9px}
 .bd-senha-caps.on{display:flex}
 
+/* ══════════════════════ 20. SIMBOLOS DE TRACO ══════════════════════
+   No lugar dos emojis (pedido dela, 24/09: "usar simbolo normal de pdf/word").
+   Desenho de linha fina, na cor do texto do botao, igual em todo aparelho.
+   <button class="bd-btn bd-btn-fantasma" aria-label="Ver o historico">
+     <span class="bd-ico" aria-hidden="true"><svg viewBox="0 0 24 24" ...></svg></span></button>
+   O botao so com simbolo PRECISA do aria-label (o nome escrito para o leitor de tela). */
+.bd-ico{display:inline-flex;width:18px;height:18px;flex:none;vertical-align:-4px;line-height:0}
+.bd-ico svg{width:100%;height:100%}
+
 /* ══════════════════════ 13. CELULAR ══════════════════════ */
 @media (max-width:640px){
   .bd-linha-mes-nome{font-size:15px}

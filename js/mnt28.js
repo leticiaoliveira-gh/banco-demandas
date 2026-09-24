@@ -865,7 +865,7 @@ async function renderMnt28(){
         +`<b>${n}</b> de ${esc(e)}</button>`;
     }).join("");
     return `<div class="bd-aviso bd-aviso-info m28-juntas">
-      <span class="bd-aviso-ico" aria-hidden="true">👥</span>
+      <span class="bd-aviso-ico" aria-hidden="true">${icone("pessoas")}</span>
       <div><b>São ${quem.length} folhas somadas aqui.</b>
         Toque num nome para ver só a folha dele:
         <span class="m28-pessoas">${partes}</span></div>
@@ -898,17 +898,17 @@ async function renderMnt28(){
       <option value="todos"${M28F.ver==="todos"?" selected":""}>Todos</option>
       <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Só o que falta</option>
       <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Só os feitos</option>
-      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>🔒 Só com o meu lembrete</option>
+      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Só com o meu lembrete</option>
     </select>
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
-      title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">🔒 Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
-    <button class="btn ghost sm" onclick="m28Imprimir()" title="Abrir a folha pronta para imprimir ou salvar em PDF">🖨 Imprimir / PDF</button>
+      title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">${icone("cadeado")} Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
+    <button class="btn ghost sm" onclick="m28Imprimir()" title="Abrir a folha pronta para imprimir ou salvar em PDF">${icone("imprimir")} Imprimir / PDF</button>
     ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
          filtros — escolhida a folha do Matheus, sai só a dele. */""}
-    <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">📄 Word</button>
-    <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">💬 WhatsApp</button>
-    <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">📊 Planilha</button>
+    <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">${icone("doc")} Word</button>
+    <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
+    <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">${icone("planilha")} Planilha</button>
   </div>`;
 
   /* AS QUATRO DIVISÕES (28/08) — o desenho dos Checklists, que ela já conhece.
@@ -917,8 +917,8 @@ async function renderMnt28(){
      A CONTAGEM DE CADA DIVISÃO É O .length DA MESMA FUNÇÃO QUE MONTA A LISTA:
      número que não bate com a lista logo abaixo já deu problema aqui. */
   const secs=[
-    ["demandas","🔧","Demandas",   M28_FOLHA_ABERTA?m28LinhasDaTela().length:m28MesesLista().length],
-    ["verificar","🔎","Verificar", m28ParaVerificar().length]];
+    ["demandas",icone("mnt"),"Demandas",   M28_FOLHA_ABERTA?m28LinhasDaTela().length:m28MesesLista().length],
+    ["verificar",icone("lupa"),"Verificar", m28ParaVerificar().length]];
   const abas=`<div class="ck-barra"><div class="ck-secs">`
     +secs.map(([k,ic,nm,n])=>`<button class="ck-sec${M28_SEC===k?" on":""}" onclick="m28SetSec('${k}')"
         aria-pressed="${M28_SEC===k?"true":"false"}"><span class="ic" aria-hidden="true">${ic}</span>
@@ -949,7 +949,7 @@ async function renderMnt28(){
 function m28ListaFolhasHTML(status){
   const l=m28Folhas(status);
   if(!l.length)return `<div class="bd-vazio">
-    <div class="bd-vazio-ico" aria-hidden="true">${status==="andamento"?"📆":"✅"}</div>
+    <div class="bd-vazio-ico" aria-hidden="true">${status==="andamento"?icone("calendario"):icone("ok")}</div>
     <div class="bd-vazio-tit">${status==="andamento"?"Nenhuma folha entregue ainda":"Nenhuma folha concluída ainda"}</div>
     <div class="bd-vazio-txt">${status==="andamento"
       ? "Quando você mandar imprimir a folha de trabalho, ela fica guardada aqui, e o andamento sobe sozinho conforme você marca o que foi feito."
@@ -968,10 +968,10 @@ function m28ListaFolhasHTML(status){
         <td class="ck-td-ac">
           ${status==="andamento"
             ? `<button class="btn sm" onclick="m28Retomar('${f.uid}')" title="Voltar para a lista com os filtros desta folha">▶ Retomar</button>
-               <button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')" title="Ver os serviços desta folha">🔍</button>`
-            : `<button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')" title="Ver os serviços desta folha, como ela foi entregue">🔍 Ver</button>
-               <button class="btn ghost sm" onclick="m28ReabrirFolha('${f.uid}')" title="Reabrir: volta para Em andamento">↩</button>`}
-          <button class="delbtn" onclick="m28ExcluirFolha('${f.uid}')" title="Excluir só o registro desta entrega">🗑</button>
+               <button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')" title="Ver os serviços desta folha" aria-label="Ver os serviços desta folha">${icone("lupa")}</button>`
+            : `<button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')" title="Ver os serviços desta folha, como ela foi entregue">${icone("lupa")} Ver</button>
+               <button class="btn ghost sm" onclick="m28ReabrirFolha('${f.uid}')" title="Reabrir: volta para Em andamento" aria-label="Reabrir: volta para Em andamento">${icone("voltar")}</button>`}
+          <button class="delbtn" onclick="m28ExcluirFolha('${f.uid}')" title="Excluir só o registro desta entrega" aria-label="Excluir só o registro desta entrega">${icone("lixo")}</button>
         </td></tr>`;}).join("")}</tbody></table></div>`;
 }
 
@@ -1016,7 +1016,7 @@ function m28VerFolhaHTML(){
 function m28VerificarHTML(){
   const l=m28ParaVerificar().sort(m28Comparar);
   if(!l.length)return `<div class="bd-vazio">
-    <div class="bd-vazio-ico" aria-hidden="true">🔎</div>
+    <div class="bd-vazio-ico" aria-hidden="true">${icone("lupa")}</div>
     <div class="bd-vazio-tit">Nada para conferir na loja</div>
     <div class="bd-vazio-txt">Quando você marcar uma demanda com a lupa, ela sai da folha do Sr. João e vem parar aqui, esperando você conferir na loja.</div></div>`;
   let html="",area=null,n=0;
@@ -1031,14 +1031,14 @@ function m28VerificarHTML(){
       <span class="m28-num">${n}.</span>
       <div class="m28-fazer"><span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
       <div class="m28-desde">${m28Desde(d)}</div>
-      <div class="m28-obs">${d.obs?m28Texto(d.obs):""}${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
+      <div class="m28-obs">${d.obs?m28Texto(d.obs):""}${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
       <div class="m28-acts"><button class="btn ghost sm" onclick="m28Editar(${d.id})" title="Mudar este serviço">✎</button></div></div>`;
   }
   if(html)html+="</div>";
   return `<div class="m28-folha-topo">
       <div><b>${l.length} ${l.length===1?"serviço":"serviços"} para conferir na loja</b>
         <div class="m28-escolha-sub">Não saem na folha do Sr. João. Marque a caixinha quando conferir: o serviço volta para a folha.</div></div>
-      <div><button class="btn sm" onclick="m28ListaDeBolso()" title="Abre a lista para você levar no celular">📋 Levar para a loja</button></div>
+      <div><button class="btn sm" onclick="m28ListaDeBolso()" title="Abre a lista para você levar no celular">${icone("dg")} Levar para a loja</button></div>
     </div>${html}`;
 }
 
@@ -1224,29 +1224,29 @@ function m28RenderListaDesenho(){
            ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
            a indentacao do proprio codigo aqui embaixo virava linha em branco
            depois de cada demanda -- era o "espaco" que ela via. */""}
-      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">🔎 Verificar · não sai na folha</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
+      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">Verificar · não sai na folha</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
             conserta; o LEMBRETE é só dela e nunca é impresso. Antes havia
             uma só, e o que ela anotava para si saía impresso para o Sr. João.
             O selo escrito ("só eu vejo") acompanha a cor — cor nunca sozinha. */""}
       <div class="m28-obs">${d.obs?m28Texto(d.obs):(d.nota?"":'<span class="m28-vaziotxt">—</span>')}
-        ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">🔒 Letícia revisar urgente · não sai na folha</span>${m28Texto(d.nota)}</div>`:""}</div>
+        ${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">Letícia revisar urgente · não sai na folha</span>${m28Texto(d.nota)}</div>`:""}</div>
       <div class="m28-acts">
         <button class="btn ghost sm${d.verificar?" m28-ver-on":""}" onclick="m28Verificar(${d.id})"
           aria-pressed="${d.verificar?"true":"false"}"
           aria-label="${d.verificar?"Voltar a incluir na folha impressa":"Marcar como “Verificar”: fica na sua tela, mas não sai na folha impressa"}"
-          title="${d.verificar?"Está fora da folha impressa — toque para voltar a incluir":"Marcar “Verificar”: some da folha impressa do Sr. João, continua aqui na sua tela"}">🔎</button>
+          title="${d.verificar?"Está fora da folha impressa — toque para voltar a incluir":"Marcar “Verificar”: some da folha impressa do Sr. João, continua aqui na sua tela"}">${icone("lupa")}</button>
         <button class="btn ghost sm" onclick="m28ParaQualidade(${d.id})" aria-label="Transferir para o relatório de Qualidade"
-          title="Transferir: sai desta folha e vira uma Não Conformidade no relatório de Qualidade">⇄</button>
+          title="Transferir: sai desta folha e vira uma Não Conformidade no relatório de Qualidade">${icone("troca")}</button>
         <button class="btn ghost sm${m28TemCompra(d)?" m28-cmp-on":""}" onclick="m28ParaCompras(${d.id})"
           aria-pressed="${m28TemCompra(d)?"true":"false"}"
           aria-label="${m28TemCompra(d)?"Tirar este item da lista de compras":"Também colocar este item na aba de Compras"}"
           title="${m28TemCompra(d)?"Está na lista de compras — toque para tirar. A demanda continua aqui.":"Também colocar na aba de Compras. A demanda continua aqui."}">Compras</button>
         <button class="btn ghost sm" onclick="histoAbrir(${d.id})" aria-label="Ver o histórico desta demanda"
-          title="A história desta demanda: quando nasceu, o que mudou e quando foi concluída">🕘</button>
-        <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">✎</button>
-        <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">🗑</button>
+          title="A história desta demanda: quando nasceu, o que mudou e quando foi concluída">${icone("relogio")}</button>
+        <button class="btn ghost sm" onclick="m28Editar(${d.id})" aria-label="Editar este serviço" title="Mudar este serviço aqui mesmo, sem sair da tela">${icone("lapis")}</button>
+        <button class="delbtn" aria-label="Excluir este serviço" title="Excluir este serviço" onclick="m28Excluir(${d.id})">${icone("lixo")}</button>
       </div></div>`;
   }
   fecha();
@@ -1499,7 +1499,7 @@ function m28Desde(d){
   if(!d.dataRegistro)return '<span class="m28-vaziotxt">—</span>';
   const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
   const grave=meses!==null&&meses>=1;       /* 1 mês ou mais: vermelho. Decisão dela (29/08): "1 mês já é tempo demais". */
-  return `<span class="m28-data">${brDate(d.dataRegistro)}</span>`
+  return `<span class="m28-data">${brDateCurta(d.dataRegistro)}</span>`
     +(tempo?`<span class="m28-tempo${grave?" grave":""}">${tempo}</span>`:"")
     +(typeof paradaSelo==="function"?paradaSelo(d):"");
 }
@@ -1650,7 +1650,7 @@ function m28FormHTML(d){
         <span class="bd-ajuda">Isto <b>sai impresso</b> na folha dele.</span>
       </div>
       <div class="bd-grupo">
-        <label class="bd-rotulo" for="m28f-nota">Letícia revisar urgente 🔒</label>
+        <label class="bd-rotulo" for="m28f-nota">Letícia revisar urgente</label>
         <textarea class="bd-campo" id="m28f-nota" rows="2"
           placeholder="Ex.: VERIFICAR — confirmar na loja se ainda existe.">${esc(d.nota||"")}</textarea>
         <span class="bd-ajuda">Só você vê. <b>Nunca é impresso.</b></span>
@@ -1997,7 +1997,7 @@ function m28ImprimirFolha(op){
     nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
-      ? `<b>${brDate(d.dataRegistro)}</b>${tempo?`<i${meses>=1?' class="grave"':""}>${tempo}</i>`:""}` : "";
+      ? `<b>${brDateCurta(d.dataRegistro)}</b>${tempo?`<i${meses>=1?' class="grave"':""}>${tempo}</i>`:""}` : "";
     /* LEG-1 (25/08): A NORMA NAO SAI MAIS NA FOLHA DE QUEM EXECUTA.
        Palavras dela: "isso aqui e pra o Sr. Joao, ele nao vai ficar lendo
        legislacao; legislacao quem tem que ler e gerencia e dono". A orientacao
@@ -2227,9 +2227,8 @@ function m28ImprimirFolha(op){
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* o enter que ela deu vira quebra de linha de verdade, aqui e na tela */
   .li .linhas{white-space:pre-wrap}
-  .num.urgente{background:#fef3f2;border-color:#fecdca}
-  .num.urgente span{color:#b42318}
-  .num.urgente b{color:#912018}
+  /* 24/09 (pedido dela: "fundo vermelho e poluicao visual"): o urgente nao
+     pinta mais o numero nem a linha. So a palavra URGENTE marca. */
   /* a foto vai DENTRO da coluna do servico: nunca se separa dele na quebra */
   .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:flex-start}
   /* a foto INTEIRA, nunca cortada (27/08): "object-fit:cover" recortava toda
@@ -2261,13 +2260,11 @@ function m28ImprimirFolha(op){
   /* A faixa vermelha entra como SOMBRA INTERNA, nao como borda. Borda ocupa
      espaco: com border-left + padding-left a linha urgente saia 1px fora do
      alinhamento das outras e do cabecalho da tabela. Sombra nao empurra nada. */
-  .li.urgl{background:#fef3f2;box-shadow:inset 3px 0 0 #b42318;
-    -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .li.urgl .f{color:#1f2937}
+  /* 24/09: a linha urgente ficou igual as outras (sem fundo rosa e sem faixa) */
   /* o selo URGENTE: fundo cheio para saltar na folha de tres paginas. A PALAVRA
      continua escrita porque na fotocopia em preto e branco a cor nao existe. */
   .ug{display:inline-block;font-style:normal;font-weight:700;letter-spacing:.4px;
-    background:#b42318;color:#fff;border-radius:3px;padding:1px 5px;margin-right:4px;
+    background:#fff;color:#b42318;border:1px solid #b42318;border-radius:3px;padding:0 5px;margin-right:4px;
     font-size:8.6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
@@ -2390,6 +2387,10 @@ function m28ImprimirFolha(op){
       var el=fila[i], cls=el.className||"";
       if(tem(cls,"piso")){
         grupo=null;cabAtual=null;
+        /* CADA PISO COMECA EM FOLHA NOVA (pedido dela, 24/09: "quando imprimo 2
+           pisos juntos precisa existir uma quebra; a diferenca e a numeracao
+           unificada"). A numeracao das paginas continua de 1 ate o fim. */
+        if(corpo.children.length){ folha=novaFolha(false); corpo=folha.querySelector(".corpo"); }
         corpo.appendChild(el);
         if(estourou()){
           corpo.removeChild(el);
@@ -2469,7 +2470,7 @@ function m28ImprimirFolha(op){
     +'abra <b>Mais definições</b> e <b>desmarque “Cabeçalhos e rodapés”</b>. '
     +'Isso tira a data, a hora e o “about:blank”. A numeração das páginas é nossa '
     +'e continua aparecendo embaixo.<br>'
-    +'<button onclick="print()">🖨 Imprimir / Salvar PDF</button></div>'
+    +'<button onclick="print()">Imprimir / Salvar PDF</button></div>'
     +'<div id="alvo"></div></body></html>');
   doc.close();
   /* passa os dados por variável (nada de montar script dentro de string) */

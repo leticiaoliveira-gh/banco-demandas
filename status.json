@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-09-24",
- "versao": "11.7",
- "qa": "QA 24/09 (v11.7): Folha impressa de manutencao com cabecalho numa linha so (Unidade a esquerda, Leticia no meio, Emitido em a direita) e Obs maior, em coluna propria ao lado da etiqueta. (v11.6: camera da tabela abrindo a foto; anotacoes a mao do 1o piso AC aplicadas.)",
- "ondeParamos": "24/09: folha impressa redesenhada (cabecalho compacto + Obs maior), aprovada por Le e publicada.",
- "proximoPasso": "Folhas Cabo Frio 1o e 2o piso (Sr. Joao) — ver PROXIMA-SESSAO.md."
+ "versao": "11.8",
+ "qa": "QA 24/09 (v11.8): Melhorias de Le 24/09 — nuvem com selo 'Salvo na nuvem', feito nao volta mais; tela nao pula ao editar/concluir; demanda em edicao destacada; foto girada fica salva; senha com olhinho, aviso de maiuscula e troca por codigo; lista de pessoas completa; datas dd/mm/aa; mais espaco no texto; simbolos no lugar dos emojis; folha impressa sem fundo vermelho e cada piso em folha nova.",
+ "ondeParamos": "24/09: melhorias 24/09 prontas no teste local, aguardando revisao de Le antes de publicar.",
+ "proximoPasso": "Le revisar e testar a ordem do urgente; publicar com o OK dela (rodar migracao-rev.sql remota antes)."
 }
