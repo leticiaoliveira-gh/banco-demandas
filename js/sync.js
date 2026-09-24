@@ -60,7 +60,7 @@ function aplicarSeloConexao(){
  const githubLigado=syncUltimoEstado!=="off";
  const nuvemLig=typeof nuvemLigada==="function"&&nuvemLigada();
  const nuvemErro=typeof nuvemTemErro==="function"&&nuvemTemErro();
- const nuvemPendente=nuvemLig&&((typeof nuvemDirty!=="undefined"&&nuvemDirty)||(typeof nuvemBusy!=="undefined"&&nuvemBusy));
+ const nuvemPendente=nuvemLig&&((typeof nuvemDirty!=="undefined"&&nuvemDirty)||(typeof nuvemFila!=="undefined"&&nuvemFila.size>0)||(typeof nuvemBusy!=="undefined"&&nuvemBusy));
  let s,texto,cor="";
  if(!githubLigado&&!nuvemLig){
    s="off";texto="⚙ Sincronização";
@@ -74,20 +74,43 @@ function aplicarSeloConexao(){
      :"⇅ Sincronizando…";
  }else{
    seloPendentes=0;s="ok";cor="var(--green)";
-   const h=new Date();
-   texto="✓ Tudo salvo às "+String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0");
+   /* 24/09: a hora e a da ULTIMA confirmacao da nuvem, nao a do relogio.
+      Assim o selo so diz "salvo" quando a nuvem de fato respondeu. */
+   const ok=nuvemLig&&typeof nuvemHoraOk==="function"?nuvemHoraOk():null;
+   const h=ok?new Date(ok):new Date();
+   const hh=String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0");
+   texto=nuvemLig?(ok?"✓ Salvo na nuvem às "+hh:"⇅ Conferindo a nuvem…"):"✓ Tudo salvo às "+hh;
  }
  const home=document.getElementById("syncPillHome");
  if(home){home.textContent=texto;home.style.color=cor;}
  const pill=document.getElementById("syncPill");
  if(pill){pill.textContent=texto;pill.style.color=cor;
-  pill.style.display=(s==="sync"||s==="err"||s==="offline")?"":"none";}
+  /* com a nuvem ligada o selo fica SEMPRE a vista (pedido dela, 24/09:
+     "um jeito simples de saber que esta salvo") */
+  pill.style.display=(s==="sync"||s==="err"||s==="offline"||(nuvemLig&&s==="ok"))?"":"none";
+  pill.title=s==="ok"?"Tudo o que voce fez ja esta guardado na nuvem":s==="sync"?"Aguarde uns segundos antes de fechar":"O site tenta de novo sozinho";}
 }
 
 function syncRefreshViews(){
+ /* 24/09: chegou novidade de outro aparelho enquanto ela escreve ou esta com
+    uma demanda aberta para editar? NAO redesenha agora (apagaria o que ela
+    digitou). Fica anotado e redesenha quando ela sair do campo / salvar. */
+ if((typeof abasDigitando==="function"&&abasDigitando())||(typeof M28_EDITANDO!=="undefined"&&M28_EDITANDO!=null)){
+   abasPendenteRedesenho=true;return;}
  fillLojaSelects();
- if(document.getElementById("view-app").style.display!=="none")showTab(currentTab);
+ if(document.getElementById("view-app").style.display!=="none"){
+   /* redesenha no MESMO lugar — antes voltava para o alto da pagina */
+   const g=(typeof lugarGuardar==="function")?lugarGuardar():null;
+   showTab(currentTab);
+   if(g&&typeof lugarVoltar==="function")lugarVoltar(g);
+ }
  else renderHome();}
+/* o redesenho que ficou esperando (ela salvou ou cancelou a edicao) */
+function telaPendenteAplicar(){
+ if(!abasPendenteRedesenho)return;
+ abasPendenteRedesenho=false;
+ setTimeout(syncRefreshViews,0);
+}
 
 /* ---- merge por item: chave uid, vence o maior mod ---- */
 async function syncMergeEnvelope(env){
@@ -120,7 +143,8 @@ async function _syncMergeEnvelope2(env){
      const keep=l.id;Object.assign(l,r);l.id=keep;await putItem(l);changed=true;}
    else if((l.mod||"")>(r.mod||""))localAhead=true;
  }
- for(const [uid] of localByUid)if(!remoteByUid.has(uid))localAhead=true;
+ const pular=(env&&typeof env.__pular==="function")?env.__pular:null;
+ for(const [uid,l] of localByUid)if(!remoteByUid.has(uid)&&!(pular&&pular(l)))localAhead=true;
  /* empresas: vence a lista com empresasMod mais novo, preservando códigos só-locais */
  if(env&&Array.isArray(env.empresas)&&(env.empresasMod||"")>EMPRESAS_MOD){
    const codes=new Set(env.empresas.map(e=>e&&e.code).filter(Boolean));
@@ -304,6 +328,14 @@ async function syncPull(){
    txt=await rb.text();
  }
  let env=null;try{env=JSON.parse(txt);}catch(e){throw new Error("banco.json inválido");}
+ /* 24/09 ("marquei feito e voltou"): os quadros que ja moram na nuvem nova
+    (Manutencoes e Compras) NAO sao mais lidos do GitHub. Antes os dois
+    carteiros traziam a mesma ficha e um desfazia o outro. O GitHub continua
+    RECEBENDO tudo (copia de reserva), so deixa de mandar nesses quadros. */
+ if(typeof nuvemLigada==="function"&&nuvemLigada()&&typeof nuvemDoQuadro==="function"&&env&&Array.isArray(env.itens)){
+   env.itens=env.itens.filter(r=>!nuvemDoQuadro(r));
+   env.__pular=nuvemDoQuadro;
+ }
  return await syncMergeEnvelope(env);
 }
 

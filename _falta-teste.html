@@ -1,4 +1,10 @@
-/* ═══════════════════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>O que falta fazer</title>
+<style>/* ═══════════════════════════════════════════════════════════════════
    BIBLIOTECA DE PEÇAS — Central de Demandas NP
    ───────────────────────────────────────────────────────────────────
    Todas as classes começam com "bd-" para NUNCA brigar com o CSS que
@@ -439,25 +445,6 @@ select.bd-campo{
 .bd-visualizador-x{right:12px}
 .bd-visualizador-girar{right:64px;font-size:22px}
 
-/* ══════════════════════ 19. CAMPO DE SENHA ══════════════════════
-   (24/09/26) Olhinho para ver o que digitou e aviso de "letra maiúscula
-   ligada". O JS do site (senhaEnfeitar, em js/login.js) poe isto sozinho
-   em todo campo de senha; em outro projeto basta a estrutura abaixo:
-   <div class="bd-senha"><input class="bd-campo" type="password">
-   <button type="button" class="bd-senha-olho">(desenho do olho)</button></div>
-   <div class="bd-senha-caps on">⇪ Letra maiúscula ligada</div> */
-.bd-senha{position:relative}
-.bd-senha .bd-campo{padding-right:50px}
-.bd-senha-olho{position:absolute;right:0;top:50%;transform:translateY(-50%);
-  width:44px;height:44px;border:0;background:none;color:var(--bd-c500);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;border-radius:var(--bd-r-m)}
-.bd-senha-olho:hover{color:var(--bd-verde)}
-.bd-senha-olho:focus-visible{outline:2px solid var(--bd-verde);outline-offset:-5px}
-.bd-senha-olho svg{width:20px;height:20px}
-.bd-senha-caps{display:none;align-items:center;gap:6px;margin-top:6px;font-size:12.5px;
-  font-weight:600;color:#93370d;background:#fef0c7;border-radius:var(--bd-r-m);padding:5px 9px}
-.bd-senha-caps.on{display:flex}
-
 /* ══════════════════════ 13. CELULAR ══════════════════════ */
 @media (max-width:640px){
   .bd-linha-mes-nome{font-size:15px}
@@ -468,3 +455,329 @@ select.bd-campo{
   .bd-card-rodape{flex-direction:column-reverse}
   .bd-card-rodape .bd-btn{width:100%}
 }
+</style>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bd-c50);color:var(--bd-texto);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+       -webkit-text-size-adjust:100%}
+  .env{max-width:860px;margin:0 auto;padding:16px}
+
+  .topo{background:linear-gradient(135deg,var(--bd-verde) 0%,var(--bd-verde-vivo) 100%);
+        color:#fff;border-radius:var(--bd-r-g);padding:20px;margin-bottom:16px;
+        box-shadow:var(--bd-sombra3)}
+  .topo h1{margin:0 0 4px;font-size:22px;line-height:1.25}
+  .topo p{margin:0;font-size:14px;opacity:.92;line-height:1.5}
+
+  .placar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px}
+  .pl{flex:1 1 140px;background:#fff;border:1px solid var(--bd-borda);border-radius:var(--bd-r-m);
+      padding:12px;text-align:center}
+  .pl b{display:block;font-size:24px;color:var(--bd-verde);line-height:1.2}
+  .pl span{font-size:12px;color:var(--bd-c600)}
+
+  .bloco{margin:0 0 28px}
+  .bloco > h2{font-size:17px;margin:0 0 4px;color:var(--bd-c900)}
+  .bloco > .sub{font-size:13px;color:var(--bd-c600);margin:0 0 12px;line-height:1.5}
+
+  .item{background:#fff;border:1px solid var(--bd-borda);border-radius:var(--bd-r-g);
+        padding:14px;margin-bottom:10px;box-shadow:var(--bd-sombra1)}
+  .item.sel-agora{border-color:var(--bd-verde);box-shadow:0 0 0 2px var(--bd-verde-claro)}
+  .item.sel-nao{background:var(--bd-c50);opacity:.85}
+  .item.sel-nao .tit,.item.sel-nao .txt{text-decoration:line-through;color:var(--bd-c500)}
+  .item.feito{background:var(--bd-ok-fundo);border-color:var(--bd-ok-borda)}
+  .item.feito .tit,.item.feito .txt{text-decoration:line-through;color:var(--bd-c600)}
+
+  .cab{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+  .num{flex:0 0 auto;min-width:28px;height:28px;border-radius:8px;background:var(--bd-verde-claro);
+       color:var(--bd-verde);font-weight:700;font-size:13px;display:flex;align-items:center;
+       justify-content:center;padding:0 6px}
+  .tit{font-weight:650;font-size:15px;line-height:1.35;flex:1}
+  .txt{font-size:14px;color:var(--bd-c600);line-height:1.55;margin:2px 0 10px}
+  .txt b{color:var(--bd-c700)}
+
+  .etiquetas{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+
+  .botoes{display:flex;gap:8px;flex-wrap:wrap}
+  .botoes .bd-btn{min-height:44px;flex:1 1 auto;justify-content:center}
+  .op{min-height:44px;flex:1 1 calc(50% - 4px)}
+  .escolhido{background:var(--bd-verde)!important;border-color:var(--bd-verde)!important;color:#fff!important}
+  .escolhido-nao{background:var(--bd-erro-texto)!important;border-color:var(--bd-erro-texto)!important;color:#fff!important}
+
+  .extra{margin-top:10px;display:none}
+  .extra.abre{display:block}
+  .extra textarea{width:100%;min-height:60px;font:inherit;font-size:14px;padding:10px;
+      border:1px solid var(--bd-c300);border-radius:var(--bd-r-p);resize:vertical}
+  .extra textarea:focus{outline:2px solid var(--bd-verde);outline-offset:1px;border-color:var(--bd-verde)}
+
+  .fim{background:#fff;border:1px solid var(--bd-borda);border-radius:var(--bd-r-g);padding:16px;
+       margin-top:8px;box-shadow:var(--bd-sombra2)}
+  .fim h2{margin:0 0 6px;font-size:17px}
+  .fim p{margin:0 0 12px;font-size:14px;color:var(--bd-c600);line-height:1.55}
+  #saida{width:100%;min-height:180px;font-family:ui-monospace,Consolas,monospace;font-size:13px;
+         padding:12px;border:1px solid var(--bd-c300);border-radius:var(--bd-r-p);
+         background:var(--bd-c25);line-height:1.5}
+  #copiar{min-height:48px;width:100%;justify-content:center;font-size:16px}
+  #recado{margin-top:10px}
+
+  [contenteditable]:focus{outline:2px solid var(--bd-verde);outline-offset:2px;border-radius:4px}
+
+  @media (max-width:520px){
+    .env{padding:12px}
+    .topo h1{font-size:19px}
+    .op{flex:1 1 100%}
+    .botoes .bd-btn{flex:1 1 100%}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="env">
+
+  <div class="topo">
+    <h1>O que falta fazer</h1>
+    <p>Site Conexão Empresas. Conferido em 21/09/2026, em cima do plano versão 24.
+       Clique nos botões. Nada aqui mexe no site.</p>
+  </div>
+
+  <div class="bd-aviso bd-aviso-info" style="margin-bottom:16px">
+    <span class="bd-aviso-ico">💡</span>
+    <div>
+      <b>Como usar:</b> em cada item, escolha <b>Fazer agora</b>, <b>Deixar para depois</b>
+      ou <b>Não quero mais</b>. Só um item pode ficar como "fazer agora": é o que eu pego
+      na próxima conversa. No fim da página, aperte o botão verde e cole o resultado na conversa.
+      Pode fechar e voltar depois, suas escolhas ficam guardadas.
+    </div>
+  </div>
+
+  <div class="placar">
+    <div class="pl"><b id="p-total">0</b><span>itens nesta folha</span></div>
+    <div class="pl"><b id="p-resp">0</b><span>você já respondeu</span></div>
+    <div class="pl"><b id="p-falta">0</b><span>faltam responder</span></div>
+  </div>
+
+  <div id="blocos"></div>
+
+  <div class="fim">
+    <h2>Terminou?</h2>
+    <p>Aperte o botão, abra a conversa comigo e cole (Ctrl + V). Se o botão não copiar,
+       selecione o texto da caixa abaixo e copie com Ctrl + C.</p>
+    <button class="bd-btn bd-btn-principal bd-btn-g" id="copiar">Copiar minhas respostas</button>
+    <div id="recado"></div>
+    <textarea id="saida" readonly aria-label="Suas respostas em texto"></textarea>
+  </div>
+
+</div>
+
+<script>
+const DADOS=[
+{chave:"agora",titulo:"Primeiro: o que trava você hoje",sub:"São as três da sua lista. Uma delas já saiu do caminho.",itens:[
+ {n:1,tit:"Guardar o PDF dos 10 códigos de emergência",txt:"Você gera dentro do site, em Segurança, e imprime. Sem isso, se perder o celular, fica de fora do próprio site. <b>É você quem faz, leva 5 minutos.</b>",dif:"1 de 5, é só clicar"},
+ {n:2,tit:"Conferir se a cópia da madrugada nasceu mesmo",txt:"Ela está marcada para as 02:10, mas ninguém viu a primeira acontecer. <b>Já existe uma tarefa minha que confere isso sozinha todo dia de manhã</b> e só te chama se der problema.",dif:"2 de 5, eu confiro"},
+ {n:3,tit:"A aba “Cópias de segurança”",txt:"Estava vazia na sua lista antiga. <b>Foi feita e publicada em 20/09</b>: lista as cópias, botões de baixar e restaurar, e a faixa vermelha quando passa um dia sem cópia. Fica riscada aqui, com o motivo, porque nada some da sua vista.",dif:"",feito:"Feito em 20/09"}
+]},
+
+{chave:"entrada",titulo:"A entrada no site: o que você viu ontem",sub:"Estes quatro não estavam na sua lista. Você mesma levantou ontem à tarde, mexendo na tela de entrada. Nada foi consertado ainda.",itens:[
+ {n:29,tit:"Seus dois computadores estão sendo tratados como emprestados",txt:"O combinado era: a trava de 20 minutos e a segunda etapa pelo celular só valem em computador que não é seu. Nos seus, o site tinha que te reconhecer e não ficar pedindo senha. <b>Está pedindo.</b>",dif:"3 de 5"},
+ {n:30,tit:"Não existe prova de que num PC emprestado nada fica salvo",txt:"Hoje é só promessa escrita. Você quis ver com seus olhos: abrir o painel do navegador e mostrar vazio depois de fechar a aba.",dif:"2 de 5"},
+ {n:31,tit:"O Chrome preenche a senha sozinho e a trava vira teatro",txt:"Você viu ao vivo: quando o site pede a senha de novo, o navegador já preenche. <b>Quem sentar no seu PC na hora do almoço entra com um clique.</b> A trava de 20 minutos hoje não protege nada.",dif:"3 de 5"},
+ {n:32,tit:"Decidir o que a trava deve pedir no lugar da senha",txt:"Consequência do item acima. Precisa ser uma coisa que o navegador não saiba responder por você. Provável saída: a digital, ou um código curto que aparece no seu celular.",dif:"2 de 5"}
+]},
+
+{chave:"fila",titulo:"Depois: você já aprovou e está na fila",sub:"Nenhum deles está travando nada hoje. Entram um por vez, quando você mandar.",itens:[
+ {n:4,tit:"Parte 4: arrumar as pastas",txt:"Juntar os arquivos repetidos, separar planos de backups, deixar uma folha de instrução só valendo. <b>Sem apagar nada</b>: o que não serve fica marcado, não some. Eu te mostro a lista antes.",dif:"3 de 5"},
+ {n:5,tit:"Link de teste antes de publicar",txt:"Você abre a mudança no celular primeiro e só depois ela vai para o ar.",dif:"3 de 5"},
+ {n:6,tit:"Botão de voltar versão",txt:"Se algo der errado, um clique volta para a versão anterior. Ficam guardadas as últimas 100.",dif:"3 de 5"},
+ {n:7,tit:"Cartão “Saúde do site” na capa",txt:"Mostra a versão, a última gravação e a última cópia, logo na primeira tela.",dif:"2 de 5"},
+ {n:8,tit:"Aviso “Site atualizado” no seu celular",txt:"Uma faixa avisando quando o site muda de versão, para você não ficar vendo a tela velha.",dif:"2 de 5"},
+ {n:9,tit:"Proteção contra tentativa repetida de entrar",txt:"Para alguém que fica chutando senha ser barrado depois de algumas tentativas.",dif:"3 de 5"},
+ {n:10,tit:"Buscar em todas as lojas de uma vez",txt:"Era a ideia 4 da sua lista de cinco.",dif:"3 de 5"},
+ {n:11,tit:"O resumo do mês",txt:"Era a ideia 5 da sua lista de cinco.",dif:"3 de 5"},
+ {n:12,tit:"Os outros quadros",txt:"Checklists, Qualidade e BPF, Não Conformidades, Elétrica e Indicadores. Um por vez, quando você pedir.",dif:"4 de 5, são vários"},
+ {n:13,tit:"Verificação em 2 etapas nas suas contas",txt:"Na Cloudflare e no GitHub. <b>É você quem faz</b>, e não segura nada do resto.",dif:"1 de 5, mas é você quem faz"}
+]},
+
+{chave:"mandar",titulo:"Só quando você mandar",sub:"Estão parados de propósito. Ninguém encosta sem sua ordem.",itens:[
+ {n:14,tit:"Desligar o sistema antigo",txt:"A chave de pendrive e a senha do cofre velho. Hoje ele roda em paralelo de propósito, gravando junto, como rede de segurança.",dif:"2 de 5"},
+ {n:15,tit:"Tirar o GitHub da sua frente",txt:"Você não abre, não entende e não mexe nele hoje. Só sai de cena quando você mandar.",dif:"2 de 5"},
+ {n:16,tit:"Mudar o endereço do site e reinstalar o app no celular",txt:"Uma vez só, com passo a passo na tela. Sua decisão: no celular nada muda até tudo estar pronto.",dif:"3 de 5"},
+ {n:17,tit:"A digital como atalho no lugar da senha",txt:"Ficou de fora porque exigiria um programa rodando por trás, e o site deixaria de abrir com duplo clique. <b>Quebraria sua independência.</b>",dif:"5 de 5, quebra sua independência"}
+]},
+
+{chave:"decidir",titulo:"Esperando você decidir",sub:"Coisas que eu escolhi sozinha para poder terminar. Nenhuma é definitiva e nada está travado por elas.",decidir:true,itens:[
+ {n:18,tit:"A cópia das 20h no seu PC",txt:"É a única cópia que fica numa máquina sua. Se um dia a conta da nuvem for perdida, o que estiver só lá vai junto.",ops:["Manter (eu recomendo)","Tirar"]},
+ {n:19,tit:"O horário da cópia automática",txt:"Hoje sai às 02:10 da madrugada, quando ninguém está mexendo.",ops:["Deixar 02:10","Outro horário"]},
+ {n:20,tit:"O teste de verdade da cópia",txt:"Hoje é aos domingos. É quando o site abre a cópia, confere ficha por ficha e abre algumas fotos.",ops:["Domingo está bom","Todo dia","Uma vez por mês"]},
+ {n:21,tit:"Quando a faixa vermelha acende",txt:"Hoje ela acende com mais de um dia sem cópia.",ops:["Um dia está bom","Meio dia","Dois dias"]},
+ {n:22,tit:"A cópia velha depois dos 30 dias",txt:"Hoje ela perde o conteúdo pesado, mas a linha continua na sua lista, com a data e o motivo escrito.",ops:["Está bom assim","Guardar tudo inteiro para sempre"]},
+ {n:23,tit:"Os cinco botões de cada linha no celular",txt:"Hoje são Arquivo, Planilha, PDF, Conferir e Restaurar, todos na linha.",ops:["Deixar os cinco","Esconder alguns atrás de “⋯”"]},
+ {n:24,tit:"As colunas da planilha",txt:"Hoje leva empresa, piso, área, demanda, observação, situação, prazo, responsável e datas.",ops:["Está bom assim","Falta ou sobra coluna"]},
+ {n:25,tit:"O PDF sai sem foto",txt:"Foto deixaria o arquivo pesado demais para mandar no WhatsApp.",ops:["Sem foto está bom","Quero com foto"]},
+ {n:26,tit:"Restaurar pede uma confirmação só",txt:"Ela mostra quantas demandas voltam e avisa que o que veio depois será substituído.",ops:["Uma confirmação basta","Quero trava de digitar RESTAURAR"]},
+ {n:27,tit:"Onde fica a aba de cópias",txt:"Hoje ela entra pelo menu “⋯”, logo abaixo da Lixeira.",ops:["No menu “⋯”","Na barra lateral"]},
+ {n:28,tit:"Os nomes das cópias",txt:"Hoje aparecem como “Automática da madrugada”, “Guardada do mês”, “Feita por você” e “Tirada antes de uma restauração”.",ops:["Estão bons","Quero trocar algum"]},
+ {n:33,tit:"A rotina “Sentinela GitHub” das segundas-feiras",txt:"Ela olha o site antigo sozinha e tenta consertar o que encontra. Desde 14/09 trava sempre no mesmo ponto e hoje só avisa toda semana que travou.",ops:["Consertar","Apagar a rotina"]},
+ {n:34,tit:"A rotina “Backup semanal” do projeto dos bots",txt:"É de outro projeto. Toda semana ela só manda um lembrete pedindo para você fazer a cópia à mão.",ops:["Rever junto com aquele projeto","Apagar","Automatizar de verdade"]},
+ {n:35,tit:"Ver as rotinas automáticas por dentro",txt:"Você pediu para conferir antes de confiar nelas: onde os arquivos ficam, quais são, como estão organizados e como cada um é lido quando a rotina roda.",ops:["Quero ver, marque uma conversa só para isso","Deixa para depois"]}
+]}
+];
+
+const CHAVE="faltaplano2609";
+let R={};
+try{R=JSON.parse(localStorage.getItem(CHAVE)||"{}")}catch(e){R={}}
+function grava(){try{localStorage.setItem(CHAVE,JSON.stringify(R))}catch(e){}}
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+
+function montar(){
+  const alvo=document.getElementById("blocos");
+  let html="";
+  DADOS.forEach(b=>{
+    html+='<section class="bloco"><h2>'+b.titulo+'</h2><p class="sub">'+b.sub+'</p>';
+    b.itens.forEach(it=>{
+      const r=R[it.n]||{};
+      let cls="item";
+      if(it.feito) cls+=" feito";
+      else if(r.escolha==="agora") cls+=" sel-agora";
+      else if(r.escolha==="nao") cls+=" sel-nao";
+      html+='<article class="'+cls+'" id="it'+it.n+'">';
+      html+='<div class="cab"><span class="num">'+it.n+'</span><span class="tit" contenteditable="true" spellcheck="false">'+it.tit+'</span></div>';
+      html+='<p class="txt" contenteditable="true" spellcheck="false">'+it.txt+'</p>';
+      html+='<div class="etiquetas">';
+      if(it.feito) html+='<span class="bd-selo bd-selo-ok">'+it.feito+'</span>';
+      if(it.dif) html+='<span class="bd-selo bd-selo-neutro">Dificuldade '+it.dif+'</span>';
+      if(r.escolha==="agora") html+='<span class="bd-selo bd-selo-ok">Escolhido para agora</span>';
+      if(r.escolha==="depois") html+='<span class="bd-selo bd-selo-info">Fica para depois</span>';
+      if(r.escolha==="nao") html+='<span class="bd-selo bd-selo-erro">Você não quer mais</span>';
+      if(r.op) html+='<span class="bd-selo bd-selo-ok">'+esc(r.op)+'</span>';
+      html+='</div>';
+
+      if(!it.feito){
+        html+='<div class="botoes">';
+        if(b.decidir){
+          it.ops.forEach((o,i)=>{
+            const on=r.op===o?" escolhido":"";
+            html+='<button class="bd-btn bd-btn-secundario op'+on+'" data-n="'+it.n+'" data-op="'+esc(o)+'">'+o+'</button>';
+          });
+        }else{
+          html+='<button class="bd-btn bd-btn-secundario'+(r.escolha==="agora"?" escolhido":"")+'" data-n="'+it.n+'" data-e="agora">Fazer agora</button>';
+          html+='<button class="bd-btn bd-btn-secundario'+(r.escolha==="depois"?" escolhido":"")+'" data-n="'+it.n+'" data-e="depois">Deixar para depois</button>';
+          html+='<button class="bd-btn bd-btn-secundario'+(r.escolha==="nao"?" escolhido-nao":"")+'" data-n="'+it.n+'" data-e="nao">Não quero mais</button>';
+        }
+        html+='</div>';
+        const abre=(r.escolha==="nao"||r.op||r.nota)?" abre":"";
+        const rotulo=r.escolha==="nao"?"Por que você não quer mais? (fica escrito no plano, riscado, nunca apagado)":"Quer escrever alguma coisa? (opcional)";
+        html+='<div class="extra'+abre+'" id="ex'+it.n+'"><label class="bd-rotulo" for="nt'+it.n+'">'+rotulo+'</label>';
+        html+='<textarea id="nt'+it.n+'" data-nota="'+it.n+'">'+esc(r.nota||"")+'</textarea></div>';
+      }
+      html+='</article>';
+    });
+    html+='</section>';
+  });
+  alvo.innerHTML=html;
+  placar();
+}
+
+function placar(){
+  let total=0,resp=0;
+  DADOS.forEach(b=>b.itens.forEach(it=>{
+    if(it.feito) return;
+    total++;
+    const r=R[it.n]||{};
+    if(r.escolha||r.op) resp++;
+  }));
+  document.getElementById("p-total").textContent=total;
+  document.getElementById("p-resp").textContent=resp;
+  document.getElementById("p-falta").textContent=total-resp;
+}
+
+document.getElementById("blocos").addEventListener("click",ev=>{
+  const b=ev.target.closest("button[data-n]");
+  if(!b) return;
+  const n=b.dataset.n;
+  R[n]=R[n]||{};
+  if(b.dataset.op!==undefined){
+    R[n].op = R[n].op===b.dataset.op ? "" : b.dataset.op;
+  }else{
+    const e=b.dataset.e;
+    if(e==="agora"){
+      Object.keys(R).forEach(k=>{ if(R[k].escolha==="agora") R[k].escolha="depois"; });
+    }
+    R[n].escolha = R[n].escolha===e ? "" : e;
+  }
+  grava();
+  const y=window.scrollY;
+  montar();
+  window.scrollTo(0,y);
+});
+
+document.getElementById("blocos").addEventListener("input",ev=>{
+  const t=ev.target;
+  if(t.dataset && t.dataset.nota){
+    R[t.dataset.nota]=R[t.dataset.nota]||{};
+    R[t.dataset.nota].nota=t.value;
+    grava();
+  }
+});
+
+function texto(){
+  let s="MINHAS RESPOSTAS sobre o que falta no plano\n";
+  s+="Site Conexao Empresas, folha de 21/09/2026\n";
+  let agora=null;
+  DADOS.forEach(b=>b.itens.forEach(it=>{ if((R[it.n]||{}).escolha==="agora") agora=it; }));
+  s+="\n>>> COMECAR POR: "+(agora?("item "+agora.n+", "+agora.tit.replace(/<[^>]+>/g,"")):"nao escolhi ainda")+"\n";
+  DADOS.forEach(b=>{
+    let linhas=[];
+    b.itens.forEach(it=>{
+      const r=R[it.n]||{};
+      if(!r.escolha&&!r.op&&!r.nota) return;
+      let l="  "+it.n+". "+it.tit.replace(/<[^>]+>/g,"")+" => ";
+      if(r.op) l+=r.op;
+      else if(r.escolha==="agora") l+="FAZER AGORA";
+      else if(r.escolha==="depois") l+="deixar para depois";
+      else if(r.escolha==="nao") l+="NAO QUERO MAIS";
+      else l+="(so escreveu)";
+      if(r.nota) l+="\n       obs: "+r.nota.replace(/\s+/g," ").trim();
+      linhas.push(l);
+    });
+    if(linhas.length) s+="\n"+b.titulo.toUpperCase()+"\n"+linhas.join("\n")+"\n";
+  });
+  let mudou=[];
+  document.querySelectorAll(".item").forEach(el=>{
+    const n=el.id.replace("it","");
+    let orig=null;
+    DADOS.forEach(b=>b.itens.forEach(it=>{ if(String(it.n)===n) orig=it; }));
+    if(!orig) return;
+    const t=el.querySelector(".tit").innerHTML.trim();
+    const x=el.querySelector(".txt").innerHTML.trim();
+    if(t!==orig.tit) mudou.push("  "+n+" titulo: "+t.replace(/<[^>]+>/g,""));
+    if(x!==orig.txt) mudou.push("  "+n+" texto: "+x.replace(/<[^>]+>/g,""));
+  });
+  if(mudou.length) s+="\nTEXTOS QUE EU REESCREVI\n"+mudou.join("\n")+"\n";
+  return s;
+}
+
+document.getElementById("copiar").addEventListener("click",()=>{
+  const s=texto();
+  const saida=document.getElementById("saida");
+  saida.value=s;
+  const recado=document.getElementById("recado");
+  const ok=()=>{recado.innerHTML='<div class="bd-aviso bd-aviso-ok"><span class="bd-aviso-ico">✓</span><div>Copiado. Agora abra a conversa e cole com Ctrl + V.</div></div>';};
+  const nao=()=>{recado.innerHTML='<div class="bd-aviso bd-aviso-atencao"><span class="bd-aviso-ico">!</span><div>O navegador não deixou copiar sozinho. Selecione o texto da caixa abaixo e copie com Ctrl + C.</div></div>';saida.focus();saida.select();};
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(s).then(ok).catch(()=>{
+        saida.focus();saida.select();
+        try{document.execCommand("copy")?ok():nao()}catch(e){nao()}
+      });
+    }else{
+      saida.focus();saida.select();
+      try{document.execCommand("copy")?ok():nao()}catch(e){nao()}
+    }
+  }catch(e){nao()}
+});
+
+montar();
+document.getElementById("saida").value=texto();
+</script>
+</body>
+</html>

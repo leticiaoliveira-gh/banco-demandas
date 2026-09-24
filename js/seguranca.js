@@ -40,13 +40,17 @@ async function segurancaCarregar(){
   const corpo=document.getElementById("segurancaCorpo");
   if(!corpo)return;
   try{
-    const [rAprov,rDisp]=await Promise.all([
+    /* se ela estiver digitando a senha nova, nao redesenha por cima */
+    if(corpo.contains(document.activeElement)&&document.activeElement.tagName==="INPUT")return;
+    const [rAprov,rDisp,rCod]=await Promise.all([
       fetch(loginApiBase()+"/api/aprovacoes",{headers:nuvemHdrs()}),
-      fetch(loginApiBase()+"/api/dispositivos",{headers:nuvemHdrs()})
+      fetch(loginApiBase()+"/api/dispositivos",{headers:nuvemHdrs()}),
+      fetch(loginApiBase()+"/api/emergencia/restantes",{headers:nuvemHdrs()}).catch(()=>null)
     ]);
     const aprov=(await rAprov.json()).aprovacoes||[];
     const disp=(await rDisp.json());
-    segurancaRenderizar(corpo,aprov,disp.dispositivos||[],disp.estaSessao);
+    let cod=null;try{if(rCod&&rCod.ok)cod=await rCod.json();}catch(e){}
+    segurancaRenderizar(corpo,aprov,disp.dispositivos||[],disp.estaSessao,cod);
   }catch(e){
     corpo.innerHTML='<div class="bd-aviso bd-aviso-erro">Sem internet para ver a segurança agora.</div>';
   }
@@ -56,7 +60,7 @@ function segurancaAparelhoTxt(a){
   return (a||"aparelho desconhecido");
 }
 
-function segurancaRenderizar(corpo,aprov,disp,estaSessao){
+function segurancaRenderizar(corpo,aprov,disp,estaSessao,cod){
   let html="";
 
   if(aprov.length){
@@ -110,10 +114,17 @@ function segurancaRenderizar(corpo,aprov,disp,estaSessao){
   html+='<button class="bd-btn bd-btn-secundario bd-btn-largo" style="width:100%" onclick="segurancaTrocarSenha()">Trocar a senha</button>';
 
   html+='<div style="font-size:13.5px;font-weight:620;color:var(--bd-c900);margin:14px 0 8px">Código de emergência</div>';
-  html+='<div class="bd-ajuda" style="margin-bottom:8px">Gera 10 códigos de uso único e um PDF para imprimir e guardar, caso perca o celular.</div>';
+  /* 24/09 ("nao sei onde foram inseridos"): mostra quantos ainda valem */
+  if(cod&&cod.ok){
+    html+=cod.restantes>0
+      ?'<div class="bd-aviso bd-aviso-info" style="margin-bottom:8px">Você tem <b>'+cod.restantes+' de '+(cod.total||10)+'</b> códigos ainda valendo'+(cod.criado?' (gerados em '+String(cod.criado).slice(0,10).split("-").reverse().join("/")+')':'')+'. Eles estão no PDF que baixou naquele dia — procure por "codigos-emergencia" na pasta de Downloads.</div>'
+      :'<div class="bd-aviso bd-aviso-atencao" style="margin-bottom:8px">Você não tem nenhum código valendo. Gere novos e guarde o PDF.</div>';
+  }
+  html+='<div class="bd-ajuda" style="margin-bottom:8px">Os códigos servem para entrar ou trocar a senha se esquecer a senha ou perder o celular. Gerar novos faz os antigos pararem de valer.</div>';
   html+='<button class="bd-btn bd-btn-secundario bd-btn-largo" style="width:100%" onclick="segurancaGerarEmergencia()">Gerar novos códigos de emergência</button>';
 
   corpo.innerHTML=html;
+  if(typeof senhaEnfeitar==="function")senhaEnfeitar(corpo);
 }
 
 async function segurancaTrocarSenha(){

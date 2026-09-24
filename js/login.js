@@ -32,6 +32,7 @@ function loginVisivel(){ const t=loginEl(); return !!t && t.style.display!=="non
 function loginMostrar(html){
   const t=loginEl(); if(!t)return;
   loginCorpo().innerHTML=html;
+  senhaEnfeitar(loginCorpo());
   t.style.display="flex";
   document.body.style.overflow="hidden";
 }
@@ -40,6 +41,43 @@ function loginEsconder(){
   t.style.display="none";
   document.body.style.overflow="";
   clearInterval(loginAguardandoTimer);
+}
+
+/* ---------------------------------------------------------------------
+   CAMPO DE SENHA (24/09, pedido dela): olhinho para ver o que digitou e
+   aviso "Letra maiúscula ligada". Vale para todo campo de senha da tela
+   que for passada (entrada, criar senha, trava, Segurança). Peça 19 da
+   biblioteca (biblioteca/pecas.css).
+   --------------------------------------------------------------------- */
+const SENHA_OLHO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const SENHA_OLHO_RISCADO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+function senhaEnfeitar(raiz){
+  (raiz||document).querySelectorAll('input[type="password"]:not([data-olho])').forEach(function(inp){
+    inp.dataset.olho="1";
+    const caixa=document.createElement("div");caixa.className="bd-senha";
+    inp.parentNode.insertBefore(caixa,inp);caixa.appendChild(inp);
+    const b=document.createElement("button");
+    b.type="button";b.className="bd-senha-olho";b.innerHTML=SENHA_OLHO;
+    b.title="Mostrar a senha";b.setAttribute("aria-label","Mostrar a senha");b.setAttribute("aria-pressed","false");
+    b.onclick=function(){
+      const ver=inp.type==="password";
+      inp.type=ver?"text":"password";
+      b.innerHTML=ver?SENHA_OLHO_RISCADO:SENHA_OLHO;
+      const t=ver?"Esconder a senha":"Mostrar a senha";
+      b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(ver));
+      inp.focus({preventScroll:true});
+    };
+    caixa.appendChild(b);
+    const av=document.createElement("div");
+    av.className="bd-senha-caps";av.setAttribute("aria-live","polite");
+    av.textContent="⇪ Letra maiúscula ligada";
+    caixa.after(av);
+    const conferir=function(e){if(e&&e.getModifierState)av.classList.toggle("on",e.getModifierState("CapsLock"));};
+    inp.addEventListener("keydown",conferir);
+    inp.addEventListener("keyup",conferir);
+    inp.addEventListener("mousedown",conferir);
+    inp.addEventListener("blur",function(){av.classList.remove("on");});
+  });
 }
 
 /* ---------------------------------------------------------------------
@@ -59,6 +97,10 @@ function loginTelaEntrada(msg){
     '<div id="loginMsg" class="bd-ajuda" style="min-height:18px;margin-top:8px">'+(msg||"")+'</div>' +
     '<button class="bd-btn bd-btn-principal bd-btn-largo bd-btn-g" style="width:100%;margin-top:6px" onclick="loginEntrar()">Entrar</button>' +
     '<div style="text-align:center;margin-top:16px">' +
+    '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
+    'onclick="loginTelaEsqueci()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEsqueci();}">' +
+    'Esqueci a senha / quero trocar a senha</span></div>' +
+    '<div style="text-align:center;margin-top:10px">' +
     '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
     'onclick="loginTelaEmergencia()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEmergencia();}">' +
     'Perdi o celular, tenho um código de emergência</span></div>'
@@ -219,6 +261,52 @@ async function loginUsarEmergencia(){
     loginEntrarComSucesso();
     toast("Entrou com código de emergência ✓ — restam "+j.codigosRestantes+" códigos");
   }catch(e){loginMsgErro("loginEmMsg","Sem internet agora.");}
+}
+
+/* ---------------------------------------------------------------------
+   TELA 4 — trocar a senha sem estar dentro (24/09, sem e-mail por
+   enquanto): usa um dos códigos de emergência do papel impresso. O
+   código usado deixa de valer; ela já entra com a senha nova.
+   --------------------------------------------------------------------- */
+function loginTelaEsqueci(){
+  loginMostrar(
+    '<p style="font-size:13px;color:var(--bd-c700)">Para trocar a senha aqui, use um dos códigos do papel de emergência (o PDF que baixou em <b>Segurança</b>). Cada código vale uma vez.</p>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo" for="loginEsEmail">E-mail</label>' +
+    '<input id="loginEsEmail" class="bd-campo" type="email" autocomplete="username" placeholder="seu@email.com"></div>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo" for="loginEsCodigo">Código de emergência</label>' +
+    '<input id="loginEsCodigo" class="bd-campo" placeholder="XXXX-XXXX-XX" autocomplete="off" style="text-transform:uppercase"></div>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo" for="loginEsNova">Nova senha</label>' +
+    '<input id="loginEsNova" class="bd-campo" type="password" autocomplete="new-password" placeholder="pelo menos 8 caracteres"></div>' +
+    '<div class="field" style="margin-top:10px"><label class="bd-rotulo" for="loginEsNova2">Digite de novo</label>' +
+    '<input id="loginEsNova2" class="bd-campo" type="password" autocomplete="new-password" placeholder="a mesma senha" ' +
+    'onkeydown="if(event.key===\'Enter\'){event.preventDefault();loginTrocarComCodigo();}"></div>' +
+    '<div id="loginEsMsg" class="bd-ajuda" style="min-height:18px;margin-top:8px"></div>' +
+    '<button class="bd-btn bd-btn-principal bd-btn-largo bd-btn-g" style="width:100%;margin-top:6px" onclick="loginTrocarComCodigo()">Trocar a senha e entrar</button>' +
+    '<div style="text-align:center;margin-top:16px">' +
+    '<span class="back-link" role="button" tabindex="0" style="font-size:12.5px;cursor:pointer" ' +
+    'onclick="loginTelaEntrada()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEntrada();}">Voltar</span></div>'
+  );
+  setTimeout(function(){const e=document.getElementById("loginEsEmail");if(e)e.focus();},50);
+}
+async function loginTrocarComCodigo(){
+  const email=(document.getElementById("loginEsEmail").value||"").trim();
+  const codigo=(document.getElementById("loginEsCodigo").value||"").trim();
+  const nova=document.getElementById("loginEsNova").value||"";
+  const nova2=document.getElementById("loginEsNova2").value||"";
+  if(!email||!codigo){loginMsgErro("loginEsMsg","Preencha e-mail e código.");return;}
+  if(nova.length<8){loginMsgErro("loginEsMsg","A senha nova precisa de pelo menos 8 caracteres.");return;}
+  if(nova!==nova2){loginMsgErro("loginEsMsg","As duas senhas não estão iguais.");return;}
+  loginMsgInfo("loginEsMsg","Conferindo...");
+  try{
+    const r=await fetch(loginApiBase()+"/api/emergencia/trocar-senha",{method:"POST",headers:{"content-type":"application/json"},
+      body:JSON.stringify({email:email,codigo:codigo,senhaNova:nova})});
+    const j=await r.json();
+    if(!j.ok){loginMsgErro("loginEsMsg",j.erro==="codigo invalido ou ja usado"||j.erro==="e-mail ou codigo errados"?"E-mail ou código não conferem (ou o código já foi usado).":(j.erro||"Não deu para trocar agora."));return;}
+    const erro=await nuvemConectar(loginApiBase(),j.chave,false);
+    if(erro){loginMsgErro("loginEsMsg",erro);return;}
+    loginEntrarComSucesso();
+    toast("Senha trocada ✓ — restam "+j.codigosRestantes+" códigos de emergência");
+  }catch(e){loginMsgErro("loginEsMsg","Sem internet agora.");}
 }
 
 /* ---------------------------------------------------------------------

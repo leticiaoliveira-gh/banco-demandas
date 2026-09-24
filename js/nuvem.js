@@ -30,6 +30,32 @@ const NUVEM_INTERVALO = 5 * 60000;
 
 let nuvemT = null, nuvemBusy = false, nuvemDirty = false, nuvemLast = 0;
 
+/* ---------------------------------------------------------------------
+   A FILA DE ENVIO (24/09 — "marquei feito e voltou")
+   Antes: cada alteracao esperava 60 segundos e ai o site mandava TODAS as
+   fichas de novo. Fechou o site nesse minuto? A alteracao ficava presa no
+   aparelho, e o outro aparelho continuava com a versao velha.
+   Agora: cada ficha alterada entra numa fila guardada no aparelho (nao se
+   perde se fechar), e sai para a nuvem em ~3 segundos. Ao esconder ou
+   fechar a aba, a fila sai na hora.
+   --------------------------------------------------------------------- */
+let nuvemFila = new Set(), nuvemMesclando = false, nuvemUltimoOk = null;
+const NUVEM_ESPERA = 3000;
+/* a fila mora na gaveta do navegador (localStorage), que as abas dividem e
+   que nao dispara o aviso "mudou configuracao" para as outras abas */
+async function nuvemFilaCarregar() {
+  try { const f = JSON.parse(localStorage.getItem("nuvem_fila") || "[]"); if (Array.isArray(f)) f.forEach(u => nuvemFila.add(u)); } catch (e) {}
+  try { const t = await metaGet("nuvemUltimoOk"); if (t) nuvemUltimoOk = t; } catch (e) {}
+}
+function nuvemFilaGuardar() { try { localStorage.setItem("nuvem_fila", JSON.stringify([...nuvemFila])); } catch (e) {} }
+function nuvemFilaAnotar(o) {
+  if (nuvemMesclando || !o || !o.uid || !nuvemDoQuadro(o)) return;
+  nuvemFila.add(o.uid);
+  nuvemFilaGuardar();
+}
+/* a hora em que a nuvem confirmou por ultimo — e o que o selo mostra */
+function nuvemHoraOk() { return nuvemUltimoOk; }
+
 /* guarda o ultimo erro para o selo (js/sync.js) nunca dizer "Sincronizado"
    enquanto o cofre novo esta falhando por baixo */
 let nuvemUltimoErro = null;
@@ -86,8 +112,13 @@ const NUVEM_CFG_PARES = [
    --------------------------------------------------------------------- */
 async function nuvemPull() {
   const c = nuvemCfg();
-  let desde = await nuvemMarco("desde"), cursor = await nuvemMarco("cursor");
+  /* marcador novo ("rev_"): conta pela hora em que a NUVEM recebeu, nao
+     pelo relogio de cada aparelho. Na primeira vez depois da troca ele
+     comeca do zero e confere tudo — mas so baixa (e so busca foto de)
+     ficha que o aparelho nao tem igual. */
+  let desde = await nuvemMarco("rev_desde"), cursor = await nuvemMarco("rev_cursor");
   const itens = [];
+  const localPorUid = new Map(DATA.filter(d => d.uid).map(d => [d.uid, d]));
   let voltas = 0;
 
   while (voltas++ < 40) {
@@ -96,7 +127,16 @@ async function nuvemPull() {
     const r = await fetch(u, { headers: nuvemHdrs(), cache: "no-store" });
     if (!r.ok) throw new Error("GET itens " + r.status);
     const j = await r.json();
-    for (const it of (j.itens || [])) itens.push(await nuvemFotosParaCa(it));
+    for (const it of (j.itens || [])) {
+      const l = localPorUid.get(it.uid);
+      if (l && (l.mod || "") >= (it.mod || "")) {
+        /* o aparelho ja tem esta versao (ou uma mais nova, que ainda nao
+           subiu): nao baixa de novo; se for mais nova, entra na fila */
+        if ((l.mod || "") > (it.mod || "") && nuvemDoQuadro(l)) nuvemFila.add(l.uid);
+        continue;
+      }
+      itens.push(await nuvemFotosParaCa(it));
+    }
     desde = j.proxDesde || desde;
     cursor = j.proxCursor || cursor;
     if (!j.temMais) break;
@@ -121,9 +161,11 @@ async function nuvemPull() {
     if ((linha.mod || "") > metaUltimo) metaUltimo = linha.mod;
   }
 
-  const res = await syncMergeEnvelope(env);
-  await nuvemSetMarco("desde", desde);
-  await nuvemSetMarco("cursor", cursor);
+  nuvemMesclando = true;
+  let res;
+  try { res = await syncMergeEnvelope(env); } finally { nuvemMesclando = false; }
+  await nuvemSetMarco("rev_desde", desde);
+  await nuvemSetMarco("rev_cursor", cursor);
   await nuvemSetMarco("metaDesde", metaUltimo);
   return res;
 }
@@ -138,7 +180,12 @@ function nuvemDoQuadro(d) {
 
 async function nuvemPush() {
   const c = nuvemCfg();
-  const lista = DATA.filter(nuvemDoQuadro);
+  /* so o que esta na fila. Na primeira vez depois da troca (24/09) vai tudo
+     uma vez, para nada que so existia neste aparelho ficar para tras. */
+  const tudo = !(await metaGet("nuvemFilaLigada"));
+  const enviando = new Set(nuvemFila);
+  const lista = DATA.filter(d => nuvemDoQuadro(d) && (tudo || enviando.has(d.uid)));
+  const recusados = [];
 
   /* em lotes, para nao estourar a memoria do celular nem o limite da API */
   for (let i = 0; i < lista.length; i += 400) {
@@ -151,6 +198,22 @@ async function nuvemPush() {
       method: "POST", headers: nuvemHdrs(), body: JSON.stringify({ itens: lote })
     });
     if (!r.ok) throw new Error("POST itens " + r.status);
+    try { const j = await r.json(); if (j && Array.isArray(j.recusados)) recusados.push(...j.recusados); } catch (e) {}
+  }
+  /* saiu: tira da fila so o que foi enviado (o que entrou durante o envio fica) */
+  for (const u of enviando) nuvemFila.delete(u);
+  nuvemFilaGuardar();
+  if (tudo) await metaSet("nuvemFilaLigada", nowISO());
+
+  /* a nuvem tinha versao mais nova de alguma ficha (alterada em outro
+     aparelho): vale a da nuvem, e a tela troca na hora */
+  if (recusados.length) {
+    const vindos = [];
+    for (const it of recusados) vindos.push(await nuvemFotosParaCa(it));
+    nuvemMesclando = true;
+    let res;
+    try { res = await syncMergeEnvelope({ itens: vindos }); } finally { nuvemMesclando = false; }
+    if (res && res.changed && typeof syncRefreshViews === "function") syncRefreshViews();
   }
 
   /* configuracoes: vao inteiras, cada uma com o proprio carimbo */
@@ -168,8 +231,8 @@ async function nuvemPush() {
     if (!r.ok) throw new Error("POST meta " + r.status);
   }
 
-  nuvemDirty = false;
-  if (typeof seloPendentes !== "undefined") seloPendentes = 0;
+  nuvemDirty = nuvemFila.size > 0;
+  if (typeof seloPendentes !== "undefined" && !nuvemDirty) seloPendentes = 0;
   await metaSet("nuvemUltimoEnvio", nowISO());
 }
 
@@ -185,10 +248,12 @@ async function nuvemNow() {
       if (typeof syncRefreshViews === "function") syncRefreshViews();
       if (typeof scheduleBackup === "function") scheduleBackup();
     }
-    if (nuvemDirty || (res && res.localAhead)) await nuvemPush();
+    if (nuvemDirty || nuvemFila.size || !(await metaGet("nuvemFilaLigada"))) await nuvemPush();
     nuvemLast = Date.now();
     nuvemUltimoErro = null;
-    await metaSet("nuvemUltimaConversa", nowISO());
+    nuvemUltimoOk = nowISO();
+    await metaSet("nuvemUltimaConversa", nuvemUltimoOk);
+    await metaSet("nuvemUltimoOk", nuvemUltimoOk);
   } catch (e) {
     /* falhar aqui NAO pode travar nada: o sistema de hoje continua gravando
        no GitHub, e a copia do aparelho e a principal. Mas o selo TEM que
@@ -196,23 +261,39 @@ async function nuvemNow() {
     nuvemUltimoErro = e && e.message || String(e);
     console.warn("nuvem:", nuvemUltimoErro);
   }
-  if (typeof aplicarSeloConexao === "function") aplicarSeloConexao();
   nuvemBusy = false;
+  if (typeof aplicarSeloConexao === "function") aplicarSeloConexao();
+  /* alterou enquanto conversava? sai logo em seguida */
+  if (!nuvemUltimoErro && nuvemFila.size) nuvemAgendar(NUVEM_ESPERA);
+}
+function nuvemAgendar(ms) {
+  clearTimeout(nuvemT);
+  nuvemT = setTimeout(nuvemNow, ms);
 }
 
 function nuvemSchedule() {
   if (!nuvemLigada()) return;
   nuvemDirty = true;
-  clearTimeout(nuvemT);
-  nuvemT = setTimeout(nuvemNow, 60000);
+  nuvemAgendar(NUVEM_ESPERA);
 }
 
-function nuvemInit() {
+async function nuvemInit() {
   if (!nuvemLigada()) return;
+  /* toda gravacao do site passa por putItem: anotar aqui cobre toda tela */
+  if (typeof putItem === "function" && !putItem.__nuvem) {
+    const _put = putItem;
+    putItem = async function (o) { const r = await _put(o); nuvemFilaAnotar(o); return r; };
+    putItem.__nuvem = true;
+  }
+  await nuvemFilaCarregar();
   nuvemNow();
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && nuvemLigada() && !nuvemBusy && Date.now() - nuvemLast > 60000) nuvemNow();
+    if (!nuvemLigada()) return;
+    /* escondeu/fechou a aba com coisa na fila: manda ja, nao espera */
+    if (document.hidden) { if (nuvemFila.size && !nuvemBusy) nuvemNow(); return; }
+    if (!nuvemBusy && Date.now() - nuvemLast > 60000) nuvemNow();
   });
+  window.addEventListener("pagehide", () => { if (nuvemLigada() && nuvemFila.size && !nuvemBusy) nuvemNow(); });
   window.addEventListener("online", () => { if (nuvemLigada()) nuvemNow(); });
   setInterval(() => {
     if (document.hidden || !nuvemLigada() || nuvemBusy) return;

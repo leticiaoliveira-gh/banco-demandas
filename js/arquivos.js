@@ -341,9 +341,9 @@ function anexosHTML(d){
    window.open('') vazio ficava bloqueado pelo navegador) e, uma vez aberta,
    tem que dar pra girar. Uma peça só, reaproveitada em toda foto do site
    (demanda, Não Conformidade, manutenção) em vez de repetir o mesmo código. */
-let IMG_VIEWER_GRAUS=0;
+let IMG_VIEWER_GRAUS=0,IMG_VIEWER_SRC=null;
 function verImagemGrande(src){
-  IMG_VIEWER_GRAUS=0;
+  IMG_VIEWER_GRAUS=0;IMG_VIEWER_SRC=src;
   let m=document.getElementById("img-viewer");
   if(!m){
     m=document.createElement("div");m.id="img-viewer";m.className="bd-visualizador";
@@ -361,8 +361,50 @@ function girarImagemGrande(){
   IMG_VIEWER_GRAUS=(IMG_VIEWER_GRAUS+90)%360;
   document.getElementById("img-viewer-img").style.transform=`rotate(${IMG_VIEWER_GRAUS}deg)`;
 }
-function fecharImagemGrande(){
+async function fecharImagemGrande(){
   const m=document.getElementById("img-viewer");if(m)m.style.display="none";
+  /* GIROU? FICA GIRADA (pedido dela, 24/09: "gira mas nao fixa").
+     Antes o giro era so na tela. Agora, ao fechar, a foto girada e gravada
+     no lugar da antiga, em toda demanda que usa essa foto — vale para a
+     nuvem, para o outro aparelho e para a impressao. */
+  const graus=IMG_VIEWER_GRAUS,antiga=IMG_VIEWER_SRC;
+  IMG_VIEWER_GRAUS=0;IMG_VIEWER_SRC=null;
+  if(!graus||!antiga)return;
+  try{
+    const nova=await girarFotoGravar(antiga,graus);
+    const donos=DATA.filter(d=>!d.deleted&&Array.isArray(d.fotos)&&d.fotos.includes(antiga));
+    if(!donos.length)return;
+    for(const d of donos){
+      d.fotos=d.fotos.map(f=>f===antiga?nova:f);
+      d.mod=nowISO();await putItem(d);
+    }
+    dataChanged();
+    /* troca a miniatura na tela sem redesenhar nada (ela nao perde o lugar) */
+    document.querySelectorAll("img").forEach(im=>{if(im.getAttribute("src")===antiga)im.src=nova;});
+    document.querySelectorAll("[onclick]").forEach(el=>{
+      const oc=el.getAttribute("onclick");
+      if(oc&&oc.indexOf(antiga)>=0)el.setAttribute("onclick",oc.split(antiga).join(nova));});
+    toast("Foto girada e salva ✓");
+  }catch(e){toast("Não consegui salvar a foto girada. Tente de novo.");}
+}
+/* desenha a foto INTEIRA girada (nunca cortada: largura e altura trocam) */
+function girarFotoGravar(src,graus){
+  return new Promise((ok,falha)=>{
+    const im=new Image();
+    im.onload=()=>{
+      const deitada=(graus%180)!==0;
+      const cv=document.createElement("canvas");
+      cv.width=deitada?im.naturalHeight:im.naturalWidth;
+      cv.height=deitada?im.naturalWidth:im.naturalHeight;
+      const cx=cv.getContext("2d");
+      cx.translate(cv.width/2,cv.height/2);cx.rotate(graus*Math.PI/180);
+      cx.drawImage(im,-im.naturalWidth/2,-im.naturalHeight/2);
+      const png=/^data:image\/png/i.test(src);
+      ok(png?cv.toDataURL("image/png"):cv.toDataURL("image/jpeg",0.92));
+    };
+    im.onerror=()=>falha(new Error("imagem"));
+    im.src=src;
+  });
 }
 async function removerAnexo(uid,i){
   const d=DATA.find(x=>x.uid===uid&&!x.deleted);if(!d||!d.fotos)return;

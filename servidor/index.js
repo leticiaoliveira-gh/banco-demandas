@@ -366,6 +366,41 @@ async function rotaEmergenciaUsar(req, env) {
   return ok({ ok: true, chave: s.chave, codigosRestantes: (restantes && restantes.n) || 0 });
 }
 
+/* POST /api/emergencia/trocar-senha { email, codigo, senhaNova } - sem
+   estar logada (24/09, "trocar a senha na tela de entrada", sem e-mail por
+   enquanto). Gasta um codigo de emergencia, grava a senha nova e ja entra. */
+async function rotaEmergenciaTrocarSenha(req, env) {
+  let corpo;
+  try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
+  const email = String((corpo && corpo.email) || "").trim().toLowerCase();
+  const codigo = String((corpo && corpo.codigo) || "").trim().toUpperCase();
+  const nova = String((corpo && corpo.senhaNova) || "");
+  if (nova.length < 8) return erro("a senha nova precisa de pelo menos 8 caracteres");
+  const usuario = await env.DB.prepare("SELECT id FROM usuarios WHERE email = ?1").bind(email).first();
+  if (!usuario) return erro("e-mail ou codigo errados", 401);
+  const linha = await env.DB.prepare(
+    "SELECT id FROM codigos_emergencia WHERE usuario_id = ?1 AND hash = ?2 AND usado_em IS NULL"
+  ).bind(usuario.id, await sha256(codigo)).first();
+  if (!linha) return erro("codigo invalido ou ja usado", 401);
+  await env.DB.prepare("UPDATE codigos_emergencia SET usado_em = ?1 WHERE id = ?2").bind(AGORA(), linha.id).run();
+  const h = await hashSenha(nova);
+  await env.DB.prepare("UPDATE usuarios SET hash_senha = ?1, sal = ?2 WHERE id = ?3")
+    .bind(h.hash, h.sal, usuario.id).run();
+  const s = await criarSessaoLogin(env, usuario.id, "confiavel", "Troca de senha por codigo de emergencia", null);
+  const restantes = await env.DB.prepare(
+    "SELECT COUNT(*) n FROM codigos_emergencia WHERE usuario_id = ?1 AND usado_em IS NULL"
+  ).bind(usuario.id).first();
+  return ok({ ok: true, chave: s.chave, codigosRestantes: (restantes && restantes.n) || 0 });
+}
+
+/* GET /api/emergencia/restantes - quantos codigos ainda valem (tela Segurança) */
+async function rotaEmergenciaRestantes(quem, env) {
+  const r = await env.DB.prepare(
+    "SELECT COUNT(*) total, SUM(CASE WHEN usado_em IS NULL THEN 1 ELSE 0 END) restantes, MAX(criado) criado FROM codigos_emergencia WHERE usuario_id = ?1"
+  ).bind(quem.usuario_id).first();
+  return ok({ ok: true, total: (r && r.total) || 0, restantes: (r && r.restantes) || 0, criado: (r && r.criado) || null });
+}
+
 /* POST /api/primeiro-usuario  { email, senha } - roda uma vez, com o
    segredo CHAVE_MESTRA, igual a rotaAcessoCriar. Cria a conta dela. */
 async function rotaPrimeiroUsuario(req, env) {
@@ -442,12 +477,16 @@ async function rotaItensBaixar(url, env) {
   if (!Number.isFinite(limite) || limite < 1) limite = LIMITE_PADRAO;
   if (limite > LIMITE_MAX) limite = LIMITE_MAX;
 
-  /* ordem por (mod, uid) para a paginacao nunca pular nem repetir ficha
-     quando duas foram salvas no mesmo segundo */
+  /* A FILA DE CHEGADA (24/09): o "desde" e a hora em que a NUVEM recebeu
+     (rev), nao a hora do relogio do aparelho que editou (mod). Antes era o
+     mod: um aparelho que ficou parado e mandou uma edicao de 10:00 as 10:30
+     chegava "no passado" — quem ja tinha baixado ate 10:20 nunca mais via
+     aquela edicao, e a demanda marcada como feita "voltava" no outro
+     aparelho. Ordem por (rev, uid) para a paginacao nunca pular ficha. */
   const r = await env.DB.prepare(
-    `SELECT uid, dados, mod, apagado FROM itens
-      WHERE mod > ?1 OR (mod = ?1 AND uid > ?2)
-      ORDER BY mod, uid LIMIT ?3`
+    `SELECT uid, dados, mod, apagado, rev FROM itens
+      WHERE rev > ?1 OR (rev = ?1 AND uid > ?2)
+      ORDER BY rev, uid LIMIT ?3`
   ).bind(desde, cursor, limite + 1).all();
 
   const linhas = r.results || [];
@@ -468,7 +507,7 @@ async function rotaItensBaixar(url, env) {
     ok: true,
     itens,
     temMais,
-    proxDesde: ultimo ? ultimo.mod : desde,
+    proxDesde: ultimo ? ultimo.rev : desde,
     proxCursor: ultimo ? ultimo.uid : cursor
   });
 }
@@ -484,29 +523,42 @@ async function rotaItensEnviar(req, env) {
   const agora = AGORA();
   let gravados = 0, ignorados = 0;
   const comandos = [];
+  /* o que foi recusado por ser copia velha volta na resposta, ja com a
+     versao que vale — o aparelho troca na hora, em vez de continuar
+     mostrando a copia velha ate a proxima conversa */
+  const recusados = [];
 
   for (const it of lista) {
     if (!it || !it.uid) { ignorados++; continue; }
     const mod = it.mod || agora;
     const atual = await env.DB.prepare(
-      "SELECT dados, mod, apagado FROM itens WHERE uid = ?1"
+      "SELECT dados, mod, apagado, rev FROM itens WHERE uid = ?1"
     ).bind(it.uid).first();
-
-    /* o banco ja tem versao mais nova? entao o que chegou e passado */
-    if (atual && (atual.mod || "") > mod) { ignorados++; continue; }
 
     let guardado = {};
     if (atual) { try { guardado = JSON.parse(atual.dados); } catch (e) { guardado = {}; } }
+
+    /* o banco ja tem versao mais nova? entao o que chegou e passado */
+    if (atual && (atual.mod || "") > mod) {
+      ignorados++;
+      recusados.push({ ...guardado, uid: it.uid, mod: atual.mod, ...(atual.apagado ? { deleted: true } : {}) });
+      continue;
+    }
 
     const { id, uid, mod: _m, deleted, ...campos } = it;
     const dados = juntarCampos(guardado, campos);
     const apagado = deleted ? 1 : 0;
 
+    /* mesma versao, mesmo conteudo: nao mexe (nao faz os outros aparelhos
+       baixarem de novo o que ja tem) */
+    if (atual && (atual.mod || "") === mod && (atual.apagado || 0) === apagado &&
+        JSON.stringify(dados) === JSON.stringify(guardado)) { ignorados++; continue; }
+
     comandos.push(env.DB.prepare(
-      `INSERT INTO itens (uid, dados, mod, apagado, tipo, empresa, criado)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+      `INSERT INTO itens (uid, dados, mod, apagado, tipo, empresa, criado, rev)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
        ON CONFLICT(uid) DO UPDATE SET
-         dados = ?2, mod = ?3, apagado = ?4, tipo = ?5, empresa = ?6`
+         dados = ?2, mod = ?3, apagado = ?4, tipo = ?5, empresa = ?6, rev = ?8`
     ).bind(
       it.uid,
       JSON.stringify(dados),
@@ -514,13 +566,14 @@ async function rotaItensEnviar(req, env) {
       apagado,
       dados.tipo || null,
       dados.store || dados.empresa || null,
-      (atual && atual.criado) || agora
+      (atual && atual.criado) || agora,
+      agora
     ));
     gravados++;
   }
 
   if (comandos.length) await env.DB.batch(comandos);
-  return ok({ ok: true, gravados, ignorados, agora });
+  return ok({ ok: true, gravados, ignorados, recusados, agora });
 }
 
 /* GET /api/meta?desde=ISO  e  POST /api/meta { meta: {k: {v, mod}} } */
@@ -831,7 +884,7 @@ async function rotaCopiaRestaurar(id, env) {
   const agora = AGORA();
   for (let i = 0; i < linhas.length; i += COPIA_LOTE) {
     await env.DB.batch(linhas.slice(i, i + COPIA_LOTE).map(l => env.DB.prepare(
-      "INSERT INTO itens (uid, dados, mod, apagado, criado) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(uid) DO UPDATE SET dados = ?2, mod = ?3, apagado = ?4"
+      "INSERT INTO itens (uid, dados, mod, apagado, criado, rev) VALUES (?1, ?2, ?3, ?4, ?5, ?3) ON CONFLICT(uid) DO UPDATE SET dados = ?2, mod = ?3, apagado = ?4, rev = ?3"
     ).bind(l.uid, l.dados, agora, l.apagado || 0, agora)));
   }
   for (let i = 0; i < metas.length; i += COPIA_LOTE) {
@@ -900,6 +953,8 @@ export default {
         return cors(req, await rotaDefinirSenha(req, env));
       if (cam === "/api/emergencia/usar" && req.method === "POST")
         return cors(req, await rotaEmergenciaUsar(req, env));
+      if (cam === "/api/emergencia/trocar-senha" && req.method === "POST")
+        return cors(req, await rotaEmergenciaTrocarSenha(req, env));
       if (cam.startsWith("/api/aprovacoes/") && req.method === "GET" && !cam.endsWith("/decidir")) {
         const id = decodeURIComponent(cam.slice("/api/aprovacoes/".length));
         return cors(req, await rotaAprovacaoConsultar(id, env));
@@ -926,6 +981,8 @@ export default {
         return cors(req, await rotaTrocarSenha(req, quem, env));
       if (cam === "/api/emergencia/gerar" && req.method === "POST")
         return cors(req, await rotaEmergenciaGerar(quem, env));
+      if (cam === "/api/emergencia/restantes" && req.method === "GET")
+        return cors(req, await rotaEmergenciaRestantes(quem, env));
 
       if (cam === "/api/situacao" && req.method === "GET")
         return cors(req, await rotaSituacao(env));

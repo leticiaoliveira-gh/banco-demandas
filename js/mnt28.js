@@ -46,6 +46,29 @@ let M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
 
 /* quem tem serviço nesta folha — sai dos próprios itens, não de uma lista fixa,
    para o seletor nunca oferecer um nome sem nenhum serviço atrás */
+/* QUEM FAZ (24/09, pedido dela: "o botão de cada demanda tem que ter
+   todos"). Antes a lista vinha SO do cadastro da aba antiga; quem nao estava
+   cadastrado la (ex.: Matheus) nao aparecia, mesmo tendo servico. Agora junta
+   o cadastro + todo mundo que ja tem servico em qualquer loja, sem repetir,
+   e ainda deixa escrever um nome novo. */
+function m28PessoasOpcoes(sel){
+  const nomes=[];
+  const add=n=>{n=(n||"").trim();if(n&&n!=="Outro"&&!nomes.some(x=>x.toLowerCase()===n.toLowerCase()))nomes.push(n);};
+  (typeof EXECUTORES!=="undefined"?EXECUTORES:[]).forEach(e=>add(e.nome));
+  DATA.filter(d=>!d.deleted&&d.tipo==="mnt28").map(d=>d.executor).sort().forEach(add);
+  add(sel);
+  return `<option value=""${sel?"":" selected"}>Ninguém definido</option>`+
+    nomes.map(n=>`<option value="${esc(n)}"${n===sel?" selected":""}>${esc(n)}</option>`).join("")+
+    `<option value="__nova">Outra pessoa (escrever o nome)…</option>`;
+}
+function m28TrocouPessoa(sel){
+  if(sel.value!=="__nova"){sel.dataset.antes=sel.value;return;}
+  const n=(prompt("Nome da pessoa que vai fazer este serviço:")||"").trim();
+  if(!n){sel.value=sel.dataset.antes||"";return;}
+  let o=[...sel.options].find(x=>x.value.toLowerCase()===n.toLowerCase());
+  if(!o){o=document.createElement("option");o.value=n;o.textContent=n;sel.insertBefore(o,sel.lastElementChild);}
+  sel.value=o.value;sel.dataset.antes=o.value;
+}
 function m28Executores(itens){
   return [...new Set((itens||m28Itens()).map(d=>(d.executor||"").trim()).filter(Boolean))].sort();
 }
@@ -1118,7 +1141,17 @@ function m28LinhasDaTela(){
     return true;});
 }
 
+/* toda vez que a lista se refaz, ela fica no mesmo lugar da tela (24/09).
+   M28_PULAR: a demanda que acabou de mudar de posicao (concluida), que nao
+   pode servir de referencia. */
+let M28_PULAR=null;
 function m28RenderLista(){
+  const g=(typeof lugarGuardar==="function")?lugarGuardar(M28_PULAR):null;
+  M28_PULAR=null;
+  m28RenderListaDesenho();
+  if(g&&typeof lugarVoltar==="function")lugarVoltar(g);
+}
+function m28RenderListaDesenho(){
   const el=document.getElementById("m28-lista");if(!el)return;
   let rows=m28LinhasDaTela();
 
@@ -1523,6 +1556,7 @@ async function m28Marcar(id){
       toast("Concluído. Saiu também da lista de compras.");}
   }
   dataChanged();
+  M28_PULAR=id;
   m28AtualizarTopo();m28RenderLista();
 }
 /* "VERIFICAR" (27/08) — pedido dela: um item que ela ainda precisa conferir na
@@ -1549,8 +1583,9 @@ function m28Editar(id){
   m28RenderLista();
   if(M28_EDITANDO){
     const c=document.querySelector('.m28-form textarea');
-    if(c){c.focus();c.setSelectionRange(c.value.length,c.value.length);}
-  }
+    /* preventScroll: o cursor entra no campo sem a tela pular */
+    if(c){c.focus({preventScroll:true});c.setSelectionRange(c.value.length,c.value.length);}
+  }else if(typeof telaPendenteAplicar==="function")telaPendenteAplicar();
 }
 /* piso e área saem da lista que ELA já cadastrou na empresa — nunca digitados */
 function m28ListaAreas(){
@@ -1576,10 +1611,9 @@ function m28FormHTML(d){
       <button type="button" onclick="m28TirarFoto(${d.id},${i})" aria-label="Remover a foto ${i+1}" title="Remover">×</button></span>`).join("");
   /* a lista de quem executa é a MESMA da aba antiga (ela já cadastra e renomeia
      por lá) — nunca uma segunda lista para ela manter em dois lugares */
-  const opExec=(typeof execOptionsHTML!=="undefined")
-    ? execOptionsHTML(d.executor||"")
-    : `<option selected>${esc(d.executor||"")}</option>`;
-  return `<div class="m28-form" data-id="${d.id}">
+  const opExec=m28PessoasOpcoes((d.executor||"").trim());
+  return `<div class="m28-form" data-id="${d.id}" role="group" aria-label="Editando esta demanda">
+    <p class="m28-form-titulo">Editando esta demanda</p>
     <div class="bd-grupo">
       <label class="bd-rotulo" for="m28f-fazer">O que fazer?</label>
       <textarea class="bd-campo" id="m28f-fazer" rows="3"
@@ -1604,7 +1638,7 @@ function m28FormHTML(d){
            é a mesma que ela já edita na aba antiga — não se cria outra. */""}
       <div class="bd-grupo">
         <label class="bd-rotulo" for="m28f-exec">Quem faz</label>
-        <select class="bd-campo" id="m28f-exec">${opExec}</select>
+        <select class="bd-campo" id="m28f-exec" data-antes="${esc((d.executor||"").trim())}" onchange="m28TrocouPessoa(this)">${opExec}</select>
         <span class="bd-ajuda">Manda o serviço para a folha desta pessoa.</span>
       </div>
     </div>
@@ -1665,14 +1699,19 @@ async function m28Salvar(id){
   if(typeof orientacaoLer==="function")Object.assign(d,orientacaoLer("m28f"));
   const ex=document.getElementById("m28f-exec");
   const execAntes=(d.executor||"").trim();
-  if(ex)d.executor=ex.value==="Outro"?"":ex.value;
+  if(ex&&ex.value!=="__nova")d.executor=ex.value==="Outro"?"":ex.value;
   d.mod=nowISO();
   await putItem(d);dataChanged();
   M28_EDITANDO=null;m28AtualizarTopo();
   /* trocou de dono: a barra precisa se refazer, senão o seletor fica sem o nome
      novo (ou com um nome que já não tem nenhum serviço atrás) */
-  if((d.executor||"").trim()!==execAntes){renderMnt28();toast("Serviço enviado para a folha de "+(d.executor||"ninguém")+" ✓");return;}
+  if((d.executor||"").trim()!==execAntes){
+    const g=(typeof lugarGuardar==="function")?lugarGuardar():null;
+    renderMnt28();if(g)lugarVoltar(g);
+    toast("Serviço enviado para a folha de "+(d.executor||"ninguém")+" ✓");
+    if(typeof telaPendenteAplicar==="function")telaPendenteAplicar();return;}
   m28RenderLista();toast("Serviço atualizado ✓");
+  if(typeof telaPendenteAplicar==="function")telaPendenteAplicar();
 }
 async function m28PorFoto(ev,id){
   const d=DATA.find(x=>x.id===id);if(!d)return;

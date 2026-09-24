@@ -1515,6 +1515,28 @@ function showTab(t){
  if(tab.onShow)tab.onShow();
  window.scrollTo(0,0);}
 
+/* NAO PERDER O LUGAR (pedido dela, 24/09: "depois que edito ou concluo, a
+   tela pula e eu me perco"). Antes de redesenhar, anota qual demanda esta no
+   alto da tela e a que altura; depois de redesenhar, poe a mesma demanda na
+   mesma altura. "pular" = a demanda que acabou de mudar de lugar (ex.: a que
+   foi concluida) nao serve de referencia. */
+function lugarRaiz(){const t=TABS[currentTab];return (t&&document.getElementById(t.panel))||document;}
+function lugarGuardar(pular){
+ let el=null;
+ for(const e of lugarRaiz().querySelectorAll("[data-id]")){
+   if(pular!=null&&String(e.dataset.id)===String(pular))continue;
+   const r=e.getBoundingClientRect();
+   if(r.height&&r.top>=0){el=e;break;}
+ }
+ return {id:el?el.dataset.id:null,top:el?el.getBoundingClientRect().top:0,y:window.scrollY};
+}
+function lugarVoltar(g){
+ if(!g)return;
+ const el=g.id!=null?lugarRaiz().querySelector('[data-id="'+g.id+'"]'):null;
+ if(el&&el.getBoundingClientRect().height)window.scrollBy(0,el.getBoundingClientRect().top-g.top);
+ else window.scrollTo(0,g.y);
+}
+
 /* abas que usam a tabela compartilhada (dg / mnt) */
 function configTableTab(tipo){
  currentTipo=tipo;

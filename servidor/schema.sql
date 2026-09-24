@@ -22,11 +22,13 @@ CREATE TABLE IF NOT EXISTS itens (
   apagado  INTEGER NOT NULL DEFAULT 0, -- 1 = lapide
   tipo     TEXT,                       -- quadro de origem: mnt28, cmp, nc...
   empresa  TEXT,                       -- codigo da loja/empresa
-  criado   TEXT NOT NULL
+  criado   TEXT NOT NULL,
+  rev      TEXT                        -- hora em que a NUVEM recebeu (fila de chegada, 24/09)
 );
 
 -- "o que mudou desde X" nunca pode varrer a tabela inteira
 CREATE INDEX IF NOT EXISTS idx_itens_mod     ON itens(mod);
+CREATE INDEX IF NOT EXISTS idx_itens_rev     ON itens(rev, uid);
 CREATE INDEX IF NOT EXISTS idx_itens_tipo    ON itens(tipo, mod);
 CREATE INDEX IF NOT EXISTS idx_itens_empresa ON itens(empresa, mod);
 
