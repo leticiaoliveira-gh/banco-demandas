@@ -2037,9 +2037,11 @@ function m28ImprimirFolha(op){
              de hoje na folha impressa. Agora a folha respeita o que ela editou. */""}
         ${/* Pedido dela (17/09): responsavel tecnica do lado de "Emitido em" na
              mesma fileira, entao os dois ficaram juntos no fim da grade. */""}
-        <div><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
+        ${/* Pedido dela (24/09): cabecalho mais compacto, numa fileira so --
+             unidade a esquerda, responsavel tecnica no MEIO, emitido em a direita. */""}
         ${false&&exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
-        <div><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
+        <div class="rt"><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
+        <div class="em"><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
       </div>
     </div>
     ${/* LAY-5 (25/08): na FOLHA IMPRESSA ficam so dois numeros, nesta ordem.
@@ -2115,9 +2117,13 @@ function m28ImprimirFolha(op){
   /* LINHA DE BAIXO, opcao B: duas colunas -- unidade e emissao numa linha,
      executor e responsavel tecnica na outra. Ela achou a fileira unica
      "embolada"; cada dupla ganha a largura inteira da coluna dela agora. */
-  .capa .cpe{display:grid;grid-template-columns:1fr 1.6fr;gap:4px 20px;
+  /* 24/09: as tres numa fileira so (unidade | RT no meio | emitido a direita),
+     pedido dela para o cabecalho ficar mais compacto. */
+  .capa .cpe{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 16px;align-items:start;
     margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.26);font-size:10.4px}
   .capa .cpe div{display:flex;flex-direction:column;gap:1px}
+  .capa .cpe .rt{text-align:center;align-items:center}
+  .capa .cpe .em{text-align:right;align-items:flex-end}
   .capa .cpe span{font-size:8.2px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
   .capa .cpe b{font-weight:600;font-size:11.4px;color:#fff}
   .capa .cpe i{font-style:normal;font-size:9.2px;color:rgba(255,255,255,.88)}
@@ -2172,10 +2178,13 @@ function m28ImprimirFolha(op){
   /* o recado (27/08): ela escolheu vendo em papel a opcao B -- so a palavra
      "Obs:" ganha a capsula cinza; a frase segue em texto normal, sem fundo,
      para poluir menos e ainda achar o recado de longe */
-  .li .obs-p{display:block;font-style:normal;font-size:11.2px;line-height:1.5;
-    color:#475467;margin-top:5px}
+  /* 24/09: ela achou o Obs "embolado" e pediu letra MAIOR. A frase agora fica
+     numa coluna propria ao lado da capsula "Obs:" -- a segunda linha nao volta
+     mais para baixo da capsula, comeca alinhada com a primeira. */
+  .li .obs-p{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:start;
+    font-style:normal;font-size:12.4px;line-height:1.5;color:#344054;margin-top:6px}
   .li .obs-p b{font-weight:700;color:#344054;background:#eceff3;border-radius:5px;
-    padding:1px 7px;margin-right:6px;font-size:10.5px;
+    padding:1px 7px;font-size:10.8px;margin-top:1px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* o enter que ela deu vira quebra de linha de verdade, aqui e na tela */
   .li .linhas{white-space:pre-wrap}

@@ -56,7 +56,7 @@ Em cada aba, confira:
 ## 6. Auditoria de design
 
 Rode a skill `web-design-guidelines` nos arquivos alterados e passe o
-`CLAUDE (CENTRAL)\6. REPOSITORIOS (meus-projetos)\biblioteca-design\regras\checklist-antes-de-publicar.md`.
+`(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\biblioteca-design\regras\checklist-antes-de-publicar.md`.
 
 ## Como responder
 

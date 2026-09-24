@@ -8,7 +8,7 @@
 #
 #  Este script transforma cada caderno vivo em PDF e ja deixa o arquivo
 #  NUMERADO na pasta onde ela guarda os planos:
-#    Cloudflare -> ...\2. Transferencia (CloudFlare)\Atualizacoes Plano\
+#    Cloudflare -> ...\2. Transferencia (CloudFlare)\PLANO (atualizacoes e status)\PDFs\
 #    OneDrive   -> ...\3. Transferencia (One Drive)\
 #  Se o PDF daquela versao ja existe, nao gera de novo. Nao apaga nada.
 #  Imprime o caminho de cada PDF novo (para mandar a ela com SendUserFile).
@@ -27,18 +27,20 @@ if (-not $chrome) { Write-Output "CHROME NAO ENCONTRADO - nenhum PDF gerado."; e
 
 # 21/09/2026: o site passou a usar a pasta que SOBE para a nuvem (USERPROFILE\OneDrive)
 # e o plano Cloudflare foi morar junto do projeto (2. Transferencia\Plano - caderno vivo).
+# 23/09/2026: pedido dela - as duas pastas viraram uma: PLANO (atualizacoes e status), PDFs na subpasta PDFs.
 $od   = Join-Path $env:USERPROFILE 'OneDrive\*'
 $proj = '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria'
 function Achar($rel) { $r = Resolve-Path (Join-Path $od $rel) -ErrorAction SilentlyContinue | Select-Object -First 1; if ($r) { $r.Path } }
 
 $cc = [char]0x00E7; $at = [char]0x00E3   # c-cedilha e a-til
+$hoje = Get-Date -Format "dd-MM-yy"   # 23/09/2026: pedido dela - a data do nome e a do dia (antes ficava presa)
 $planos = @(
-  @{ html  = (Achar "$proj\2. Transfer*\Plano - caderno vivo\Plano atualizado - migracao Cloudflare*.html");
-     pasta = (Achar "$proj\2. Transfer*\Atualiza*Plano");
-     nome  = { param($n, $v) "$n. Plano atualizado - migracao Cloudflare 20-09-26 - v$v.pdf" } },
+  @{ html  = (Achar "$proj\2. Transfer*\PLANO (atualiza*\Plano atualizado - migracao Cloudflare*.html");
+     pasta = (Achar "$proj\2. Transfer*\PLANO (atualiza*\PDFs");
+     nome  = { param($n, $v) "$n. Plano atualizado - migracao Cloudflare $hoje - v$v.pdf" } },
   @{ html  = (Achar "$proj\3. Transfer*\Plano atualizado - migracao OneDrive.html");
      pasta = (Achar "$proj\3. Transfer*");
-     nome  = { param($n, $v) "$n. Plano Atualizado - (migra$cc$at" + "o onedrive) 21-09-26 - v$v.pdf" } }
+     nome  = { param($n, $v) "$n. Plano Atualizado - (migra$cc$at" + "o onedrive) $hoje - v$v.pdf" } }
 )
 
 foreach ($p in $planos) {

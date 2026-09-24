@@ -1,7 +1,7 @@
 {
- "atualizadoEm": "2026-09-22",
- "versao": "11.5",
- "qa": "QA 22/09 (v11.5): BOTAO REVISAR NOS RELATORIOS. Pedido dela: em vez de imprimir, anotar a mao e mandar corrigir, agora ela clica em 'Revisar' dentro do relatorio (o mesmo modelo que ja vira PDF), clica no trecho que quer mudar e escreve o pedido num painel do lado, igual comentario do Word. No fim aperta 'Copiar pedidos' e cola pra mim, que faco as mudancas. Ligado por enquanto no relatorio de Nao Conformidades e no de Checklist de Qualidade.",
- "ondeParamos": "22/09: botao Revisar funcionando nos relatorios de Nao Conformidades e Checklist de Qualidade.",
- "proximoPasso": "Aguardando Le testar o Revisar no site publicado; se aprovar, ligar nos demais relatorios (manutencao, PPR etc)."
+ "atualizadoEm": "2026-09-24",
+ "versao": "11.7",
+ "qa": "QA 24/09 (v11.7): Folha impressa de manutencao com cabecalho numa linha so (Unidade a esquerda, Leticia no meio, Emitido em a direita) e Obs maior, em coluna propria ao lado da etiqueta. (v11.6: camera da tabela abrindo a foto; anotacoes a mao do 1o piso AC aplicadas.)",
+ "ondeParamos": "24/09: folha impressa redesenhada (cabecalho compacto + Obs maior), aprovada por Le e publicada.",
+ "proximoPasso": "Folhas Cabo Frio 1o e 2o piso (Sr. Joao) — ver PROXIMA-SESSAO.md."
 }

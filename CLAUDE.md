@@ -44,7 +44,7 @@ no site, nunca uma variação parecida de uma peça que já existe.
 Origem (fonte da verdade, fora do site):
 
 ```
-CLAUDE (CENTRAL)\6. REPOSITORIOS (meus-projetos)\biblioteca-design\   (desde 21/09 nao e mais vizinha do site)
+(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\biblioteca-design\   (desde 21/09 nao e mais vizinha do site)
   templates\pecas\pecas.css           16 peças, classes com prefixo bd-
   templates\pecas\catalogo.html       o catálogo que a Lê abre
   templates\graficos\graficos.css     8 gráficos, classes com prefixo bd-g-
@@ -155,7 +155,7 @@ Relatórios — qual caminho usar:
 3. `resize_window` em 375px e 768px — zero rolagem lateral, nada cortado.
 4. Todo botão visível com no mínimo **44px** de altura no celular.
 5. Rodar a skill `web-design-guidelines` nos arquivos alterados.
-6. Passar o `CLAUDE (CENTRAL)\6. REPOSITORIOS (meus-projetos)\biblioteca-design\regras\checklist-antes-de-publicar.md`.
+6. Passar o `(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\biblioteca-design\regras\checklist-antes-de-publicar.md`.
 7. Conferir que o site continua abrindo **offline**.
 8. Publicar: subir `?v=NN` no index.html, `CACHE` no sw.js, `APP_VERSAO` no
    js/app.js e atualizar `status.json`. A versão aparece em **3 lugares**

@@ -43,9 +43,10 @@ function Ler-Utf8($caminho) {
 #  21/09 (depois): o site passou a usar a pasta que SOBE para a nuvem
 #  (USERPROFILE\OneDrive) e o plano Cloudflare foi morar em
 #  2. Transferencia (CloudFlare)\Plano - caderno vivo.
+#  23/09/2026: essa pasta virou PLANO (atualizacoes e status), junto com os PDFs.
 $od = Join-Path $env:USERPROFILE 'OneDrive\*'
 $bases = @(
-  (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\2. Transfer*\Plano - caderno vivo') -ErrorAction SilentlyContinue | Select-Object -First 1),
+  (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\2. Transfer*\PLANO (atualiza*') -ErrorAction SilentlyContinue | Select-Object -First 1),
   (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\3. Transfer*') -ErrorAction SilentlyContinue | Select-Object -First 1)
 ) | Where-Object { $_ } | ForEach-Object { $_.Path }
 $planos = @()

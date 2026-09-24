@@ -23,14 +23,14 @@ $biblioteca = Resolve-Path (Join-Path $projeto '..\..\biblioteca-design') -Error
 # entao a biblioteca deixou de ser vizinha. Procura no endereco fixo dela
 # (o nome da pasta do OneDrive tem acento, por isso vai por busca).
 if (-not $biblioteca) {
-  $biblioteca = Resolve-Path (Join-Path $env:USERPROFILE 'OneDrive\*\CLAUDE (CENTRAL)\6. REPOSITORIOS (meus-projetos)\biblioteca-design') -ErrorAction SilentlyContinue | Select-Object -First 1
+  $biblioteca = Resolve-Path (Join-Path $env:USERPROFILE 'OneDrive\*\(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\biblioteca-design') -ErrorAction SilentlyContinue | Select-Object -First 1
 }
 $destino   = Join-Path $projeto 'biblioteca'
 $swjs       = Join-Path $projeto 'sw.js'
 
 if (-not $biblioteca) {
   Write-Output "BIBLIOTECA NAO ENCONTRADA - nada foi copiado."
-  Write-Output "Confira se a pasta 'biblioteca-design' continua em 6. REPOSITORIOS (meus-projetos)."
+  Write-Output "Confira se a pasta 'biblioteca-design' continua em Projeto I WebSite Consultoria."
   exit 1
 }
 if (-not (Test-Path $destino)) { New-Item -ItemType Directory -Path $destino | Out-Null }

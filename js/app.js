@@ -1454,11 +1454,17 @@ function render(){
    <td class="td-acts">
      <button class="delbtn" title="Anexar foto ou arquivo nesta manutenção" onclick="anexarNoItem('${d.uid}')">📎</button>
      <button class="delbtn" title="Excluir" onclick="removeItem(${d.id})">🗑</button>
-     ${(d.fotos&&d.fotos.length)?`<span class="tem-anexo" title="${d.fotos.length} anexo(s)">${d.fotos.length}📷</span>`:""}
+     ${(d.fotos&&d.fotos.length)?d.fotos.map((f,i)=>`<button type="button" class="delbtn tem-anexo" title="Ver a foto ${i+1} (dá para girar)" aria-label="Ver a foto ${i+1}" onclick="appVerFoto(${d.id},${i})">📷${d.fotos.length>1?i+1:""}</button>`).join(""):""}
    </td>
  </tr>`;}).join("");
  requestAnimationFrame(()=>document.querySelectorAll("textarea.cell").forEach(grow));}
 
+/* 24/09, pedido dela: o 📷 da tabela só dizia que tinha foto e não abria.
+   Agora abre no mesmo visualizador das outras abas (com o botão de girar). */
+function appVerFoto(id,i){
+  const d=DATA.find(x=>x.id===id);if(!d||!d.fotos||!d.fotos[i])return;
+  if(typeof verImagemGrande==="function")verImagemGrande(d.fotos[i]);
+}
 function grow(t){t.style.height="auto";t.style.height=t.scrollHeight+"px";}
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
@@ -1906,11 +1912,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.5";
+const APP_VERSAO="11.7";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="22/09/2026 · 12:08";
+const APP_DATA="24/09/2026 · 12:00";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
