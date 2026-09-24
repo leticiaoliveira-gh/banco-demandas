@@ -22,9 +22,28 @@ o que quer mudar ali, num painel do lado, igual comentário do Word. No fim
 aperta "Copiar pedidos" e cola na conversa, para as mudanças serem feitas.
 Ligado por enquanto em dois relatórios: Não Conformidades e Checklist de
 Qualidade. Publicado, versão **11.5**, conferido pelos programas-guardião
-(versão, cache e `status.json` batendo). Plano em **v28**, PDF novo já mandado.
+(versão, cache e `status.json` batendo). Plano em **v31** (24/09: Melhoria 12 URGENTE — controle para a folha de manutenção sair certa; folha sempre separada por pessoa, conferência antes de imprimir, comparar com a folha anterior). PDF novo já mandado.
 
 ## A PRÓXIMA DEMANDA
+
+**PEDIDO DELA (24/09): folha de manutenção de CABO FRIO, 1º e 2º piso, só do
+Sr. João.** Quando ela mandar mensagem, ir direto, sem perguntar. Receita
+completa, passo a passo e com as ferramentas prontas:
+`ferramentas/folha-manutencao-pdf/RECEITA.md`.
+- Uma folha por piso (1º e 2º), **só Sr. João, só o que falta**, com fotos,
+  áreas em ordem alfabética. **Matheus: esquecer por enquanto** (pedido dela).
+- ATENÇÃO: no sistema, Cabo Frio (loja `CF`) tinha em 24/09 **só 2 serviços do
+  Sr. João no 1º piso e nenhum no 2º**. Se ela mandar anotações/fotos junto,
+  lançar primeiro e depois gerar. Se não mandar nada, a base que existe é o
+  relatório de 06/08 (45 itens de manutenção do 2º piso de CF):
+  `2. Transferência (CloudFlare)\memorias\CODE - Relatorio 2o piso Cabo Frio (06-08-26)\`
+  Nesse caso, essa é a UMA pergunta da sessão: "uso o relatório de 06/08 como
+  base?"
+- Fazer a conferência (QA) antes de entregar — foi o que faltou em 24/09.
+
+---
+
+(Pendência anterior, continua valendo:)
 
 **Nenhuma aberta, mas já hà um próximo passo natural esperando aprovação
 dela:** ela testar o botão Revisar no site publicado e, se aprovar, eu ligo
