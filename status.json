@@ -2,6 +2,6 @@
  "atualizadoEm": "2026-09-24",
  "versao": "11.8",
  "qa": "QA 24/09 (v11.8): Melhorias de Le 24/09 — nuvem com selo 'Salvo na nuvem', feito nao volta mais; tela nao pula ao editar/concluir; demanda em edicao destacada; foto girada fica salva; senha com olhinho, aviso de maiuscula e troca por codigo; lista de pessoas completa; datas dd/mm/aa; mais espaco no texto; simbolos no lugar dos emojis; folha impressa sem fundo vermelho e cada piso em folha nova.",
- "ondeParamos": "24/09: melhorias 24/09 prontas no teste local, aguardando revisao de Le antes de publicar.",
- "proximoPasso": "Le revisar e testar a ordem do urgente; publicar com o OK dela (rodar migracao-rev.sql remota antes)."
+ "ondeParamos": "26/09: melhorias 24/09 revisadas por Le e publicadas (v11.8); migracao rev rodada na nuvem, copia guardada antes em memorias.",
+ "proximoPasso": "Le testar a ordem do urgente; emojis das outras telas; depois folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

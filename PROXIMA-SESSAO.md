@@ -24,17 +24,18 @@ Ligado por enquanto em dois relatórios: Não Conformidades e Checklist de
 Qualidade. Publicado, versão **11.5**, conferido pelos programas-guardião
 (versão, cache e `status.json` batendo). Plano em **v31** (24/09: Melhoria 12 URGENTE — controle para a folha de manutenção sair certa; folha sempre separada por pessoa, conferência antes de imprimir, comparar com a folha anterior). PDF novo já mandado.
 
-## PRIORIDADE (24/09) — MELHORIAS DELA, PRONTAS E ESPERANDO O OK
+## PRIORIDADE (24/09) — MELHORIAS DELA: PUBLICADAS EM 26/09 (v11.8)
 
-Versão **11.8** pronta no teste local, **NÃO publicada**. Ela pediu: nada vai
-ao ar sem ela revisar. Itens (plano v32, seção "PRIORIDADE AGORA"): feito que
+Ela deu o OK e a versão **11.8** foi publicada em 26/09. Migração `rev`
+já rodada na nuvem. Cópia da nuvem antes: `../memorias/Copia da nuvem antes da versao 11.8 (26-09-26).sql`.
+Conferido depois: 187 fichas e 53 fotos, iguais a antes. Itens (plano v32, seção "PRIORIDADE AGORA"): feito que
 não volta (só nuvem Cloudflare, rev + selo "Salvo na nuvem"), tela não pula,
 destaque da edição, foto girada grava, senha (olhinho, maiúscula, troca por
 código, códigos restantes em Segurança), lista de pessoas, datas dd/mm/aa,
 espaçamento, símbolos de traço no lugar de emojis (peça 20 da biblioteca),
 folha impressa sem fundo vermelho, cada piso em folha nova com numeração única.
 
-Para publicar, com o OK dela:
+JÁ FEITO em 26/09 (fica de registro):
 1. `npx wrangler d1 execute central-demandas --remote --file=servidor/migracao-rev.sql`
 2. `npx wrangler deploy`
 3. Conferir no site publicado a versão 11.8.
