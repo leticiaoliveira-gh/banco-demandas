@@ -1167,6 +1167,13 @@ function m28RenderListaDesenho(){
     return;
   }
   rows.sort(m28Comparar);
+  /* RALOS NA TELA TAMBEM (28/09, "regra global" dela): o que e' ralo sai da
+     area e vai para o bloco "Rastreamento de Conferencia de Ralos" no fim,
+     igual ao papel. Cada servico continua com o check e o lapis de sempre. */
+  const sepT=m28SepararRalos(rows), ehR=new Set();
+  for(const r of sepT.ralos)for(const d of r.itens)ehR.add(d);
+  rows=sepT.manut.concat(sepT.ralos.flatMap(r=>r.itens));
+  const pre=d=>ehR.has(d)?"R|":"";
 
   /* A CONTAGEM DA TELA CONTA O MESMO QUE O PAPEL (28/08).
      O item posto em "Verificar" não vai na folha do Sr. João, então também não
@@ -1174,8 +1181,8 @@ function m28RenderListaDesenho(){
      número nenhum, e ela assina esse papel. */
   const nPiso={},nArea={},fArea={};
   for(const d of rows){
-    const k=d.piso+"|"+d.area;
-    nPiso[d.piso]=(nPiso[d.piso]||0)+1;
+    const k=pre(d)+d.piso+"|"+d.area;
+    nPiso[pre(d)+d.piso]=(nPiso[pre(d)+d.piso]||0)+1;
     nArea[k]=(nArea[k]||0)+1;
     if(d.feito)fArea[k]=(fArea[k]||0)+1;
   }
@@ -1187,13 +1194,17 @@ function m28RenderListaDesenho(){
   /* MESMO DESENHO DA FOLHA IMPRESSA (27/08): cada área é um bloco fechado, e a
      lista é numerada, sem os títulos de coluna. Ela pediu o padrão igual em
      tudo, tela e papel. `aberto` guarda se já existe um bloco a fechar. */
-  let html="",piso=null,area=null,nDemanda=0,aberto=false;
+  let html="",piso=null,area=null,nDemanda=0,aberto=false,emRalos=false;
   const fecha=()=>{if(aberto){html+="</div>";aberto=false;}};
   for(const d of rows){
+    if(ehR.has(d)&&!emRalos){emRalos=true;piso=null;area=null;fecha();
+      const rx=(m28T().ralosTexto||"").trim();
+      html+=`<div class="m28-ralos-cab"><div class="m28-ralos-tit">${icone("gota")} ${esc(m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo)}</div>`
+        +(rx?`<p class="m28-ralos-txt">${esc(m28SemTravessao(rx))}</p>`:"")+`</div>`;}
     if(d.piso!==piso){piso=d.piso;area=null;fecha();
-      const np=nPiso[d.piso]||0;
-      html+=`<div class="m28-piso">${esc(piso||"Sem piso")}<span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
-    if(d.area!==area){area=d.area;nDemanda=0;const k=d.piso+"|"+d.area;
+      const np=nPiso[pre(d)+d.piso]||0;
+      html+=`<div class="m28-piso">${esc(piso||"Sem piso")}${emRalos?" · Ralos":""}<span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
+    if(d.area!==area){area=d.area;nDemanda=0;const k=pre(d)+d.piso+"|"+d.area;
       fecha();html+='<div class="m28-grupo">';aberto=true;
       const f=fArea[k]||0,n=nArea[k]||0,v=vArea[k]||0;
       const fechada=!!M28F.fechadas[k];
@@ -1209,9 +1220,9 @@ function m28RenderListaDesenho(){
         /* área que só tem item em verificação não diz "0 serviços": diria a ela
            que não há nada aqui, quando na verdade há algo esperando a conferência */
         +`<span class="m28-count">${n?(f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")):""}`
-        +(v?`<i class="m28-count-ver">${v} a verificar</i>`:"")+`</span>`
+        +(v&&!emRalos?`<i class="m28-count-ver">${v} a verificar</i>`:"")+`</span>`
         +`</div>`;}
-    if(M28F.fechadas[d.piso+"|"+d.area])continue;
+    if(M28F.fechadas[pre(d)+d.piso+"|"+d.area])continue;
     /* o número da tela é o MESMO número do papel: é assim que ela combina os
        serviços com o Sr. João. Os "Verificar" já saíram da lista, então aqui a
        contagem é direta. */
@@ -1305,14 +1316,17 @@ function m28NomeArquivo(){
 function m28ParaPlanilha(){
   const rows=m28Filtradas();
   if(!rows.length){alert("Nenhum serviço para exportar com os filtros atuais.");return;}
-  const head=["Piso","Área","O que fazer","Feito","Data do registro","Tempo parado",
+  /* RALOS (28/09): mesma regra do papel -- vem no fim, marcados na coluna Lista */
+  const sepP=m28SepararRalos(rows), ehRP=new Set(sepP.ralos.flatMap(r=>r.itens));
+  const ordem=sepP.manut.concat(sepP.ralos.flatMap(r=>r.itens));
+  const head=["Lista","Piso","Área","O que fazer","Feito","Data do registro","Tempo parado",
     "Responsável","Orientação técnica","Tipo","Base legal","Urgente","Observações","Origem"];
-  const linha=d=>[d.piso,d.area,d.fazer,d.feito?"Sim":"Não",brDate(d.dataRegistro),
+  const linha=d=>[ehRP.has(d)?"Rastreamento de ralos":"Manutenção",d.piso,d.area,d.fazer,d.feito?"Sim":"Não",brDate(d.dataRegistro),
     m28TempoTexto(m28Meses(d.dataRegistro)),d.executor||"",
     d.orientacao||"",(typeof ORI_TIPOS!=="undefined"&&ORI_TIPOS[d.orientacaoTipo])?ORI_TIPOS[d.orientacaoTipo].rotulo:"",
     d.orientacaoBase||"",d.urg?"Sim":"",d.obs||"",d.origem||""];
   /* ponto e vírgula + BOM: é assim que o Excel em português abre certo */
-  const csv=[head,...rows.map(linha)]
+  const csv=[head,...ordem.map(linha)]
     .map(r=>r.map(c=>'"'+String(c==null?"":c).replace(/"/g,'""')+'"').join(";")).join("\r\n");
   download(m28NomeArquivo()+".csv","﻿"+csv,"text/csv");
   toast("Planilha exportada ✓ ("+rows.length+" serviços)");
