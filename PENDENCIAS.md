@@ -685,3 +685,9 @@ sinalizar e não incluir · demanda começa **no verbo** ("Limpar o esterilizado
 sem o arquivo de importação nada chega no celular dela · carga **abaixo de 1 MB** ou a
 sincronização trava · antes de dizer que chegou nela, conferir o `?v=` **e** a lista
 `SHELL` do `sw.js`.
+
+### 🔴 LOGIN-TRAB — 28/09/26: presa fora do site no PC do trabalho
+No PC do trabalho o site pediu aprovação pelo celular, e o app do celular também
+pedia senha, que ela não lembrava. Ficou sem entrar. Resolver com ela: recuperar
+a senha e deixar um jeito simples de entrar quando o celular também pedir senha.
+Saída de hoje: códigos de emergência em `1. PROJETO - Trabalho (website)\- Códigos de Emergência (login)`.

@@ -37,7 +37,7 @@ function Ler-Utf8($caminho) {
 #  21/09/2026: sao DOIS planos vigiados.
 #   1) migracao Cloudflare -> o HTML "Plano atualizado*" mais novo em 4. TAREFAS
 #   2) migracao OneDrive   -> o HTML "Plano atualizado*" dentro de
-#      (CENTRAL) SOFTWARES\...\3. Transferencia (One Drive)
+#      - PROJETOS CENTRAL\...\3. Transferencia (One Drive)
 #      (21/09: tudo foi para o OneDrive; os nomes tem acento, por isso as
 #      pastas sao achadas por busca e nao escritas aqui)
 #  21/09 (depois): o site passou a usar a pasta que SOBE para a nuvem
@@ -46,8 +46,8 @@ function Ler-Utf8($caminho) {
 #  23/09/2026: essa pasta virou PLANO (atualizacoes e status), junto com os PDFs.
 $od = Join-Path $env:USERPROFILE 'OneDrive\*'
 $bases = @(
-  (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\2. Transfer*\PLANO (atualiza*') -ErrorAction SilentlyContinue | Select-Object -First 1),
-  (Resolve-Path (Join-Path $od '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria\3. Transfer*') -ErrorAction SilentlyContinue | Select-Object -First 1)
+  (Resolve-Path (Join-Path $od '- PROJETOS CENTRAL\1. PROJETO - Trabalho (website)\2. Transfer*\PLANO (atualiza*') -ErrorAction SilentlyContinue | Select-Object -First 1),
+  (Resolve-Path (Join-Path $od '- PROJETOS CENTRAL\1. PROJETO - Trabalho (website)\3. Transfer*') -ErrorAction SilentlyContinue | Select-Object -First 1)
 ) | Where-Object { $_ } | ForEach-Object { $_.Path }
 $planos = @()
 foreach ($b in $bases) {

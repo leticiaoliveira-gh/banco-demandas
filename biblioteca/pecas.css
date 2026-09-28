@@ -355,7 +355,7 @@ select.bd-campo{
   font-size:11px;font-weight:600;margin-top:3px;color:#475467}
 .bd-ag-txt .bd-ag-aba i{width:9px;height:9px;border-radius:99px;flex:none}
 .bd-ag-urg{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.4px;
-  background:#b42318;color:#fff;border-radius:3px;padding:1px 6px;margin-right:4px}
+  background:#b42318;color:#fff;border-radius:99px;padding:1px 8px;margin-right:4px}
 
 /* a grade do mês: clicar num dia diz "vou estar na loja neste dia" */
 .bd-ag-mes{margin-top:12px}
@@ -477,3 +477,38 @@ select.bd-campo{
   .bd-card-rodape{flex-direction:column-reverse}
   .bd-card-rodape .bd-btn{width:100%}
 }
+
+/* ══════════════════════ 30. MARCAR NA FOTO (28/09/26) ══════════════════════
+   Pedido de Lê: do lado do botão de girar, uma opção para escrever e
+   circular em cima da foto, igual ela faz no papel com caneta vermelha.
+   Abre uma barra embaixo com caneta, cores, texto, seta, desfazer e salvar.
+   A marca fica gravada na própria foto (vale no outro aparelho e na impressão). */
+.bd-visualizador-marcar{right:116px;font-size:20px}
+.bd-visualizador-marcar.ativo{background:var(--bd-erro);color:#fff}
+.bd-marcar-tela{position:absolute;touch-action:none;cursor:crosshair;z-index:2}
+.bd-marcar-barra{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
+  max-width:calc(100% - 24px);padding:8px 12px;border-radius:var(--bd-r-gg);
+  background:rgba(16,24,40,.88);box-shadow:var(--bd-sombra4);z-index:3}
+.bd-marcar-btn{min-width:40px;height:40px;padding:0 10px;border-radius:var(--bd-r-m);
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);color:#fff;
+  font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:6px;transition:background var(--bd-rapido),border-color var(--bd-rapido)}
+.bd-marcar-btn:hover{background:rgba(255,255,255,.22)}
+.bd-marcar-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.bd-marcar-btn.ativo{background:#fff;color:var(--bd-c900);border-color:#fff}
+.bd-marcar-btn[disabled]{opacity:.45;cursor:not-allowed}
+.bd-marcar-salvar{background:var(--bd-verde);border-color:var(--bd-verde)}
+.bd-marcar-salvar:hover{background:var(--bd-verde-vivo)}
+.bd-marcar-cor{width:32px;height:32px;min-width:32px;padding:0;border-radius:50%;
+  border:2px solid rgba(255,255,255,.5);cursor:pointer}
+.bd-marcar-cor.ativo{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.bd-marcar-sep{width:1px;height:28px;background:rgba(255,255,255,.22)}
+.bd-marcar-dica{width:100%;text-align:center;color:rgba(255,255,255,.72);font-size:12px}
+@media (max-width:560px){
+  .bd-marcar-barra{left:12px;right:12px;bottom:12px;transform:none;max-width:none;gap:6px;padding:8px}
+  .bd-marcar-btn{min-width:36px;height:36px;padding:0 8px;font-size:14px}
+  .bd-marcar-cor{width:28px;height:28px;min-width:28px}
+  .bd-visualizador-marcar{right:108px}
+}
+@media (prefers-reduced-motion:reduce){.bd-marcar-btn{transition:none}}

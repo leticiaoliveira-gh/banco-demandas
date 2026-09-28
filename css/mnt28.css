@@ -184,7 +184,7 @@
    distingue vermelho continua lendo "Urgente". */
 .m28-urgselo{
   display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
-  background:#fee4e2;border:1px solid #fda29b;color:#912018;
+  background:#b42318;border:1px solid #b42318;color:#fff;
   font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
 }
 /* no formulário, o selo fica ao lado da caixinha de marcar, na mesma linha */

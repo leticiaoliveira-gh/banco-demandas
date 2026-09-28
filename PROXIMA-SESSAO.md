@@ -1,6 +1,6 @@
 # PRÓXIMA SESSÃO — comece por aqui, não releia mais nada
 
-> Escrito em 22/09/2026. Este arquivo é autossuficiente: **não precisa abrir
+> Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
 ## COMO ESTA SESSÃO TRABALHA (ordem dela, 20/09/2026 — detalhe completo: seção 9 do `CLAUDE.md`)
@@ -23,6 +23,64 @@ aperta "Copiar pedidos" e cola na conversa, para as mudanças serem feitas.
 Ligado por enquanto em dois relatórios: Não Conformidades e Checklist de
 Qualidade. Publicado, versão **11.5**, conferido pelos programas-guardião
 (versão, cache e `status.json` batendo). Plano em **v31** (24/09: Melhoria 12 URGENTE — controle para a folha de manutenção sair certa; folha sempre separada por pessoa, conferência antes de imprimir, comparar com a folha anterior). PDF novo já mandado.
+
+## ▶ COMEÇAR POR AQUI — sem pedido aberto (28/09, fim da noite)
+
+Último pedido dela (faixa verde da área + mover a demanda da lixeira do
+recebimento) foi feito e publicado. Nada pendente dela neste momento — ver
+seção "28/09" logo abaixo para o que foi feito, e "A PRÓXIMA DEMANDA" (Cabo
+Frio) para o próximo passo natural quando ela mandar.
+
+## 28/09 (fim da noite) — FAIXA VERDE REDESENHADA (v11.10) + lixeira do recebimento virou Qualidade/Compras
+
+Ela escolheu a **Opção A** da página de comparação: pastilha "N serviços" no
+canto direito, na mesma linha do nome da área; "Data registrada" numa linha
+fina, alinhada à direita, logo abaixo. `js/mnt28.js`, `m28ImprimirFolha`
+(~linha 1995): `.ar-top` (linha com `.ar-e` + pastilha `<b>`) e `.ar-sub`
+(linha de baixo, só "Data registrada"). Pastilha do piso (`.ar-piso`) igual à
+pastilha de serviços (mesma altura/fonte/acolchoamento). O indicador de tempo
+de espera ao lado de cada data continua igual, nada foi tirado dali.
+Publicado em **v11.10** (28/09, ~18h). PDFs de Arraial (1º e 2º piso, Sr.
+João) gerados de novo com a faixa nova e mandados por SendUserFile; salvos em
+`...\2. Transferência (CloudFlare)\memorias\Folhas Arraial (28-09-26)\`
+(substituíram os PDFs antigos, mesmo nome).
+
+Também em 28/09 (direto no banco, pedido dela por foto): a demanda "trocar a
+lixeira do recebimento" (AC, 1º piso, doca) **saiu de Manutenção** — o
+problema era o tipo de lixeira, não conserto. Virou NC de Qualidade
+`nc-ac-lixo-receb-280926` (texto reescrito, sem citar a Vigilância Sanitária
+e sem a frase da vassoura/rodo, pedido dela) e pedido de compra
+`cmp-ac-lixeira-pedal-receb` (lixeira com tampa e pedal). Item antigo de
+manutenção riscado (`apagado=1`) com nota explicando, histórico preservado.
+Backup da nuvem antes da mudança: `../memorias/Copia da nuvem antes de mover
+lixeira receb (28-09-26).sql`.
+
+Também feito antes, mesmo dia (já registrado): gaiola do recebimento AC virou
+"verificar manutenção da gaiola" na manutenção; entrou NC
+`nc-ac-lixo-gaiola-280926` e a compra `cmp-ac-conteiner-lixo-receb`
+(contêiner 240 L com tampa). Folhas do Matheus não geradas (regra dela:
+esquecer por ora).
+
+## 28/09 — FOLHA DE MANUTENÇÃO AJUSTADA E PUBLICADA (v11.9)
+
+Pedido dela vendo a folha impressa (1º piso, Arraial, setembro), tudo em
+`js/mnt28.js` (ESTILO e PAGINADOR de `m28ImprimirFolha`):
+- **Demandas gerais à ESQUERDA, Urgentes à DIREITA** (regra fixa, ela já
+  falou "50 vezes").
+- Espaço entre áreas: `.grupo` margin-top 20px (era 12).
+- "Data registrada" em `.ar-r` com 160px, a mesma largura da coluna da data
+  em `.li`; a pastilha fica dentro de `.ar-e`, na mesma linha do nome.
+- **Sem buraco no pé da folha:** antes de empurrar a demanda para a página
+  seguinte, `tentaEncolher` diminui a foto (88/80/70/62/55%). Sempre avisa
+  na tela (`.aviso.encolhi`, não sai no papel). Regra dela: "ajusta e recorta
+  um pouquinho a imagem pra caber. Mas sempre me avisa".
+- ARMADILHA: dentro de ESTILO/PAGINADOR a barra invertida some, então nada de regex.
+- Ela disse que "tem mais algumas coisas que ficaram perdidas" na folha, mas não
+  detalhou. Perguntar quando ela voltar ao assunto.
+- **GitHub:** ela não usa mais. Anotado no plano v34 para ver depois. Saiu do
+  O QUE FALTA (item 15 removido, item 13 só Cloudflare).
+- Teste: rodar `m28ImprimirFolha({})` na página local `ferramentas/modo-rascunho/folha-editavel.html`,
+  com `window.open` desviado para um iframe e `brDateCurta` definido à mão.
 
 ## PRIORIDADE (24/09) — MELHORIAS DELA: PUBLICADAS EM 26/09 (v11.8)
 
@@ -105,6 +163,9 @@ migracao Cloudflare (20-09-26).html`, versão 28, 159 itens.
 ## Dados técnicos que evitam pesquisa
 
 - Conta Cloudflare `4566ede1efe9ba567dcc8cc72330e624`.
+- Backup diário (27/09/26): tarefa do Windows "Backup diario - Central Compliance", 20h,
+  roda `..\Backups\ferramentas\backup_diario.py` (lê o D1 e grava em `..\Backups\Backup NC - dd.mm.aa`).
+  Regra em `..\..\1. Regras\REGRAS DO BACKUP.md`.
 - Cofres D1: `central-demandas` (DB) · `central-fotos` (FOTOS) ·
   `central-copias` (COPIAS). Sem R2, sem KV. Foto é BLOB no D1, id = 32
   primeiros hex do SHA-256 da data-URL (duplicata some sozinha).
@@ -123,3 +184,7 @@ migracao Cloudflare (20-09-26).html`, versão 28, 159 itens.
 - O carimbo de versão da tela de login só troca DEPOIS que ela entra de
   verdade (fica escrito "v9.12" por fora até o login acontecer) — isso é
   normal, não é bug.
+
+
+## PENDENTE 28/09 (v11.11 publicada)
+- FEITO 28/09 (com OK de Le): o rodape solto do Acougue - Manipulacao (URGENTE, 23/02/25) virou nao conformidade nc-ac-rodape-acougue-280926 na QUALIDADE, com a Obs do chapatex, e o item mnt28-ac-acm-1787768501-1 foi apagado da Manutencao (lapide).

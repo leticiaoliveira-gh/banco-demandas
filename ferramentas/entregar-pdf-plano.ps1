@@ -29,7 +29,7 @@ if (-not $chrome) { Write-Output "CHROME NAO ENCONTRADO - nenhum PDF gerado."; e
 # e o plano Cloudflare foi morar junto do projeto (2. Transferencia\Plano - caderno vivo).
 # 23/09/2026: pedido dela - as duas pastas viraram uma: PLANO (atualizacoes e status), PDFs na subpasta PDFs.
 $od   = Join-Path $env:USERPROFILE 'OneDrive\*'
-$proj = '(CENTRAL) SOFTWARES\PROJETOS\Projeto I WebSite Consultoria'
+$proj = '- PROJETOS CENTRAL\1. PROJETO - Trabalho (website)'
 function Achar($rel) { $r = Resolve-Path (Join-Path $od $rel) -ErrorAction SilentlyContinue | Select-Object -First 1; if ($r) { $r.Path } }
 
 $cc = [char]0x00E7; $at = [char]0x00E3   # c-cedilha e a-til

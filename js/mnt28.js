@@ -1992,8 +1992,9 @@ function m28ImprimirFolha(op){
          nao so uma vez no topo da secao. Assim nenhuma pagina fica sem dizer de
          qual piso e', mesmo que a area continue depois de uma quebra. */
       const pisoArea=m28PisoBonito(d.piso||"");
-      blocos+=`<div class="bl ar" data-piso="${esc(pisoArea)}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><span>${pisoArea?`<i class="ar-piso">${esc(pisoArea)}</i>`:""}${esc(area)}</span>`
-        +`<span class="ar-r"><i class="qh">Data registrada</i><b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></span></div>`;}
+      blocos+=`<div class="bl ar" data-piso="${esc(pisoArea)}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><div class="ar-top"><span class="ar-e">${pisoArea?`<i class="ar-piso">${esc(pisoArea)}</i>`:""}${esc(area)}</span>`
+        +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`
+        +`<div class="ar-sub"><i class="qh">Data registrada</i></div></div>`;}
     nDemanda++;
     const meses=m28Meses(d.dataRegistro), tempo=m28TempoTexto(meses);
     const desde=d.dataRegistro
@@ -2088,11 +2089,13 @@ function m28ImprimirFolha(op){
          feito os dois dao o mesmo numero, e total = a fazer + feitos. Quem conta
          os feitos e ela, no site, depois que ele devolve a folha marcada.
          Na TELA continuam os quatro. */""}
-    ${/* URGENTES a ESQUERDA e demandas gerais a direita, pedido dela em 26/08.
-         O que pede atencao vem primeiro no caminho do olho. */""}
+    ${/* A ORDEM DOS DOIS NUMEROS (28/09): DEMANDAS GERAIS a ESQUERDA, URGENTES a
+         DIREITA. Regra dela, dita de novo vendo a folha de setembro: "demandas
+         gerais lado esquerdo, urgente lado direito, pronto, e' isso".
+         Substitui a ordem invertida de 26/08. Nao mexer sem pedido dela. */""}
     <div class="nums">
-      <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
       <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
+      <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
 
@@ -2175,13 +2178,20 @@ function m28ImprimirFolha(op){
   /* O BLOCO DA ÁREA (27/08) — opção 1 escolhida por ela em papel: borda fina,
      fundo branco, sem sombra. Sombra vira mancha cinza na impressão e gasta
      tinta; ela imprime colorido e são três páginas. */
-  .grupo{border:1px solid #d7dce2;border-radius:9px;overflow:hidden;margin-top:12px;background:#fff}
+  /* O ESPACO DE UMA AREA PARA OUTRA (28/09) -- pedido dela apontando o papel
+     com o dedo: "esse espacinho ta muito justo, pode ficar um pouquinho maior,
+     nao tem necessidade de ficar tao junto". Era 12px. Subiu para 20px (uns
+     5mm), que e' o respiro que a folha antiga tinha. A primeira area da folha
+     nao ganha esse espaco: ela encosta no cabecalho, como sempre. */
+  .grupo{border:1px solid #d7dce2;border-radius:9px;overflow:hidden;margin-top:20px;background:#fff}
+  .corpo>.grupo:first-child{margin-top:8px}
   /* a faixa verde cobre a LINHA INTEIRA, inclusive a pastilha da contagem:
      antes a pastilha ficava solta fora da faixa e ela pediu para entrar */
-  .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
+  .ar{display:flex;flex-direction:column;background:#e8f5f0;
     padding:6px 11px;font-size:12.8px;font-weight:700;
     color:#155244;border-bottom:1px solid #d7e6e0;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ar .ar-top{display:flex;justify-content:space-between;align-items:baseline}
   .ar b{font-weight:700;color:#155244;font-size:10.5px;
     background:#fff;border:1px solid #cfe5dd;border-radius:10px;padding:1px 8px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -2191,27 +2201,43 @@ function m28ImprimirFolha(op){
   /* O PISO NA PRÓPRIA FAIXA DA ÁREA (17/09) — pedido dela vendo a folha impressa:
      nao basta aparecer uma vez la em cima, tem que repetir aqui tambem. Pastilha
      pequena antes do nome da area, no mesmo tom verde do resto da faixa. */
-  .ar .ar-piso{font-style:normal;font-weight:700;font-size:9px;color:#0f5b52;
-    background:#fff;border:1px solid #cfe5dd;border-radius:10px;padding:1px 7px;
+  .ar .ar-piso{font-style:normal;font-weight:700;font-size:10.5px;color:#0f5b52;
+    background:#fff;border:1px solid #cfe5dd;border-radius:10px;padding:1px 8px;
     margin-right:7px;text-transform:uppercase;letter-spacing:.4px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* O TÍTULO DA COLUNA DA DATA (ela aprovou 30/08, "numa linha só"): fica na faixa
      verde da área, à direita, junto da contagem. Some das outras colunas, que se
      explicam sozinhas (27/08); a data é a única que precisava dizer o que é.
      Está na faixa, então o paginador clona junto em toda página que a área ocupa. */
-  .ar .ar-r{display:flex;align-items:baseline;gap:10px;flex-shrink:0}
-  .ar .ar-r .qh{font-style:normal;font-weight:600;font-size:8.2px;margin:0;
+  /* O ROTULO "DATA REGISTRADA" EM CIMA DA PROPRIA COLUNA (28/09). Ela viu na
+     folha de setembro: "essa data registrada ta horrorosa, parece tudo muito
+     desconexo". O motivo: o rotulo ficava empurrado para a ponta pela pastilha
+     de contagem, e as datas de baixo caiam mais para a esquerda -- cada um num
+     lugar. Agora a pastilha fica colada no nome da area, e o rotulo ocupa a
+     MESMA largura da coluna da data, centralizado igual a ela. */
+  .ar .ar-e{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}
+  .ar .ar-sub{margin-top:2px;text-align:right}
+  .ar .ar-sub .qh{font-style:normal;font-weight:600;font-size:8.2px;margin:0;
     text-transform:uppercase;letter-spacing:.5px;color:#6b7b76;white-space:nowrap}
   /* LISTA NUMERADA, sem títulos de coluna (27/08): caixinha, número, texto, data.
      O número recomeça em cada área. */
-  .li{display:grid;grid-template-columns:26px 20px 1fr 142px;gap:7px;padding:7px 11px}
+  /* 28/09: a coluna era 142px e a pastilha longa ("1 ano e 7 meses") nao cabia
+     ao lado da data -- saia espremida. Subiu para 160px, o mesmo numero do
+     rotulo da faixa, para os dois ficarem na mesma prumada. */
+  .li{display:grid;grid-template-columns:26px 20px 1fr 160px;gap:7px;padding:10px 11px}
   .li .c{text-align:center}
   .li .nm{font-weight:700;color:#475467;text-align:right;font-variant-numeric:tabular-nums;
     font-size:12px;padding-top:.5px}
   /* a coluna da data: a data e o tempo na MESMA linha, sempre (pedido dela
      29/08). Nada de "meses" quebrando para baixo. */
-  .li .q{text-align:center;white-space:nowrap}
-  .li{border-bottom:1px solid #f2f4f7;align-items:start;font-size:13.2px}
+  .li .q{text-align:right;white-space:nowrap}  /* 28/09: "+ direita" (pedido dela) */
+  /* A DIVISAO DE UM SERVICO PARA O OUTRO (28/09) -- pedido dela apontando o
+     papel: "a divisao entre 1 servico e outro esta muito clara, a divisao entre
+     as demandas esta quase invisivel". A linha era #f2f4f7, cinza quase branco:
+     no papel sumia e os dois servicos da mesma area viravam um texto so. Agora
+     usa o MESMO cinza da borda do bloco da area (#d7dce2), que ja esta aprovado
+     no papel, com mais respiro em cima e embaixo (7px -> 10px). */
+  .li{border-bottom:1px solid #c3ccd4;align-items:start;font-size:13.2px}
   .li:last-child{border-bottom:0}
   .li .o{color:#667085;font-size:12.2px}
   /* o recado (27/08): ela escolheu vendo em papel a opcao B -- so a palavra
@@ -2274,6 +2300,10 @@ function m28ImprimirFolha(op){
   .aviso{width:210mm;margin:14px auto;background:#fffaeb;border:1px solid #fedf89;color:#b54708;
     border-radius:8px;padding:12px 15px;font-size:12.5px;line-height:1.5}
   .aviso b{color:#93370d}
+  .aviso.encolhi{background:#eff8ff;border-color:#b2ddff;color:#175cd3}
+  .aviso.encolhi b{color:#194185}
+  .aviso ul{margin:6px 0 6px 18px}
+  .aviso li i{font-style:normal;color:#475467}
   .aviso button{margin-top:10px;padding:12px 18px;cursor:pointer;font-size:13.5px;border-radius:8px;
     border:0;background:#1d6b57;color:#fff;font-weight:600}
   @media print{.aviso{display:none}body{background:#fff}
@@ -2355,6 +2385,52 @@ function m28ImprimirFolha(op){
       return (c.bottom-f.top) > (f.height-RESERVA);
     }
 
+    /* O BURACO NO PE DA FOLHA (28/09). Regra NOVA dela, no lugar da antiga
+       "a foto nunca e' encolhida". Vendo a folha de setembro impressa:
+       "eu nao gosto quando fica sobrando espaco embaixo da folha... voce podia
+       ter diminuido um pouco a foto e incluia na pagina 2. Ou voce ja ajusta e
+       recorta um pouquinho a imagem pra caber. Mas sempre me avisa".
+       Entao, antes de empurrar a demanda para a folha seguinte e deixar o vao,
+       a foto dela tenta tres tamanhos menores. Se num deles a demanda couber,
+       ela FICA nesta folha e o encolhimento vai para o aviso da tela.
+       O limite e' 55% (a foto fica com uns 3cm de altura): no teste da folha
+       de setembro a demanda da padaria so cabia na pagina 2 com 55%, e menor
+       que isso a foto deixa de servir para o Sr. Joao reconhecer o lugar. */
+    var ENCOLHIDAS=[];
+    var FOTO_L=54, FOTO_A=48;                 /* o tamanho cheio, em mm */
+    var ESCALAS=[0.88,0.80,0.70,0.62,0.55];
+    function rotuloDe(el){
+      var n=el.querySelector(".nm"), t=el.querySelector(".linhas");
+      /* ARMADILHA do arquivo: aqui dentro e' uma template string. Uma barra
+         invertida some antes de o navegador ler. Por isso nada de regex: o
+         espaco em branco e' limpo na mao, letra por letra. */
+      var cru=(t?t.textContent:el.textContent||""), txt="";
+      for(var c=0;c<cru.length;c++){ var ch=cru.charAt(c); txt+=(ch<=" ")?" ":ch; }
+      while(txt.indexOf("  ")>=0) txt=txt.split("  ").join(" ");
+      txt=txt.replace(" ","")===""?"":txt;
+      txt=txt.slice(0,200);
+      while(txt.charAt(0)===" ") txt=txt.slice(1);
+      while(txt.charAt(txt.length-1)===" ") txt=txt.slice(0,-1);
+      if(txt.length>52) txt=txt.slice(0,52)+"...";
+      return (n?n.textContent.trim()+" ":"")+txt;
+    }
+    function tentaEncolher(el){
+      var ims=el.querySelectorAll(".fts img");
+      if(!ims.length) return false;
+      for(var e=0;e<ESCALAS.length;e++){
+        for(var q=0;q<ims.length;q++){
+          ims[q].style.maxWidth=(FOTO_L*ESCALAS[e]).toFixed(1)+"mm";
+          ims[q].style.maxHeight=(FOTO_A*ESCALAS[e]).toFixed(1)+"mm";
+        }
+        if(!estourou()){
+          ENCOLHIDAS.push({t:rotuloDe(el),p:Math.round((1-ESCALAS[e])*100)});
+          return true;
+        }
+      }
+      for(var r=0;r<ims.length;r++){ ims[r].style.maxWidth=""; ims[r].style.maxHeight=""; }
+      return false;
+    }
+
     /* CADA ÁREA É UM BLOCO FECHADO E NENHUMA DEMANDA PARTE NO MEIO (27/08).
        Palavras dela: "pode sim a área começar em uma parte e terminar em outra
        página; o que eu não quero é uma demanda começando em uma página e o
@@ -2370,7 +2446,10 @@ function m28ImprimirFolha(op){
       if(continuacao){
         var marca=document.createElement("i");
         marca.textContent="continuação";
-        cab.querySelector("span").appendChild(marca);
+        /* logo depois do nome da area, antes da pastilha de contagem */
+        var ae=cab.querySelector(".ar-e")||cab.querySelector("span");
+        var pil=ae.querySelector("b");
+        if(pil) ae.insertBefore(marca,pil); else ae.appendChild(marca);
       }
       grupo.appendChild(cab);
       corpo.appendChild(grupo);
@@ -2403,7 +2482,8 @@ function m28ImprimirFolha(op){
       /* uma demanda */
       if(!grupo) grupo=corpo.appendChild(document.createElement("div")),grupo.className="grupo";
       grupo.appendChild(el);
-      if(estourou()){
+      /* nao coube: antes de deixar o vao, a foto tenta caber menor */
+      if(estourou() && !tentaEncolher(el)){
         grupo.removeChild(el);
         /* o cabeçalho da área tinha acabado de entrar e nada coube: leva o
            grupo inteiro para a folha seguinte, em vez de deixar um cabeçalho
@@ -2457,6 +2537,21 @@ function m28ImprimirFolha(op){
       var prim=f2&&f2.querySelector("[data-piso]");
       if(prim&&prim.getAttribute("data-piso"))
         comTopo[t].textContent=prim.getAttribute("data-piso").toUpperCase();
+    }
+    /* SEMPRE AVISAR (28/09): foto encolhida para caber aparece aqui, na tela,
+       antes de ela imprimir. O aviso some no papel, igual o amarelo de cima. */
+    if(ENCOLHIDAS.length){
+      var av=document.createElement("div");
+      av.className="aviso encolhi";
+      var h='<b>Diminuí '+(ENCOLHIDAS.length===1?'uma foto':ENCOLHIDAS.length+' fotos')
+        +' para não sobrar espaço vazio no fim da folha:</b><ul>';
+      for(var a=0;a<ENCOLHIDAS.length;a++){
+        var tx=ENCOLHIDAS[a].t.split("&").join("&amp;").split("<").join("&lt;");
+        h+='<li>'+tx+' <i>(ficou '+ENCOLHIDAS[a].p+'% menor)</i></li>';
+      }
+      h+='</ul>Se preferir a foto no tamanho cheio, me avise.';
+      av.innerHTML=h;
+      alvo.parentNode.insertBefore(av,alvo);
     }
     document.body.setAttribute("data-folha-pronta","1");
     }

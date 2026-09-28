@@ -73,7 +73,8 @@
 
 /* urgente: a cor NUNCA é a única forma de dizer — a palavra vai junto */
 .cmp-item.cmp-urg{background:#fffbfa}
-.cmp-urgselo{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px;font-size:12px}
+.cmp-urgselo{font-style:normal;display:inline-block;padding:1px 8px;border-radius:99px;
+  background:#b42318;color:#fff;font-weight:700;letter-spacing:.5px;font-size:10.5px;white-space:nowrap}
 
 .cmp-junto .cmp-oque{font-weight:600}
 
