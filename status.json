@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-09-28",
- "versao": "11.14",
- "qa": "QA 28/09 (v11.14): visualizador de foto ganhou o lapis de marcar (caneta, circulo, seta e texto, em 4 cores) e o selo URGENTE virou pilula de fundo vermelho em Manutencao, Compras e Agenda.",
- "ondeParamos": "28/09: marcar na foto publicado (escrever e marcar em cima da imagem, igual ela fazia no papel) e selo URGENTE com fundo vermelho solido.",
- "proximoPasso": "Le testar o lapis de marcar na foto no celular; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
+ "versao": "11.15",
+ "qa": "QA 28/09 (v11.15): faixa verde da folha de Manutencao centralizada; ralos saem das areas e viram lista unica 'Rastreamento de Conferencia de Ralos' no fim (papel, Word e WhatsApp), com botao 'Rastreamento ralos' ao lado de Planilha.",
+ "ondeParamos": "28/09: rastreamento de ralos publicado (explicacao uma vez, lista por piso com numeracao recomecando) e faixa verde centralizada.",
+ "proximoPasso": "Le imprimir a folha e conferir a lista de ralos no fim; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

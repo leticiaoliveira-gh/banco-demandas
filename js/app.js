@@ -327,7 +327,8 @@ const ICO_ACAO={
   pessoas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0M16 4.8a3 3 0 0 1 0 6M21 20a6 6 0 0 0-3.5-5.4"/></svg>',
   calendario:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
   ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.8"/></svg>',
-  voltar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>'
+  voltar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+  gota:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>'
 };
 function icone(n){return '<span class="bd-ico" aria-hidden="true">'+(ICO_ACAO[n]||ICO[n]||"")+'</span>';}
 /* ===== Registro de abas =====
@@ -1960,11 +1961,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.14";
+const APP_VERSAO="11.15";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="28/09/2026 · 18:00";
+const APP_DATA="28/09/2026 · 21:00";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

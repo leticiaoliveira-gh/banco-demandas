@@ -257,7 +257,12 @@ const M28_TXT_PADRAO={
   /* SJ-1c (03/08, decisão dela): o bloco de causa só existe quando MUITOS
      serviços têm a mesma origem — a maresia é o caso. Vazio = não aparece.
      O texto é dela; eu não crio bloco por conta própria. */
-  causaTitulo:"",causaTexto:""};
+  causaTitulo:"",causaTexto:"",
+  /* RASTREAMENTO DE RALOS (28/09, pedido dela): todo servico de ralo sai das
+     areas e vira UMA lista no fim da folha. A explicacao vai uma vez so, em
+     cima; embaixo, so o piso e a area de cada ralo, com a caixinha. */
+  ralosTitulo:"Rastreamento de Conferência de Ralos",
+  ralosTexto:"Em cada área abaixo, conferir TODOS os ralos: se o ralo é sifonado e se a grelha tem dispositivo de fechamento funcionando. Prender o ralo que estiver solto. Trocar a grelha (ou o ralo) que estiver quebrada, amassada, sem fechamento ou que não for sifonada. Tela improvisada não serve: no lugar dela, usar cesto coletor removível embaixo da grelha."};
 let M28_TXT=null,M28_VIS=null;
 function m28T(){return M28_TXT||M28_TXT_PADRAO;}
 async function m28Config(){
@@ -909,6 +914,7 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">${icone("doc")} Word</button>
     <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">${icone("planilha")} Planilha</button>
+    <button class="btn ghost sm" onclick="m28PainelRalos()" title="Rastreamento de ralos: a lista que sai no fim da folha">${icone("gota")} Rastreamento ralos</button>
   </div>`;
 
   /* AS QUATRO DIVISÕES (28/08) — o desenho dos Checklists, que ela já conhece.
@@ -1266,6 +1272,29 @@ function m28Filtradas(){
   if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
   return rows.sort(m28Comparar);
 }
+/* RALOS (28/09). E' ralo quando o texto do servico fala em ralo -- a nao ser
+   que ela tenha tirado a mao no painel "Rastreamento ralos" (d.ralo=false) ou
+   posto a mao um servico que nao fala a palavra (d.ralo=true). */
+function m28EhRalo(d){
+  if(d.ralo===false)return false;
+  if(d.ralo===true)return true;
+  return /\bralos?\b/i.test(d.fazer||"");
+}
+/* separa a folha em duas: o servico comum e a lista de ralos, uma linha por
+   area (dois servicos de ralo na mesma area viram uma linha so). A linha so
+   sai marcada quando TODOS os servicos de ralo daquela area estao feitos. */
+function m28SepararRalos(rows){
+  const manut=[],ralos=[],idx={};
+  for(const d of rows){
+    if(!m28EhRalo(d)){manut.push(d);continue;}
+    const k=(d.piso||"")+"|"+(d.area||"");
+    if(!idx[k]){idx[k]={piso:d.piso||"",area:d.area||"",feito:true,urg:false,itens:[]};ralos.push(idx[k]);}
+    idx[k].itens.push(d);
+    if(!d.feito)idx[k].feito=false;
+    if(d.urg&&!d.feito)idx[k].urg=true;
+  }
+  return {manut,ralos};
+}
 function m28NomeArquivo(){
   const c=m28Cab(m28Filtradas());
   const quem=M28F.exec||c.executor||"";
@@ -1294,14 +1323,16 @@ function m28ParaPlanilha(){
    de verdade, então ela continua editando e formatando à vontade. */
 async function m28ParaWord(){
   if(typeof DocxLite!=="function"){toast("O gerador de Word não carregou — recarregue a página.");return;}
-  const rows=m28Filtradas();
-  if(!rows.length){alert("Nenhum serviço para gerar com os filtros atuais.");return;}
-  const c=m28Cab(rows);
+  const todas=m28Filtradas();
+  if(!todas.length){alert("Nenhum serviço para gerar com os filtros atuais.");return;}
+  /* RALOS (28/09): igual ao papel -- saem das areas, vao para a lista do fim */
+  const sep=m28SepararRalos(todas), rows=sep.manut;
+  const c=m28Cab(todas);
   const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
-  const urgentes=rows.filter(d=>d.urg&&!d.feito).length;
+  const urgentes=rows.filter(d=>d.urg&&!d.feito).length+sep.ralos.filter(r=>r.urg).length;
   const ident=m28Identidade();
-  const pisosNaFolha=[...new Set(rows.map(d=>(d.piso||"").trim()).filter(Boolean))]
+  const pisosNaFolha=[...new Set(todas.map(d=>(d.piso||"").trim()).filter(Boolean))]
     .sort(m28CmpPiso).map(x=>m28PisoBonito(x));
   const pisoDaFolha=(M28F.piso||"").trim()
     ? m28PisoBonito((M28F.piso||"").trim())
@@ -1324,7 +1355,7 @@ async function m28ParaWord(){
   /* OS DOIS NÚMEROS — mesma ordem da folha impressa: urgentes primeiro. */
   doc.table([[
     {lines:[{text:"URGENTES",bold:true,color:"B42318",size:16},{text:String(urgentes),bold:true,color:"912018",size:30}],fill:"FEF3F2"},
-    {lines:[{text:"DEMANDAS GERAIS",bold:true,color:"667085",size:16},{text:String(rows.length),bold:true,color:"101828",size:30}],fill:"F9FAFB"}
+    {lines:[{text:"DEMANDAS GERAIS",bold:true,color:"667085",size:16},{text:String(rows.length+sep.ralos.length),bold:true,color:"101828",size:30}],fill:"F9FAFB"}
   ]],{widths:[0.5,0.5],borderColor:"EAECF0"});
   doc.p("");
 
@@ -1361,6 +1392,23 @@ async function m28ParaWord(){
   }
   flush();
 
+  if(sep.ralos.length){
+    doc.p((m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo).toUpperCase(),{bold:true,size:24,color:"0F5B52",borderBottom:"1D6B57",spacingBefore:300,spacingAfter:100});
+    const rx=(m28T().ralosTexto||"").trim();
+    if(rx)doc.table([[{text:m28SemTravessao(rx),color:"344054",align:"left"}]],{widths:[1],noBorder:true,fill:"F9FAFB"});
+    let rp=null,nr=0;
+    for(const r of sep.ralos){
+      if(r.piso!==rp){flush();rp=r.piso;nr=0;
+        doc.table([[{text:(m28PisoBonito(r.piso||"")||"Sem piso").toUpperCase()+" · Ralos",bold:true,color:"155244",align:"left"}]],{widths:[1],noBorder:true,fill:"E8F5F0"});}
+      nr++;
+      itens.push([
+        {text:(r.feito?"[x]":"[ ]")+" "+nr+".",bold:true,color:"475467"},
+        {text:(r.urg?"URGENTE — ":"")+(r.area||"Sem área"),bold:!!r.urg,color:r.urg?"B42318":"1F2937",align:"left"},
+        {text:""}]);
+    }
+    flush();
+  }
+
   const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
   if(ct||cx){
     doc.p("");
@@ -1370,14 +1418,15 @@ async function m28ParaWord(){
     ],fill:"F9FAFB"}]],{widths:[1],noBorder:true});
   }
   download(m28NomeArquivo()+".docx",await doc.blob());
-  toast("Word gerado ✓ ("+rows.length+" serviços)");
+  toast("Word gerado ✓ ("+todas.length+" serviços)");
 }
 /* F-4: texto pronto para colar no WhatsApp — sem tabela, sem formatação que
    o WhatsApp não entenda; só *negrito* e traços */
 function m28ParaWhatsApp(){
-  const rows=m28Filtradas();
-  if(!rows.length){alert("Nenhum serviço para enviar com os filtros atuais.");return;}
-  const c=m28Cab(rows);
+  const todas=m28Filtradas();
+  if(!todas.length){alert("Nenhum serviço para enviar com os filtros atuais.");return;}
+  const sep=m28SepararRalos(todas), rows=sep.manut;
+  const c=m28Cab(todas);
   const exec=M28F.exec||c.executor||"";
   let t="*"+m28Titulo(c)+"*\n";
   if(exec)t+=m28T().rotExec+": "+exec+"\n";
@@ -1393,9 +1442,76 @@ function m28ParaWhatsApp(){
     if(ori)t+="   ↳ "+ori+"\n";
     if(d.obs)t+="   "+d.obs+"\n";
   }
+  if(sep.ralos.length){
+    t+="\n*"+(m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo).toUpperCase()+"*\n";
+    const rx=(m28T().ralosTexto||"").trim();if(rx)t+=rx+"\n";
+    let rp=null,nr=0;
+    for(const r of sep.ralos){
+      if(r.piso!==rp){rp=r.piso;nr=0;t+="\n*"+(m28PisoBonito(r.piso||"")||"Sem piso").toUpperCase()+"*\n";}
+      nr++;t+=(r.feito?"✅ ":"⬜ ")+nr+". "+(r.urg?"*URGENTE* — ":"")+(r.area||"")+"\n";
+    }
+  }
   const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
   if(ct||cx)t+="\n*"+(ct||"Por que isto se repete")+"*\n"+cx+"\n";
-  m28CopiarTexto(t,rows.length);
+  m28CopiarTexto(t,todas.length);
+}
+/* O PAINEL "RASTREAMENTO RALOS" (28/09), ao lado de Word e Planilha.
+   Aqui ela ve quais servicos foram para a lista de ralos, tira ou poe cada
+   um, troca o titulo e a explicacao, e pode imprimir so a folha dos ralos. */
+async function m28PainelRalos(){
+  await m28Config();
+  const antigo=document.getElementById("m28-ralos");if(antigo)antigo.remove();
+  const cand=m28ItensDaFolha().filter(d=>!d.verificar&&(m28EhRalo(d)||/\bralos?\b/i.test((d.fazer||"")+" "+(d.obs||""))))
+    .sort(m28Comparar);
+  let lista="",piso=null;
+  for(const d of cand){
+    if(d.piso!==piso){piso=d.piso;lista+=`<div class="bd-rotulo" style="margin:12px 0 4px">${esc(m28PisoBonito(d.piso||"")||"Sem piso")}</div>`;}
+    lista+=`<label style="display:flex;gap:10px;align-items:flex-start;padding:8px 2px;border-bottom:1px solid #eceded;cursor:pointer;min-height:44px">
+      <input type="checkbox" data-rl="${esc(String(d.id))}"${m28EhRalo(d)?" checked":""} style="margin-top:3px;width:18px;height:18px;flex:none">
+      <span><b>${esc(d.area||"Sem área")}</b><br><span class="desc">${esc(d.fazer||"")}</span></span></label>`;
+  }
+  const p=document.createElement("div");
+  p.id="m28-ralos";p.className="cfg-painel";
+  p.innerHTML=`<div class="cfg-cx" onclick="event.stopPropagation()">
+    <div class="cfg-topo"><b>Rastreamento de ralos</b>
+      <button class="btn ghost sm" onclick="document.getElementById('m28-ralos').remove()" aria-label="Fechar">✕</button></div>
+    <p class="desc" style="margin:4px 2px 10px">Todo serviço de ralo sai da área dele e vai para
+      uma lista só, no fim da folha (impressa, Word e WhatsApp). A explicação aparece uma vez;
+      embaixo, só o piso e a área, com a caixinha.</p>
+    <div class="bd-grupo"><label class="bd-rotulo" for="m28rl-tit">Título</label>
+      <input class="bd-campo" id="m28rl-tit" value="${esc(M28_TXT.ralosTitulo||"")}" placeholder="${esc(M28_TXT_PADRAO.ralosTitulo)}"></div>
+    <div class="bd-grupo"><label class="bd-rotulo" for="m28rl-txt">O que precisa ser feito (uma vez só)</label>
+      <textarea class="bd-campo" id="m28rl-txt" rows="5">${esc(M28_TXT.ralosTexto||"")}</textarea>
+      <span class="bd-ajuda">Deixe vazio para voltar ao texto padrão.</span></div>
+    <div class="bd-rotulo" style="margin-top:6px">Serviços que entram na lista (${cand.length})</div>
+    ${lista||'<p class="desc">Nenhum serviço fala em ralo nesta folha.</p>'}
+    <div class="m28-form-acoes" style="margin-top:12px">
+      <button class="bd-btn bd-btn-principal" onclick="m28SalvarRalos()">Salvar</button>
+      <button class="bd-btn bd-btn-fantasma" onclick="m28SalvarRalos(true)">Salvar e imprimir só os ralos</button>
+      <button class="bd-btn bd-btn-fantasma" onclick="document.getElementById('m28-ralos').remove()">Cancelar</button>
+    </div></div>`;
+  p.onclick=()=>p.remove();
+  document.body.appendChild(p);
+}
+async function m28SalvarRalos(imprimir){
+  const p=document.getElementById("m28-ralos");if(!p)return;
+  for(const cb of p.querySelectorAll("input[data-rl]")){
+    const d=DATA.find(x=>String(x.id)===cb.getAttribute("data-rl"));if(!d)continue;
+    const auto=/\bralos?\b/i.test(d.fazer||"");
+    /* so grava quando ela contraria a regra automatica; seguir a regra = sem marca */
+    const quer=cb.checked, marca=(quer===auto)?undefined:quer;
+    if(d.ralo!==marca){if(marca===undefined)delete d.ralo;else d.ralo=marca;d.mod=nowISO();await putItem(d);}
+  }
+  const novo=Object.assign({},M28_TXT);
+  const tit=document.getElementById("m28rl-tit").value.trim(), tx=document.getElementById("m28rl-txt").value.trim();
+  novo.ralosTitulo=tit||M28_TXT_PADRAO.ralosTitulo;
+  novo.ralosTexto=tx||M28_TXT_PADRAO.ralosTexto;
+  const guardar={};
+  for(const k in M28_TXT_PADRAO)if(novo[k]&&novo[k]!==M28_TXT_PADRAO[k])guardar[k]=novo[k];
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Textos",guardar);
+  M28_TXT=Object.assign({},M28_TXT_PADRAO,guardar);
+  p.remove();dataChanged();renderMnt28();toast("Rastreamento de ralos salvo ✓");
+  if(imprimir)m28ImprimirFolha({soRalos:true});
 }
 async function m28CopiarTexto(t,n){
   try{
@@ -1959,20 +2075,25 @@ function m28ImprimirFolha(op){
      marca é ela, à mão — papel que chega marcado não prova serviço nenhum.
      É uma cópia: o "feito" continua intacto no banco. */
   if(op.emBranco)rows=rows.map(d=>Object.assign({},d,{feito:false}));
+  /* RALOS (28/09): saem das areas e vao para a lista do fim. O cabecalho
+     (mes, piso, data) continua olhando a folha INTEIRA. */
+  const todas=rows, sep=m28SepararRalos(rows);
+  rows=op.soRalos?[]:sep.manut;
+  if(op.soRalos&&!sep.ralos.length){alert("Nenhum ralo nesta folha.");return;}
 
-  const c=Object.assign({},m28Cab(rows),op.emitidoEm?{emitidoEm:op.emitidoEm}:{});
+  const c=Object.assign({},m28Cab(todas),op.emitidoEm?{emitidoEm:op.emitidoEm}:{});
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   /* LAY-3: com a folha filtrada por pessoa, quem manda no cabeçalho é ELA —
      imprimir a folha do Matheus com o nome do Sr. João no topo seria pior que
      não ter folha. Sem filtro, vale o que ela gravou no cabeçalho, como antes. */
-  const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
-  const feitos=rows.filter(d=>d.feito).length;
-  const urgentes=rows.filter(d=>d.urg&&!d.feito).length;
+  const exec=M28F.exec||c.executor||(todas.find(d=>d.executor)||{}).executor||"";
+  /* cada area da lista de ralos conta como UMA demanda: e' uma caixinha a marcar */
+  const urgentes=rows.filter(d=>d.urg&&!d.feito).length+sep.ralos.filter(r=>r.urg).length;
+  const totalDemandas=rows.length+sep.ralos.length;
   /* NADA de sufixo no titulo (26/08): "(para marcar)" era recado meu para ela
      nao trocar as duas vias, mas ia impresso no papel que a empresa le, e la
      nao quer dizer nada. Quem separa as duas e' o nome do arquivo. */
   const sufixo="";
-  const nAreas=new Set(rows.map(d=>d.piso+"|"+d.area)).size;
   const rt=c.rt||RT_INFO||RT_DEFAULT, crn=c.crn||"";
 
   /* blocos soltos; quem monta as folhas é o paginador no fim do documento.
@@ -2018,6 +2139,24 @@ function m28ImprimirFolha(op){
       +(recado?`<i class="obs-p linhas"><b>${esc(m28T().colObsImp)}</b>${esc(m28SemTravessao(recado))}</i>`:"")
       +m28FotosFolha(d)+`</span><span class="q">${desde}</span></div>`;
   }
+  /* O RASTREAMENTO DE RALOS (28/09) vem depois de todas as areas, em folha
+     propria: explicacao uma vez so e, por piso, a lista numerada das areas. */
+  if(sep.ralos.length){
+    blocos+=`<div class="bl piso rl-cab"><h2>${esc(m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo)}</h2>`
+      +((m28T().ralosTexto||"").trim()?`<p class="rl-txt linhas">${esc(m28SemTravessao(m28T().ralosTexto.trim()))}</p>`:"")+`</div>`;
+    let rp=null,nr=0;
+    const porPiso={};for(const r of sep.ralos)porPiso[r.piso]=(porPiso[r.piso]||0)+1;
+    for(const r of sep.ralos){
+      const pb=m28PisoBonito(r.piso||"");
+      if(r.piso!==rp){rp=r.piso;nr=0;
+        blocos+=`<div class="bl ar rl" data-piso="${esc(pb)}"><div class="ar-top"><span class="ar-e">`
+          +`<i class="ar-piso">${esc(pb||"Sem piso")}</i>Ralos</span>`
+          +`<b>${porPiso[r.piso]} ${porPiso[r.piso]===1?"área":"áreas"}</b></div></div>`;}
+      nr++;
+      blocos+=`<div class="bl li rl" data-piso="${esc(pb)}"><span class="c"><i class="bx">${r.feito?"✓":""}</i></span>`
+        +`<span class="nm">${nr}.</span><span class="f">${r.urg?'<i class="ug">URGENTE</i> ':""}${esc(r.area||"Sem área")}</span><span class="q"></span></div>`;
+    }
+  }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
      não são 22 problemas, é 1. Só existe se ela escreveu. */
   const causaT=(m28T().causaTitulo||"").trim(),causaX=(m28T().causaTexto||"").trim();
@@ -2035,7 +2174,7 @@ function m28ImprimirFolha(op){
      das paginas seguintes saiam SEM o piso, mesmo com a folha inteira sendo de
      um piso so. Ela viu no papel: "mas cade o piso?". Agora, sem filtro, se
      todas as demandas forem do mesmo piso, e' esse o piso que sai. */
-  const pisosNaFolha=[...new Set(rows.map(d=>(d.piso||"").trim()).filter(Boolean))]
+  const pisosNaFolha=[...new Set(todas.map(d=>(d.piso||"").trim()).filter(Boolean))]
     .sort(m28CmpPiso).map(x=>m28PisoBonito(x));
   /* O PISO NUNCA SOME (28/08). Palavras dela: "mesmo quando eu filtrar todas as
      areas para o PDF, ele precisa mostrar obrigatoriamente o piso". Sem filtro
@@ -2094,7 +2233,7 @@ function m28ImprimirFolha(op){
          gerais lado esquerdo, urgente lado direito, pronto, e' isso".
          Substitui a ordem invertida de 26/08. Nao mexer sem pedido dela. */""}
     <div class="nums">
-      <div class="num"><span>Demandas gerais</span><b>${rows.length}</b></div>
+      <div class="num"><span>Demandas gerais</span><b>${totalDemandas}</b></div>
       <div class="num${urgentes?" urgente":""}"><span>Urgentes</span><b>${urgentes}</b></div>
     </div>`;
   const titulo="Manutenção e Infraestrutura — "+loja+sufixo;
@@ -2187,11 +2326,16 @@ function m28ImprimirFolha(op){
   .corpo>.grupo:first-child{margin-top:8px}
   /* a faixa verde cobre a LINHA INTEIRA, inclusive a pastilha da contagem:
      antes a pastilha ficava solta fora da faixa e ela pediu para entrar */
-  .ar{display:flex;flex-direction:column;background:#e8f5f0;
+  /* A FAIXA NUMA FILEIRA SO, TUDO NO MEIO (28/09). Ela apontou no papel: o
+     piso e a area ficavam grudados no alto da faixa verde, com um vazio
+     embaixo (o rotulo "Data registrada" ocupava uma segunda linha so dele).
+     Agora piso, area, contagem e o rotulo ficam na mesma linha, centralizados
+     na altura da faixa. */
+  .ar{display:flex;flex-direction:row;align-items:center;gap:10px;background:#e8f5f0;
     padding:6px 11px;font-size:12.8px;font-weight:700;
     color:#155244;border-bottom:1px solid #d7e6e0;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ar .ar-top{display:flex;justify-content:space-between;align-items:baseline}
+  .ar .ar-top{flex:1;min-width:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
   .ar b{font-weight:700;color:#155244;font-size:10.5px;
     background:#fff;border:1px solid #cfe5dd;border-radius:10px;padding:1px 8px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -2215,8 +2359,8 @@ function m28ImprimirFolha(op){
      de contagem, e as datas de baixo caiam mais para a esquerda -- cada um num
      lugar. Agora a pastilha fica colada no nome da area, e o rotulo ocupa a
      MESMA largura da coluna da data, centralizado igual a ela. */
-  .ar .ar-e{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}
-  .ar .ar-sub{margin-top:2px;text-align:right}
+  .ar .ar-e{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+  .ar .ar-sub{margin:0;text-align:right;flex:none}
   .ar .ar-sub .qh{font-style:normal;font-weight:600;font-size:8.2px;margin:0;
     text-transform:uppercase;letter-spacing:.5px;color:#6b7b76;white-space:nowrap}
   /* LISTA NUMERADA, sem títulos de coluna (27/08): caixinha, número, texto, data.
@@ -2273,6 +2417,12 @@ function m28ImprimirFolha(op){
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li .q i.grave{background:#fef3f2;color:#b42318;font-weight:700}
 
+  /* rastreamento de ralos: a explicacao, uma vez so, embaixo do titulo */
+  .rl-cab .rl-txt{margin:6px 0 4px;padding:8px 11px;background:#f9fafb;border-left:3px solid #1d6b57;
+    border-radius:0 6px 6px 0;font-size:12.4px;line-height:1.5;color:#344054;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .li.rl{grid-template-columns:26px 20px 1fr;padding:8px 11px}
+  .li.rl .q{display:none}
   /* orientação técnica com a base legal — a categoria vai ESCRITA entre
      colchetes, porque no papel a cor do selo não existe */
   .li .ori-p{font-style:normal;display:block;font-size:9.4px;color:#5c5d68;
@@ -2655,7 +2805,10 @@ async function m28GerirTextos(){
 async function m28SalvarTextos(){
   const novo={};
   for(const k in M28_TXT_PADRAO){
-    const el=document.getElementById("m28tx-"+k);if(!el)continue;
+    const el=document.getElementById("m28tx-"+k);
+    /* campo que nao esta NESTA janela (ex.: os textos dos ralos, que moram no
+       painel "Rastreamento ralos") guarda o que ja estava -- nunca apaga */
+    if(!el){if(M28_TXT&&M28_TXT[k]&&M28_TXT[k]!==M28_TXT_PADRAO[k])novo[k]=M28_TXT[k];continue;}
     const v=el.value.trim();
     if(v&&v!==M28_TXT_PADRAO[k])novo[k]=v;    /* só guarda o que difere do padrão */
   }
