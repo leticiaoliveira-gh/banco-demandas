@@ -262,7 +262,7 @@ const M28_TXT_PADRAO={
      areas e vira UMA lista no fim da folha. A explicacao vai uma vez so, em
      cima; embaixo, so o piso e a area de cada ralo, com a caixinha. */
   ralosTitulo:"Rastreamento de Conferência de Ralos",
-  ralosTexto:"Em cada área abaixo, conferir TODOS os ralos: se o ralo é sifonado e se a grelha tem dispositivo de fechamento funcionando. Prender o ralo que estiver solto. Trocar a grelha (ou o ralo) que estiver quebrada, amassada, sem fechamento ou que não for sifonada. Tela improvisada não serve: no lugar dela, usar cesto coletor removível embaixo da grelha."};
+  ralosTexto:"Em cada área abaixo, conferir TODOS os ralos:\n• o ralo é sifonado?\n• a grelha tem dispositivo de fechamento funcionando?\n\nPrender o ralo que estiver solto.\nTrocar a grelha (ou o ralo) que estiver quebrada, amassada, sem fechamento ou que não for sifonada.\n\nTela improvisada não serve: no lugar dela, usar cesto coletor removível embaixo da grelha."};
 let M28_TXT=null,M28_VIS=null;
 function m28T(){return M28_TXT||M28_TXT_PADRAO;}
 async function m28Config(){
@@ -1241,7 +1241,7 @@ function m28RenderListaDesenho(){
            ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
            a indentacao do proprio codigo aqui embaixo virava linha em branco
            depois de cada demanda -- era o "espaco" que ela via. */""}
-      <div class="m28-fazer">${d.urg?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">Verificar · não sai na folha</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
+      <div class="m28-fazer">${d.urg&&!ehR.has(d)?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">Verificar · não sai na folha</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
             conserta; o LEMBRETE é só dela e nunca é impresso. Antes havia
@@ -1344,7 +1344,7 @@ async function m28ParaWord(){
   const c=m28Cab(todas);
   const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
-  const urgentes=rows.filter(d=>d.urg&&!d.feito).length+sep.ralos.filter(r=>r.urg).length;
+  const urgentes=rows.filter(d=>d.urg&&!d.feito).length/* ralo nao conta urgente */;
   const ident=m28Identidade();
   const pisosNaFolha=[...new Set(todas.map(d=>(d.piso||"").trim()).filter(Boolean))]
     .sort(m28CmpPiso).map(x=>m28PisoBonito(x));
@@ -1409,7 +1409,7 @@ async function m28ParaWord(){
   if(sep.ralos.length){
     doc.p((m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo).toUpperCase(),{bold:true,size:24,color:"0F5B52",borderBottom:"1D6B57",spacingBefore:300,spacingAfter:100});
     const rx=(m28T().ralosTexto||"").trim();
-    if(rx)doc.table([[{text:m28SemTravessao(rx),color:"344054",align:"left"}]],{widths:[1],noBorder:true,fill:"F9FAFB"});
+    if(rx)doc.table([[{lines:m28SemTravessao(rx).split("\n").map(l=>({text:l||" ",color:"344054",size:19,align:"left"})),fill:"F9FAFB"}]],{widths:[1],noBorder:true});
     let rp=null,nr=0;
     for(const r of sep.ralos){
       if(r.piso!==rp){flush();rp=r.piso;nr=0;
@@ -1417,7 +1417,7 @@ async function m28ParaWord(){
       nr++;
       itens.push([
         {text:(r.feito?"[x]":"[ ]")+" "+nr+".",bold:true,color:"475467"},
-        {text:(r.urg?"URGENTE — ":"")+(r.area||"Sem área"),bold:!!r.urg,color:r.urg?"B42318":"1F2937",align:"left"},
+        {text:r.area||"Sem área",color:"1F2937",align:"left"},
         {text:""}]);
     }
     flush();
@@ -1462,7 +1462,7 @@ function m28ParaWhatsApp(){
     let rp=null,nr=0;
     for(const r of sep.ralos){
       if(r.piso!==rp){rp=r.piso;nr=0;t+="\n*"+(m28PisoBonito(r.piso||"")||"Sem piso").toUpperCase()+"*\n";}
-      nr++;t+=(r.feito?"✅ ":"⬜ ")+nr+". "+(r.urg?"*URGENTE* — ":"")+(r.area||"")+"\n";
+      nr++;t+=(r.feito?"✅ ":"⬜ ")+nr+". "+(r.area||"")+"\n";
     }
   }
   const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
@@ -1495,8 +1495,8 @@ async function m28PainelRalos(){
     <div class="bd-grupo"><label class="bd-rotulo" for="m28rl-tit">Título</label>
       <input class="bd-campo" id="m28rl-tit" value="${esc(M28_TXT.ralosTitulo||"")}" placeholder="${esc(M28_TXT_PADRAO.ralosTitulo)}"></div>
     <div class="bd-grupo"><label class="bd-rotulo" for="m28rl-txt">O que precisa ser feito (uma vez só)</label>
-      <textarea class="bd-campo" id="m28rl-txt" rows="5">${esc(M28_TXT.ralosTexto||"")}</textarea>
-      <span class="bd-ajuda">Deixe vazio para voltar ao texto padrão.</span></div>
+      <textarea class="bd-campo" id="m28rl-txt" rows="9">${esc(M28_TXT.ralosTexto||"")}</textarea>
+      <span class="bd-ajuda">Use Enter para pular linha. Deixe vazio para voltar ao texto padrão.</span></div>
     <div class="bd-rotulo" style="margin-top:6px">Serviços que entram na lista (${cand.length})</div>
     ${lista||'<p class="desc">Nenhum serviço fala em ralo nesta folha.</p>'}
     <div class="m28-form-acoes" style="margin-top:12px">
@@ -2102,7 +2102,7 @@ function m28ImprimirFolha(op){
      não ter folha. Sem filtro, vale o que ela gravou no cabeçalho, como antes. */
   const exec=M28F.exec||c.executor||(todas.find(d=>d.executor)||{}).executor||"";
   /* cada area da lista de ralos conta como UMA demanda: e' uma caixinha a marcar */
-  const urgentes=rows.filter(d=>d.urg&&!d.feito).length+sep.ralos.filter(r=>r.urg).length;
+  const urgentes=rows.filter(d=>d.urg&&!d.feito).length/* ralo nao conta urgente */;
   const totalDemandas=rows.length+sep.ralos.length;
   /* NADA de sufixo no titulo (26/08): "(para marcar)" era recado meu para ela
      nao trocar as duas vias, mas ia impresso no papel que a empresa le, e la
@@ -2168,7 +2168,7 @@ function m28ImprimirFolha(op){
           +`<b>${porPiso[r.piso]} ${porPiso[r.piso]===1?"área":"áreas"}</b></div></div>`;}
       nr++;
       blocos+=`<div class="bl li rl" data-piso="${esc(pb)}"><span class="c"><i class="bx">${r.feito?"✓":""}</i></span>`
-        +`<span class="nm">${nr}.</span><span class="f">${r.urg?'<i class="ug">URGENTE</i> ':""}${esc(r.area||"Sem área")}</span><span class="q"></span></div>`;
+        +`<span class="nm">${nr}.</span><span class="f">${esc(r.area||"Sem área")}</span><span class="q"></span></div>`;
     }
   }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
@@ -2433,7 +2433,7 @@ function m28ImprimirFolha(op){
 
   /* rastreamento de ralos: a explicacao, uma vez so, embaixo do titulo */
   .rl-cab .rl-txt{margin:6px 0 4px;padding:8px 11px;background:#f9fafb;border-left:3px solid #1d6b57;
-    border-radius:0 6px 6px 0;font-size:12.4px;line-height:1.5;color:#344054;
+    border-radius:0 6px 6px 0;font-size:12.4px;line-height:1.5;color:#344054;white-space:pre-line;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li.rl{grid-template-columns:26px 20px 1fr;padding:8px 11px}
   .li.rl .q{display:none}

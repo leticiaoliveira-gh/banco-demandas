@@ -476,4 +476,4 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 .m28-ralos-cab{margin:40px 0 4px;padding:12px 14px;border-radius:10px;background:#f9fafb;border-left:4px solid #1d6b57}
 .m28-ralos-tit{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:#155244;text-transform:uppercase;letter-spacing:.3px}
 .m28-ralos-tit svg{width:18px;height:18px;flex:none}
-.m28-ralos-txt{margin:6px 0 0;font-size:13px;line-height:1.5;color:#344054}
+.m28-ralos-txt{margin:6px 0 0;font-size:13px;line-height:1.5;color:#344054;white-space:pre-line}
