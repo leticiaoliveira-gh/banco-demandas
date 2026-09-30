@@ -211,7 +211,14 @@ PDFLite.prototype.blob=function(){
   }
   objs[idPaginas-1]="<< /Type /Pages /Kids ["+idsPag.map(i=>i+" 0 R").join(" ")
     +"] /Count "+idsPag.length+" >>";
-  const idCat=put("<< /Type /Catalog /Pages "+idPaginas+" 0 R >>");
+  /* dados do site escondidos no PDF (this.dados = texto ASCII/base64, preparado por quem chama).
+     O marcador fixo permite achar o bloco de volta sem interpretar o PDF (ver lerDadosDoPDF). */
+  let idDados=0;
+  if(this.dados){
+    const corpo="%NPDADOS-BEGIN\n"+this.dados+"\n%NPDADOS-END";
+    idDados=put("<< /Type /NPDados /Length "+corpo.length+" >>\nstream\n"+corpo+"\nendstream");
+  }
+  const idCat=put("<< /Type /Catalog /Pages "+idPaginas+" 0 R"+(idDados?" /NPDados "+idDados+" 0 R":"")+" >>");
   const idInfo=put("<< /Producer (Central de Demandas NP) /Creator (Central de Demandas NP) >>");
 
   let saida="%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";

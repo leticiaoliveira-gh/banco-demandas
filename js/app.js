@@ -1730,9 +1730,24 @@ function reciboDaImportacao(itensDoArquivo,antes){
   m.querySelector(".rec-ok").focus();
 }
 
-async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=await f.text();
+async function importJSON(e){const f=e.target.files[0];if(!f)return;
  try{
-  const parsed=JSON.parse(txt);
+  let parsed;
+  if(/\.pdf$/i.test(f.name)){
+    /* PDF gerado pelo próprio site: os dados vêm escondidos dentro dele */
+    const bufPDF=await f.arrayBuffer();
+    parsed=await lerDadosDoPDF(bufPDF);
+    if(!parsed){
+      /* É o papel impresso pelo navegador (Imprimir / Salvar como PDF): não
+         tem dados escondidos. Então o site LÊ O TEXTO e transcreve de volta,
+         mostrando antes a tela de conferência. Nada é gravado sem o "Aplicar". */
+      const folha=(typeof lerFolhaImpressa==="function")?await lerFolhaImpressa(bufPDF):null;
+      e.target.value="";
+      if(folha){abrirTranscricaoPDF(folha,f.name);return;}
+      alert("Não consegui ler o texto deste PDF.\n\nSe ele foi escaneado ou fotografado, não existe texto dentro dele para eu ler. Use o PDF salvo pelo próprio site (menu ⋯ ou Imprimir).\n\nNada foi alterado.");
+      return;
+    }
+  }else parsed=JSON.parse(await f.text());
   /* ===== ARQUIVO DE ATUALIZAÇÃO (30/07) =====
      O Importar de sempre só ACRESCENTA: item com uid conhecido é pulado.
      Isso impediu a recuperação do trabalho de 29/07 dela (que CONSOLIDOU
@@ -1796,7 +1811,7 @@ async function importJSON(e){const f=e.target.files[0];if(!f)return;const txt=aw
   render();if(typeof renderDG==="function")renderDG();dataChanged();
  }catch(err){alert("Não consegui ler este arquivo.\n\nEste botão aceita apenas o arquivo .json de backup"
    +" gerado por este próprio site (botão \"⬇ Backup\" na capa).\n\n"
-   +"Planilhas (.xlsx/.csv), PDF e Word não entram por aqui.");}e.target.value="";}
+   +"Também aceita o PDF gerado por este site. Planilhas (.xlsx/.csv) e Word não entram por aqui.");}e.target.value="";}
 
 /* ---- backup automático em pasta (Chrome/Edge no computador) ---- */
 let backupT=null;
@@ -1859,7 +1874,7 @@ async function doBackup(force){
    de sincronização e cache. Backups e outros dispositivos não são afetados. */
 async function limparDispositivo(){
  if(!confirm("Apagar TODOS os dados deste dispositivo?\n\nIsso remove os registros locais, o token de sincronização e o cache do site NESTE navegador.\nSeus outros dispositivos, a sincronização e os backups NÃO são afetados."))return;
- /* 30/09 (v11.18): NUNCA apagar o que ainda não chegou à nuvem. Primeiro
+ /* 30/09 (v11.19): NUNCA apagar o que ainda não chegou à nuvem. Primeiro
     envia e confere; se faltar qualquer coisa, para aqui e nada é apagado. */
  if(typeof nuvemGarantirEnviado==="function"&&typeof nuvemLigada==="function"&&nuvemLigada()){
    toast("Enviando tudo para a nuvem antes de apagar…");
@@ -1975,11 +1990,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.18";
+const APP_VERSAO="11.20";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="28/09/2026 · 23:00";
+const APP_DATA="30/09/2026 · 19:30";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

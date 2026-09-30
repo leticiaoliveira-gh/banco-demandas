@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-09-30",
- "versao": "11.18",
- "qa": "QA 30/09 (v11.18): o site nao apaga mais o aparelho sem antes enviar tudo para a nuvem e conferir; foto defeituosa nao segura mais o envio; aviso grande quando algo ainda nao foi para a nuvem.",
- "ondeParamos": "30/09: protecao contra perda ao sair do PC; fotos marcadas de 28/09 devolvidas as demandas.",
- "proximoPasso": "Le conferir a tela e a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
+ "versao": "11.20",
+ "qa": "QA 30/09 (v11.20): importar a folha em PDF impressa pelo navegador agora transcreve os servicos de volta para o site, com tela de conferencia antes de aplicar.",
+ "ondeParamos": "30/09: importar PDF deixou de recusar a folha impressa - o site le o texto e devolve piso, area, URGENTE, recado, data e o que esta feito.",
+ "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

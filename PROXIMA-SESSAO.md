@@ -14,6 +14,64 @@
    **riscado no lugar, com o motivo escrito**, e ela é informada.
 4. **Abertura barata:** no começo, ler só este arquivo.
 
+## 01/10 — PRIMEIRA DEMANDA DA PRÓXIMA SESSÃO: a entrada no site (os 4 pontos que ela levantou)
+
+São os itens **29 a 32** do plano (bloco "A entrada no site"), levantados por ela mesma e ainda não
+consertados. Entram nesta ordem, porque o 32 é consequência do 31:
+
+1. **31 — o Chrome preenche a senha sozinho e a trava de 20 minutos vira teatro.** Quem sentar no PC
+   dela na hora do almoço entra com um clique. É o mais grave dos quatro.
+2. **32 — decidir o que a trava deve pedir no lugar da senha** (algo que o navegador não saiba
+   responder: digital do aparelho ou código curto no celular). Aqui cabe a única pergunta da sessão.
+3. **29 — os dois computadores dela estão sendo tratados como emprestados** (o combinado era o site
+   reconhecer os PCs dela e não ficar pedindo senha).
+4. **30 — prova de que em PC emprestado nada fica salvo** (mostrar o painel do navegador vazio depois
+   de fechar a aba; hoje é só promessa escrita).
+
+Onde mexer: `js/auth.js` (trava e reconhecimento de aparelho), `js/app.js` (tela de entrada) e a
+aba Segurança. Regra que não muda: nada de programa rodando por trás, o site continua abrindo com
+duplo clique e funcionando offline.
+
+## ~~30/09 (noite) — importar PDF está recusando o PDF dela~~ — RESOLVIDO em 30/09 (v11.20)
+
+**Riscado, não apagado** (nada some da vista dela). **Causa:** o PDF dela é o papel impresso pelo
+navegador (Imprimir / Salvar como PDF), que o site não consegue marcar por dentro — só o PDF do menu ⋯
+leva os dados escondidos. Era a causa 1 da lista abaixo, confirmada no arquivo dela.
+**Decisão dela:** "é só pra transcrever o PDF igualmente ao site". **Feito e publicado na v11.20:**
+`lerPDF` passou a ler o texto do PDF do Chrome (Type0/Identity-H pelo /ToUnicode), `lerFolhaMnt28`
+remonta a folha, `abrirTranscricaoPDF` mostra a tela de conferência (novo / atualiza / igual, com
+caixinha) e `aplicarTranscricaoPDF` grava só o que ela marcar. Banca de teste (fora do site) em
+`ferramentas/transcrever-pdf/teste.html`. Fotos não voltam pelo PDF. Conferido no PDF real dela:
+19 áreas, 32 serviços, todas as faixas batendo.
+
+### O registro original da demanda (mantido para histórico)
+
+**O que foi feito (v11.19, publicado na Cloudflare):** ⋯ → "Importar arquivo (.json ou .pdf)" lê dados
+escondidos dentro do PDF gerado pelo site. Código: `pdfEnvelopeDeDados` e `pdfDeTodasAsAbas` em
+`js/pdf-abas.js`; `empacotarDadosPDF` e `lerDadosDoPDF` em `js/arquivos.js`; campo `dados` em
+`js/pdflite.js` (bloco entre `%NPDADOS-BEGIN` e `%NPDADOS-END`, base64 de JSON em gzip); leitura em
+`importJSON` (`js/app.js`) e desvio em `arqSelecionado`. Teste de ida e volta no navegador local passou.
+
+**O problema (30/09, 18:21):** ela gerou o PDF no site, baixou, e ao importar apareceu
+"Este PDF não foi gerado por este site... Nada foi alterado." (é o aviso de `importJSON` quando
+`lerDadosDoPDF` devolve null). Estava na folha AC · Setembro/2026 (tela de manutenção, mnt28).
+Ela vai enviar o PDF na próxima sessão.
+
+**Causas prováveis, em ordem (confirmar abrindo o PDF dela):**
+1. Ela usou o botão **Imprimir / PDF** da folha (impressão do navegador) ou os PDFs por aba
+   do backup (`pdfsPorAba`). Nenhum dos dois leva dados escondidos — só `pdfDeTodasAsAbas` leva.
+   Se for isso, o certo é o PDF da folha (mnt28) também carregar os dados.
+2. PDF gerado antes da v11.19 (sem bloco).
+3. O arquivo foi reescrito depois (Chrome "Salvar como"/visualizador, WhatsApp) e o bloco se perdeu.
+4. `lerDadosDoPDF` falhou em PDF real (regex `%NPDADOS-BEGIN\n...\n%NPDADOS-END`, gzip, PDF grande).
+
+**Como investigar:** procurar `NPDADOS-BEGIN` no PDF dela (Grep no arquivo). Sem o marcador → causa 1/2/3.
+Com o marcador → rodar `lerDadosDoPDF` no navegador com esse arquivo e ver o erro.
+
+**Para resolver de vez:** o caminho que ela realmente usa na folha (Imprimir / PDF, WhatsApp, Word,
+botão da folha) tem que gerar PDF com dados. Garantir isso e avisar qual botão usar. Lembrar: fotos não
+vão no PDF e a edição mais nova vence (igual ao .json).
+
 ## Onde está hoje
 
 Nesta sessão (22/09) entrou o botão **Revisar** nos relatórios: dentro do

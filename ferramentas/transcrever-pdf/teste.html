@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banca de teste — transcrever a folha do PDF</title>
+<!-- BANCA DE TESTE. NÃO faz parte do site: não está ligada no index.html nem na
+     lista do sw.js, e nenhum dado real dela entra aqui. Serve para conferir a
+     tela de conferência da transcrição: escolher um PDF da folha, ou clicar em
+     "folha de exemplo" (serviços inventados) para ver a tela sem PDF nenhum. -->
+<link rel="stylesheet" href="../../biblioteca/pecas.css">
+<link rel="stylesheet" href="../../css/app.css">
+<link rel="stylesheet" href="../../css/polimento.css">
+<style>
+ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f7f7f8;margin:0;padding:20px}
+ #saida{white-space:pre-wrap;font:12px ui-monospace,monospace;background:#fff;border:1px solid #e5e5ea;
+   border-radius:10px;padding:12px;margin-top:14px;max-height:36vh;overflow:auto}
+</style>
+</head>
+<body>
+<h1 style="font-size:17px">Banca de teste — folha impressa em PDF</h1>
+<input type="file" id="arq" accept="application/pdf">
+<button id="exemplo" class="bd-btn bd-btn-secundario bd-btn-p">Folha de exemplo</button>
+<div id="saida">Escolha o PDF da folha, ou clique em "Folha de exemplo".</div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ---- remendos: só o que a tela precisa para funcionar fora do site ---- */
+const DATA=[];
+let currentStore="AC";
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const nowISO=()=>new Date().toISOString();
+const newUid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36));
+let SEQ=1;
+async function putItem(o){o.id=o.id||SEQ++;return o.id;}
+function dataChanged(){}
+function toast(m){document.getElementById("saida").textContent+="\ntoast: "+m;}
+function m28SemTravessao(t){return String(t||"").replace(/–|—/g,"-");}
+function m28T(){return {colObsImp:"Obs:"};}
+function m28PisoBonito(p){return p;}
+function m28PosArea(){return 1;}
+function m28ListaAreas(){return {"1º Piso":["Açougue","Padaria"]};}
+function m28ItensCru(){return DATA.filter(d=>d.tipo==="mnt28"&&d.loja===currentStore);}
+function m28AcharFolha(){return null;}
+function renderMnt28(){}
+function reciboDaImportacao(tocados){
+  document.getElementById("saida").textContent+="\nRECIBO: "+tocados.length+" gravado(s) · banco tem "+
+    DATA.length+" · "+JSON.stringify(DATA.map(d=>({fazer:d.fazer.slice(0,24),feito:d.feito,urg:d.urg,
+      obs:(d.obs||"").slice(0,18),data:d.dataRegistro,criado:d.criado})),null,1);
+}
+</script>
+<script src="../../js/arquivos.js"></script>
+<script>
+const saida=document.getElementById("saida");
+document.getElementById("arq").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  saida.textContent="Lendo "+f.name+" …";
+  const buf=await f.arrayBuffer();
+  const escondido=await lerDadosDoPDF(buf);
+  const folha=await lerFolhaImpressa(buf);
+  if(!folha){saida.textContent="NÃO reconheceu como folha da manutenção.";return;}
+  const por={};folha.itens.forEach(i=>{const k=i.piso+" | "+i.area;por[k]=(por[k]||0)+1;});
+  saida.textContent=
+    "dados escondidos: "+(escondido?"sim":"não (é papel impresso)")+"\n"+
+    "loja: "+folha.loja+" | unidade: "+folha.unidade+" | mês: "+folha.mes+" | emitido: "+folha.emitido+"\n"+
+    "áreas: "+folha.areas.length+" | serviços: "+folha.itens.length+"\n"+
+    folha.areas.map(a=>{const k=a.piso+" | "+a.area,n=por[k]||0;
+      return (n===a.total?"ok   ":"DIF  ")+k+"  faixa="+a.total+" achados="+n;}).join("\n");
+  abrirTranscricaoPDF(folha,f.name);
+};
+/* folha inventada: um serviço igual ao que já está no banco, um que muda e um
+   novo — para ver os três estados da tela sem usar nenhum dado real dela */
+document.getElementById("exemplo").onclick=()=>{
+  DATA.length=0;
+  DATA.push({id:1,uid:"u1",tipo:"mnt28",loja:"AC",piso:"1º Piso",area:"Açougue",
+    fazer:"Trocar a lâmpada queimada da bancada",obs:"",feito:false,urg:false,dataRegistro:""});
+  DATA.push({id:2,uid:"u2",tipo:"mnt28",loja:"AC",piso:"1º Piso",area:"Açougue",
+    fazer:"Rejuntar o piso perto do ralo",obs:"",feito:false,urg:false,dataRegistro:""});
+  const folha={folha:true,loja:"AC",unidade:"Arraial do Cabo · Loja de exemplo",
+    mes:"Setembro de 2026",emitido:"30/09/2026",
+    areas:[{piso:"1º PISO",area:"AÇOUGUE",total:2},{piso:"1º PISO",area:"PADARIA",total:1}],
+    itens:[
+      {piso:"1º PISO",area:"AÇOUGUE",num:1,feito:true,urg:false,
+       fazer:"Trocar a lâmpada queimada da bancada",obs:"Comprada no dia 12",dataRegistro:"2026-09-12"},
+      {piso:"1º PISO",area:"AÇOUGUE",num:2,feito:false,urg:false,
+       fazer:"Rejuntar o piso perto do ralo",obs:"",dataRegistro:""},
+      {piso:"1º PISO",area:"PADARIA",num:1,feito:false,urg:true,
+       fazer:"Consertar a porta da câmara, que não veda\ne deixa o ar frio escapar",
+       obs:"Esperando o orçamento",dataRegistro:"2026-09-28"}]};
+  saida.textContent="folha de exemplo: 3 serviços (1 igual, 1 atualiza, 1 novo)";
+  abrirTranscricaoPDF(folha,"exemplo.pdf");
+};
+</script>
+</body>
+</html>

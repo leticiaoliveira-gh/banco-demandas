@@ -130,7 +130,33 @@ function paChecklists(d,loja){
    de cada aba/página, nomeado com o nome da aba"*. Eu tinha entendido errado e
    entregue só um botão de menu — ela corrigiu: é para entrar no BACKUP dela.
    Estes arquivos entram no ⬇ Fazer backup E na pasta do backup automático. */
-const PA_MONTADORES={dg:paQuadroGeral,ck:paChecklists,nc:paNaoConformidades,list:paManutencoes};
+/* folha de manutenção (serviços por piso/área, com feito e urgente) */
+function paFolhaManutencao(d,loja){
+  paCabecalho(d,rotuloAba("mnt28"),loja+" · "+brDate(today()));
+  const base=DATA.filter(x=>!x.deleted&&x.tipo==="mnt28"&&x.loja===currentStore);
+  const feitos=base.filter(x=>x.feito).length;
+  d.texto(base.length+" serviços · "+(base.length-feitos)+" a fazer · "+feitos+" feitos · "
+    +base.filter(x=>x.urg&&!x.feito).length+" urgentes",{x:PA_M,y:d.y,tam:9,cor:PA_CINZA});d.y+=18;
+  if(!base.length)return paVazio(d,"Nenhum serviço na folha.");
+  const porArea={};
+  for(const x of base)(porArea[x.area||"Sem área"]=porArea[x.area||"Sem área"]||[]).push(x);
+  for(const a of Object.keys(porArea).sort()){
+    paSecao(d,a+"  ("+porArea[a].length+")");
+    for(const x of porArea[a])
+      paItem(d,(x.feito?"[feito] ":"")+(x.urg?"[urgente] ":"")+(x.fazer||"(sem descrição)"),
+        [x.piso,x.executor,x.obs].filter(Boolean).join(" · "),x.urg?"#d92d3a":null);
+  }
+}
+const PA_MONTADORES={dg:paQuadroGeral,ck:paChecklists,nc:paNaoConformidades,list:paManutencoes,mnt28:paFolhaManutencao};
+/* envelope de atualização escondido no PDF: o mesmo do .json, sem as fotos (pesam muito;
+   sem o campo, a junção mantém as fotos que já estão no aparelho) */
+function pdfEnvelopeDeDados(){
+  const env=buildBackupEnvelope();
+  env.atualizar=true;
+  env.descricao="PDF gerado pelo site em "+brDate(today())+".";
+  env.itens=DATA.map(it=>{const {fotos,...resto}=it;return resto;});
+  return env;
+}
 /* nome de arquivo seguro: sem / \ : * ? " < > | (o Windows recusa) */
 function paNomeArquivo(s){
   return String(s||"aba").replace(/[\/\\:*?"<>|]/g,"-").replace(/\s+/g," ").trim().slice(0,80);
@@ -156,7 +182,7 @@ function pdfsPorAba(){
 }
 
 /* ===== o PDF inteiro (tudo num arquivo só) ===== */
-function pdfDeTodasAsAbas(){
+async function pdfDeTodasAsAbas(){
   if(!currentStore){toast("Entre numa empresa primeiro");return;}
   if(typeof PDFLite!=="function"){alert("O gerador de PDF não carregou. Recarregue a página.");return;}
   const loja=nomeCurto((empresa(currentStore)||{}).name||currentStore);
@@ -172,17 +198,18 @@ function pdfDeTodasAsAbas(){
   d.texto("Gerado em "+brDate(today()),{x:PA_M,y:156,tam:8,cor:"#cfe4df"});
   d.y=210;
   d.texto("O que tem neste documento",{x:PA_M,y:d.y,tam:11,cor:PA_VERDE,negrito:true});d.y+=20;
-  const secoes=[["dg",rotuloAba("dg")],["ck",rotuloAba("ck")],["nc",rotuloAba("nc")],["list",rotuloAba("list")]];
+  const secoes=[["dg",rotuloAba("dg")],["ck",rotuloAba("ck")],["nc",rotuloAba("nc")],["list",rotuloAba("list")],["mnt28",rotuloAba("mnt28")]];
   for(const [,nome] of secoes){
     d.texto("•  "+nome,{x:PA_M,y:d.y,tam:10,cor:PA_TEXTO});d.y+=17;
   }
   d.y+=10;
   for(const l of d.quebrar("Cada quadro do site vira uma página deste documento, com o que está registrado hoje. "
-    +"O texto pode ser copiado e pesquisado.",PA_LARG,9))
+    +"O texto pode ser copiado e pesquisado. Este PDF também pode ser colocado de volta no site, em "
+    +"Importar arquivo (.json ou .pdf), para atualizar os dados.",PA_LARG,9))
     {d.texto(l,{x:PA_M,y:d.y,tam:9,cor:PA_CINZA});d.y+=13;}
 
   /* uma página por aba, na ordem das abas do site */
-  const montadores={dg:paQuadroGeral,ck:paChecklists,nc:paNaoConformidades,list:paManutencoes};
+  const montadores=PA_MONTADORES;
   for(const t of TAB_ORDER){
     if(!montadores[t])continue;
     d.novaPagina();
@@ -194,6 +221,8 @@ function pdfDeTodasAsAbas(){
   d.paginas.forEach((pg,i)=>{d.pag=pg;paRodape(d,i+1);});
   d.pag=guardaPag;d.y=guardaY;
 
+  /* dados escondidos: é isto que permite colocar o PDF de volta em "Importar arquivo" */
+  try{d.dados=await empacotarDadosPDF(pdfEnvelopeDeDados());}catch(e){}
   const nome="Relatorio Geral - "+loja.replace(/[^\wÀ-ÿ ]/g,"")+" - "+brDate(today()).replace(/\//g,".")+".pdf";
   download(nome,d.blob(),"application/pdf");
   toast("PDF gerado ✓ "+d.paginas.length+" páginas");
