@@ -969,6 +969,12 @@ export default {
         const id = decodeURIComponent(cam.slice("/api/aprovacoes/".length, -"/decidir".length));
         return cors(req, await rotaAprovacaoDecidir(id, req, quem, env));
       }
+      /* 30/09: o proprio aparelho encerra o acesso dele ao sair */
+      if (cam === "/api/sair" && req.method === "POST") {
+        if (quem.sessao_id)
+          await env.DB.prepare("UPDATE sessoes SET encerrada = 1 WHERE id = ?1").bind(quem.sessao_id).run();
+        return cors(req, ok({ ok: true, encerrada: !!quem.sessao_id }));
+      }
       if (cam === "/api/dispositivos" && req.method === "GET")
         return cors(req, await rotaDispositivosListar(quem, env));
       if (cam.startsWith("/api/dispositivos/") && cam.endsWith("/desconectar") && req.method === "POST") {

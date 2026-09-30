@@ -24,6 +24,15 @@ Ligado por enquanto em dois relatórios: Não Conformidades e Checklist de
 Qualidade. Publicado, versão **11.5**, conferido pelos programas-guardião
 (versão, cache e `status.json` batendo). Plano em **v31** (24/09: Melhoria 12 URGENTE — controle para a folha de manutenção sair certa; folha sempre separada por pessoa, conferência antes de imprimir, comparar com a folha anterior). PDF novo já mandado.
 
+## 30/09 — PERDA DE 28/09 NO PC DO TRABALHO E PROTEÇÃO NOVA (v11.18)
+
+Ela saiu do PC do trabalho por "Sair e apagar deste PC" e o que digitou em 28/09 não tinha
+chegado à nuvem (uma ficha com foto defeituosa travava o envio de aparelho novo, em silêncio).
+Feito: as 6 fotos marcadas voltaram para as 4 demandas; o site só apaga o aparelho depois de
+enviar e conferir; faixa grande avisa quando algo ainda não foi para a nuvem. Os TEXTOS que ela
+digitou em 28/09 não existem em lugar nenhum: se ela mandar o relatório impresso/PDF daquele dia,
+redigitar tudo por ela. Detalhe: fim do `CONTINUIDADE.md` (seção 30/09).
+
 ## ▶ COMEÇAR POR AQUI — sem pedido aberto (28/09, fim da noite)
 
 Último pedido dela (faixa verde da área + mover a demanda da lixeira do

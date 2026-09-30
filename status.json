@@ -1,7 +1,7 @@
 {
- "atualizadoEm": "2026-09-28",
- "versao": "11.17",
- "qa": "QA 28/09 (v11.17): explicacao dos ralos respeita o Enter (tela, papel, Word, WhatsApp) e ja vem em linhas; lista de ralos sem pilula URGENTE (nem conta como urgente).",
- "ondeParamos": "28/09: ralos com Enter na explicacao e sem selo urgente.",
+ "atualizadoEm": "2026-09-30",
+ "versao": "11.18",
+ "qa": "QA 30/09 (v11.18): o site nao apaga mais o aparelho sem antes enviar tudo para a nuvem e conferir; foto defeituosa nao segura mais o envio; aviso grande quando algo ainda nao foi para a nuvem.",
+ "ondeParamos": "30/09: protecao contra perda ao sair do PC; fotos marcadas de 28/09 devolvidas as demandas.",
  "proximoPasso": "Le conferir a tela e a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

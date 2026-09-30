@@ -166,7 +166,7 @@ th{box-shadow:inset 0 -1px 0 var(--border)}   /* a linha acompanha o cabeçalho 
 /* ═══════ 13. IMPRESSÃO ═══════
    Ao imprimir qualquer tela, a barra lateral e os botões somem. */
 @media print{
-  .rail,.mnav,.head-actions,.toolbar,.avatar,.toast,.barra-edicao,.dg-alca,.delbtn{display:none !important}
+  .rail,.mnav,.head-actions,.toolbar,.avatar,.toast,.barra-edicao,.dg-alca,.delbtn,#avisoNuvemParada{display:none !important}
   .main{box-shadow:none;border-radius:0;padding:0;margin:0}
   .head{margin:0 0 12px;border-radius:0}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}

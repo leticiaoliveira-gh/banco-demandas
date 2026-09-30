@@ -41,6 +41,9 @@ let nuvemT = null, nuvemBusy = false, nuvemDirty = false, nuvemLast = 0;
    --------------------------------------------------------------------- */
 let nuvemFila = new Set(), nuvemMesclando = false, nuvemUltimoOk = null;
 const NUVEM_ESPERA = 3000;
+/* quantas fichas vao por vez (30/09): pouco de proposito, para cada pedaco
+   confirmado sair da fila e uma rede ruim nao perder o que ja foi */
+const NUVEM_LOTE = 40;
 /* a fila mora na gaveta do navegador (localStorage), que as abas dividem e
    que nao dispara o aviso "mudou configuracao" para as outras abas */
 async function nuvemFilaCarregar() {
@@ -180,30 +183,48 @@ function nuvemDoQuadro(d) {
 
 async function nuvemPush() {
   const c = nuvemCfg();
-  /* so o que esta na fila. Na primeira vez depois da troca (24/09) vai tudo
-     uma vez, para nada que so existia neste aparelho ficar para tras. */
-  const tudo = !(await metaGet("nuvemFilaLigada"));
+  /* so o que esta na fila. Na primeira vez neste aparelho vai tudo uma vez,
+     para nada que so existia aqui ficar para tras.
+     30/09 (v11.18): "tudo" agora ENTRA NA FILA, em vez de ser um envio unico
+     de tudo-ou-nada. Antes, uma unica ficha com problema derrubava o envio
+     inteiro, para sempre e em silencio — foi assim que o trabalho de 28/09
+     ficou preso num computador e se perdeu. */
+  if (!(await metaGet("nuvemFilaLigada"))) {
+    DATA.forEach(d => { if (d && d.uid && nuvemDoQuadro(d)) nuvemFila.add(d.uid); });
+    nuvemFilaGuardar();
+    await metaSet("nuvemFilaLigada", nowISO());
+  }
   const enviando = new Set(nuvemFila);
-  const lista = DATA.filter(d => nuvemDoQuadro(d) && (tudo || enviando.has(d.uid)));
+  const lista = DATA.filter(d => nuvemDoQuadro(d) && enviando.has(d.uid));
+  const naLista = new Set(lista.map(d => d.uid));
   const recusados = [];
+  let falhou = null;
 
-  /* em lotes, para nao estourar a memoria do celular nem o limite da API */
-  for (let i = 0; i < lista.length; i += 400) {
-    const lote = [];
-    for (const d of lista.slice(i, i + 400)) {
+  /* em lotes pequenos: cada lote que a nuvem confirma sai da fila na hora.
+     Ficha que der problema fica na fila e NAO segura as outras. */
+  for (let i = 0; i < lista.length; i += NUVEM_LOTE) {
+    const lote = [], foi = [];
+    for (const d of lista.slice(i, i + NUVEM_LOTE)) {
       const { id, ...resto } = d;   /* o "id" e numero local, nao viaja */
-      lote.push(await nuvemFotosParaCofre(resto));
+      try { lote.push(await nuvemFotosParaCofre(resto)); foi.push([d.uid, d.mod || ""]); }
+      catch (e) { falhou = e; console.warn("[nuvem] ficha nao saiu:", d.uid, e && e.message || e); }
     }
+    if (!lote.length) continue;
     const r = await fetch(c.endereco + "/api/itens", {
       method: "POST", headers: nuvemHdrs(), body: JSON.stringify({ itens: lote })
     });
     if (!r.ok) throw new Error("POST itens " + r.status);
     try { const j = await r.json(); if (j && Array.isArray(j.recusados)) recusados.push(...j.recusados); } catch (e) {}
+    /* sai da fila so o que foi enviado E nao mudou de novo durante o envio */
+    for (const [uid, mod] of foi) {
+      const agora = DATA.find(x => x.uid === uid);
+      if (!agora || (agora.mod || "") === mod) nuvemFila.delete(uid);
+    }
+    nuvemFilaGuardar();
   }
-  /* saiu: tira da fila so o que foi enviado (o que entrou durante o envio fica) */
-  for (const u of enviando) nuvemFila.delete(u);
+  /* anotacao de ficha que nao existe mais neste aparelho: nao ha o que enviar */
+  for (const u of enviando) if (!naLista.has(u)) nuvemFila.delete(u);
   nuvemFilaGuardar();
-  if (tudo) await metaSet("nuvemFilaLigada", nowISO());
 
   /* a nuvem tinha versao mais nova de alguma ficha (alterada em outro
      aparelho): vale a da nuvem, e a tela troca na hora */
@@ -234,6 +255,8 @@ async function nuvemPush() {
   nuvemDirty = nuvemFila.size > 0;
   if (typeof seloPendentes !== "undefined" && !nuvemDirty) seloPendentes = 0;
   await metaSet("nuvemUltimoEnvio", nowISO());
+  /* alguma ficha ficou para tras: o selo e o aviso TEM que dizer */
+  if (falhou) throw falhou;
 }
 
 /* ---------------------------------------------------------------------
@@ -363,7 +386,9 @@ async function nuvemFotoId(dataUrl) {
 function nuvemDataParaBlob(dataUrl) {
   const [cab, b64] = String(dataUrl).split(",");
   const mime = (cab.match(/data:([^;]+)/) || [, "image/jpeg"])[1];
-  const bin = atob(b64 || "");
+  /* 30/09: foto com a escrita defeituosa devolve null em vez de estourar */
+  let bin;
+  try { bin = atob((b64 || "").replace(/\s+/g, "")); } catch (e) { return null; }
   const u8 = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
   return new Blob([u8], { type: mime });
@@ -392,8 +417,12 @@ async function nuvemFotosParaCofre(d) {
     /* foto sem imagem nenhuma (sobra de uma conversa que caiu) nao vai para
        o cofre: o cofre recusa e a ficha ficaria tentando para sempre */
     if (f.length < 64) continue;
+    const blob = nuvemDataParaBlob(f);
+    /* foto que nao da para ler (30/09): viaja dentro da ficha, do jeito que
+       esta. Nunca mais uma foto ruim segura o envio das fichas. */
+    if (!blob || !blob.size) { saida.push(f); continue; }
     const id = await nuvemFotoId(f);
-    await nuvemFotoEnviar(id, nuvemDataParaBlob(f));
+    await nuvemFotoEnviar(id, blob);
     saida.push("foto:" + id);
   }
   return { ...d, fotos: saida };
@@ -447,6 +476,46 @@ async function nuvemConectar(endereco, chave, temporario) {
   nuvemDirty = true;
   nuvemNow();
   return "";
+}
+
+/* ---------------------------------------------------------------------
+   ANTES DE APAGAR ESTE APARELHO (30/09, v11.18)
+   Em 28/09 ela clicou em "Sair e apagar deste PC" e o site apagou um dia
+   inteiro de trabalho que nunca tinha chegado a nuvem. Nunca mais.
+   Esta funcao manda tudo e CONFERE. Devolve "" quando esta tudo na nuvem,
+   ou uma frase simples dizendo por que nao esta. Quem apaga (js/app.js)
+   so apaga com "".
+   --------------------------------------------------------------------- */
+async function nuvemGarantirEnviado() {
+  if (!nuvemLigada()) return "";
+  /* o que ela estava digitando grava ao sair do campo */
+  try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {}
+  await new Promise(f => setTimeout(f, 600));
+  for (let volta = 0; volta < 3; volta++) {
+    for (let i = 0; i < 600 && nuvemBusy; i++) await new Promise(f => setTimeout(f, 200));
+    if (nuvemBusy) return "A conversa com a nuvem ainda não terminou.";
+    nuvemDirty = true;
+    await nuvemNow();
+    if (!nuvemUltimoErro && !nuvemFila.size && !nuvemBusy) return "";
+  }
+  if (navigator.onLine === false) return "Este aparelho está sem internet.";
+  if (nuvemFila.size) return "Ainda " + (nuvemFila.size === 1 ? "há 1 demanda" : "há " + nuvemFila.size + " demandas") + " que a nuvem não recebeu.";
+  return "A nuvem não confirmou que recebeu.";
+}
+
+/* sair de verdade de um computador que nao e dela: encerra o acesso la na
+   nuvem e tira a chave daqui. So e chamada DEPOIS de conferido o envio. */
+async function nuvemSairDoAparelho() {
+  const c = nuvemCfg();
+  if (c.endereco && c.chave) {
+    try { await fetch(c.endereco + "/api/sair", { method: "POST", headers: nuvemHdrs() }); } catch (e) {}
+  }
+  try {
+    ["nuvem_endereco", "nuvem_chave", "nuvem_fila"].forEach(k => {
+      localStorage.removeItem(k); sessionStorage.removeItem(k);
+    });
+  } catch (e) {}
+  nuvemFila.clear();
 }
 
 function nuvemDesconectar() {

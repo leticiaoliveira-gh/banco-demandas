@@ -134,6 +134,8 @@ async function folhasCfgSet(chave,valor){
   FOLHAS_CFG_MOD=nowISO();
   await metaSet("folhasCfgMod",FOLHAS_CFG_MOD);
   if(window.syncSchedule)syncSchedule();
+  /* 30/09: texto de folha também vai para a nuvem na hora (antes só ia de carona numa ficha) */
+  if(typeof nuvemSchedule==="function")nuvemSchedule();
 }
 
 /* ═══════ ORIENTAÇÃO TÉCNICA COM BASE LEGAL (03/08 — LEG-0) ═══════
@@ -1857,7 +1859,19 @@ async function doBackup(force){
    de sincronização e cache. Backups e outros dispositivos não são afetados. */
 async function limparDispositivo(){
  if(!confirm("Apagar TODOS os dados deste dispositivo?\n\nIsso remove os registros locais, o token de sincronização e o cache do site NESTE navegador.\nSeus outros dispositivos, a sincronização e os backups NÃO são afetados."))return;
+ /* 30/09 (v11.18): NUNCA apagar o que ainda não chegou à nuvem. Primeiro
+    envia e confere; se faltar qualquer coisa, para aqui e nada é apagado. */
+ if(typeof nuvemGarantirEnviado==="function"&&typeof nuvemLigada==="function"&&nuvemLigada()){
+   toast("Enviando tudo para a nuvem antes de apagar…");
+   let falta="";
+   try{falta=await nuvemGarantirEnviado();}catch(e){falta="A nuvem não confirmou que recebeu.";}
+   if(falta){
+     alert("NADA FOI APAGADO.\n\n"+falta+"\n\nO que você fez neste aparelho ainda NÃO está na nuvem. Se fosse apagado agora, seria perdido.\n\nConfira a internet, espere aparecer \"✓ Salvo na nuvem\" e clique de novo.");
+     return;
+   }
+ }
  if(!confirm("Tem certeza? Esta ação não pode ser desfeita neste dispositivo."))return;
+ if(typeof nuvemSairDoAparelho==="function")await nuvemSairDoAparelho();
  try{if(db)db.close();}catch(e){}
  await new Promise(r=>{const q=indexedDB.deleteDatabase(DB_NAME);q.onsuccess=q.onerror=q.onblocked=()=>r();});
  /* APAGAR DE VERDADE (23/07): não bastava tirar o token — sobravam preferências,
@@ -1961,7 +1975,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.17";
+const APP_VERSAO="11.18";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

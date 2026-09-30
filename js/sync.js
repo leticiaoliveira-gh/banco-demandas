@@ -89,6 +89,41 @@ function aplicarSeloConexao(){
      "um jeito simples de saber que esta salvo") */
   pill.style.display=(s==="sync"||s==="err"||s==="offline"||(nuvemLig&&s==="ok"))?"":"none";
   pill.title=s==="ok"?"Tudo o que voce fez ja esta guardado na nuvem":s==="sync"?"Aguarde uns segundos antes de fechar":"O site tenta de novo sozinho";}
+ avisoNuvemParada(nuvemLig&&nuvemErro&&(nuvemPendente||seloPendentes>0));
+}
+
+/* AVISO GRANDE (30/09, v11.18). O selo pequeno não bastou: em 28/09 o envio
+   falhou o dia inteiro e ela não percebeu. Enquanto houver trabalho neste
+   aparelho que a nuvem não recebeu, fica uma faixa na tela dizendo isso com
+   todas as letras. Some sozinha quando a nuvem confirma. Peça da biblioteca
+   (bd-aviso), sem cor nova. */
+function avisoNuvemParada(mostrar){
+ let f=document.getElementById("avisoNuvemParada");
+ if(!mostrar){if(f)f.style.display="none";return;}
+ if(!f){
+  f=document.createElement("div");
+  f.id="avisoNuvemParada";
+  f.className="bd-aviso bd-aviso-atencao no-print";
+  f.setAttribute("role","alert");
+  f.style.cssText="position:fixed;left:12px;right:12px;bottom:12px;z-index:9000;max-width:560px;margin:0 auto;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.18)";
+  f.innerHTML='<span class="bd-aviso-ico" aria-hidden="true">⚠</span>'+
+   '<div style="flex:1;min-width:0"><b>O que você fez aqui ainda NÃO foi para a nuvem</b>'+
+   '<span id="avisoNuvemParadaTxt"></span></div>'+
+   '<button type="button" class="bd-btn bd-btn-secundario" style="min-height:44px;flex:none" onclick="avisoNuvemTentar(this)">Tentar agora</button>';
+  document.body.appendChild(f);
+ }
+ const t=document.getElementById("avisoNuvemParadaTxt");
+ if(t)t.textContent=navigator.onLine===false
+   ?"Este aparelho está sem internet. Está guardado só aqui — não apague nem saia deste aparelho até a internet voltar."
+   :"Está guardado só neste aparelho. Não apague nem saia dele até aparecer “✓ Salvo na nuvem”.";
+ f.style.display="";
+}
+async function avisoNuvemTentar(b){
+ if(typeof nuvemNow!=="function")return;
+ if(b){b.disabled=true;b.textContent="Tentando…";}
+ try{if(typeof nuvemDirty!=="undefined")nuvemDirty=true;await nuvemNow();}catch(e){}
+ if(b){b.disabled=false;b.textContent="Tentar agora";}
+ if(typeof nuvemTemErro==="function"&&!nuvemTemErro())toast("Agora foi ✓ Está tudo na nuvem");
 }
 
 function syncRefreshViews(){
@@ -734,6 +769,7 @@ async function sairDaqui(){
     "Antes de sair eu envio o que você fez hoje para a sua nuvem.\n"+
     "Seus outros aparelhos e os backups não são afetados."))return;
   try{if(syncEnabled())await syncPush(true);}catch(e){}
+  /* 30/09: quem envia para a nuvem E CONFERE antes de apagar é o limparDispositivo */
   await limparDispositivo();
 }
 
