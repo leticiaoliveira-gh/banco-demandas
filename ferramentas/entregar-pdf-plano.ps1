@@ -35,7 +35,7 @@ function Achar($rel) { $r = Resolve-Path (Join-Path $od $rel) -ErrorAction Silen
 $cc = [char]0x00E7; $at = [char]0x00E3   # c-cedilha e a-til
 $hoje = Get-Date -Format "dd-MM-yy"   # 23/09/2026: pedido dela - a data do nome e a do dia (antes ficava presa)
 $planos = @(
-  @{ html  = (Achar "$proj\2. Transfer*\PLANO (atualiza*\Plano atualizado - migracao Cloudflare*.html");
+  @{ html  = (Achar "$proj\2. Transfer*\PLANO (atualiza*\PDFs\Plano atualizado - migracao Cloudflare*.html");   # 30/09: o caderno mora na subpasta PDFs
      pasta = (Achar "$proj\2. Transfer*\PLANO (atualiza*\PDFs");
      nome  = { param($n, $v) "$n. Plano atualizado - migracao Cloudflare $hoje - v$v.pdf" } },
   @{ html  = (Achar "$proj\3. Transfer*\Plano atualizado - migracao OneDrive.html");
