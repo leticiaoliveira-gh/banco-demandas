@@ -5,16 +5,16 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
   .app{display:flex;min-height:100vh}
-  /* barra lateral CLARA (01/10/26, pedido dela: "era clara, ficou horrível" — voltou ao branco do início) */
-  .rail{width:54px;background:#fff;
-    border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:12px;position:sticky;top:0;height:100vh}
+  /* barra lateral (01/10/26): fundo claro SUAVE cinza-azulado — branco puro cansava a vista, verde ela não quis */
+  .rail{width:54px;background:#e6edee;
+    border-right:1px solid #d3dde0;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:12px;position:sticky;top:0;height:100vh}
   .rail .logo{width:32px;height:32px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
   .rail .ricon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;font-size:17px}
-  .rail .ricon:hover{background:#f1f1f3;color:var(--text)}
+  .rail .ricon:hover{background:#d9e3e5;color:var(--text)}
   
   .rail .nav-item{opacity:.55}
-  .rail .nav-item:hover{opacity:1;background:#f1f1f3}
-  .rail .nav-item.active{opacity:1;background:#f1f1f3;box-shadow:inset 3px 0 0 currentColor}
+  .rail .nav-item:hover{opacity:1;background:#d9e3e5}
+  .rail .nav-item.active{opacity:1;background:#d9e3e5;box-shadow:inset 3px 0 0 currentColor}
   
   /* IDEIA 1 da referência: ao passar o mouse, o nome da aba aparece numa pílula clara */
   .rail .ricon,.rail .nav-item{position:relative}

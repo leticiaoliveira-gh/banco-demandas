@@ -1990,7 +1990,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.25";
+const APP_VERSAO="11.26";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
@@ -2129,7 +2129,7 @@ const COMO_FACO=[
 
 function comoFacoLista(){
   const linhas=COMO_FACO.map(x=>`<li><a onclick="comoFaco('${x.k}')" style="cursor:pointer;color:#0f5b52;text-decoration:underline">${esc(x.titulo)}</a></li>`).join("");
-  ncModal(`<h2 style="margin-bottom:4px">❓ Como faço para...</h2>
+  ncModal(`<h2 style="margin-bottom:4px">❓ Ajuda</h2>
     <p class="desc">Passo a passo curto para as coisas mais comuns do dia.</p>
     <div class="mapa-cx" style="margin-bottom:10px"><h3>📅 O caminho do meu dia</h3>
       <ol style="line-height:1.8;padding-left:22px;margin:4px 0">
@@ -2141,7 +2141,7 @@ function comoFacoLista(){
       </ol>
       <p class="mapa-nota">Só isso é o dia a dia. Todo o resto do site é configuração — não precisa decorar.</p></div>
     <ul style="line-height:1.9;padding-left:20px">${linhas}</ul>
-    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
+    <div class="form-actions"><button class="btn ghost" onclick="mapaDoSite()">🗺 Mapa do site</button><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
 }
 function comoFaco(k){
   const it=COMO_FACO.find(x=>x.k===k);if(!it)return;
