@@ -611,7 +611,8 @@ function toggleRail(){
   aplicarRail();renderRailTabs();syncNav();
 }
 function aplicarRail(){
-  const r=document.getElementById("rail");if(r)r.classList.toggle("aberta",RAIL_ABERTA);
+  /* na capa a barra lateral fica sempre estreita (pedido dela, 01/10/2026) */
+  const r=document.getElementById("rail");if(r)r.classList.toggle("aberta",RAIL_ABERTA&&!document.body.classList.contains("na-capa"));
   const b=document.getElementById("btRail");
   if(b)b.title=RAIL_ABERTA?"Fechar o menu":"Abrir o menu";
 }
@@ -1322,6 +1323,7 @@ function enterStore(code){
 function goHome(){currentStore=null;currentTab=null;showView("home");renderHome();}
 
 function showView(v){
+ document.body.classList.toggle("na-capa",v==="home");if(typeof aplicarRail==="function")aplicarRail();
  document.getElementById("view-home").style.display=v==="home"?"block":"none";
  document.getElementById("view-app").style.display=v==="app"?"block":"none";
  /* navegação de abas só faz sentido dentro de uma empresa */
@@ -2015,7 +2017,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.32";
+const APP_VERSAO="11.33";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
