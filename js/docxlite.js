@@ -123,7 +123,8 @@ DocxLite.prototype.blob=function(){
   +' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
   +' xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"'
   +' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
-  +' xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+  +' xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"'
+  +' xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">'
   +'<w:body>'+this.body.join("")
   +(this.sect||('<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
   +'<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr>'))+'</w:body></w:document>';

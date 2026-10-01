@@ -921,7 +921,6 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28Imprimir('imprimir')" title="Abrir a folha pronta para imprimir no papel">${icone("imprimir")} Imprimir</button>
     <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">${icone("pdf")} PDF</button>
     <button class="btn ghost sm" onclick="m28Imprimir('word')" title="Baixar esta folha em Word, para editar o texto">${icone("doc")} Word</button>
-    <button class="btn ghost sm" onclick="m28Imprimir('wordimg')" title="Baixar em Word IDÊNTICO ao PDF (cada página vira figura, não edita)">${icone("doc")} Word idêntico</button>
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">${icone("planilha")} Planilha</button>
     <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
     <button class="btn ghost sm" onclick="m28PainelRalos()" title="Rastreamento de ralos: a lista que sai no fim da folha">${icone("gota")} Rastreamento Ralos</button>
