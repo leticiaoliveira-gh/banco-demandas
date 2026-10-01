@@ -3,6 +3,14 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **01/10/2026 (noite): no ar v11.56 (cache v233).** Barra lateral: ☰ esconde ela inteira, sobra um ☰ redondo flutuante para reabrir (modo largo com nomes foi desligado). Manutenção: filtros+busca numa linha, botões (+Serviço, PDF, Word, WhatsApp, Planilha, Ralos) na linha de baixo, sem quebrar. Ela ainda vai mandar mais edições.
+
+> **01/10/2026 (tarde): no ar v11.55 (cache v232).** Manutenção: tabela estilo Notion foi testada (11.53) e DESFEITA a pedido dela (11.54, volta ao visual original, só as setas corrigidas ficaram). 11.55: cards de números compactos e barra lateral (☰, setas, versão em pílula menor, sem a bolinha da sigla). Os modelos de layout testados estão em `1. PROJETO - Trabalho (website)\Tarefas`. Não propor layout novo da Manutenção sem ela pedir.
+
+> **01/10/2026 (fim da sessão):** no ar v11.41. Capa Aurora e seletor 🎨 prontos e aprovados. Quadros por dentro: padrão BRANCO; o modo escuro (opção no 🎨) Le achou horrível — não insistir, avaliar remover. Plano/PDF não foram atualizados.
+
+> **REGRA FIXA DE LAYOUT (Le, 01/10/2026): cada layout de capa (Vidro verde, Aurora e todo novo) manda em TUDO junto, automaticamente:** capa, quadros por dentro, faixa dos relatórios na tela e as folhas de imprimir/PDF (Manutenção, Compras, Qualidade). Trocar no 🎨 muda tudo; voltar ao Vidro verde volta tudo ao verde, inclusive o PDF. Layout novo = fazer TODAS essas partes, nunca só a capa. Como está: tela = CSS `body[data-capa]` em `css/capas.css`; folha impressa = função `capaFundoFolha()` em `js/app.js` (usada em mnt28.js, compras.js, ck-qualidade.js). Folhas de outros relatórios (dg.js, ppr, etc.) ainda não conferidas. Estado: v11.43 no ar; quadro escuro = só opção, padrão branco.
+
 ## COMO ESTA SESSÃO TRABALHA (ordem dela, 20/09/2026 — detalhe completo: seção 9 do `CLAUDE.md`)
 
 1. **Investigar antes de perguntar.** Dúvida se resolve olhando este arquivo, o

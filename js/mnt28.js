@@ -898,7 +898,7 @@ async function renderMnt28(){
     const n=basePlena.filter(d=>(d.executor||"").trim()===e&&(!M28F.piso||d.piso===M28F.piso)).length;
     return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha de: ${esc(m28NomeExec(e))} (${n})</option>`;
   }).join(""):"";
-  const barra=`<div class="toolbar m28-barra">
+  const barra=`<div class="toolbar m28-barra m28-filtros">
     <div class="search">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="m28q" aria-label="Buscar nesta folha" autocomplete="off" spellcheck="false"
@@ -914,6 +914,8 @@ async function renderMnt28(){
       <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Mostrar: só os feitos</option>
       <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Mostrar: só com meu lembrete</option>
     </select>
+  </div>
+  <div class="toolbar m28-barra m28-botoes">
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
       title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">${icone("cadeado")} Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}

@@ -605,16 +605,17 @@ function navItemHTML(t){const a=TABS[t];
 /* ===== BARRA LATERAL QUE ABRE E FECHA =====
    Fechada = só ícones (como sempre foi). Aberta = ícone + nome por extenso, e as
    seções da aba atual aparecem recuadas embaixo dela. Fica no aparelho. */
-let RAIL_ABERTA=localStorage.getItem("rail_aberta")==="1";
+let RAIL_ABERTA=false;
+/* ☰ esconde a barra inteira (a tela cresce); sobra só um ☰ flutuante para trazê-la de volta. Fica no aparelho. */
+let RAIL_ESCONDIDA=localStorage.getItem("rail_escondida")==="1";
 function toggleRail(){
-  RAIL_ABERTA=!RAIL_ABERTA;localStorage.setItem("rail_aberta",RAIL_ABERTA?"1":"0");
-  aplicarRail();renderRailTabs();syncNav();
+  RAIL_ESCONDIDA=!RAIL_ESCONDIDA;localStorage.setItem("rail_escondida",RAIL_ESCONDIDA?"1":"0");
+  aplicarRail();
 }
 function aplicarRail(){
-  /* na capa a barra lateral fica sempre estreita (pedido dela, 01/10/2026) */
-  const r=document.getElementById("rail");if(r)r.classList.toggle("aberta",RAIL_ABERTA&&!document.body.classList.contains("na-capa"));
+  document.body.classList.toggle("rail-oculta",RAIL_ESCONDIDA);
   const b=document.getElementById("btRail");
-  if(b)b.title=RAIL_ABERTA?"Fechar o menu":"Abrir o menu";
+  if(b)b.title=RAIL_ESCONDIDA?"Abrir o menu":"Fechar o menu";
 }
 /* seções de dentro de uma aba (hoje só a de Checklists tem) — só aparecem
    com a barra aberta e na aba em que se está */
@@ -2039,7 +2040,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.55";
+const APP_VERSAO="11.56";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

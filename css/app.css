@@ -1374,3 +1374,16 @@ body.editando-cards .card-fantasma{opacity:.4}
 @media(min-width:1001px){
   .rail .rail-ver,body .rail .rail-ver{padding:2px 8px;font-size:11.5px;margin:0 0 4px}
 }
+
+/* v11.56 — ☰ fecha a barra lateral inteira; o ☰ flutuante (sempre à vista) traz de volta */
+.rail-flutua{display:none}
+@media(min-width:1001px){
+  body.rail-oculta .rail{display:none}
+  body.rail-oculta .rail-flutua{display:flex;position:fixed;top:14px;left:14px;z-index:70;width:40px;height:40px;
+    align-items:center;justify-content:center;border-radius:50%;cursor:pointer;font-size:18px;color:#fff;
+    background:linear-gradient(160deg,#17756a,#0f5b52);border:1px solid rgba(255,255,255,.45);
+    box-shadow:0 4px 14px rgba(0,0,0,.28)}
+  body.rail-oculta .rail-flutua:hover{filter:brightness(1.12)}
+  body.rail-oculta .rail-flutua:focus-visible{outline:2px solid #fff;outline-offset:2px}
+}
+@media print{.rail-flutua{display:none !important}}
