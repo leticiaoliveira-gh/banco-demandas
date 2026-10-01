@@ -522,3 +522,10 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   .m28-barra.m28-filtros select{flex:none;width:auto;max-width:none;text-overflow:clip}
   .m28-barra.m28-botoes .btn{flex:none;white-space:nowrap}
 }
+
+/* v11.56 — três cards: Serviços (a fazer), Urgentes, Feitos */
+.m28-nums{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+.m28-nums .bd-kpi{padding:10px 16px}
+.m28-nums .bd-kpi-nome{font-size:13px}
+.m28-nums .bd-kpi-num{font-size:26px}
+@media (max-width:560px){.m28-nums{grid-template-columns:repeat(3,minmax(0,1fr)) !important}.m28-nums .bd-kpi{padding:8px 10px}.m28-nums .bd-kpi-nome{font-size:11px}.m28-nums .bd-kpi-num{font-size:20px}}

@@ -846,19 +846,16 @@ async function renderMnt28(){
      situacao faria cada um contar de uma base diferente. So que, olhando, parece
      numero parado. Entao o cartao que corresponde ao filtro se acende e diz
      "e o que esta na lista": a conta continua honesta e a ligacao fica visivel. */
-  const kpi=(nome,valor,obs,classe,ativo)=>`<div class="bd-kpi${ativo?" m28-kpi-ativo":""}">
+  /* v11.56 (pedido dela, 01/10): TRÊS cards, sem frase embaixo. "Serviços" = o que falta fazer. */
+  const kpi=(nome,valor,classe,ativo)=>`<div class="bd-kpi${ativo?" m28-kpi-ativo":""}">
       <div class="bd-kpi-topo"><span class="bd-kpi-nome">${esc(nome)}</span></div>
       <div class="bd-kpi-num${classe?" "+classe:""}">${valor}</div>
-      <div class="bd-kpi-var"><span class="bd-kpi-obs">${esc(ativo?"é o que está na lista":obs)}</span></div>
     </div>`;
-  /* Folha 1 dela: o card "Pisos" saiu e entrou o card URGENTES — com a palavra,
-     porque cor sozinha nunca diz nada. Urgente é o que ELA marcar no lápis. */
   const urgentes=itens.filter(d=>d.urg&&!d.feito).length;
   const numeros=`<div class="bd-kpis m28-nums">
-    ${kpi("Serviços",total,"em "+areas.length+(areas.length===1?" área":" áreas"),"",M28F.ver==="todos")}
-    ${kpi("A fazer",total-feitos,(total?Math.round((total-feitos)/total*100):0)+"% do total","m28-pend",M28F.ver==="fazer")}
-    ${kpi("Feitos",feitos,"marcados por você","m28-ok",M28F.ver==="feitos")}
-    ${kpi("Urgentes",urgentes,urgentes?"destacados para o executor":"nenhum marcado","m28-urg")}
+    ${kpi("Serviços",total-feitos,"m28-pend",M28F.ver==="fazer")}
+    ${kpi("Urgentes",urgentes,"m28-urg")}
+    ${kpi("Feitos",feitos,"m28-ok",M28F.ver==="feitos")}
   </div>`;
 
   /* SÃO DUAS FOLHAS JUNTAS (26/08).
@@ -919,7 +916,8 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
       title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">${icone("cadeado")} Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
-    <button class="btn ghost sm" onclick="m28Imprimir()" title="Abrir a folha pronta para imprimir ou salvar em PDF">${icone("imprimir")} Imprimir / PDF</button>
+    <button class="btn ghost sm" onclick="m28Imprimir('imprimir')" title="Abrir a folha pronta para imprimir no papel">${icone("imprimir")} Imprimir</button>
+    <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">PDF</button>
     ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
          filtros — escolhida a folha do Matheus, sai só a dele. */""}
     <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">${icone("doc")} Word</button>
@@ -954,7 +952,8 @@ async function renderMnt28(){
   }
   if(!M28_FOLHA_ABERTA){ el.innerHTML=abas+m28PilhaMesesHTML(); return; }
 
-  el.innerHTML=m28BarraMesHTML()+capa+abas+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+'<div id="m28-lista"></div>';
+  /* v11.57: os 3 cards ficam embaixo do aviso das paradas */
+  el.innerHTML=m28BarraMesHTML()+capa+abas+porPessoa+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 
@@ -1915,16 +1914,9 @@ function m28AtualizarTopo(){
   const el=document.getElementById("tab-mnt28");if(!el)return;
   const nums=el.querySelectorAll(".m28-nums .bd-kpi");
   if(nums.length>=3){
-    nums[0].querySelector(".bd-kpi-num").textContent=total;
-    const nAreas=new Set(itens.map(d=>d.piso+"|"+d.area)).size;
-    const obs0=nums[0].querySelector(".bd-kpi-obs");
-    if(obs0)obs0.textContent="em "+nAreas+(nAreas===1?" área":" áreas");
-    nums[1].querySelector(".bd-kpi-num").textContent=total-feitos;
-    nums[1].querySelector(".bd-kpi-obs").textContent=(total?Math.round((total-feitos)/total*100):0)+"% do total";
+    nums[0].querySelector(".bd-kpi-num").textContent=total-feitos;
+    nums[1].querySelector(".bd-kpi-num").textContent=itens.filter(d=>d.urg&&!d.feito).length;
     nums[2].querySelector(".bd-kpi-num").textContent=feitos;
-    if(nums[3]){const u=itens.filter(d=>d.urg&&!d.feito).length;
-      nums[3].querySelector(".bd-kpi-num").textContent=u;
-      nums[3].querySelector(".bd-kpi-obs").textContent=u?"destacados para o executor":"nenhum marcado";}
   }
 }
 
@@ -1981,7 +1973,9 @@ function m28FotosFolha(d){
    subir o arquivo. Agora sai do próprio botão. Era esse o pedido: "dessa forma
    vai ficar salvo e você não vai mais precisar ficar colocando nada na nuvem".
    ===================================================================== */
-function m28Imprimir(){
+let M28_SAIDA="imprimir";   /* "imprimir" (papel) ou "pdf": só muda o texto da janela da folha */
+function m28Imprimir(saida){
+  M28_SAIDA=saida==="pdf"?"pdf":"imprimir";
   const todosIt=m28ItensDaFolha();
   const itens=todosIt.filter(d=>!m28AVerificar(d));   /* a janela promete o que a folha vai levar */
   const nVer=todosIt.length-itens.length;             /* os "a verificar": ela escolhe levar ou não */
@@ -2760,11 +2754,12 @@ function m28ImprimirFolha(op){
   doc.open();
   doc.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'
     +esc(titulo)+'</title><style>'+ESTILO+'</style></head><body>'
-    +'<div class="aviso"><b>Antes de imprimir ou salvar em PDF:</b> na caixa que abrir, '
+    +'<div class="aviso"><b>Antes de '+(M28_SAIDA==="pdf"?'salvar em PDF':'imprimir')+':</b> na caixa que abrir, '
+    +(M28_SAIDA==="pdf"?'em <b>Destino</b> escolha <b>Salvar como PDF</b>, depois ':'')
     +'abra <b>Mais definições</b> e <b>desmarque “Cabeçalhos e rodapés”</b>. '
     +'Isso tira a data, a hora e o “about:blank”. A numeração das páginas é nossa '
     +'e continua aparecendo embaixo.<br>'
-    +'<button onclick="print()">Imprimir / Salvar PDF</button></div>'
+    +'<button onclick="print()">'+(M28_SAIDA==="pdf"?'Salvar PDF':'Imprimir')+'</button></div>'
     +'<div id="alvo"></div></body></html>');
   doc.close();
   /* passa os dados por variável (nada de montar script dentro de string) */

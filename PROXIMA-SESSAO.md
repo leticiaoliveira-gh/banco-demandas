@@ -3,6 +3,8 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **01/10/2026 (noite): no ar v11.57 (cache v234).** Manutenção: 3 cards pequenos (Serviços=a fazer, Urgentes, Feitos) embaixo do aviso das paradas; botão Imprimir separado do PDF.
+
 > **01/10/2026 (noite): no ar v11.56 (cache v233).** Barra lateral: ☰ esconde ela inteira, sobra um ☰ redondo flutuante para reabrir (modo largo com nomes foi desligado). Manutenção: filtros+busca numa linha, botões (+Serviço, PDF, Word, WhatsApp, Planilha, Ralos) na linha de baixo, sem quebrar. Ela ainda vai mandar mais edições.
 
 > **01/10/2026 (tarde): no ar v11.55 (cache v232).** Manutenção: tabela estilo Notion foi testada (11.53) e DESFEITA a pedido dela (11.54, volta ao visual original, só as setas corrigidas ficaram). 11.55: cards de números compactos e barra lateral (☰, setas, versão em pílula menor, sem a bolinha da sigla). Os modelos de layout testados estão em `1. PROJETO - Trabalho (website)\Tarefas`. Não propor layout novo da Manutenção sem ela pedir.
