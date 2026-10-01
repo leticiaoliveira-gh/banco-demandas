@@ -1364,3 +1364,13 @@ body.editando-cards .card-fantasma{opacity:.4}
 }
 .rail button.ricon#btCapas,.rail button.ricon#btSeguranca{background:transparent;border:0;padding:0;cursor:pointer}
 .rail button.ricon#btCapas:hover,.rail button.ricon#btSeguranca:hover{background:rgba(255,255,255,.16)}
+
+/* v11.55 — barra lateral (pedido dela, 01/10): três barrinhas no topo, sem a bolinha da sigla,
+   depois as setas, depois a versão (pílula um pouco menor); o resto segue na mesma ordem. */
+.rail .logo{display:none}
+.rail-topo{order:-3}
+.rail-hist{order:-2}
+.rail-ver{order:-1}
+@media(min-width:1001px){
+  .rail .rail-ver,body .rail .rail-ver{padding:2px 8px;font-size:11.5px;margin:0 0 4px}
+}

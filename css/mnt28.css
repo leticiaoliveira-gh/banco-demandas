@@ -503,3 +503,14 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   .m28-barra .btn{flex:none;font-size:11.5px;padding:4px 8px;min-height:32px;gap:4px;white-space:nowrap}
   .m28-barra .btn svg{width:13px;height:13px}
 }
+
+/* ─────────── cards de números bem mais compactos (pedido dela, 01/10) ───────────
+   Nome e número na mesma linha; a frase pequena vai logo abaixo. */
+.m28-nums{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.m28-nums .bd-kpi{padding:6px 12px;border-radius:10px;box-shadow:none;display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:8px}
+.m28-nums .bd-kpi-topo{grid-column:1;grid-row:1}
+.m28-nums .bd-kpi-nome{font-size:11px;letter-spacing:.3px}
+.m28-nums .bd-kpi-num{grid-column:2;grid-row:1;font-size:20px;margin-top:0;letter-spacing:-.5px}
+.m28-nums .bd-kpi-var{grid-column:1 / -1;grid-row:2;margin-top:1px;font-size:11px}
+.m28-nums .bd-kpi-obs{font-size:11px;margin-left:0}
+@media (max-width:560px){.m28-nums{grid-template-columns:repeat(2,minmax(0,1fr))}}
