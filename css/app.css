@@ -1342,3 +1342,11 @@ body.editando-cards .card-fantasma{opacity:.4}
   .rail .rail-ver{color:#fff !important;opacity:.95 !important}
   .rail .nav-item *{opacity:1 !important}
 }
+
+/* v11.31 — bolinha com a sigla, menu abaixo, setas simples, barra aberta mais estreita */
+.rail .logo{border-radius:50%;width:38px;height:38px;font-size:13px;letter-spacing:.3px}
+.rail-topo{flex-direction:column;gap:4px;width:100%}
+.rail.aberta .rail-topo{padding:0;justify-content:center}
+.rail-hist .ricon{width:28px;height:28px;border-radius:50%;font-size:17px}
+.rail.aberta{width:168px}
+.rail.aberta .rlabel{font-size:12px}

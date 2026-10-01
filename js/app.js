@@ -444,7 +444,15 @@ async function setTexto(chave,valor,padrao){
   dataChanged();
 }
 /* aplica os textos guardados em tudo que tem data-txt (chamado a cada render) */
+/* sigla da bolinha da barra = iniciais do nome do site (troca sozinha quando ela renomeia a capa) */
+function siglaDoSite(){
+  const nome=txt("capa.titulo","Central de Empresas");
+  const p=nome.split(/\s+/).filter(w=>w&&!/^(de|da|do|das|dos|e|a|o)$/i.test(w));
+  const sg=(p.length>1?p[0][0]+p[1][0]:(p[0]||"?").slice(0,2)).toUpperCase();
+  const el=document.getElementById("railSigla");if(el&&el.textContent!==sg)el.textContent=sg;
+}
 function aplicarTextos(raiz){
+  siglaDoSite();
   (raiz||document).querySelectorAll("[data-txt]").forEach(el=>{
     if(el.dataset.padrao===undefined)el.dataset.padrao=el.textContent;
     const v=TEXTOS[el.dataset.txt];
@@ -1981,7 +1989,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.30";
+const APP_VERSAO="11.31";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
