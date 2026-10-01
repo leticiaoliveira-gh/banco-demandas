@@ -61,6 +61,19 @@
   body[data-capa="aurora"] .rail .logo{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35)}
 }
 
+/* abas internas (relatórios etc.) no Aurora: mesmo fundo da capa no cabeçalho,
+   e a barra lateral fica DENTRO da parte escura, sem pisar na parte branca */
+@media (min-width:1001px){
+  body[data-capa="aurora"] .head{
+    background:radial-gradient(90% 160% at 8% 0%,rgba(47,224,192,.28),transparent 60%),
+      linear-gradient(135deg,#02100d 0%,#04302a 55%,#0a5a4c 100%);
+    box-shadow:0 4px 18px rgba(0,0,0,.25);
+  }
+  body[data-capa="aurora"] .main{margin-left:12px}
+  body[data-capa="aurora"] #view-home{margin-left:0}
+  body[data-capa="aurora"] .rail{box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18)}
+}
+
 @media (prefers-reduced-motion:reduce){
   body[data-capa] #view-home .btn.iniciar,body[data-capa] #view-home .btn-nova{transition:none !important}
 }
