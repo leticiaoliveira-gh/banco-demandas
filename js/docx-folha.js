@@ -300,7 +300,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const fn=fmt(win,nm);
     const fc=fmt(win,li.querySelector(".bx"));
     const marcado=!!li.querySelector(".bx").textContent.trim();
-    const cx=para(run(marcado?"☑":"☐",{sz:Math.round(parseFloat(cs(li.querySelector(".bx")).fontSize)*1.5)+2,
+    /* a caixinha do Word (☐) ocupa 0,72 da letra: a letra cresce até a caixinha ter o tamanho da folha */
+    const cx=para(run(marcado?"☑":"☐",{sz:Math.round(R(li.querySelector(".bx")).width/0.72*1.5),
         color:marcado?"067647":"667085",fonte:"Segoe UI Symbol"}),
       {jc:"center",exato:1,linha:tw(fn.lh),quebra:quebra});
     const num=para(run(nm.textContent,{sz:fn.sz,bold:fn.bold,color:fn.color}),{jc:"right",exato:1,linha:tw(fn.lh),quebra:quebra});
