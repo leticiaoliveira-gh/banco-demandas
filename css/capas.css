@@ -103,3 +103,12 @@
 .capa-mini.aurora{background:radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.6),transparent 60%),linear-gradient(135deg,#02100d,#064b40)}
 .capa-op b{display:block;font-size:14px;color:#155244}
 .capa-op span.d{display:block;font-size:12px;color:#5c5d68}
+
+/* faixa de título dos relatórios segue o layout da capa (Vidro = verde de sempre) */
+@media (min-width:1001px){
+  body[data-capa="aurora"] :is(.m28-capa,.cmp-capa){
+    background:radial-gradient(ellipse 60% 120% at 85% 100%,rgba(20,220,190,.45),transparent 60%),
+      linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%);
+    box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18);
+  }
+}
