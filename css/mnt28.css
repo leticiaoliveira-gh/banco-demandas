@@ -542,3 +542,40 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   .m28-acts .btn.sm svg{width:13px;height:13px}
   .m28-acts .delbtn{width:26px;height:26px}
 }
+
+/* ─────────── TABELA ESTILO NOTION (aprovada por ela, 01/10, modelo 11.55) ───────────
+   Só no computador. Linhas finas, quase sem cor; a cor fica só nas etiquetas
+   de tempo e de piso. Os botões aparecem quando o mouse (ou o teclado) está na
+   linha. No celular nada muda. */
+.m28-cpiso{display:none}
+@media (min-width:821px){
+  .m28-piso{border-bottom:0;color:#37352f;letter-spacing:0;text-transform:none;font-size:15px;margin:20px 0 2px;padding-bottom:0}
+  .m28-piso-nome{font-weight:700}
+  .m28-grupo{border:0;border-radius:0;background:transparent;margin-top:6px;overflow:visible}
+  .m28-area{background:transparent;border-top:1px solid #e9e9e7;border-bottom:1px solid #e9e9e7;padding:2px 4px;min-height:30px}
+  .m28-area-nome{color:#37352f;text-transform:none;letter-spacing:0;font-size:13px;font-weight:600}
+  .m28-abrefecha{color:#787774}.m28-abrefecha:hover{background:#efefed}
+  .m28-lapis-area{color:#9b9a97}.m28-lapis-area:hover{background:#efefed;color:#37352f}
+  .m28-count{color:#9b9a97;font-weight:400}
+  .m28-item.m28-tab{
+    grid-template-columns:24px 26px 76px minmax(0,1fr) 150px minmax(0,18%) 170px;
+    gap:0;padding:0;min-height:34px;border-bottom:1px solid #e9e9e7;align-items:stretch;
+  }
+  .m28-item.m28-tab>*{padding:5px 8px;border-right:1px solid #e9e9e7;align-self:stretch;display:flex;align-items:center;min-width:0}
+  .m28-item.m28-tab>.m28-fazer{display:-webkit-box;align-self:stretch;padding-top:7px}
+  .m28-item.m28-tab>.m28-obs{display:-webkit-box;padding-top:7px;color:#9b9a97}
+  .m28-item.m28-tab>.m28-acts{border-right:0;justify-content:flex-end}
+  .m28-item.m28-tab:hover>.m28-fazer,.m28-item.m28-tab:hover>.m28-obs{display:block}
+  .m28-item.m28-tab>.m28-check{padding:0;margin:auto 4px;width:16px;height:16px;min-height:16px;border-radius:3px;font-size:11px;border-right:1px solid #e9e9e7;box-sizing:content-box}
+  .m28-item.m28-tab>.m28-num{color:#b4b3af;font-size:11.5px;justify-content:center;padding:0 2px}
+  .m28-item.m28-tab>.m28-desde{flex-wrap:wrap;gap:2px 6px}
+  .m28-item.m28-tab:hover{background:#f7f7f5}
+  .m28-cpiso{display:inline-flex;align-items:center;justify-self:start;align-self:center;margin:0 8px;padding:1px 7px;
+    background:#d3e5ef;color:#183347;border-radius:4px;font-size:11.5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 16px);border-right:0!important}
+  .m28-item.m28-tab>.m28-cpiso{padding:1px 7px;display:inline-flex;align-self:center;justify-self:start;border-right:0;margin:0 6px;max-width:calc(100% - 12px);min-width:0}
+  .m28-item.m28-tab .m28-acts{opacity:0;transition:opacity .14s}
+  .m28-item.m28-tab:hover .m28-acts,.m28-item.m28-tab:focus-within .m28-acts{opacity:1}
+  .m28-item.m28-tab .m28-acts .btn.sm{border:0;background:transparent;box-shadow:none;padding:0 5px}
+  .m28-item.m28-tab .m28-acts .btn.sm:hover{background:#ebebea}
+}
+@media (min-width:821px) and (prefers-reduced-motion:reduce){.m28-item.m28-tab .m28-acts{transition:none}}

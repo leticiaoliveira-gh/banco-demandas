@@ -1244,12 +1244,13 @@ function m28RenderListaDesenho(){
     if(M28_EDITANDO===d.id){html+=m28FormHTML(d);continue;}
     const fotos=(d.fotos||[]).map((f,i)=>`<img class="m28-foto" src="${f}" alt="Foto do serviço"
         onclick="m28VerFoto(${d.id},${i})" title="Toque para ver grande">`).join("");
-    html+=`<div class="m28-item${d.feito?" feito":""}" data-id="${d.id}">
+    html+=`<div class="m28-item m28-tab${d.feito?" feito":""}" data-id="${d.id}">
       <button class="m28-check" role="checkbox" aria-checked="${d.feito?"true":"false"}"
         aria-label="Marcar como feito: ${esc((d.fazer||"").slice(0,70))}"
         title="${d.feito?"Marcado como feito — toque para desmarcar":"Marcar como feito"}"
         onclick="m28Marcar(${d.id})"><span aria-hidden="true">${d.feito?"✓":""}</span></button>
       <span class="m28-num">${numero}</span>
+      <span class="m28-cpiso">${esc(d.piso||"Sem piso")}</span>
       ${/* o texto da demanda vai num <span> proprio com pre-wrap: so o enter que
            ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
            a indentacao do proprio codigo aqui embaixo virava linha em branco
