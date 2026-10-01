@@ -1,0 +1,50 @@
+/* LAYOUTS DE CAPA (01/10/2026, pedido dela): cada layout aprovado fica guardado aqui e
+   ela troca pelo botão 🎨 da barra lateral. O "vidro" (padrão) é o de aparencia.css e NÃO
+   se mexe. Layout novo aprovado = um bloco novo abaixo + uma linha em CAPA_LAYOUTS (js/app.js).
+   Nada daqui apaga ou substitui outro layout. */
+
+/* ═════ AURORA (só computador; no celular vale o modo loja claro) ═════ */
+@media (min-width:1001px){
+  body[data-capa="aurora"] #view-home{
+    background:
+      radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.5),transparent 60%),
+      radial-gradient(ellipse 40% 90% at 65% 40%,rgba(10,160,140,.4),transparent 65%),
+      radial-gradient(ellipse 50% 60% at 20% 60%,rgba(16,120,105,.32),transparent 70%),
+      linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%) !important;
+  }
+  body[data-capa="aurora"] #view-home .store-list .store-row{
+    background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:none;
+  }
+  body[data-capa="aurora"] #view-home .store-list .store-row:hover{background:rgba(255,255,255,.15);box-shadow:none}
+  body[data-capa="aurora"] #view-home .store-list .store-title{color:#fff}
+  body[data-capa="aurora"] #view-home .store-list .store-sub,
+  body[data-capa="aurora"] #view-home .store-toggle-label{color:rgba(255,255,255,.75)}
+  body[data-capa="aurora"] #view-home .sr-urg{color:#ffb4ab}
+  /* botões em vidro com borda clara: nada de verde cheio */
+  body[data-capa="aurora"] #view-home .btn.iniciar,
+  body[data-capa="aurora"] #view-home .btn-nova{
+    background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.45);
+    box-shadow:none;transition:background .18s ease,border-color .18s ease;
+  }
+  body[data-capa="aurora"] #view-home .btn.iniciar:hover,
+  body[data-capa="aurora"] #view-home .btn-nova:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7)}
+  body[data-capa="aurora"] #view-home .btn.iniciar:focus-visible,
+  body[data-capa="aurora"] #view-home .btn-nova:focus-visible{outline:3px solid #2fe0c0;outline-offset:2px}
+  body[data-capa="aurora"] #view-home .btn.iniciar.off{background:rgba(255,255,255,.06) !important;border-color:rgba(255,255,255,.2) !important;color:rgba(255,255,255,.7) !important}
+  body[data-capa="aurora"] #view-home .btn.ghost.sm{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)}
+}
+@media (prefers-reduced-motion:reduce){
+  body[data-capa] #view-home .btn.iniciar,body[data-capa] #view-home .btn-nova{transition:none !important}
+}
+/* janela de escolha (botão 🎨) */
+.capa-op{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;cursor:pointer;
+  background:#fff;border:2px solid #e6e7ea;border-radius:12px;padding:12px;margin-top:10px;min-height:44px}
+.capa-op:hover{border-color:#bfe0d4}
+.capa-op[aria-pressed="true"]{border-color:#1d6b57;background:#e8f5f0}
+.capa-op:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
+.capa-mini{flex:none;width:72px;height:48px;border-radius:8px}
+.capa-mini.vidro{background:radial-gradient(125% 120% at 10% 0%,#2a9d8a 0%,#146055 46%,#0c3f38 100%)}
+.capa-mini.aurora{background:radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.6),transparent 60%),linear-gradient(135deg,#02100d,#064b40)}
+.capa-op b{display:block;font-size:14px;color:#155244}
+.capa-op span.d{display:block;font-size:12px;color:#5c5d68}

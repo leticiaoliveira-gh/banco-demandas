@@ -1120,12 +1120,38 @@ async function renderHome(){
    como todo bloco de tela desde 23/07: ela ja mandou tirar cards duas vezes.
    visitas: por loja, os dias em que ela estara la. Viaja no backup e no sync
    junto com o resto do capaCfg, sem tocar em js/sync.js. */
-let CAPA_CFG={mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
+let CAPA_CFG={layout:"vidro",mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
 let CAPA_ORGANIZANDO=false;
 async function loadCapaCfg(){
   const v=await metaGet("capaCfg");
   if(v&&typeof v==="object")CAPA_CFG={...CAPA_CFG,...v};
   CAPA_CFG_MOD=await metaGet("capaCfgMod")||"";
+  capaAplicarLayout();
+}
+/* LAYOUTS DE CAPA (01/10/2026): todo layout aprovado fica nesta lista PARA SEMPRE — ela
+   volta a qualquer um quando quiser. Novo = uma linha aqui + um bloco em css/capas.css. */
+const CAPA_LAYOUTS=[
+  {id:"vidro", nome:"Vidro verde", desc:"O de sempre: painel de vidro verde, lista de cartões brancos."},
+  {id:"aurora",nome:"Aurora",      desc:"Fundo escuro com verde-água brilhante, lista em vidro, botões em vidro com borda clara."}
+];
+function capaAplicarLayout(){
+  const ok=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout);
+  document.body.dataset.capa=ok?CAPA_CFG.layout:"vidro";
+}
+function capaLayoutsAbrir(){
+  const atual=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout)?CAPA_CFG.layout:"vidro";
+  ncModal(`
+   <h2>🎨 Layouts da capa</h2>
+   <p class="desc">Toque num modelo para trocar na hora. Todos ficam guardados: dá para voltar a qualquer um quando quiser. (No celular a capa continua no modo loja.)</p>
+   ${CAPA_LAYOUTS.map(l=>`<button type="button" class="capa-op" aria-pressed="${l.id===atual}" onclick="capaEscolher('${l.id}')">
+      <span class="capa-mini ${l.id}"></span>
+      <span><b>${esc(l.nome)}${l.id===atual?" · em uso ✓":""}</b><span class="d">${esc(l.desc)}</span></span></button>`).join("")}
+   <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
+}
+async function capaEscolher(id){
+  if(!CAPA_LAYOUTS.some(l=>l.id===id))return;
+  CAPA_CFG.layout=id;capaAplicarLayout();await salvarCapaCfg();
+  capaLayoutsAbrir();toast("Capa trocada ✓");
 }
 async function salvarCapaCfg(){
   CAPA_CFG_MOD=nowISO();
@@ -1989,7 +2015,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.31";
+const APP_VERSAO="11.32";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
