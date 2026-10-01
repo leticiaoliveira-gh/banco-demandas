@@ -2164,8 +2164,8 @@ function m28ImprimirFolha(op){
       +`<span class="nm">${nDemanda}.</span>`
       +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(m28SemTravessao(d.fazer||""))}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
-      +(recado?`<i class="obs-p linhas"><b>${esc(m28T().colObsImp)}</b>${esc(m28SemTravessao(recado))}</i>`:"")
-      +m28FotosFolha(d)+`</span><span class="q">${desde}</span></div>`;
+      +(recado?`<i class="obs-p linhas"><b>${esc(m28T().colObsImp)}</b>${esc(m28SemTravessao(recado))}${m28FotosFolha(d)}</i>`:m28FotosFolha(d))
+      +`</span><span class="q">${desde}</span></div>`;
   }
   /* O RASTREAMENTO DE RALOS (28/09) vem depois de todas as areas, em folha
      propria: explicacao uma vez so e, por piso, a lista numerada das areas. */
@@ -2437,6 +2437,10 @@ function m28ImprimirFolha(op){
     border:1px solid #eaecf0;border-radius:3px;background:#f8fafc;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
+  /* 01/10 (pedido dela): com Obs, a foto alinha no INICIO DO TEXTO da Obs (o
+     hifen), nao na caixinha "Obs:". A foto entra na grade da Obs, 2a coluna.
+     Sem Obs, continua alinhada ao texto do servico. */
+  .li .obs-p .fts{grid-column:2;white-space:normal}
   .li .q{font-size:10.8px;color:#667085}
   .li .q b{display:inline;color:#344054;font-weight:600;font-variant-numeric:tabular-nums}
   /* o tempo de atraso vira PASTILHA, na MESMA linha da data (29/08). */
