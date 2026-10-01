@@ -1990,11 +1990,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.21";
+const APP_VERSAO="11.22";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="30/09/2026 · 19:30";
+const APP_DATA="01/10/2026 · 01:20";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{
