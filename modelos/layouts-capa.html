@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3 layouts da capa</title>
+<style>
+:root{--bg:#0c3f38;--fg:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:#0b2f2a;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;padding:20px 16px}
+h1{font-size:22px;margin:0 0 4px}p.l{margin:0 0 20px;color:#bfe3da;max-width:62ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
+.op{display:flex;flex-direction:column;gap:10px;min-width:0}
+.op h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;margin:0;color:#7dffc4}
+.op .d{font-size:13px;color:#bfe3da;margin:0}
+.tela{position:relative;height:300px;border-radius:14px;overflow:hidden;background:radial-gradient(125% 120% at 10% 0%,#2a9d8a 0%,#146055 46%,#0c3f38 100%);border:1px solid rgba(255,255,255,.25)}
+.glass{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(10px);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.bol{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4)}
+.ic{width:26px;text-align:center;font-size:15px}
+.conteudo{position:absolute;display:flex;flex-direction:column;gap:8px}
+.tit{font-size:18px;font-weight:700}
+.pill{display:inline-block;font-size:10.5px;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);margin-right:6px}
+.busca{height:26px;border-radius:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3)}
+.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.cards i{display:block;height:46px;border-radius:9px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22)}
+/* A */
+.A .rail{position:absolute;left:8px;top:8px;bottom:8px;width:46px;border-radius:23px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0}
+.A .conteudo{left:66px;right:14px;top:14px}
+/* B */
+.B .barra{position:absolute;left:10px;right:10px;top:10px;height:44px;border-radius:22px;display:flex;align-items:center;gap:12px;padding:0 10px}
+.B .conteudo{left:14px;right:14px;top:66px}
+/* C */
+.C .conteudo{left:14px;right:14px;top:14px}
+.C .dock{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;height:44px;border-radius:22px;display:flex;align-items:center;gap:14px;padding:0 16px}
+.nota{color:#bfe3da;font-size:13px;margin-top:20px}
+</style></head><body>
+<h1>3 jeitos de organizar a capa</h1>
+<p class="l">Os três mostram a mesma capa com cores e tamanhos parecidos. Só muda onde fica o menu. Me diga a letra que você prefere (ou o que misturar).</p>
+<div class="grid">
+<section class="op A"><h2>Modelo A · barra de vidro na lateral</h2><p class="d">É o que você tem hoje. Menu sempre à esquerda, fino. Sobra mais altura para a lista.</p>
+<div class="tela"><div class="rail glass"><div class="bol">CE</div><div class="ic">☰</div><div class="ic">↶</div><div class="ic">🏠</div><div class="ic">▦</div><div class="ic">⏱</div><div class="ic">🔒</div></div>
+<div class="conteudo"><div class="tit">Central de Empresas</div><div><span class="pill">✓ Salvo na nuvem 14:32</span><span class="pill">✓ Guardar e fechar</span></div><div class="busca"></div><div class="cards"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></section>
+
+<section class="op B"><h2>Modelo B · barra de vidro no topo</h2><p class="d">Menu em uma faixa redonda em cima. A lista ocupa a largura toda da tela, bom para ver mais empresas lado a lado.</p>
+<div class="tela"><div class="barra glass"><div class="bol">CE</div><span class="ic">☰</span><span class="ic">↶</span><span class="ic">🏠</span><span class="ic">▦</span><span class="ic">⏱</span><span class="ic">🔒</span></div>
+<div class="conteudo"><div class="tit">Central de Empresas</div><div><span class="pill">✓ Salvo na nuvem 14:32</span><span class="pill">✓ Guardar e fechar</span></div><div class="busca"></div><div class="cards"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></section>
+
+<section class="op C"><h2>Modelo C · menu embaixo, como app de celular</h2><p class="d">Barra flutuante embaixo, no centro. Fica perto do polegar no celular e libera as laterais no computador.</p>
+<div class="tela"><div class="conteudo"><div class="tit">Central de Empresas</div><div><span class="pill">✓ Salvo na nuvem 14:32</span><span class="pill">✓ Guardar e fechar</span></div><div class="busca"></div><div class="cards"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+<div class="dock glass"><div class="bol">CE</div><span class="ic">☰</span><span class="ic">↶</span><span class="ic">🏠</span><span class="ic">▦</span><span class="ic">⏱</span><span class="ic">🔒</span></div></div></section>
+</div>
+<p class="nota">Nada disso foi aplicado no site. Depois que você escolher, eu coloco no site com um botão para trocar entre eles quando quiser.</p>
+</body></html>
