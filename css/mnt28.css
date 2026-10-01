@@ -569,3 +569,7 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   border-radius:999px;white-space:nowrap;cursor:pointer;text-transform:uppercase;
   background:#f04438;color:#fff;border:1.5px solid #f04438}
 #tab-mnt28 .m28-barra .m28-lemb.on{background:#b42318;border-color:#b42318;box-shadow:0 0 0 3px rgba(240,68,56,.25)}
+/* aba "Verificar": mesmo vermelho do botão "Lembretes Letícia" */
+#tab-mnt28 .ck-sec.m28-ver{background:#f04438;color:#fff}
+#tab-mnt28 .ck-sec.m28-ver:hover{color:#fff}
+#tab-mnt28 .ck-sec.m28-ver.on{background:#b42318;color:#fff;box-shadow:0 0 0 3px rgba(240,68,56,.25)}

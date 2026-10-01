@@ -936,7 +936,7 @@ async function renderMnt28(){
     ["demandas",icone("mnt"),"Demandas",   M28_FOLHA_ABERTA?m28LinhasDaTela().length:m28MesesLista().length],
     ["verificar",icone("lupa"),"Verificar", m28ParaVerificar().length]];
   const abas=`<div class="ck-barra"><div class="ck-secs">`
-    +secs.map(([k,ic,nm,n])=>`<button class="ck-sec${M28_SEC===k?" on":""}" onclick="m28SetSec('${k}')"
+    +secs.map(([k,ic,nm,n])=>`<button class="ck-sec${k==="verificar"?" m28-ver":""}${M28_SEC===k?" on":""}" onclick="m28SetSec('${k}')"
         aria-pressed="${M28_SEC===k?"true":"false"}"><span class="ic" aria-hidden="true">${ic}</span>
         <span class="nm">${nm}</span><span class="qt">${n}</span></button>`).join("")
     +`</div></div>`;
