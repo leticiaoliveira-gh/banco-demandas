@@ -448,6 +448,8 @@ function m28VerMesAntigo(comp){
   if(m.folhas.length===1){m28VerFolha(m.folhas[0].uid);return;}
   M28_MES_ANTIGO=comp;renderMnt28();
 }
+/* nome mostrado: a pasta da Dayse agora se chama Compras (os dados guardam o nome antigo) */
+function m28NomeExec(e){return /^dayse$/i.test(String(e||"").trim())?"Compras":e;}
 function m28NormArea(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim().toLowerCase();}
 function m28VoltarMeses(){
   M28_FOLHA_ABERTA=null;M28_FOLHA_VER=null;M28_MES_ANTIGO=null;
@@ -543,7 +545,7 @@ function m28MesAntigoHTML(comp){
     <tbody>${l.map(f=>{const a=m28AndamentoFolha(f);return `<tr>
       <td>${esc(brDate(f.emitidoEm||f.criadoEm||""))}</td>
       <td>${esc(m28NomeFolha(f))}</td>
-      <td>${esc(f.executor||"—")}</td>
+      <td>${esc(m28NomeExec(f.executor||"—"))}</td>
       <td><span class="ck-and">${a.feitas} de ${a.total} feitos</span></td>
       <td class="ck-td-ac"><button class="btn ghost sm" onclick="m28VerFolha('${f.uid}')">Ver</button></td>
     </tr>`;}).join("")}</tbody></table></div>`;
@@ -830,7 +832,7 @@ async function renderMnt28(){
     </div>
     <div class="m28-capa-linha">
       ${/* Folha 1 dela: o responsável saiu de baixo do título e veio para esta linha */""}
-      ${exec?`<div class="m28-capa-i"><span class="rot">${esc(m28T().rotExec)}</span><span class="val">${esc(exec)}</span>
+      ${exec?`<div class="m28-capa-i"><span class="rot">${esc(m28T().rotExec)}</span><span class="val">${esc(m28NomeExec(exec))}</span>
         <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">✎</button></div>`:""}
       <div class="m28-capa-i"><span class="rot">${esc(m28T().rotUnidade)}</span><span class="val">${esc(loja)}</span></div>
       <div class="m28-capa-i"><span class="rot">${esc(m28T().rotEmitido)}</span><span class="val">${brDate(c.emitidoEm||today())}</span>
@@ -874,7 +876,7 @@ async function renderMnt28(){
     const partes=quem.map(e=>{
       const n=itens.filter(d=>(d.executor||"").trim()===e&&!d.feito).length;
       return `<button type="button" class="m28-pessoa" onclick="m28Filtro('exec',${JSON.stringify(e).replace(/"/g,"&quot;")})">`
-        +`<b>${n}</b> de ${esc(e)}</button>`;
+        +`<b>${n}</b> de ${esc(m28NomeExec(e))}</button>`;
     }).join("");
     return `<div class="bd-aviso bd-aviso-info m28-juntas">
       <span class="bd-aviso-ico" aria-hidden="true">${icone("pessoas")}</span>
@@ -894,7 +896,7 @@ async function renderMnt28(){
   const execs=m28Executores(basePlena);
   const opExec=execs.length>1?execs.map(e=>{
     const n=basePlena.filter(d=>(d.executor||"").trim()===e&&(!M28F.piso||d.piso===M28F.piso)).length;
-    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha de: ${esc(e)} (${n})</option>`;
+    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha de: ${esc(m28NomeExec(e))} (${n})</option>`;
   }).join(""):"";
   const barra=`<div class="toolbar m28-barra">
     <div class="search">
@@ -976,7 +978,7 @@ function m28ListaFolhasHTML(status){
       return `<tr>
         <td>${esc(brDate(f.emitidoEm||f.criadoEm||""))}</td>
         <td>${esc(m28NomeFolha(f))}<span class="m28-count-ver" style="margin-left:6px">${f.total} ${f.total===1?"serviço":"serviços"}</span></td>
-        <td>${esc(f.executor||"—")}</td>
+        <td>${esc(m28NomeExec(f.executor||"—"))}</td>
         <td><span class="ck-and">${a.feitas} de ${a.total} feitos</span>${a.total?` <span class="m28-pct">${pct}%</span>`:""}</td>
         <td class="ck-td-ac">
           ${status==="andamento"
@@ -1012,7 +1014,7 @@ function m28VerFolhaHTML(){
   if(html)html+="</div>";
   return `<div class="m28-folha-topo">
       <div><b>${esc(m28NomeFolha(f))}</b>
-        <div class="m28-escolha-sub">Entregue em ${esc(brDate(f.emitidoEm||f.criadoEm||""))}${f.executor?" · "+esc(f.executor):""}
+        <div class="m28-escolha-sub">Entregue em ${esc(brDate(f.emitidoEm||f.criadoEm||""))}${f.executor?" · "+esc(m28NomeExec(f.executor)):""}
           · ${a.feitas} de ${a.total} feitos</div></div>
       <div>
         <button class="btn ghost sm" onclick="m28VoltarDoVer()">← Voltar</button>
@@ -2249,7 +2251,7 @@ function m28ImprimirFolha(op){
              mesma fileira, entao os dois ficaram juntos no fim da grade. */""}
         ${/* Pedido dela (24/09): cabecalho mais compacto, numa fileira so --
              unidade a esquerda, responsavel tecnica no MEIO, emitido em a direita. */""}
-        ${false&&exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(exec)}</b></div>`:""}
+        ${false&&exec?`<div><span>${esc(m28T().rotExec)}</span><b>${esc(m28NomeExec(exec))}</b></div>`:""}
         <div class="rt"><span>${esc(m28T().rotRt)}</span><b>${esc(m28RtNome(c))}</b><i>${esc(m28RtLinha(c))}</i></div>
         <div class="em"><span>${esc(m28T().rotEmitido)}</span><b>${brDate(c.emitidoEm||today())}</b></div>
       </div>
