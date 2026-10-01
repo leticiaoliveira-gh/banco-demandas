@@ -300,8 +300,21 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const fn=fmt(win,nm);
     const fc=fmt(win,li.querySelector(".bx"));
     const marcado=!!li.querySelector(".bx").textContent.trim();
-    /* a caixinha do Word (☐) ocupa 0,72 da letra: a letra cresce até a caixinha ter o tamanho da folha */
-    const cx=para(run(marcado?"☑":"☐",{sz:Math.round(R(li.querySelector(".bx")).width/0.72*1.5),
+    /* a caixinha vira figura da própria folha (cantos arredondados, tamanho e altura iguais);
+       se a figura falhar, cai no ☐ do Word (0,72 da letra = tamanho da caixinha) */
+    const bxEl=li.querySelector(".bx"),bxRid=await capaImagem(bxEl,false,false,"rid");
+    let cx;
+    if(bxRid){
+      const rb=R(bxEl),mk=D.createElement("span");mk.style.cssText="display:inline-block;width:0;height:0;vertical-align:baseline";
+      nm.insertBefore(mk,nm.firstChild);const base=R(mk).bottom;mk.remove();
+      const desce=rb.bottom-base,id=++idForma,w=EMU(rb.width),h=EMU(rb.height);
+      cx=para("<w:r><w:rPr><w:position w:val=\""+(5-Math.round(desce*1.5))+"\"/><w:sz w:val=\""+fn.sz+"\"/></w:rPr><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+w+"\" cy=\""+h+"\"/>"
+        +"<wp:docPr id=\""+id+"\" name=\"Selo "+id+"\"/><a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
+        +"<pic:pic><pic:nvPicPr><pic:cNvPr id=\""+id+"\" name=\"Selo "+id+"\"/><pic:cNvPicPr/></pic:nvPicPr>"
+        +"<pic:blipFill><a:blip r:embed=\""+bxRid+"\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>"
+        +"<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\""+w+"\" cy=\""+h+"\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>",
+        {jc:"center",exato:1,linha:tw(fn.lh),quebra:quebra});
+    }else cx=para(run(marcado?"☑":"☐",{sz:Math.round(R(bxEl).width/0.72*1.5),
         color:marcado?"067647":"667085",fonte:"Segoe UI Symbol"}),
       {jc:"center",exato:1,linha:tw(fn.lh),quebra:quebra});
     const num=para(run(nm.textContent,{sz:fn.sz,bold:fn.bold,color:fn.color}),{jc:"right",exato:1,linha:tw(fn.lh),quebra:quebra});
@@ -469,7 +482,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       const cv=D.createElement("canvas");cv.width=W*E;cv.height=H*E;
       cv.getContext("2d").drawImage(img,0,0);
       const b64=cv.toDataURL("image/png").split(",")[1];
-      if(b64.length<(semTexto==="rid"?200:2000))return null;
+      if(b64.length<(semTexto==="rid"?120:2000))return null;
       const bin=atob(b64),dados=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)dados[i]=bin.charCodeAt(i);
       const n=doc.media.length+1,rid="rImg"+n,nome="image"+n+".png";
       doc.media.push({name:nome,data:dados,rid:rid});
