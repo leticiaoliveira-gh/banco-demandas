@@ -95,7 +95,7 @@ function celula(c){
   const m=c.mar||{};
   return "<w:tc><w:tcPr><w:tcW w:w=\""+c.w+"\" w:type=\"dxa\"/>"
     +(c.span>1?"<w:gridSpan w:val=\""+c.span+"\"/>":"")
-    +"<w:tcBorders>"+bd("top",c.b&&c.b.top)+bd("left",c.b&&c.b.left)+bd("bottom",c.b&&c.b.bottom)+bd("right",c.b&&c.b.right)+"</w:tcBorders>"
+    +"<w:tcBorders>"+["top","left","bottom","right"].map(l=>(c.b&&c.b[l])?bd(l,c.b[l]):"").join("")+"</w:tcBorders>"
     +(c.fundo?"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\""+c.fundo+"\"/>":"")
     +"<w:tcMar><w:top w:w=\""+(m.t||0)+"\" w:type=\"dxa\"/><w:left w:w=\""+(m.l||0)+"\" w:type=\"dxa\"/>"
     +"<w:bottom w:w=\""+(m.b||0)+"\" w:type=\"dxa\"/><w:right w:w=\""+(m.r||0)+"\" w:type=\"dxa\"/></w:tcMar>"

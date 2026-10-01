@@ -133,6 +133,7 @@ DocxLite.prototype.blob=function(){
   +'<Default Extension="jpeg" ContentType="image/jpeg"/>'
   +'<Default Extension="png" ContentType="image/png"/>'
   +'<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+  +(this.footerXml?'<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>':'')
   +(this.footerXml?'<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>':'')
   +'<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
   +'<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
@@ -145,6 +146,7 @@ DocxLite.prototype.blob=function(){
   +'</Relationships>';
  const relsDoc=XMLH+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
   +'<Relationship Id="rStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+  +(this.footerXml?'<Relationship Id="rSet" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>':'')
   +(this.footerXml?'<Relationship Id="rFooter" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>':'')
   +this.media.map(m=>`<Relationship Id="${m.rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.name}"/>`).join("")
   +'</Relationships>';
@@ -162,6 +164,7 @@ DocxLite.prototype.blob=function(){
   {name:"word/document.xml",data:enc(doc)},
   {name:"word/_rels/document.xml.rels",data:enc(relsDoc)},
   {name:"word/styles.xml",data:enc(styles)},
+  ...(this.footerXml?[{name:"word/settings.xml",data:enc(XMLH+'<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>')}]:[]),
   ...(this.footerXml?[{name:"word/footer1.xml",data:enc(XMLH+this.footerXml)}]:[]),
   {name:"docProps/core.xml",data:enc(core)},
   {name:"docProps/app.xml",data:enc(app)},
