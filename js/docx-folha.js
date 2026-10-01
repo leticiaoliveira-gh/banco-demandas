@@ -362,9 +362,11 @@ window.m28DomParaDocx=async function(win,modoImagem){
         if(ehSelo(n)){dq+=selo(n);continue;}
         dq+=run((n.tagName==="I"?" ":"")+n.textContent+(n.tagName==="I"?" ":""),
           {sz:f2.sz,bold:f2.bold,color:f2.color,fundo:n.tagName==="I"?f2.fundo:null});
-        if(n.tagName==="B")dq+=run(" ",{sz:f2.sz});
+        /* vão até o selo seguinte = o mesmo do site (um espaço esticado) */
+        if(n.tagName==="B"){const nx=n.nextElementSibling,gp=nx?Math.max(0,R(nx).left-R(n).right):4;
+          dq+=run(" ",{sz:f2.sz,ls:Math.max(0,Math.round(tw(gp)-0.2744*f2.sz/1.5*TW))});}
       }
-      cel.push({w:larg[3],mar:{t:marV,b:marB,r:tw(pad)},xml:para(dq,{jc:"right",exato:1,linha:tw(fq.lh),quebra:quebra}),b:{bottom:borda}});
+      cel.push({w:larg[3],mar:{t:marV,b:marB,r:tw(pad)+68},xml:para(dq,{jc:"right",exato:1,linha:tw(fq.lh),quebra:quebra}),b:{bottom:borda}});
     }
     return {cel:cel,larg:larg};
   }
@@ -376,19 +378,32 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const A=R(ar),fundo=hex(cs(ar).backgroundColor)||"E8F5F0";
     const px=sub?[R(cont).left-A.left,R(sub).left-R(cont).left,A.right-R(sub).left]
                 :[R(cont).left-A.left,A.right-R(cont).left];
-    const larg=escalar(px,LARG);
-    if(sub&&larg[2]<1700){const d=1700-larg[2];larg[2]+=d;larg[0]-=d;}
+    const larg=escalar(px,LARG),kx=LARG/A.width;
+    /* a tabela começa ~58 twips antes da caixa verde: as margens compensam isso */
+    const AJ=58;
+    let mr3=Math.round((A.right-(sub?R(sub).right:R(cont).right))*kx)+AJ,mr2=0;
+    if(sub){const prec=Math.round(R(sub).width*kx*1.03)+mr3+30;
+      if(larg[2]<prec){const d=prec-larg[2];larg[2]+=d;larg[0]-=d;}
+      /* o selo da contagem termina onde termina no site */
+      mr2=Math.max(0,larg[0]+larg[1]+60-Math.round((R(cont).right-A.left)*kx));}
     /* no Word a letra da faixa fica mais baixa: sobe a margem de cima e devolve um pouco embaixo */
-    const pv0=tw(parseFloat(cs(ar).paddingTop)||6),pt=Math.max(0,pv0-50),pv=pv0+30,pl=tw(parseFloat(cs(ar).paddingLeft)||11);
+    const pv0=tw(parseFloat(cs(ar).paddingTop)||6),pt=Math.max(0,pv0-50),pv=pv0+30,
+      pl=Math.round((R(e).left-A.left)*kx)+AJ+10;
     /* altura da linha = a da faixa no site (os selos deixam a faixa mais alta que a letra) */
     const lhAr=Math.max(fa.lh,A.height-2*(parseFloat(cs(ar).paddingTop)||6)-(parseFloat(cs(ar).borderBottomWidth)||0));
-    let esq="";
+    let esq="",posSelo=0;
     for(const n of e.childNodes){
-      if(n.nodeType===3){const t=n.textContent;if(t.trim()){const f=fmt(win,e);esq+=run(t,{sz:f.sz,bold:f.bold||700,color:f.color});}continue;}
+      if(n.nodeType===3){let t=n.textContent;if(posSelo)t=t.replace(/^\s+/,"");posSelo=0;if(t.trim()){const f=fmt(win,e);esq+=run(t,{sz:f.sz,bold:f.bold||700,color:f.color});}continue;}
       if(n.nodeType!==1)continue;
       const f=fmt(win,n,"rgb(232,245,240)");
       const txt=f.caps?n.textContent.toUpperCase():n.textContent;
-      if(n.classList.contains("ar-piso")||ehSelo(n))esq+=selo(n,"rgb(232,245,240)",txt)+run("  ",{sz:f.sz});
+      if(n.classList.contains("ar-piso")||ehSelo(n)){
+        /* espaço depois do selo = o mesmo vão do site (um espaço esticado) */
+        let gap=8;const nx=n.nextSibling;
+        if(nx){const rg=D.createRange();rg.selectNodeContents(nx);const q=rg.getBoundingClientRect();if(q.width)gap=Math.max(0,q.left-R(n).right);}
+        const fe=fmt(win,e);
+        esq+=selo(n,"rgb(232,245,240)",txt)+run(" ",{sz:fe.sz,ls:Math.max(0,Math.round(tw(gap)-0.2744*fe.sz/1.5*TW))});
+        posSelo=1;continue;}
       else esq+=run("  "+txt,{sz:f.sz,color:f.color});
     }
     /* o verde da faixa vem da caixa arredondada do grupo (por baixo), para os cantos ficarem redondos */
@@ -396,9 +411,9 @@ window.m28DomParaDocx=async function(win,modoImagem){
       {jc:"right",exato:1,linha:tw(lhAr),keepNext:1});
     const bb={bottom:{sz:6,cor:"D7E6E0"}};
     const cel=[{w:larg[0],v:"center",mar:{t:pt,b:pv,l:pl},b:bb,xml:para(esq,{exato:1,linha:tw(lhAr),keepNext:1,quebra:quebra})},
-               {w:larg[1],v:"center",mar:{t:pt,b:pv,r:sub?tw(10):pl},b:bb,xml:dir}];
+               {w:larg[1],v:"center",mar:{t:pt,b:pv,r:sub?mr2:mr3},b:bb,xml:dir}];
     if(sub){const fs=fmt(win,sub.querySelector(".qh"));
-      cel.push({w:larg[2],v:"center",mar:{t:pt,b:pv,r:pl},b:bb,
+      cel.push({w:larg[2],v:"center",mar:{t:pt,b:pv,l:0,r:mr3},b:bb,
         xml:para(run(fs.caps?"DATA REGISTRADA":sub.textContent,{sz:fs.sz,bold:fs.bold||700,color:fs.color,ls:fs.ls}),{jc:"right",exato:1,linha:tw(lhAr),keepNext:1})});}
     return {cel:cel,larg:larg};
   }
