@@ -3,6 +3,8 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **01/10/2026 (noite): no ar v11.58 (cache v235).** Barra lateral se esconde sozinha ao entrar em qualquer relatório (vindo do Hub); no Hub/Capa aparece. Botões da Manutenção todos com ícone (inclui PDF), mesma altura, descem de linha se faltar espaço (nada some).
+
 > **01/10/2026 (noite): no ar v11.57 (cache v234).** Manutenção: 3 cards pequenos (Serviços=a fazer, Urgentes, Feitos) embaixo do aviso das paradas; botão Imprimir separado do PDF.
 
 > **01/10/2026 (noite): no ar v11.56 (cache v233).** Barra lateral: ☰ esconde ela inteira, sobra um ☰ redondo flutuante para reabrir (modo largo com nomes foi desligado). Manutenção: filtros+busca numa linha, botões (+Serviço, PDF, Word, WhatsApp, Planilha, Ralos) na linha de baixo, sem quebrar. Ela ainda vai mandar mais edições.

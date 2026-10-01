@@ -529,3 +529,12 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 .m28-nums .bd-kpi-nome{font-size:13px}
 .m28-nums .bd-kpi-num{font-size:26px}
 @media (max-width:560px){.m28-nums{grid-template-columns:repeat(3,minmax(0,1fr)) !important}.m28-nums .bd-kpi{padding:8px 10px}.m28-nums .bd-kpi-nome{font-size:11px}.m28-nums .bd-kpi-num{font-size:20px}}
+
+/* v11.58 — botões todos do mesmo tamanho e alinhados; nada some (se faltar espaço, desce para a linha de baixo) */
+@media (min-width:1001px){
+  .m28-barra.m28-filtros,.m28-barra.m28-botoes{flex-wrap:wrap;overflow:visible;gap:8px;align-items:center}
+  .m28-barra.m28-botoes .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    height:36px;min-height:36px;padding:0 14px;font-size:13px;line-height:1}
+  .m28-barra.m28-botoes .btn svg{width:16px;height:16px}
+  .m28-barra.m28-filtros .search,.m28-barra.m28-filtros select{height:36px;min-height:36px;font-size:13px}
+}

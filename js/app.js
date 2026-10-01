@@ -323,6 +323,7 @@ const ICO_ACAO={
   lixo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>',
   cadeado:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>',
   imprimir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>',
+  pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 17v-4h1.6a1.2 1.2 0 0 1 0 2.4H8.5M13 13v4M13 13h2"/></svg>',
   doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
   conversa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.5a8 8 0 0 1-11.7 7.1L4 20l1.3-4.4a8 8 0 1 1 15.2-4.1z"/></svg>',
   planilha:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M3.5 15h17M9.5 4v16"/></svg>',
@@ -577,7 +578,7 @@ function showHub(){
   document.getElementById("view-hub").style.display="block";
   document.getElementById("cards").style.display="none";
   document.getElementById("tabs").style.display="none";
-  currentTab=null;
+  currentTab=null;RAIL_ESCONDIDA=false;aplicarRail();
   /* o hub passa pelo MESMO cabeçalho das abas — antes escrevia o título na mão e
      por isso "editar não funcionava no título" aqui (queixa dela, 20/07). */
   const h1=document.getElementById("appTitle");
@@ -607,13 +608,12 @@ function navItemHTML(t){const a=TABS[t];
    seções da aba atual aparecem recuadas embaixo dela. Fica no aparelho. */
 let RAIL_ABERTA=false;
 /* ☰ esconde a barra inteira (a tela cresce); sobra só um ☰ flutuante para trazê-la de volta. Fica no aparelho. */
-let RAIL_ESCONDIDA=localStorage.getItem("rail_escondida")==="1";
-function toggleRail(){
-  RAIL_ESCONDIDA=!RAIL_ESCONDIDA;localStorage.setItem("rail_escondida",RAIL_ESCONDIDA?"1":"0");
-  aplicarRail();
-}
+/* v11.58: ao ENTRAR num relatório a barra se esconde sozinha (como se ela tivesse tocado no ☰);
+   no Hub e na Capa ela aparece. Dentro do relatório o ☰ continua abrindo e fechando. */
+let RAIL_ESCONDIDA=false;
+function toggleRail(){RAIL_ESCONDIDA=!RAIL_ESCONDIDA;aplicarRail();}
 function aplicarRail(){
-  document.body.classList.toggle("rail-oculta",RAIL_ESCONDIDA);
+  document.body.classList.toggle("rail-oculta",RAIL_ESCONDIDA&&!document.body.classList.contains("na-capa"));
   const b=document.getElementById("btRail");
   if(b)b.title=RAIL_ESCONDIDA?"Abrir o menu":"Fechar o menu";
 }
@@ -1579,6 +1579,7 @@ function showTab(t){
     esconder o título duplicado do topo sem afetar as outras (30/07) */
  document.body.dataset.aba=t;
  const tab=TABS[t]||TABS.dg;
+ if(!currentTab){RAIL_ESCONDIDA=true;aplicarRail();}   /* vindo do Hub: entra no relatório com a barra escondida */
  currentTab=t;
  if(tab.tipo)currentTipo=tab.tipo;
  document.querySelectorAll(".tab-panel").forEach(p=>p.style.display="none");
@@ -2040,7 +2041,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.57";
+const APP_VERSAO="11.58";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

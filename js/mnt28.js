@@ -917,7 +917,7 @@ async function renderMnt28(){
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
       title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">${icone("cadeado")} Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
     <button class="btn ghost sm" onclick="m28Imprimir('imprimir')" title="Abrir a folha pronta para imprimir no papel">${icone("imprimir")} Imprimir</button>
-    <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">PDF</button>
+    <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">${icone("pdf")} PDF</button>
     ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
          filtros — escolhida a folha do Matheus, sai só a dele. */""}
     <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">${icone("doc")} Word</button>
