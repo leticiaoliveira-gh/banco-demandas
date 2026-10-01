@@ -100,6 +100,10 @@ function m28ItensDaFolha(){
    papel é pior que total nenhum. Quantos estão em verificação aparece na
    pastilha de cada área, em "N a verificar". */
 function m28ItensContados(){ return m28ItensDaFolha().filter(d=>!d.verificar); }
+/* "a verificar" no papel = lupa ligada OU qualquer coisa escrita no lembrete
+   particular (01/10, pedido dela: "só de ter algo ali dentro já deve ser
+   considerado"). Na janela de imprimir ela escolhe levar ou não. */
+function m28AVerificar(d){ return !!d.verificar||!!String(d.nota||"").trim(); }
 /* o que ela ainda precisa conferir na loja — a loja TODA, sem depender do
    filtro de tela nem de mês aberto. Era m28ItensDaFolha() e por isso a aba
    "Verificar" aparecia zerada. */
@@ -1278,7 +1282,7 @@ function m28RenderListaDesenho(){
    ===================================================================== */
 function m28Filtradas(){
   let rows=m28ItensDaFolha();   /* pessoa, piso e area ja vem aplicados */
-  rows=rows.filter(d=>!d.verificar);   /* "Verificar": fica na tela, nunca na folha que sai */
+  rows=rows.filter(d=>!m28AVerificar(d));   /* "Verificar": fica na tela, fora da folha que sai */
   if(M28F.ver==="fazer")rows=rows.filter(d=>!d.feito);
   if(M28F.ver==="feitos")rows=rows.filter(d=>d.feito);
   return rows.sort(m28Comparar);
@@ -1967,12 +1971,14 @@ function m28FotosFolha(d){
    vai ficar salvo e você não vai mais precisar ficar colocando nada na nuvem".
    ===================================================================== */
 function m28Imprimir(){
-  const itens=m28ItensContados();   /* a janela promete o que a folha vai levar */
+  const todosIt=m28ItensDaFolha();
+  const itens=todosIt.filter(d=>!m28AVerificar(d));   /* a janela promete o que a folha vai levar */
+  const nVer=todosIt.length-itens.length;             /* os "a verificar": ela escolhe levar ou não */
   const faltam=itens.filter(d=>!d.feito).length;
   const feitos=itens.filter(d=>d.feito).length;
-  /* nada resolvido ainda: as duas folhas seriam iguais, então não há escolha
-     a fazer e a janela só atrapalharia. É via de trabalho, então registra. */
-  if(!feitos){m28GuardarEntrega({}).then(()=>m28ImprimirFolha({}));return;}
+  /* nada resolvido ainda e nada a verificar: as duas folhas seriam iguais, então
+     não há escolha a fazer e a janela só atrapalharia. É via de trabalho, então registra. */
+  if(!feitos&&!nVer){m28GuardarEntrega({}).then(()=>m28ImprimirFolha({}));return;}
 
   const hoje=today();
   const emitido=(m28Cab(itens)||{}).emitidoEm||hoje;
@@ -1994,12 +2000,17 @@ function m28Imprimir(){
           <b>Só o que falta</b>
           <span>${faltam} ${faltam===1?"serviço":"serviços"} em aberto. É a folha de trabalho de quem executa.</span>
         </button>
-        <button class="m28-opcao" data-modo="marcar">
+        ${nVer?`<label class="m28-corte" style="display:flex;gap:10px;align-items:flex-start;min-height:44px">
+          <input type="checkbox" id="m28-com-ver" style="width:auto;margin-top:4px">
+          <span><b>Levar também ${nVer===1?"o 1 serviço":`os ${nVer} serviços`} com lembrete seu (verificar)</b><br>
+            <span class="bd-ajuda">Sem marcar, ficam só na sua tela e não saem no papel.</span></span>
+        </label>`:""}
+        ${feitos?`<button class="m28-opcao" data-modo="marcar">
           <b>Tudo, para marcar à mão</b>
           <span>${itens.length} ${itens.length===1?"serviço":"serviços"}, com
             ${feitos===1?"o que já foi resolvido":`os ${feitos} que já foram resolvidos`}
             e os quadradinhos vazios. É a folha que mostra à empresa o que foi feito.</span>
-        </button>
+        </button>`:""}
         <div class="m28-corte">
           <label class="bd-rotulo" for="m28-corte-data">Data desta folha</label>
           <input class="bd-campo" type="date" id="m28-corte-data" value="${esc(emitido)}" max="${esc(hoje)}">
@@ -2028,12 +2039,13 @@ function m28Imprimir(){
     b.onclick=()=>{
       const marcar=b.getAttribute("data-modo")==="marcar";
       const data=(m.querySelector("#m28-corte-data")||{}).value||"";
+      const comVerificar=!!(m.querySelector("#m28-com-ver")||{}).checked;
       fechar();
       /* SÓ A VIA DE TRABALHO VIRA HISTÓRICO (28/08). A via "tudo, para marcar à
          mão" é a segunda cópia da mesma entrega, para a empresa: se registrasse
          também, a mesma folha apareceria duas vezes no histórico. */
-      if(marcar){ m28ImprimirFolha({tudo:true,emBranco:true,corte:data,emitidoEm:data}); }
-      else { m28GuardarEntrega({emitidoEm:data}).then(()=>m28ImprimirFolha({emitidoEm:data})); }
+      if(marcar){ m28ImprimirFolha({tudo:true,emBranco:true,corte:data,emitidoEm:data,comVerificar}); }
+      else { m28GuardarEntrega({emitidoEm:data}).then(()=>m28ImprimirFolha({emitidoEm:data,comVerificar})); }
     };
   });
   document.addEventListener("keydown",tecla);
@@ -2052,7 +2064,9 @@ function m28LinhasDaFolha(op){
   /* os itens que ela marcou "Verificar" ficam na tela dela, mas NUNCA no papel
      do Sr. João -- são lembrete de conferir na loja, não serviço a entregar.
      Fora da folha de marcar também: naquela data ela ainda não os confirmou. */
-  rows=rows.filter(d=>!d.verificar);
+  /* 01/10: ela escolhe na janela de imprimir se leva ou não os "a verificar"
+     (lupa ou lembrete começando com VERIFICAR). Sem escolha, ficam de fora. */
+  if(!op.comVerificar)rows=rows.filter(d=>!m28AVerificar(d));
   /* na folha de marcar, o que ela filtrou na tela não manda: a folha é a foto
      do trabalho inteiro naquela data, feito e não feito */
   if(!op.tudo){

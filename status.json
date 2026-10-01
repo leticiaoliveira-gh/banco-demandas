@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-10-01",
- "versao": "11.22",
- "qa": "Salvamento do estado em 01/10/2026 (v11.22): sem mudança de funcionalidade, só versão e data.",
- "ondeParamos": "01/10: estado do site salvo e publicado como v11.22.",
+ "versao": "11.23",
+ "qa": "01/10/2026 (v11.23): na janela de imprimir a folha de manutenção, caixinha para levar ou não os serviços com lembrete particular (verificar).",
+ "ondeParamos": "01/10: v11.23 publicada (folha: opção de levar os serviços a verificar).",
  "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }
