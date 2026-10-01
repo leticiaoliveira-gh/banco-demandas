@@ -1138,6 +1138,7 @@ const CAPA_LAYOUTS=[
 function capaAplicarLayout(){
   const ok=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout);
   document.body.dataset.capa=ok?CAPA_CFG.layout:"vidro";document.body.dataset.abas=CAPA_CFG.abas==="escuro"?"escuro":"claro";
+  capaFotoPreparar();
 }
 function capaLayoutsAbrir(){
   const atual=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout)?CAPA_CFG.layout:"vidro";
@@ -1154,7 +1155,18 @@ function capaLayoutsAbrir(){
    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
 }
 /* fundo da faixa de título nas folhas impressas: segue o layout da capa */
-function capaFundoFolha(verde){return document.body.dataset.capa==="aurora"?"linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)":verde;}
+/* No Aurora a folha usa a MESMA foto do fundo do site. A janela de impressão é em branco e
+   não enxerga os arquivos do site, então a foto vai embutida (data URI), carregada de antemão. */
+let CAPA_FOTO_URI="";
+function capaFotoPreparar(){
+  if(CAPA_FOTO_URI||document.body.dataset.capa!=="aurora")return;
+  fetch("img/fundo-aurora.jpg").then(r=>r.blob()).then(b=>{const fr=new FileReader();fr.onload=()=>{CAPA_FOTO_URI=fr.result;};fr.readAsDataURL(b);}).catch(()=>{});
+}
+function capaFundoFolha(verde){
+  if(document.body.dataset.capa!=="aurora")return verde;
+  return CAPA_FOTO_URI?`linear-gradient(rgba(2,16,13,.2),rgba(2,16,13,.2)),url("${CAPA_FOTO_URI}") center 58%/cover no-repeat,#02100d`
+    :"linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)";
+}
 async function capaAbas(v){CAPA_CFG.abas=v==="escuro"?"escuro":"claro";capaAplicarLayout();await salvarCapaCfg();capaLayoutsAbrir();toast("Quadros trocados ✓");}
 async function capaEscolher(id){
   if(!CAPA_LAYOUTS.some(l=>l.id===id))return;
@@ -2024,7 +2036,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.43";
+const APP_VERSAO="11.46";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

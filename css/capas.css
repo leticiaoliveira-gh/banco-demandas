@@ -6,11 +6,7 @@
 /* ═════ AURORA (só computador; no celular vale o modo loja claro) ═════ */
 @media (min-width:1001px){
   body[data-capa="aurora"] #view-home{
-    background:
-      radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.5),transparent 60%),
-      radial-gradient(ellipse 40% 90% at 65% 40%,rgba(10,160,140,.4),transparent 65%),
-      radial-gradient(ellipse 50% 60% at 20% 60%,rgba(16,120,105,.32),transparent 70%),
-      linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%) !important;
+    background:linear-gradient(rgba(2,16,13,.18),rgba(2,16,13,.18)),url("../img/fundo-aurora.jpg") center/cover no-repeat,#02100d !important;
   }
   body[data-capa="aurora"] #view-home .store-list .store-row{
     background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);
@@ -51,7 +47,7 @@
 /* barra lateral no Aurora: vidro escuro combinando com o fundo, e por cima de tudo
    (as dicas dos ícones não podem ficar atrás da lista) */
 @media (min-width:1001px){
-  body[data-capa="aurora"] .app{background:linear-gradient(155deg,#02100d 0%,#04302a 55%,#064b40 100%)}
+  body[data-capa="aurora"] .app{background:linear-gradient(rgba(2,16,13,.25),rgba(2,16,13,.25)),url("../img/fundo-aurora.jpg") center/cover fixed,#02100d}
   body[data-capa="aurora"] .rail{
     z-index:100;
     background:linear-gradient(170deg,rgba(255,255,255,.1),rgba(255,255,255,.04));
@@ -65,8 +61,7 @@
    e a barra lateral fica DENTRO da parte escura, sem pisar na parte branca */
 @media (min-width:1001px){
   body[data-capa="aurora"] .head{
-    background:radial-gradient(90% 160% at 8% 0%,rgba(47,224,192,.28),transparent 60%),
-      linear-gradient(135deg,#02100d 0%,#04302a 55%,#0a5a4c 100%);
+    background:linear-gradient(rgba(2,16,13,.15),rgba(2,16,13,.15)),url("../img/fundo-aurora.jpg") center 55%/cover no-repeat,#02100d;
     box-shadow:0 4px 18px rgba(0,0,0,.25);
   }
   body[data-capa="aurora"] .main{margin-left:12px}
@@ -100,15 +95,14 @@
 .capa-op:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
 .capa-mini{flex:none;width:72px;height:48px;border-radius:8px}
 .capa-mini.vidro{background:radial-gradient(125% 120% at 10% 0%,#2a9d8a 0%,#146055 46%,#0c3f38 100%)}
-.capa-mini.aurora{background:radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.6),transparent 60%),linear-gradient(135deg,#02100d,#064b40)}
+.capa-mini.aurora{background:url("../img/fundo-aurora.jpg") center/cover,#02100d}
 .capa-op b{display:block;font-size:14px;color:#155244}
 .capa-op span.d{display:block;font-size:12px;color:#5c5d68}
 
 /* faixa de título dos relatórios segue o layout da capa (Vidro = verde de sempre) */
 @media (min-width:1001px){
   body[data-capa="aurora"] :is(.m28-capa,.cmp-capa){
-    background:radial-gradient(ellipse 60% 120% at 85% 100%,rgba(20,220,190,.45),transparent 60%),
-      linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%);
+    background:linear-gradient(rgba(2,16,13,.12),rgba(2,16,13,.12)),url("../img/fundo-aurora.jpg") center 60%/cover no-repeat,#02100d;
     box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18);
   }
 }

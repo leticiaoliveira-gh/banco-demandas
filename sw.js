@@ -1,6 +1,6 @@
 /* Service worker â€” network-first com fallback em cache: o app abre offline
    e atualiza sozinho quando hÃ¡ internet. Bump da versÃ£o a cada deploy. */
-const CACHE = "np-demandas-v219";
+const CACHE = "np-demandas-v222";
 /* ATENCAO: "dados/mnt28-carga.js" NAO entra aqui de proposito. E o arquivo com
    os dados reais da loja, existe so no computador dela e nao vai para o
    repositorio publico. Se entrasse nesta lista, o cache inteiro falharia no
@@ -10,7 +10,7 @@ const SHELL = ["./", "./index.html", "./css/app.css", "./css/polimento.css", "./
   "./catalogo/index.html", "./catalogo/pecas.css",
   "./modelos/index.html", "./modelos/layouts.html", "./modelos/comparar-layouts.html", "./modelos/plano.html", "./modelos/decisoes.html",
   "./catalogo/graficos/index.html", "./catalogo/graficos/graficos.css",
-  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
+  "./img/fundo-aurora.jpg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
