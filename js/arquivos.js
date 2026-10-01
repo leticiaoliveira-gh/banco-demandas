@@ -432,7 +432,8 @@ function lerFolhaMnt28(linhas){
     }
     return t;
   };
-  let piso="",area="",it=null,emObs=false;
+  let piso="",area="",it=null,emObs=false,emRalos=false;
+  const ralosL=[];
   const fecha=()=>{
     if(!it)return;
     it.fazer=m28fJuntar(it._fazer);
@@ -446,9 +447,13 @@ function lerFolhaMnt28(linhas){
     if(!esq)continue;
     if(x>=540||/^\d+\s*\/\s*\d+$/.test(esq))continue;          /* rodapé "3 / 9" */
     if(piso&&x>=108&&x<=132&&l.partes.length>=2)continue;       /* cabeçalho da página */
+    if(emRalos){                                                /* texto do manual dos ralos */
+      if(/^\d+\s*º?\s*PISO\s+Ralos\b/i.test(esq))break;         /* daqui pra baixo é só a lista de áreas */
+      ralosL.push({t:esq,fim:m28fFim(l)});continue;
+    }
     if(x<45){                                                   /* títulos grandes */
       if(/^\d+\s*º?\s*PISO$/i.test(esq)){fecha();piso=esq;area="";continue;}
-      if(/RASTREAMENTO/i.test(esq)){fecha();break;}             /* daqui pra baixo é ralo */
+      if(/RASTREAMENTO/i.test(esq)){fecha();emRalos=true;folha.ralosTitulo=esq;continue;}
       continue;
     }
     if(!piso)continue;
@@ -475,6 +480,15 @@ function lerFolhaMnt28(linhas){
     }
   }
   fecha();
+  if(ralosL.length){                                      /* o texto do manual, do jeito que ela escreveu */
+    /* "(RDC ...)" e "2." sempre começam linha nova, mesmo depois de uma linha cheia */
+    const blocos=[];
+    for(const q of ralosL){
+      if(!blocos.length||/^(\(|\d+\s*\.\s)/.test(q.t))blocos.push([]);
+      blocos[blocos.length-1].push(q);
+    }
+    folha.ralosTexto=blocos.map(m28fJuntar).join("\n");
+  }
   return folha.itens.length?folha:null;
 }
 /* ---------- TELA: CONFERIR A TRANSCRIÇÃO ANTES DE APLICAR ----------
@@ -584,6 +598,18 @@ function abrirTranscricaoPDF(folha,nomeArquivo){
     </div>`;
   };
   const lojaDif=folha.loja&&currentStore&&m28fChave(folha.loja)!==m28fChave(currentStore);
+  /* texto do manual dos ralos: só aparece quando é diferente do que o site tem */
+  const rl=transcricaoRalos(folha);
+  const rlHTML=rl?`<div class="bd-card tpd-card">
+      <div class="bd-card-topo"><div class="bd-card-tit">Texto do Rastreamento de Ralos</div>
+        <div class="bd-card-sub">o manual que sai uma vez só, no fim da folha</div></div>
+      <div class="bd-card-corpo tpd-corpo"><label class="tpd-linha bd-check-linha">
+        <input type="checkbox" class="bd-check tpd-rl" checked>
+        <span class="bd-check-txt">
+          <span class="tpd-topo"><span class="bd-selo bd-selo-atencao"><i></i>ATUALIZA</span></span>
+          <span class="tpd-fazer" style="white-space:pre-wrap">${esc(rl.texto)}</span>
+          ${rl.atual?`<span class="tpd-obs" style="white-space:pre-wrap">No site hoje: ${esc(corte(rl.atual,300))}</span>`:""}
+        </span></label></div></div>`:"";
   const corpo=`
     <div class="bd-kpis rec-kpis">
       <div class="bd-kpi"><div class="bd-kpi-nome">Novos</div><div class="bd-kpi-num">${nNovo}</div></div>
@@ -598,6 +624,7 @@ function abrirTranscricaoPDF(folha,nomeArquivo){
       <button class="bd-btn bd-btn-secundario bd-btn-p tpd-todos">Marcar todos</button>
       <button class="bd-btn bd-btn-fantasma bd-btn-p tpd-nenhum">Desmarcar todos</button>
     </div>
+    ${rlHTML}
     ${grupos.map(grupoHTML).join("")}`;
   const m=document.createElement("div");
   m.className="bd-fundo rec-fundo";
@@ -632,9 +659,10 @@ function abrirTranscricaoPDF(folha,nomeArquivo){
   m.querySelector(".tpd-nenhum").onclick=()=>marcar(false);
   m.querySelector(".tpd-ok").onclick=async()=>{
     const escolhidos=[...m.querySelectorAll(".tpd-cx")].filter(c=>c.checked).map(c=>+c.dataset.i);
-    if(!escolhidos.length){alert("Nada está marcado, então não há o que aplicar.");return;}
+    const cRl=m.querySelector(".tpd-rl"),querRl=!!(cRl&&cRl.checked);
+    if(!escolhidos.length&&!querRl){alert("Nada está marcado, então não há o que aplicar.");return;}
     const bt=m.querySelector(".tpd-ok");bt.disabled=true;bt.classList.add("bd-btn-carregando");
-    try{ await aplicarTranscricaoPDF(escolhidos); fechar(); }
+    try{ await aplicarTranscricaoPDF(escolhidos,querRl); fechar(); }
     catch(err){ bt.disabled=false;bt.classList.remove("bd-btn-carregando");
       alert("Não consegui aplicar agora.\n\n"+(err.message||"")); }
   };
@@ -642,9 +670,31 @@ function abrirTranscricaoPDF(folha,nomeArquivo){
   document.body.appendChild(m);
   m.querySelector(".tpd-ok").focus();
 }
+/* O texto do manual dos ralos que veio no PDF, quando é diferente do que o site
+   tem hoje. Devolve null quando o PDF não trouxe o texto ou já está igual. */
+function transcricaoRalos(folha){
+  const novo=String((folha&&folha.ralosTexto)||"").trim();
+  if(!novo)return null;
+  let atual="";
+  try{if(typeof m28T==="function")atual=String(m28T().ralosTexto||"").trim();}catch(e){}
+  if(m28fChave(atual)===m28fChave(novo))return null;
+  return {texto:novo,atual};
+}
+/* grava só o texto do manual; o resto da configuração dos ralos não é tocado */
+async function aplicarTextoRalos(texto){
+  if(typeof m28Config==="function")await m28Config();
+  const padrao=(typeof M28_TXT_PADRAO!=="undefined")?M28_TXT_PADRAO:{};
+  const novo=Object.assign({},(typeof m28T==="function")?m28T():{});
+  novo.ralosTexto=texto;
+  const guardar={};
+  for(const k in padrao)if(novo[k]&&novo[k]!==padrao[k])guardar[k]=novo[k];
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Textos",guardar);
+  if(typeof M28_TXT!=="undefined")M28_TXT=Object.assign({},padrao,guardar);
+}
 /* grava no banco só o que ela deixou marcado */
-async function aplicarTranscricaoPDF(escolhidos){
+async function aplicarTranscricaoPDF(escolhidos,querRalos){
   if(!TPD)return;
+  if(querRalos){const r=transcricaoRalos(TPD.folha);if(r)await aplicarTextoRalos(r.texto);}
   const antes=new Map(DATA.filter(d=>d.uid).map(d=>[d.uid,d.fazer||d.nc||""]));
   const tocados=[];
   for(const i of escolhidos){

@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-09-30",
- "versao": "11.20",
- "qa": "QA 30/09 (v11.20): importar a folha em PDF impressa pelo navegador agora transcreve os servicos de volta para o site, com tela de conferencia antes de aplicar.",
+ "versao": "11.21",
+ "qa": "QA 30/09 (v11.21): importar a folha em PDF tambem le o texto do manual dos ralos e deixa aplicar no site, sem mexer nas areas de ralo.",
  "ondeParamos": "30/09: importar PDF deixou de recusar a folha impressa - o site le o texto e devolve piso, area, URGENTE, recado, data e o que esta feito.",
  "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }
