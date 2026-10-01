@@ -42,8 +42,11 @@ function hex(css,sobre){                /* css -> "RRGGBB"; mistura com o fundo 
 /* ---------- parágrafos e trechos ---------- */
 function rPr(o){
   o=o||{};
-  return "<w:rPr><w:rFonts w:ascii=\""+(o.fonte||FONTE)+"\" w:hAnsi=\""+(o.fonte||FONTE)+"\" w:cs=\""+(o.fonte||FONTE)+"\"/>"
-    +(o.bold?"<w:b/><w:bCs/>":"")+(o.italic?"<w:i/>":"")
+  /* grossura da letra igual à do site: 600 = Segoe UI Semibold, 800/900 = Segoe UI Black, 700 = negrito */
+  const pe=o.bold===true?700:(+o.bold||0),
+    fo=o.fonte||(pe>=800?"Segoe UI Black":pe>=550&&pe<650?"Segoe UI Semibold":FONTE),neg=pe>=650&&pe<800;
+  return "<w:rPr><w:rFonts w:ascii=\""+fo+"\" w:hAnsi=\""+fo+"\" w:cs=\""+fo+"\"/>"
+    +(neg||(o.fonte&&pe)?"<w:b/><w:bCs/>":"")+(o.italic?"<w:i/>":"")
     +(o.color?"<w:color w:val=\""+o.color+"\"/>":"")
     +(o.ls?"<w:spacing w:val=\""+o.ls+"\"/>":"")
     +(o.w&&o.w!==100?"<w:w w:val=\""+o.w+"\"/>":"")
@@ -64,7 +67,7 @@ function fmt(win,el,sobre){
   const fundo=hex(cs.backgroundColor,sobre||"rgb(255,255,255)");
   const ls=parseFloat(cs.letterSpacing);
   const bw=parseFloat(cs.borderTopWidth)||0;
-  return {sz:Math.max(2,Math.round(px*1.5)),bold:(parseInt(cs.fontWeight,10)||400)>=600,
+  return {sz:Math.max(2,Math.round(px*1.5)),bold:(parseInt(cs.fontWeight,10)||400)>=550?(parseInt(cs.fontWeight,10)||400):false,
     italic:cs.fontStyle==="italic",color:hex(cs.color,sobre)||"000000",
     ls:isFinite(ls)&&ls>0?Math.round(ls*TW):0,caps:cs.textTransform==="uppercase",
     pre:/pre/.test(cs.whiteSpace),fundo:fundo,
@@ -377,7 +380,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const lhAr=Math.max(fa.lh,A.height-2*(parseFloat(cs(ar).paddingTop)||6)-(parseFloat(cs(ar).borderBottomWidth)||0));
     let esq="";
     for(const n of e.childNodes){
-      if(n.nodeType===3){const t=n.textContent;if(t.trim()){const f=fmt(win,e);esq+=run(t,{sz:f.sz,bold:true,color:f.color});}continue;}
+      if(n.nodeType===3){const t=n.textContent;if(t.trim()){const f=fmt(win,e);esq+=run(t,{sz:f.sz,bold:f.bold||700,color:f.color});}continue;}
       if(n.nodeType!==1)continue;
       const f=fmt(win,n,"rgb(232,245,240)");
       const txt=f.caps?n.textContent.toUpperCase():n.textContent;
@@ -392,7 +395,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
                {w:larg[1],v:"center",mar:{t:pt,b:pv,r:sub?tw(10):pl},b:bb,xml:dir}];
     if(sub){const fs=fmt(win,sub.querySelector(".qh"));
       cel.push({w:larg[2],v:"center",mar:{t:pt,b:pv,r:pl},b:bb,
-        xml:para(run(fs.caps?"DATA REGISTRADA":sub.textContent,{sz:fs.sz,bold:true,color:fs.color,ls:fs.ls}),{jc:"right",exato:1,linha:tw(lhAr),keepNext:1})});}
+        xml:para(run(fs.caps?"DATA REGISTRADA":sub.textContent,{sz:fs.sz,bold:fs.bold||700,color:fs.color,ls:fs.ls}),{jc:"right",exato:1,linha:tw(lhAr),keepNext:1})});}
     return {cel:cel,larg:larg};
   }
 
@@ -429,7 +432,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
         const fundo=hex(cs(k).backgroundColor)||"F9FAFB";
         linhas.push([{w:LARG,span:99,mar:{t:tw(9),b:tw(9),l:tw(11),r:tw(11)},
           b:{left:{sz:18,cor:hex(cs(k).borderLeftColor)||"1D6B57"}},
-          xml:para(run(fb.caps?b.textContent.toUpperCase():b.textContent,{sz:fb.sz,bold:true,color:fb.color,ls:fb.ls}),{exato:1,linha:tw(fb.lh),depois:tw(3)})
+          xml:para(run(fb.caps?b.textContent.toUpperCase():b.textContent,{sz:fb.sz,bold:fb.bold||700,color:fb.color,ls:fb.ls}),{exato:1,linha:tw(fb.lh),depois:tw(3)})
             +para(run(sp.textContent,{sz:fs.sz,color:fs.color}),{exato:1,linha:tw(fs.lh)})}]);
       }
     }
@@ -516,8 +519,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const C=R(c),pxL=parseFloat(cs(c).paddingLeft)||14,pxT=parseFloat(cs(c).paddingTop)||9;
     const wInt=tw(C.width-2*pxL);
     let x="";
-    const idt=c.querySelector(".identidade"),fi=fmt(win,idt);
-    x+=para(run(idt.textContent,{sz:fi.sz,bold:true,color:"FFFFFF",ls:fi.ls}),{exato:1,linha:tw(fi.lh)});
+    const idt=c.querySelector(".identidade"),fi=fmt(win,idt.querySelector("b")||idt);
+    x+=para(run(idt.textContent,{sz:fi.sz,bold:fi.bold||700,color:"FFFFFF",ls:fi.ls}),{exato:1,linha:tw(fi.lh)});
     const fx=c.querySelector(".faixa");
     if(fx){
       x+=espaco(parseFloat(cs(fx).marginTop)||7);
@@ -532,8 +535,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
         const fundo=(proprio&&d.classList.contains("mes"))?proprio:fFx;
         return {w:cw[i],fundo:fundoRid?null:fundo,mar:{t:tw(parseFloat(cs(d).paddingTop)||5),b:tw(parseFloat(cs(d).paddingBottom)||5),l:tw(11),r:tw(11)},
           b:{right:!fundoRid&&i<cels.length-1?{sz:6,cor:hex(cs(d).borderRightColor,sobre)||bFx}:null},
-          xml:para(run(sp.textContent.toUpperCase(),{sz:fs.sz,bold:true,color:fs.color,ls:fs.ls}),{jc:"center",exato:1,linha:tw(fs.lh)})
-            +para(run(b.textContent,{sz:fb.sz,bold:true,color:"FFFFFF",ls:fb.ls}),{jc:"center",exato:1,linha:tw(fb.lh)})};
+          xml:para(run(sp.textContent.toUpperCase(),{sz:fs.sz,bold:fs.bold||700,color:fs.color,ls:fs.ls}),{jc:"center",exato:1,linha:tw(fs.lh)})
+            +para(run(b.textContent,{sz:fb.sz,bold:fb.bold||700,color:"FFFFFF",ls:fb.ls}),{jc:"center",exato:1,linha:tw(fb.lh)})};
       })];
       x+=tabela(lin,cw,fundoRid?{}:{borda:{top:{sz:6,cor:bFx},left:{sz:6,cor:bFx},bottom:{sz:6,cor:bFx},right:{sz:6,cor:bFx}}});
     }
@@ -572,7 +575,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       /* o Word deixa a caixa uns 3pt mais alta embaixo: tira da margem de baixo */
       return {w:larg[i],mar:{t:tw(parseFloat(cs(d).paddingTop)||5),b:Math.max(0,tw(parseFloat(cs(d).paddingBottom)||5)-75),l:tw(10),r:tw(10)},
         b:{right:i<cels.length-1?{sz:6,cor:cor}:null},
-        xml:para(run(d.textContent,{sz:f.sz,bold:true,color:f.color}),{jc:"center",exato:1,linha:tw(f.lh)})};
+        xml:para(run(d.textContent,{sz:f.sz,bold:f.bold||700,color:f.color}),{jc:"center",exato:1,linha:tw(f.lh)})};
     })];
     const T=R(t),bw=parseFloat(cs(t).borderTopWidth)||1;
     return paraForma(forma({w:T.width,h:T.height,raio:parseFloat(cs(t).borderTopLeftRadius)||5,fill:solido("FFFFFF"),
@@ -596,8 +599,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
       lin[0].push({w:larg[i*2],xml:paraForma(forma({w:D2.width,h:D2.height,raio:parseFloat(k2.borderTopLeftRadius)||7,
         fill:solido(fundo),line:linha(cor,parseFloat(k2.borderTopWidth)||1),cresce:1,
         ins:{t:parseFloat(k2.paddingTop)||5,b:Math.max(0,(parseFloat(k2.paddingBottom)||5)-4),l:parseFloat(k2.paddingLeft)||9,r:parseFloat(k2.paddingRight)||9},
-        dentro:para(run(sp.textContent.toUpperCase(),{sz:fs.sz,bold:true,color:fs.color,ls:fs.ls}),{jc:"center",exato:1,linha:tw(fs.lh)})
-          +para(run(b.textContent,{sz:fb.sz,bold:true,color:fb.color}),{jc:"center",exato:1,linha:tw(fb.lh)})}))});
+        dentro:para(run(sp.textContent.toUpperCase(),{sz:fs.sz,bold:fs.bold||700,color:fs.color,ls:fs.ls}),{jc:"center",exato:1,linha:tw(fs.lh)})
+          +para(run(b.textContent,{sz:fb.sz,bold:fb.bold||700,color:fb.color}),{jc:"center",exato:1,linha:tw(fb.lh)})}))});
       if(i<cels.length-1)lin[0].push({w:larg[i*2+1],xml:para("",{exato:1,linha:20})});
     });
     return tabela(lin,larg,{});
@@ -607,7 +610,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
   function piso(p,quebra){
     const h=p.querySelector("h2"),f=fmt(win,h);
     const corLinha=hex(cs(h).borderBottomColor)||"1D6B57";
-    let x=para(run(f.caps?h.textContent.toUpperCase():h.textContent,{sz:f.sz,bold:true,color:f.color,ls:f.ls}),
+    let x=para(run(f.caps?h.textContent.toUpperCase():h.textContent,{sz:f.sz,bold:f.bold||700,color:f.color,ls:f.ls}),
       {exato:1,linha:tw(f.lh),quebra:quebra,keepNext:1,
        borda:"<w:bottom w:val=\"single\" w:sz=\"12\" w:space=\"3\" w:color=\""+corLinha+"\"/>"});
     const t=p.querySelector(".rl-txt");
@@ -667,7 +670,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       else if(c.contains("piso"))corpoXml+=piso(b,primeiro);
       else if(c.contains("causa")){
         const bb=b.querySelector("b"),sp=b.querySelector("span"),fb=fmt(win,bb),fs=fmt(win,sp);
-        corpoXml+=para(run(bb.textContent.toUpperCase(),{sz:fb.sz,bold:true,color:fb.color,ls:fb.ls}),
+        corpoXml+=para(run(bb.textContent.toUpperCase(),{sz:fb.sz,bold:fb.bold||700,color:fb.color,ls:fb.ls}),
             {exato:1,linha:tw(fb.lh),fundo:"F9FAFB",ind:{l:tw(11),r:tw(11)},depois:tw(3),quebra:primeiro,
              borda:"<w:left w:val=\"single\" w:sz=\"18\" w:space=\"8\" w:color=\"1D6B57\"/>"})
           +para(run(sp.textContent,{sz:fs.sz,color:fs.color}),
