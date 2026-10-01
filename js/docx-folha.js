@@ -67,9 +67,12 @@ function fmt(win,el,sobre){
   const fundo=hex(cs.backgroundColor,sobre||"rgb(255,255,255)");
   const ls=parseFloat(cs.letterSpacing);
   const bw=parseFloat(cs.borderTopWidth)||0;
-  return {sz:Math.max(2,Math.round(px*1.5)),bold:(parseInt(cs.fontWeight,10)||400)>=550?(parseInt(cs.fontWeight,10)||400):false,
+  /* título em maiúsculas: o Word só tem tamanho de meio em meio ponto; o que sobrar vira espaço entre as letras */
+  const szW=Math.max(2,Math.round(px*1.5)),caps=cs.textTransform==="uppercase";
+  const lsTw=(isFinite(ls)&&ls>0?ls*TW:0)+(caps?(px*0.75-szW/2)*11.2:0);
+  return {sz:szW,bold:(parseInt(cs.fontWeight,10)||400)>=550?(parseInt(cs.fontWeight,10)||400):false,
     italic:cs.fontStyle==="italic",color:hex(cs.color,sobre)||"000000",
-    ls:isFinite(ls)&&ls>0?Math.round(ls*TW):0,caps:cs.textTransform==="uppercase",
+    ls:Math.round(lsTw),caps:caps,
     pre:/pre/.test(cs.whiteSpace),fundo:fundo,
     borda:(bw>0&&cs.borderTopStyle!=="none"&&el.tagName!=="DIV")?hex(cs.borderTopColor,sobre):null,
     lh:parseFloat(cs.lineHeight)||px*1.5,
