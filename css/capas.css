@@ -78,13 +78,15 @@
    Técnica: inverte as cores do conteúdo e devolve o tom ao normal; fotos, assinaturas
    e gráficos voltam ao natural. Só no computador; o celular mantém o modo claro. */
 @media (min-width:1001px){
-  body[data-capa="aurora"] #view-app{background:transparent;box-shadow:none}
-  body[data-capa="aurora"] #view-app>:not(.head){
-    filter:invert(.88) hue-rotate(180deg);
+  body[data-capa="aurora"][data-abas="escuro"] #view-app{background:transparent;box-shadow:none}
+  body[data-capa="aurora"][data-abas="escuro"] #view-app>:not(.head){
+    --text:#05060c;--muted:#171822;
+    filter:invert(.88) hue-rotate(180deg) brightness(1.7) contrast(1.12) saturate(1.25);
   }
-  body[data-capa="aurora"] #view-app>:not(.head) :is(img,canvas,video,svg image,.ck-assin-img){
+  body[data-capa="aurora"][data-abas="escuro"] #view-app>:not(.head) :is(img,canvas,video,svg image,.ck-assin-img){
     filter:invert(1) hue-rotate(180deg);
   }
+  body[data-capa="aurora"][data-abas="escuro"] #view-app>:not(.head) :is(.hub-dica,.store-sub,.desc,small,.muted){opacity:1 !important}
 }
 
 @media (prefers-reduced-motion:reduce){

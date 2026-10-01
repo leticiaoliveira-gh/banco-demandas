@@ -1121,7 +1121,7 @@ async function renderHome(){
    como todo bloco de tela desde 23/07: ela ja mandou tirar cards duas vezes.
    visitas: por loja, os dias em que ela estara la. Viaja no backup e no sync
    junto com o resto do capaCfg, sem tocar em js/sync.js. */
-let CAPA_CFG={layout:"vidro",mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
+let CAPA_CFG={layout:"vidro",abas:"escuro",mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
 let CAPA_ORGANIZANDO=false;
 async function loadCapaCfg(){
   const v=await metaGet("capaCfg");
@@ -1137,7 +1137,7 @@ const CAPA_LAYOUTS=[
 ];
 function capaAplicarLayout(){
   const ok=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout);
-  document.body.dataset.capa=ok?CAPA_CFG.layout:"vidro";
+  document.body.dataset.capa=ok?CAPA_CFG.layout:"vidro";document.body.dataset.abas=CAPA_CFG.abas==="claro"?"claro":"escuro";
 }
 function capaLayoutsAbrir(){
   const atual=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout)?CAPA_CFG.layout:"vidro";
@@ -1147,8 +1147,13 @@ function capaLayoutsAbrir(){
    ${CAPA_LAYOUTS.map(l=>`<button type="button" class="capa-op" aria-pressed="${l.id===atual}" onclick="capaEscolher('${l.id}')">
       <span class="capa-mini ${l.id}"></span>
       <span><b>${esc(l.nome)}${l.id===atual?" · em uso ✓":""}</b><span class="d">${esc(l.desc)}</span></span></button>`).join("")}
+   <h2 style="margin-top:20px">Quadros por dentro</h2>
+   <p class="desc">Vale para o layout Aurora: as abas das empresas podem ficar escuras ou claras.</p>
+   ${[["escuro","Escuro","Fundo escuro, todas as letras acesas."],["claro","Claro","Quadro branco, como era antes."]].map(a=>`<button type="button" class="capa-op" aria-pressed="${(CAPA_CFG.abas==="claro"?"claro":"escuro")===a[0]}" onclick="capaAbas('${a[0]}')">
+      <span><b>${a[1]}${(CAPA_CFG.abas==="claro"?"claro":"escuro")===a[0]?" · em uso ✓":""}</b><span class="d">${a[2]}</span></span></button>`).join("")}
    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
 }
+async function capaAbas(v){CAPA_CFG.abas=v==="claro"?"claro":"escuro";capaAplicarLayout();await salvarCapaCfg();capaLayoutsAbrir();toast("Quadros trocados ✓");}
 async function capaEscolher(id){
   if(!CAPA_LAYOUTS.some(l=>l.id===id))return;
   CAPA_CFG.layout=id;capaAplicarLayout();await salvarCapaCfg();
@@ -2017,7 +2022,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.39";
+const APP_VERSAO="11.40";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
