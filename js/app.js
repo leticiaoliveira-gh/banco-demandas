@@ -1133,7 +1133,8 @@ async function loadCapaCfg(){
    volta a qualquer um quando quiser. Novo = uma linha aqui + um bloco em css/capas.css. */
 const CAPA_LAYOUTS=[
   {id:"vidro", nome:"Vidro verde", desc:"O de sempre: painel de vidro verde, lista de cartões brancos."},
-  {id:"aurora",nome:"Aurora",      desc:"Fundo escuro com verde-água brilhante, lista em vidro, botões em vidro com borda clara."}
+  {id:"aurora",nome:"Aurora",      desc:"Fundo escuro com verde-água brilhante, lista em vidro, botões em vidro com borda clara."},
+  {id:"fluido",nome:"Aurora fluida",desc:"Igual ao Aurora, mas com a foto de água-marinha fluida no fundo. No PDF: título em negrito e mês em vermelho de vidro."}
 ];
 function capaAplicarLayout(){
   const ok=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout);
@@ -1159,11 +1160,13 @@ function capaLayoutsAbrir(){
    não enxerga os arquivos do site, então a foto vai embutida (data URI), carregada de antemão. */
 let CAPA_FOTO_URI="";
 function capaFotoPreparar(){
-  if(CAPA_FOTO_URI||document.body.dataset.capa!=="aurora")return;
+  if(CAPA_FOTO_URI||document.body.dataset.capa!=="fluido")return;
   fetch("img/fundo-aurora.jpg").then(r=>r.blob()).then(b=>{const fr=new FileReader();fr.onload=()=>{CAPA_FOTO_URI=fr.result;};fr.readAsDataURL(b);}).catch(()=>{});
 }
 function capaFundoFolha(verde){
-  if(document.body.dataset.capa!=="aurora")return verde;
+  const l=document.body.dataset.capa;
+  if(l==="aurora")return "linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)";
+  if(l!=="fluido")return verde;
   return CAPA_FOTO_URI?`linear-gradient(rgba(2,16,13,.2),rgba(2,16,13,.2)),url("${CAPA_FOTO_URI}") center 58%/cover no-repeat,#02100d`
     :"linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)";
 }
@@ -2036,7 +2039,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.46";
+const APP_VERSAO="11.47";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

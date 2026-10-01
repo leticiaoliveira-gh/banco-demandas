@@ -2294,13 +2294,13 @@ function m28ImprimirFolha(op){
      pequena de propósito: o degradê largo era justamente o que fazia a ponta
      direita sair lavada no papel. */
   .capa{background:${capaFundoFolha('linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%)')};color:#fff;
-    padding:11px 16px;border-radius:10px;margin-bottom:9px;
+    padding:9px 14px;border-radius:8px;margin-bottom:9px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* IDENTIDADE C: uma frase so, "TIPO · resto do nome" -- ela escolheu vendo as
      opcoes em 27/08. O tipo vem em negrito e maiuscula; o resto, no peso normal
      do titulo, do mesmo tamanho, para nao competir visualmente. */
-  .capa .identidade{font-size:17px;font-weight:700;letter-spacing:3.2px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.4)}
-  .capa .identidade b{font-weight:700;letter-spacing:3.2px}
+  .capa .identidade{font-size:20px;font-weight:600;letter-spacing:-.2px;line-height:1.15}
+  .capa .identidade b{font-weight:800;letter-spacing:.3px}
   /* a faixa em tres partes iguais. Cada pedaco leva o NOME do que e' (Loja, Piso,
      Mes) porque no papel a posicao sozinha nao diz -- e ele recebe mais de uma
      folha no mesmo dia. */
@@ -2308,7 +2308,7 @@ function m28ImprimirFolha(op){
      vivas": os rotulos estavam em 66% de branco e sumiam no papel. Fundo mais
      presente e texto quase branco. */
   .capa .faixa{display:flex;margin-top:7px;border:1px solid rgba(255,255,255,.34);
-    border-radius:8px;overflow:hidden;background:rgba(2,16,13,.38);
+    border-radius:6px;overflow:hidden;background:rgba(255,255,255,.14);
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .capa .faixa div{flex:1;padding:5px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
   .capa .faixa div:last-child{border-right:0}
@@ -2319,7 +2319,7 @@ function m28ImprimirFolha(op){
      vermelha pra identificacao ser mais facil". Vermelho sobre o verde escuro
      seria ilegivel, entao a pastilha do mes ganha fundo claro e o vermelho vai
      no texto -- salta e continua legivel na fotocopia. */
-  .capa .faixa .mes{background:linear-gradient(180deg,rgba(235,60,60,.55),rgba(185,28,28,.5));box-shadow:inset 0 1px 0 rgba(255,255,255,.35);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .capa .faixa .mes{background:#b42318;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .capa .faixa .mes span{color:rgba(255,255,255,.86)}
   .capa .faixa .mes b{color:#fff}
   /* a linha fina de baixo, ainda dentro do verde */
@@ -2336,6 +2336,12 @@ function m28ImprimirFolha(op){
   .capa .cpe span{font-size:8.2px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
   .capa .cpe b{font-weight:600;font-size:11.4px;color:#fff}
   .capa .cpe i{font-style:normal;font-size:9.2px;color:rgba(255,255,255,.88)}
+  ${document.body.dataset.capa==="fluido"?`
+  .capa{padding:11px 16px;border-radius:10px}
+  .capa .identidade{font-size:17px;font-weight:700;letter-spacing:3.2px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+  .capa .identidade b{font-weight:700;letter-spacing:3.2px}
+  .capa .faixa{border-radius:8px;background:rgba(2,16,13,.38)}
+  .capa .faixa .mes{background:linear-gradient(180deg,rgba(235,60,60,.55),rgba(185,28,28,.5));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}`:""}
   .nums{display:flex;gap:7px;margin-bottom:9px}
   .num{flex:1;border:1px solid #eaecf0;border-radius:7px;padding:5px 9px;background:#f9fafb;text-align:center}
   .num span{display:block;font-size:8.4px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#667085}

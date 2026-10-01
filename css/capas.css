@@ -5,83 +5,88 @@
 
 /* ═════ AURORA (só computador; no celular vale o modo loja claro) ═════ */
 @media (min-width:1001px){
-  body[data-capa="aurora"] #view-home{
-    background:linear-gradient(rgba(2,16,13,.18),rgba(2,16,13,.18)),url("../img/fundo-aurora.jpg") center/cover no-repeat,#02100d !important;
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home{
+    background:
+      radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.5),transparent 60%),
+      radial-gradient(ellipse 40% 90% at 65% 40%,rgba(10,160,140,.4),transparent 65%),
+      radial-gradient(ellipse 50% 60% at 20% 60%,rgba(16,120,105,.32),transparent 70%),
+      linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%) !important;
   }
-  body[data-capa="aurora"] #view-home .store-list .store-row{
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .store-list .store-row{
     background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:none;
   }
-  body[data-capa="aurora"] #view-home .store-list .store-row:hover{background:rgba(255,255,255,.15);box-shadow:none}
-  body[data-capa="aurora"] #view-home .store-list .store-title{color:#fff}
-  body[data-capa="aurora"] #view-home .store-list .store-sub,
-  body[data-capa="aurora"] #view-home .store-toggle-label{color:rgba(255,255,255,.75)}
-  body[data-capa="aurora"] #view-home .sr-urg{color:#ffb4ab}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .store-list .store-row:hover{background:rgba(255,255,255,.15);box-shadow:none}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .store-list .store-title{color:#fff}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .store-list .store-sub,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .store-toggle-label{color:rgba(255,255,255,.75)}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .sr-urg{color:#ffb4ab}
   /* botões em vidro com borda clara: nada de verde cheio */
-  body[data-capa="aurora"] #view-home .btn.iniciar,
-  body[data-capa="aurora"] #view-home .btn-nova{
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn.iniciar,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn-nova{
     background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.45);
     box-shadow:none;transition:background .18s ease,border-color .18s ease;
   }
-  body[data-capa="aurora"] #view-home .btn.iniciar:hover,
-  body[data-capa="aurora"] #view-home .btn-nova:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7)}
-  body[data-capa="aurora"] #view-home .btn.iniciar:focus-visible,
-  body[data-capa="aurora"] #view-home .btn-nova:focus-visible{outline:3px solid #2fe0c0;outline-offset:2px}
-  body[data-capa="aurora"] #view-home .btn.iniciar.off{background:rgba(255,255,255,.06) !important;border-color:rgba(255,255,255,.2) !important;color:rgba(255,255,255,.7) !important}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn.iniciar:hover,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn-nova:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7)}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn.iniciar:focus-visible,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn-nova:focus-visible{outline:3px solid #2fe0c0;outline-offset:2px}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn.iniciar.off{background:rgba(255,255,255,.06) !important;border-color:rgba(255,255,255,.2) !important;color:rgba(255,255,255,.7) !important}
   /* textos acesos: nada de letra fosca sobre o fundo escuro */
-  body[data-capa="aurora"] #view-home .section-title,
-  body[data-capa="aurora"] #view-home .home-head h1,
-  body[data-capa="aurora"] #view-home #rt-linha,
-  body[data-capa="aurora"] #view-home .back-link,
-  body[data-capa="aurora"] #view-home .ver-topo,
-  body[data-capa="aurora"] #view-home .home-wrap>div:last-child{color:#fff !important;opacity:1}
-  body[data-capa="aurora"] #view-home .section-title{font-size:14px;letter-spacing:.8px}
-  body[data-capa="aurora"] #view-home .emp-search{background:rgba(255,255,255,.14) !important;border:1px solid rgba(255,255,255,.4) !important;color:#fff !important}
-  body[data-capa="aurora"] #view-home .emp-search svg{stroke:#fff}
-  body[data-capa="aurora"] #view-home .emp-search input{color:#fff !important}
-  body[data-capa="aurora"] #view-home .emp-search input::placeholder{color:rgba(255,255,255,.9) !important}
-  body[data-capa="aurora"] #view-home .emp-toolbar select{background:rgba(255,255,255,.14) !important;border:1px solid rgba(255,255,255,.4) !important;color:#fff !important}
-  body[data-capa="aurora"] #view-home .emp-toolbar select option{color:#2d2e3a;background:#fff}
-  body[data-capa="aurora"] #view-home .btn.ghost.sm{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .section-title,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .home-head h1,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home #rt-linha,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .back-link,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .ver-topo,
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .home-wrap>div:last-child{color:#fff !important;opacity:1}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .section-title{font-size:14px;letter-spacing:.8px}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .emp-search{background:rgba(255,255,255,.14) !important;border:1px solid rgba(255,255,255,.4) !important;color:#fff !important}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .emp-search svg{stroke:#fff}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .emp-search input{color:#fff !important}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .emp-search input::placeholder{color:rgba(255,255,255,.9) !important}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .emp-toolbar select{background:rgba(255,255,255,.14) !important;border:1px solid rgba(255,255,255,.4) !important;color:#fff !important}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .emp-toolbar select option{color:#2d2e3a;background:#fff}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .btn.ghost.sm{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)}
 }
 /* barra lateral no Aurora: vidro escuro combinando com o fundo, e por cima de tudo
    (as dicas dos ícones não podem ficar atrás da lista) */
 @media (min-width:1001px){
-  body[data-capa="aurora"] .app{background:linear-gradient(rgba(2,16,13,.25),rgba(2,16,13,.25)),url("../img/fundo-aurora.jpg") center/cover fixed,#02100d}
-  body[data-capa="aurora"] .rail{
+  body:is([data-capa="aurora"],[data-capa="fluido"]) .app{background:linear-gradient(155deg,#02100d 0%,#04302a 55%,#064b40 100%)}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) .rail{
     z-index:100;
     background:linear-gradient(170deg,rgba(255,255,255,.1),rgba(255,255,255,.04));
     border:1px solid rgba(255,255,255,.2);
     box-shadow:0 10px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.18);
   }
-  body[data-capa="aurora"] .rail .logo{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35)}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) .rail .logo{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35)}
 }
 
 /* abas internas (relatórios etc.) no Aurora: mesmo fundo da capa no cabeçalho,
    e a barra lateral fica DENTRO da parte escura, sem pisar na parte branca */
 @media (min-width:1001px){
-  body[data-capa="aurora"] .head{
-    background:linear-gradient(rgba(2,16,13,.15),rgba(2,16,13,.15)),url("../img/fundo-aurora.jpg") center 55%/cover no-repeat,#02100d;
+  body:is([data-capa="aurora"],[data-capa="fluido"]) .head{
+    background:radial-gradient(90% 160% at 8% 0%,rgba(47,224,192,.28),transparent 60%),
+      linear-gradient(135deg,#02100d 0%,#04302a 55%,#0a5a4c 100%);
     box-shadow:0 4px 18px rgba(0,0,0,.25);
   }
-  body[data-capa="aurora"] .main{margin-left:12px}
-  body[data-capa="aurora"] #view-home{margin-left:0}
-  body[data-capa="aurora"] .rail{box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18)}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) .main{margin-left:12px}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home{margin-left:0}
+  body:is([data-capa="aurora"],[data-capa="fluido"]) .rail{box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18)}
 }
 
 /* abas internas no Aurora: o conteúdo (antes branco) vira vidro escuro.
    Técnica: inverte as cores do conteúdo e devolve o tom ao normal; fotos, assinaturas
    e gráficos voltam ao natural. Só no computador; o celular mantém o modo claro. */
 @media (min-width:1001px){
-  body[data-capa="aurora"][data-abas="escuro"] #view-app{background:transparent;box-shadow:none}
-  body[data-capa="aurora"][data-abas="escuro"] #view-app>:not(.head){
+  body:is([data-capa="aurora"],[data-capa="fluido"])[data-abas="escuro"] #view-app{background:transparent;box-shadow:none}
+  body:is([data-capa="aurora"],[data-capa="fluido"])[data-abas="escuro"] #view-app>:not(.head){
     --text:#05060c;--muted:#171822;
     filter:invert(.88) hue-rotate(180deg) brightness(1.7) contrast(1.12) saturate(1.25);
   }
-  body[data-capa="aurora"][data-abas="escuro"] #view-app>:not(.head) :is(img,canvas,video,svg image,.ck-assin-img){
+  body:is([data-capa="aurora"],[data-capa="fluido"])[data-abas="escuro"] #view-app>:not(.head) :is(img,canvas,video,svg image,.ck-assin-img){
     filter:invert(1) hue-rotate(180deg);
   }
-  body[data-capa="aurora"][data-abas="escuro"] #view-app>:not(.head) :is(.hub-dica,.store-sub,.desc,small,.muted){opacity:1 !important}
+  body:is([data-capa="aurora"],[data-capa="fluido"])[data-abas="escuro"] #view-app>:not(.head) :is(.hub-dica,.store-sub,.desc,small,.muted){opacity:1 !important}
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -95,14 +100,30 @@
 .capa-op:focus-visible{outline:3px solid #2a9d8a;outline-offset:2px}
 .capa-mini{flex:none;width:72px;height:48px;border-radius:8px}
 .capa-mini.vidro{background:radial-gradient(125% 120% at 10% 0%,#2a9d8a 0%,#146055 46%,#0c3f38 100%)}
-.capa-mini.aurora{background:url("../img/fundo-aurora.jpg") center/cover,#02100d}
+.capa-mini.aurora{background:radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.6),transparent 60%),linear-gradient(135deg,#02100d,#064b40)}
 .capa-op b{display:block;font-size:14px;color:#155244}
 .capa-op span.d{display:block;font-size:12px;color:#5c5d68}
 
 /* faixa de título dos relatórios segue o layout da capa (Vidro = verde de sempre) */
 @media (min-width:1001px){
-  body[data-capa="aurora"] :is(.m28-capa,.cmp-capa){
-    background:linear-gradient(rgba(2,16,13,.12),rgba(2,16,13,.12)),url("../img/fundo-aurora.jpg") center 60%/cover no-repeat,#02100d;
+  body:is([data-capa="aurora"],[data-capa="fluido"]) :is(.m28-capa,.cmp-capa){
+    background:radial-gradient(ellipse 60% 120% at 85% 100%,rgba(20,220,190,.45),transparent 60%),
+      linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%);
     box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18);
   }
 }
+
+/* ═════ AURORA FLUIDA (3º layout, 01/10/2026): mesmos quadros do Aurora, fundo com a foto fluida ═════ */
+@media (min-width:1001px){
+  body[data-capa="fluido"] #view-home{
+    background:linear-gradient(rgba(2,16,13,.18),rgba(2,16,13,.18)),url("../img/fundo-aurora.jpg") center/cover no-repeat,#02100d !important;
+  }
+  body[data-capa="fluido"] .app{background:linear-gradient(rgba(2,16,13,.25),rgba(2,16,13,.25)),url("../img/fundo-aurora.jpg") center/cover fixed,#02100d}
+  body[data-capa="fluido"] .head{
+    background:linear-gradient(rgba(2,16,13,.15),rgba(2,16,13,.15)),url("../img/fundo-aurora.jpg") center 55%/cover no-repeat,#02100d;
+  }
+  body[data-capa="fluido"] :is(.m28-capa,.cmp-capa){
+    background:linear-gradient(rgba(2,16,13,.12),rgba(2,16,13,.12)),url("../img/fundo-aurora.jpg") center 60%/cover no-repeat,#02100d;
+  }
+}
+.capa-mini.fluido{background:url("../img/fundo-aurora.jpg") center/cover,#02100d}
