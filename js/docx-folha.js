@@ -247,26 +247,41 @@ window.m28DomParaDocx=async function(win,modoImagem){
   /* ---- foto: parágrafo com todas as imagens de uma demanda ---- */
   async function fotos(fts,indL,quebra){
     const imgs=Array.from(fts.querySelectorAll("img"));
-    let runs="";
-    for(const img of imgs){
-      const r=R(img);
-      const {ext,dados}=await bytesDaFoto(win,img);
-      const n=doc.media.length+1,rid="rImg"+n,nome="image"+n+"."+ext;
-      doc.media.push({name:nome,data:dados,rid:rid});
-      const cx=Math.round(r.width*9525),cy=Math.round(r.height*9525);
-      const adj=Math.min(50000,Math.round((parseFloat(cs(img).borderTopLeftRadius)||0)/Math.max(1,Math.min(r.width,r.height))*100000));
-      runs+="<w:r><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+cx+"\" cy=\""+cy+"\"/>"
-        +"<wp:docPr id=\""+n+"\" name=\""+nome+"\"/><a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
-        +"<pic:pic><pic:nvPicPr><pic:cNvPr id=\""+n+"\" name=\""+nome+"\"/><pic:cNvPicPr/></pic:nvPicPr>"
-        +"<pic:blipFill><a:blip r:embed=\""+rid+"\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>"
-        +"<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\""+cx+"\" cy=\""+cy+"\"/></a:xfrm><a:prstGeom prst=\"roundRect\"><a:avLst><a:gd name=\"adj\" fmla=\"val "+adj+"\"/></a:avLst></a:prstGeom>"
-        +"<a:ln w=\"9525\"><a:solidFill><a:srgbClr val=\"EAECF0\"/></a:solidFill></a:ln></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>"
-        +run("  ",{sz:8});
+    /* fotos em fileiras como no site: topo alinhado, mesmo vão entre elas e entre fileiras */
+    const filas=[];
+    for(const img of imgs){const t=Math.round(R(img).top),u=filas[filas.length-1];
+      if(u&&Math.abs(u.top-t)<3)u.imgs.push(img);else filas.push({top:t,imgs:[img]});}
+    const gapC=parseFloat(cs(fts).columnGap)||4,gapL=parseFloat(cs(fts).rowGap)||gapC;
+    let out="";
+    for(let fi=0;fi<filas.length;fi++){
+      const fila=filas[fi],alto=Math.max(...fila.imgs.map(m=>R(m).height));
+      let runs="";
+      for(let k=0;k<fila.imgs.length;k++){
+        const img=fila.imgs[k],r=R(img),bw=parseFloat(cs(img).borderTopWidth)||0;
+        const {ext,dados}=await bytesDaFoto(win,img);
+        const n=doc.media.length+1,rid="rImg"+n,nome="image"+n+"."+ext;
+        doc.media.push({name:nome,data:dados,rid:rid});
+        /* o Word desenha a moldura metade por fora: a foto encolhe a grossura dela */
+        const cx=Math.round((r.width-bw)*9525),cy=Math.round((r.height-bw)*9525);
+        const adj=Math.min(50000,Math.round((parseFloat(cs(img).borderTopLeftRadius)||0)/Math.max(1,Math.min(r.width,r.height))*100000));
+        const sobe=Math.round((alto-r.height)*1.5);
+        runs+="<w:r>"+(sobe>0?"<w:rPr><w:position w:val=\""+sobe+"\"/></w:rPr>":"")+"<w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+cx+"\" cy=\""+cy+"\"/>"
+          +"<wp:effectExtent l=\""+Math.round(bw/2*9525)+"\" t=\""+Math.round(bw/2*9525)+"\" r=\""+Math.round(bw/2*9525)+"\" b=\""+Math.round(bw/2*9525)+"\"/>"
+          +"<wp:docPr id=\""+n+"\" name=\""+nome+"\"/><a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
+          +"<pic:pic><pic:nvPicPr><pic:cNvPr id=\""+n+"\" name=\""+nome+"\"/><pic:cNvPicPr/></pic:nvPicPr>"
+          +"<pic:blipFill><a:blip r:embed=\""+rid+"\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>"
+          +"<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\""+cx+"\" cy=\""+cy+"\"/></a:xfrm><a:prstGeom prst=\"roundRect\"><a:avLst><a:gd name=\"adj\" fmla=\"val "+adj+"\"/></a:avLst></a:prstGeom>"
+          +"<a:ln w=\""+Math.round(Math.max(bw,0.75)*9525)+"\"><a:solidFill><a:srgbClr val=\""+(hex(cs(img).borderTopColor)||"EAECF0")+"\"/></a:solidFill></a:ln></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>";
+        /* vão até a próxima foto = um espaço miudinho esticado com a medida do site */
+        if(k<fila.imgs.length-1){const g=R(fila.imgs[k+1]).left-r.right;
+          runs+=run(" ",{sz:2,ls:Math.max(0,Math.round(tw(g)-0.2744*1*TW))});}
+      }
+      /* "+N no site" fica na última fileira, como no site */
+      const nota=fts.querySelector(":scope > i");
+      if(nota&&fi===filas.length-1){const f=fmt(win,nota);runs+=run(" ",{sz:2,ls:tw(gapC)})+run(nota.textContent,{sz:f.sz,color:f.color});}
+      out+=para(runs,{antes:fi?tw(gapL):tw(parseFloat(cs(fts).marginTop)||5),ind:{l:indL||0},linha:240,quebra:fi?false:quebra,rpr:"<w:rPr><w:sz w:val=\"2\"/></w:rPr>"});
     }
-    /* "+N no site" */
-    const nota=fts.querySelector(":scope > i");
-    if(nota){const f=fmt(win,nota);runs+=run(nota.textContent,{sz:f.sz,color:f.color});}
-    return para(runs,{antes:tw(parseFloat(cs(fts).marginTop)||5),ind:{l:indL||0},linha:240});
+    return out;
   }
 
   /* ---- texto corrido de um elemento: percorre os filhos, trecho a trecho ---- */
