@@ -498,7 +498,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       /* semTexto: só o FUNDO (degradê, cantos, molduras) — o texto vai editável por cima, no Word */
       if(semTexto==="rid"){ /* selo em linha: vira bloquinho do tamanho exato, texto centrado na altura */
         const k=cs(c),v=["paddingTop","paddingBottom","borderTopWidth","borderBottomWidth"].reduce((a,p)=>a+(parseFloat(k[p])||0),0);
-        Object.assign(cl.style,{display:"inline-block",position:"absolute",left:"0",top:"0",verticalAlign:"top",lineHeight:Math.max(1,H-v)+"px"});}
+        Object.assign(cl.style,{display:"inline-block",position:"absolute",left:"0",top:"0",verticalAlign:"top",lineHeight:Math.max(1,H-v)+"px",whiteSpace:"nowrap"});}
       if(semTexto===true)d.forEach(e=>{e.style.color="transparent";e.style.textShadow="none";e.style.webkitTextFillColor="transparent";});
       cl.style.margin="0";cl.style.width=W+"px";cl.style.height=H+"px";cl.style.boxSizing="border-box";
       const xml=new XMLSerializer().serializeToString(cl);
