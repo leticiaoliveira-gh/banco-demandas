@@ -1209,8 +1209,13 @@ function m28RenderListaDesenho(){
   for(const d of rows){
     if(ehR.has(d)&&!emRalos){emRalos=true;piso=null;area=null;fecha();
       const rx=(m28T().ralosTexto||"").trim();
-      html+=`<div class="m28-ralos-cab"><div class="m28-ralos-tit">${icone("gota")} ${esc(m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo)}</div>`
-        +(rx?`<p class="m28-ralos-txt">${esc(m28SemTravessao(rx))}</p>`:"")+`</div>`;}
+      /* a setinha também fecha o bloco inteiro de ralos (01/10, pedido dela) */
+      const rf=!!M28F.fechadas["RALOS"];
+      html+=`<div class="m28-ralos-cab"><div class="m28-ralos-tit"><button class="m28-abrefecha" onclick="m28AbreFecha('RALOS')"
+          aria-expanded="${rf?"false":"true"}" title="${rf?"Abrir os ralos":"Fechar todos os ralos"}"
+          aria-label="${rf?"Abrir":"Fechar"} o rastreamento de ralos">${M28_CHEV}</button>${icone("gota")} ${esc(m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo)}</div>`
+        +(rx&&!rf?`<p class="m28-ralos-txt">${esc(m28SemTravessao(rx))}</p>`:"")+`</div>`;}
+    if(emRalos&&M28F.fechadas["RALOS"])continue;   /* bloco de ralos fechado: some tudo dele */
     if(d.piso!==piso){piso=d.piso;area=null;fecha();
       const np=nPiso[pre(d)+d.piso]||0;
       const kp="P|"+pre(d)+d.piso,pf=!!M28F.fechadas[kp];
