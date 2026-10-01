@@ -1351,3 +1351,16 @@ body.editando-cards .card-fantasma{opacity:.4}
 .rail-hist .ricon{width:28px;height:28px;border-radius:50%;font-size:17px}
 .rail.aberta{width:168px}
 .rail.aberta .rlabel{font-size:12px}
+
+/* v11.34 — versão em pílula de vidro vermelha, letra maior e viva; barra um pouco mais larga */
+@media(min-width:1001px){
+  .rail{width:64px}
+  .rail .rail-ver,body .rail .rail-ver{margin:2px 0 4px;padding:4px 10px;border-radius:999px;
+    font-size:13px;font-weight:800;letter-spacing:.2px;color:#fff !important;opacity:1 !important;
+    background:linear-gradient(160deg,rgba(255,110,110,.35),rgba(217,45,58,.5));
+    border:1px solid rgba(255,180,180,.65);box-shadow:0 0 12px rgba(217,45,58,.3),inset 0 1px 0 rgba(255,255,255,.3);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:0 1px 4px rgba(0,0,0,.35)}
+  .rail.aberta .rail-ver{padding-left:10px;text-align:center;align-self:center}
+}
+.rail button.ricon#btCapas,.rail button.ricon#btSeguranca{background:transparent;border:0;padding:0;cursor:pointer}
+.rail button.ricon#btCapas:hover,.rail button.ricon#btSeguranca:hover{background:rgba(255,255,255,.16)}

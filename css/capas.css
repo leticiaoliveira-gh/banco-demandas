@@ -46,15 +46,6 @@
   body[data-capa="aurora"] #view-home .emp-search input::placeholder{color:rgba(255,255,255,.9) !important}
   body[data-capa="aurora"] #view-home .emp-toolbar select{background:rgba(255,255,255,.14) !important;border:1px solid rgba(255,255,255,.4) !important;color:#fff !important}
   body[data-capa="aurora"] #view-home .emp-toolbar select option{color:#2d2e3a;background:#fff}
-  /* Iniciar: vidro avermelhado com brilho (proposta; ajustar quando ela mostrar a referência) */
-  body[data-capa="aurora"] #view-home .btn.iniciar:not(.off){
-    background:linear-gradient(160deg,rgba(255,110,110,.38),rgba(217,45,58,.55));
-    border:1px solid rgba(255,170,170,.7);color:#fff;font-weight:700;
-    box-shadow:0 0 18px rgba(217,45,58,.35),inset 0 1px 0 rgba(255,255,255,.3);
-  }
-  body[data-capa="aurora"] #view-home .btn.iniciar:not(.off):hover{
-    background:linear-gradient(160deg,rgba(255,130,130,.5),rgba(217,45,58,.7));border-color:rgba(255,200,200,.9);
-  }
   body[data-capa="aurora"] #view-home .btn.ghost.sm{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)}
 }
 @media (prefers-reduced-motion:reduce){
