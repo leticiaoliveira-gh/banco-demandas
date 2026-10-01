@@ -893,7 +893,7 @@ async function renderMnt28(){
   const execs=m28Executores(basePlena);
   const opExec=execs.length>1?execs.map(e=>{
     const n=basePlena.filter(d=>(d.executor||"").trim()===e&&(!M28F.piso||d.piso===M28F.piso)).length;
-    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha de: ${esc(m28NomeExec(e))} (${n})</option>`;
+    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha para: ${esc(m28NomeExec(e))} (${n})</option>`;
   }).join(""):"";
   const barra=`<div class="toolbar m28-barra m28-filtros">
     <div class="search">
@@ -902,14 +902,14 @@ async function renderMnt28(){
         placeholder="Buscar serviço…" title="Busca no serviço, na área e na observação" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
     </div>
     ${opExec?`<select aria-label="Escolher de quem é a folha" onchange="m28Filtro('exec',this.value)"
-      title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Folha de: todos</option>${opExec}</select>`:""}
+      title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Folha para: todos</option>${opExec}</select>`:""}
     <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Piso: todos</option>${opPiso}</select>
     <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Área: todas</option>${opArea}</select>
-    <select aria-label="Mostrar" onchange="m28Filtro('ver',this.value)">
-      <option value="todos"${M28F.ver==="todos"?" selected":""}>Mostrar: tudo</option>
-      <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Mostrar: só o que falta</option>
-      <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Mostrar: só os feitos</option>
-      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Mostrar: só com meu lembrete</option>
+    <select aria-label="Situação" onchange="m28Filtro('ver',this.value)">
+      <option value="todos"${M28F.ver==="todos"?" selected":""}>Situação: tudo</option>
+      <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Situação: pendentes</option>
+      <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Situação: concluídos</option>
+      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Situação: com lembrete</option>
     </select>
   </div>
   <div class="toolbar m28-barra m28-botoes">

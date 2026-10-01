@@ -538,3 +538,6 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   .m28-barra.m28-botoes .btn svg{width:16px;height:16px}
   .m28-barra.m28-filtros .search,.m28-barra.m28-filtros select{height:36px;min-height:36px;font-size:13px}
 }
+
+/* 01/10: filtros da barra da folha em MAIÚSCULO (pedido de Le) */
+.m28-barra.m28-filtros select{text-transform:uppercase}
