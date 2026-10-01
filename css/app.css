@@ -1364,8 +1364,3 @@ body.editando-cards .card-fantasma{opacity:.4}
 }
 .rail button.ricon#btCapas,.rail button.ricon#btSeguranca{background:transparent;border:0;padding:0;cursor:pointer}
 .rail button.ricon#btCapas:hover,.rail button.ricon#btSeguranca:hover{background:rgba(255,255,255,.16)}
-/* v11.35 — pílula e bolinha menores, com folga dos dois lados (ficam "dentro" da barra) */
-@media(min-width:1001px){
-  .rail .rail-ver,body .rail .rail-ver{padding:3px 7px;font-size:11.5px;font-weight:700;margin:2px 0 4px;max-width:calc(100% - 20px);box-sizing:border-box}
-  .rail .logo{width:34px;height:34px;font-size:12px}
-}
