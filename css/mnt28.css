@@ -491,3 +491,12 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 .m28-piso{align-items:center}
 .m28-piso-nome{flex:1;min-width:0}
 .m28-piso.fechado{margin-bottom:12px}
+
+/* barra de filtros e botões numa linha só no computador (pedido dela, 01/10) */
+@media (min-width:1001px){
+  .m28-barra{flex-wrap:nowrap;gap:6px;overflow-x:auto}
+  .m28-barra .search{flex:1 1 130px;min-width:110px}
+  .m28-barra select{flex:0 1 auto;font-size:12px;padding:4px 6px;min-height:32px;width:auto}
+  .m28-barra .btn{flex:none;font-size:11.5px;padding:4px 8px;min-height:32px;gap:4px;white-space:nowrap}
+  .m28-barra .btn svg{width:13px;height:13px}
+}
