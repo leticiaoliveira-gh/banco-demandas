@@ -3,6 +3,8 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **01/10/2026 (noite): no ar v11.60 (cache v237).** v11.59/11.60: a seta do topo que dizia Capa agora é "← Voltar" e sobe só uma página (relatório → área dos relatórios da empresa → Capa). Plano na v39, PDF gerado. Ela ainda vai mandar mais edições.
+
 > **01/10/2026 (noite): no ar v11.58 (cache v235).** Barra lateral se esconde sozinha ao entrar em qualquer relatório (vindo do Hub); no Hub/Capa aparece. Botões da Manutenção todos com ícone (inclui PDF), mesma altura, descem de linha se faltar espaço (nada some).
 
 > **01/10/2026 (noite): no ar v11.57 (cache v234).** Manutenção: 3 cards pequenos (Serviços=a fazer, Urgentes, Feitos) embaixo do aviso das paradas; botão Imprimir separado do PDF.
