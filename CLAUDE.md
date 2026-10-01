@@ -167,6 +167,16 @@ Relatórios — qual caminho usar:
 
 ---
 
+### 5.1 PASTA DA TAREFA — atualizar a CADA atualização do site (regra fixa, 01/10/2026, pedido de Le)
+**A pasta de tarefas é esta (ordem dela, 01/10/2026; já existe, nunca criar outra):**
+`C:\Users\Letícia\OneDrive\- L\- PROJETOS CENTRAL\1. PROJETO - Trabalho (website)\Tarefas`
+Um arquivo `Site NN.NN - assunto.md` por versão (e por configuração/layout novo), com o print de prova ao lado. O diário em `4. Site\Atualizações do site (01-10-26)` (DIARIO DAS ATUALIZACOES.md + Provas) TAMBÉM continua sendo atualizado a cada tarefa criada (ordem dela, 01/10/2026): as DUAS pastas, sempre.
+A cada versão publicada, antes do cartão de fechamento:
+1. Acrescentar uma linha NO TOPO do `DIARIO DAS ATUALIZACOES.md` (data, versão, o que mudou, prova, PDF do plano).
+2. Copiar o print de prova para a subpasta `Provas` com o nome `vNN.NN o que mostra.png`.
+3. Ritual completo: versão nos 4 lugares, console + 375px + 768px, revisor-do-site e auditor-da-sessao, commit + push, `wrangler deploy` + conferir no ar, plano (versão +1, nada apagado) + PDF enviado, `PROXIMA-SESSAO.md`, cartão de fechamento.
+Caminho curto: pasta até 30 letras, arquivo até 60.
+
 ## 6. CONTEXTO DO PROJETO
 
 - Histórico e decisões: `CONTINUIDADE.md` (é a memória entre conversas).

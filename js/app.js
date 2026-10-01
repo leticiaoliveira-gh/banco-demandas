@@ -661,8 +661,11 @@ function fecharMenuMais(){const m=document.getElementById("menuMais");if(m)m.hid
 function renderBreadcrumb(){
   const c=document.getElementById("crumb");if(!c)return;
   const aba=currentTab&&TABS[currentTab]?` › <b>${esc(rotuloAba(currentTab))}</b>`:" › <b>Início</b>";
-  c.innerHTML=`<span onclick="goHome()" title="Voltar à Central de Empresas">Capa</span> › <span onclick="showHub()" title="Voltar ao início desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
+  const seta='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>';
+  c.innerHTML=`<span onclick="voltarUmaPagina()" title="Voltar uma página">${seta}Voltar</span> · <span onclick="showHub()" title="Ir para os relatórios desta empresa">${esc(currentStoreName||"Empresa")}</span>${aba}`;
 }
+/* "Voltar" sempre sobe UM degrau: da aba para a área dos relatórios; dos relatórios para a Capa */
+function voltarUmaPagina(){if(currentTab)showHub();else goHome();}
 /* Cabeçalho padrão de TODAS as abas — "TÍTULOS INDEPENDENTES":
    1) EM CIMA a loja, só para identificar. NÃO é editável aqui — renomear a empresa
       só na Capa, no ✎ (senão o mesmo nome mudava em dois lugares).
@@ -2041,7 +2044,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.58";
+const APP_VERSAO="11.59";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
