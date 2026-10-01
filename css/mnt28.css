@@ -485,7 +485,10 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   white-space:normal;line-height:1.3;overflow-wrap:anywhere}
 
 /* botões de abrir/fechar maiores (pedido dela, 01/10): piso e área */
-.m28-abrefecha{width:32px;height:32px;font-size:24px;font-weight:700;background:rgba(21,82,68,.10);border-radius:8px}
+.m28-abrefecha{width:32px;height:32px;font-size:0;background:rgba(21,82,68,.10);border-radius:8px}
+.m28-abrefecha .m28-chev{display:block;width:16px;height:16px;flex:none;transition:transform .18s ease}
+.m28-abrefecha[aria-expanded="false"] .m28-chev{transform:rotate(-90deg)}
+@media (prefers-reduced-motion:reduce){.m28-abrefecha .m28-chev{transition:none}}
 .m28-abrefecha:hover{background:rgba(21,82,68,.20)}
 .m28-abrefecha-piso{align-self:center}
 .m28-piso{align-items:center}
@@ -499,4 +502,43 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
   .m28-barra select{flex:0 1 auto;font-size:12px;padding:4px 6px;min-height:32px;width:auto}
   .m28-barra .btn{flex:none;font-size:11.5px;padding:4px 8px;min-height:32px;gap:4px;white-space:nowrap}
   .m28-barra .btn svg{width:13px;height:13px}
+}
+
+/* ─────────── LAYOUT COMPACTO "A" (escolhido por ela, 01/10) ───────────
+   Uma linha fina por serviço. Só no computador: no celular fica a lista
+   grande de antes, com alvos de 44px. Nada é apagado, só muda o desenho. */
+@media (min-width:821px){
+  .m28-piso{font-size:13px;padding-bottom:4px;margin:16px 0 2px}
+  .m28-abrefecha-piso{width:28px;height:28px}
+  .m28-abrefecha{width:24px;height:24px;border-radius:6px}
+  .m28-abrefecha .m28-chev{width:14px;height:14px}
+  .m28-abrefecha-piso .m28-chev{width:16px;height:16px}
+  .m28-grupo{margin-top:8px;border-radius:8px}
+  .m28-piso + .m28-grupo{margin-top:6px}
+  .m28-grupo + .m28-piso{margin-top:22px}
+  .m28-area{padding:4px 8px;gap:8px;min-height:32px}
+  .m28-area-nome{font-size:12px;text-transform:uppercase;letter-spacing:.2px}
+  .m28-count{font-size:11px}
+  .m28-lapis-area{width:24px;height:24px;font-size:12px}
+
+  .m28-item{
+    grid-template-columns:24px 22px minmax(0,1fr) 138px minmax(0,17%) auto;
+    gap:10px;align-items:center;padding:5px 8px;min-height:40px;contain-intrinsic-size:auto 44px;
+  }
+  .m28-check{width:20px;height:20px;min-height:20px;border-width:1.5px;border-radius:5px;font-size:13px}
+  .m28-num{font-size:12.5px;padding-top:0}
+  .m28-fazer{font-size:13px;line-height:1.35;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+  .m28-item:hover .m28-fazer{-webkit-line-clamp:unset;line-clamp:unset;display:block}
+  .m28-desde{display:flex;flex-wrap:wrap;gap:0 6px;align-items:baseline;font-size:11.5px;line-height:1.3}
+  .m28-desde .m28-data,.m28-desde .m28-tempo{display:inline}
+  .m28-desde .m28-data{font-size:12px}
+  .m28-desde .prd-selo,.m28-item .prd-selo{margin:2px 0 0;padding:0 8px;font-size:10.5px;white-space:nowrap;line-height:1.5}
+  .m28-obs{font-size:11.5px;line-height:1.3;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+  .m28-item:hover .m28-obs{-webkit-line-clamp:unset;line-clamp:unset;display:block}
+  .m28-acts{flex-wrap:nowrap;max-width:none;gap:3px}
+  .m28-acts .btn.sm{min-height:26px;height:26px;padding:0 7px;font-size:11px}
+  .m28-acts .btn.sm svg{width:13px;height:13px}
+  .m28-acts .delbtn{width:26px;height:26px}
 }

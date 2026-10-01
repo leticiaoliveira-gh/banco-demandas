@@ -1215,7 +1215,7 @@ function m28RenderListaDesenho(){
       const kp="P|"+pre(d)+d.piso,pf=!!M28F.fechadas[kp];
       html+=`<div class="m28-piso${pf?" fechado":""}"><button class="m28-abrefecha m28-abrefecha-piso" onclick="m28AbreFecha('${esc(kp).replace(/'/g,"'")}')"
           aria-expanded="${pf?"false":"true"}" title="${pf?"Abrir este piso":"Fechar este piso inteiro"}"
-          aria-label="${pf?"Abrir":"Fechar"} o piso ${esc(piso||"Sem piso")}">${pf?"›":"⌄"}</button><span class="m28-piso-nome">${esc(piso||"Sem piso")}${emRalos?" · Ralos":""}</span><span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
+          aria-label="${pf?"Abrir":"Fechar"} o piso ${esc(piso||"Sem piso")}">${M28_CHEV}</button><span class="m28-piso-nome">${esc(piso||"Sem piso")}${emRalos?" · Ralos":""}</span><span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
     if(M28F.fechadas["P|"+pre(d)+d.piso]){area=null;fecha();continue;}   /* piso fechado: some tudo dele */
     if(d.area!==area){area=d.area;nDemanda=0;const k=pre(d)+d.piso+"|"+d.area;
       fecha();html+='<div class="m28-grupo">';aberto=true;
@@ -1226,7 +1226,7 @@ function m28RenderListaDesenho(){
       html+=`<div class="m28-area${fechada?" fechada":""}" data-piso="${esc(d.piso)}" data-area="${esc(area)}">`
         +`<button class="m28-abrefecha" onclick="m28AbreFecha('${esc(k).replace(/'/g,"\'")}')"
             aria-expanded="${fechada?"false":"true"}" title="${fechada?"Abrir esta área":"Fechar esta área"}"
-            aria-label="${fechada?"Abrir":"Fechar"} a área ${esc(area)}">${fechada?"›":"⌄"}</button>`
+            aria-label="${fechada?"Abrir":"Fechar"} a área ${esc(area)}">${M28_CHEV}</button>`
         +`<span class="m28-area-nome">${esc(area)}</span>`
         +`<button class="m28-lapis m28-lapis-area" onclick="m28RenomearArea('${esc(d.piso).replace(/'/g,"\'")}','${esc(area).replace(/'/g,"\'")}')"
             title="Renomear esta área (vale para a folha inteira)" aria-label="Renomear a área ${esc(area)}">✎</button>`
@@ -2896,6 +2896,8 @@ if(typeof CFG_ABAS!=="undefined")CFG_ABAS.mnt28=()=>[
    ===================================================================== */
 /* Folha 2: a setinha da área — fecha e abre, igual ao Notion. Só arruma a
    vista; nada é apagado. O estado vive só nesta visita à aba. */
+/* seta desenhada (não letra): fica sempre no centro do quadrado; o CSS gira quando fecha */
+const M28_CHEV='<svg class="m28-chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function m28AbreFecha(k){
   M28F.fechadas[k]=!M28F.fechadas[k];
   m28RenderLista();
