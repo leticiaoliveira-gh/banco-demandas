@@ -328,6 +328,37 @@ window.m28DomParaDocx=async function(win){
     return tabela(rows,grade,{borda:{top:{sz:6,cor:bcor},left:{sz:6,cor:bcor},bottom:{sz:6,cor:bcor},right:{sz:6,cor:bcor}}});
   }
 
+
+  /* ---- capa como figura: degradê, cantos e sombras idênticos ao PDF (fallback: capa editável) ---- */
+  async function capaImagem(c,quebra){
+    try{
+      const r=R(c),W=Math.ceil(r.width),H=Math.ceil(r.height),E=3;
+      const cl=c.cloneNode(true);
+      const o=[c].concat(Array.from(c.querySelectorAll("*"))),d=[cl].concat(Array.from(cl.querySelectorAll("*")));
+      o.forEach((e,i)=>{const k=cs(e);let t="";for(let j=0;j<k.length;j++){const n=k[j];t+=n+":"+k.getPropertyValue(n)+";";}
+        d[i].setAttribute("style",t);});
+      cl.style.margin="0";cl.style.width=W+"px";cl.style.height=H+"px";cl.style.boxSizing="border-box";
+      const xml=new XMLSerializer().serializeToString(cl);
+      const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W*E+'" height="'+H*E+'"><foreignObject width="'+W+'" height="'+H+'" transform="scale('+E+')">'+xml+'</foreignObject></svg>';
+      const img=new win.Image();
+      await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);});
+      const cv=D.createElement("canvas");cv.width=W*E;cv.height=H*E;
+      cv.getContext("2d").drawImage(img,0,0);
+      const b64=cv.toDataURL("image/png").split(",")[1];
+      if(b64.length<2000)return null;
+      const bin=atob(b64),dados=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)dados[i]=bin.charCodeAt(i);
+      const n=doc.media.length+1,rid="rImg"+n,nome="image"+n+".png";
+      doc.media.push({name:nome,data:dados,rid:rid});
+      const cx=Math.round(W*9525),cy=Math.round(H*9525);
+      const run1="<w:r><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+cx+"\" cy=\""+cy+"\"/>"
+        +"<wp:docPr id=\""+n+"\" name=\""+nome+"\"/><a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
+        +"<pic:pic><pic:nvPicPr><pic:cNvPr id=\""+n+"\" name=\""+nome+"\"/><pic:cNvPicPr/></pic:nvPicPr>"
+        +"<pic:blipFill><a:blip r:embed=\""+rid+"\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>"
+        +"<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\""+cx+"\" cy=\""+cy+"\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>";
+      return para(run1,{linha:240,quebra:quebra});
+    }catch(e){return null;}
+  }
+
   /* ---- cabeçalho verde (.capa) ---- */
   function capa(c,quebra){
     const verde=(D.body.dataset&&D.body.dataset.capa)?"": "";
@@ -462,7 +493,7 @@ window.m28DomParaDocx=async function(win){
           {exato:1,linha:tw(f.lh),quebra:primeiro,
            borda:"<w:bottom w:val=\"single\" w:sz=\"6\" w:space=\"4\" w:color=\"EAECF0\"/>"});
       }
-      else if(c.contains("capa"))corpoXml+=capa(b,primeiro);
+      else if(c.contains("capa"))corpoXml+=(await capaImagem(b,primeiro))||capa(b,primeiro);
       else if(c.contains("nums"))corpoXml+=nums(b);
       else if(c.contains("topo2"))corpoXml+=topo2(b,primeiro);
       else if(c.contains("grupo"))corpoXml+=await grupo(b,primeiro);
