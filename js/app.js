@@ -1153,6 +1153,8 @@ function capaLayoutsAbrir(){
       <span><b>${a[1]}${(CAPA_CFG.abas==="escuro"?"escuro":"claro")===a[0]?" · em uso ✓":""}</b><span class="d">${a[2]}</span></span></button>`).join("")}
    <div class="form-actions"><button class="btn ghost" onclick="ncFechar()">Fechar</button></div>`);
 }
+/* fundo da faixa de título nas folhas impressas: segue o layout da capa */
+function capaFundoFolha(verde){return document.body.dataset.capa==="aurora"?"linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)":verde;}
 async function capaAbas(v){CAPA_CFG.abas=v==="escuro"?"escuro":"claro";capaAplicarLayout();await salvarCapaCfg();capaLayoutsAbrir();toast("Quadros trocados ✓");}
 async function capaEscolher(id){
   if(!CAPA_LAYOUTS.some(l=>l.id===id))return;
@@ -2022,7 +2024,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.42";
+const APP_VERSAO="11.43";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */

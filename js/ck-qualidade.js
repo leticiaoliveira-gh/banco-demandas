@@ -927,7 +927,7 @@ function ckqAbrirRelatorio(uid){
   w.document.write(`<!doctype html><html lang=pt-BR><head><meta charset=utf-8><title>Relatório</title>
     <style>body{font-family:Arial,sans-serif;max-width:920px;margin:0 auto;padding:20px;color:#222}
       h1{font-size:22px;margin:0 0 6px}h2{font-size:15px;margin:18px 0 6px;color:#555;text-transform:uppercase;letter-spacing:.5px}
-      .capa{background:linear-gradient(155deg,#0f5b52,#17756a,#2a9d8a);color:#fff;padding:22px;border-radius:10px;margin-bottom:16px}
+      .capa{background:${capaFundoFolha('linear-gradient(155deg,#0f5b52,#17756a,#2a9d8a)')};color:#fff;padding:22px;border-radius:10px;margin-bottom:16px}
       .capa .nota{font-size:44px;font-weight:800;line-height:1}
       table{width:100%;border-collapse:collapse;margin-top:4px}th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px;text-align:left;vertical-align:top}
       th{background:#f2f4f4}

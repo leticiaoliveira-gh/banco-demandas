@@ -2293,7 +2293,7 @@ function m28ImprimirFolha(op){
      degradê MUITO curto que dava profundidade. A diferença dos dois tons aqui é
      pequena de propósito: o degradê largo era justamente o que fazia a ponta
      direita sair lavada no papel. */
-  .capa{background:linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%);color:#fff;
+  .capa{background:${capaFundoFolha('linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%)')};color:#fff;
     padding:9px 14px;border-radius:8px;margin-bottom:9px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* IDENTIDADE C: uma frase so, "TIPO · resto do nome" -- ela escolheu vendo as

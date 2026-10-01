@@ -445,7 +445,7 @@ function cmpImprimir(){
       box-shadow:0 4px 18px rgba(16,24,40,.14)}
     .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
     /* mesmo cabecalho da folha de manutencao -- se um mudar, o outro muda junto */
-    .capa{background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);color:#fff;
+    .capa{background:${capaFundoFolha('linear-gradient(155deg,#146b61 0%,#1a8074 100%)')};color:#fff;
       padding:12px 16px;border-radius:8px;margin-bottom:11px;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
     .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.88)}
