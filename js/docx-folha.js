@@ -569,13 +569,14 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const cor=hex(cs(t).borderTopColor)||"CFD8D5";
     const lin=[cels.map((d,i)=>{
       const f=fmt(win,d);
-      return {w:larg[i],mar:{t:tw(parseFloat(cs(d).paddingTop)||5),b:tw(parseFloat(cs(d).paddingBottom)||5),l:tw(10),r:tw(10)},
+      /* o Word deixa a caixa uns 3pt mais alta embaixo: tira da margem de baixo */
+      return {w:larg[i],mar:{t:tw(parseFloat(cs(d).paddingTop)||5),b:Math.max(0,tw(parseFloat(cs(d).paddingBottom)||5)-75),l:tw(10),r:tw(10)},
         b:{right:i<cels.length-1?{sz:6,cor:cor}:null},
         xml:para(run(d.textContent,{sz:f.sz,bold:true,color:f.color}),{jc:"center",exato:1,linha:tw(f.lh)})};
     })];
     const T=R(t),bw=parseFloat(cs(t).borderTopWidth)||1;
     return paraForma(forma({w:T.width,h:T.height,raio:parseFloat(cs(t).borderTopLeftRadius)||5,fill:solido("FFFFFF"),
-      line:linha(cor,bw),cresce:1,ins:{t:bw,b:bw},dentro:tabela(lin,larg,{})+espaco(0)}),quebra);
+      line:linha(cor,bw),cresce:1,ins:{t:bw,b:0},dentro:tabela(lin,larg,{})+fimCaixa}),quebra);
   }
 
   /* ---- os dois números (.nums) ---- */
@@ -591,9 +592,10 @@ window.m28DomParaDocx=async function(win,modoImagem){
       const cor=hex(cs(d).borderTopColor)||"EAECF0";
       const fundo=hex(cs(d).backgroundColor)||"F9FAFB";
       const D2=R(d),k2=cs(d);
+      /* o Word deixa a caixinha ~3pt mais alta embaixo: a margem de baixo desconta isso */
       lin[0].push({w:larg[i*2],xml:paraForma(forma({w:D2.width,h:D2.height,raio:parseFloat(k2.borderTopLeftRadius)||7,
         fill:solido(fundo),line:linha(cor,parseFloat(k2.borderTopWidth)||1),cresce:1,
-        ins:{t:parseFloat(k2.paddingTop)||5,b:parseFloat(k2.paddingBottom)||5,l:parseFloat(k2.paddingLeft)||9,r:parseFloat(k2.paddingRight)||9},
+        ins:{t:parseFloat(k2.paddingTop)||5,b:Math.max(0,(parseFloat(k2.paddingBottom)||5)-4),l:parseFloat(k2.paddingLeft)||9,r:parseFloat(k2.paddingRight)||9},
         dentro:para(run(sp.textContent.toUpperCase(),{sz:fs.sz,bold:true,color:fs.color,ls:fs.ls}),{jc:"center",exato:1,linha:tw(fs.lh)})
           +para(run(b.textContent,{sz:fb.sz,bold:true,color:fb.color}),{jc:"center",exato:1,linha:tw(fb.lh)})}))});
       if(i<cels.length-1)lin[0].push({w:larg[i*2+1],xml:para("",{exato:1,linha:20})});
@@ -614,7 +616,10 @@ window.m28DomParaDocx=async function(win,modoImagem){
       x+=espaco(parseFloat(cs(t).marginTop)||6);
       x+=para(run(t.textContent.trim(),{sz:ft.sz,color:ft.color}),
         {exato:1,linha:tw(ft.lh),fundo:hex(cs(t).backgroundColor)||"F9FAFB",ind:{l:tw(11),r:tw(11)},
-         borda:"<w:left w:val=\"single\" w:sz=\"18\" w:space=\"8\" w:color=\""+cl+"\"/>"});
+         /* bordas da cor do fundo em cima e embaixo = o respiro (padding) do quadro cinza do site */
+         borda:"<w:top w:val=\"single\" w:sz=\"4\" w:space=\""+Math.round((parseFloat(cs(t).paddingTop)||8)*0.75)+"\" w:color=\""+(hex(cs(t).backgroundColor)||"F9FAFB")+"\"/>"
+           +"<w:left w:val=\"single\" w:sz=\"18\" w:space=\"8\" w:color=\""+cl+"\"/>"
+           +"<w:bottom w:val=\"single\" w:sz=\"4\" w:space=\""+Math.round((parseFloat(cs(t).paddingBottom)||8)*0.75)+"\" w:color=\""+(hex(cs(t).backgroundColor)||"F9FAFB")+"\"/>"});
     }
     return x;
   }
@@ -644,7 +649,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
     for(let bi=0;bi<blocos.length;bi++){
       const b=blocos[bi],primeiro=bi===0&&fi>0;
       if(anterior){
-        const gap=R(b).top-R(anterior).bottom;
+        /* a caixa do Word já desenha a borda por fora: o espaço depois dela precisa de 1px a mais */
+        const gap=R(b).top-R(anterior).bottom+(anterior.classList.contains("grupo")||anterior.classList.contains("topo2")?1.07:0);
         corpoXml+=espaco(gap>0?gap:0);
       }
       const c=b.classList;
