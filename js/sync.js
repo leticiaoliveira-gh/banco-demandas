@@ -765,7 +765,7 @@ async function entrarComSenha(){
 
 /* botão de sair: apaga tudo desta sessão sem mexer nos outros aparelhos */
 async function sairDaqui(){
-  if(!confirm("Sair e apagar tudo deste computador?\n\n"+
+  if(!confirm("Guardar tudo na nuvem e fechar?\n\n"+
     "Antes de sair eu envio o que você fez hoje para a sua nuvem.\n"+
     "Seus outros aparelhos e os backups não são afetados."))return;
   try{if(syncEnabled())await syncPush(true);}catch(e){}
