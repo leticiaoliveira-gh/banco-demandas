@@ -477,3 +477,5 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 .m28-ralos-tit{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:#155244;text-transform:uppercase;letter-spacing:.3px}
 .m28-ralos-tit svg{width:18px;height:18px;flex:none}
 .m28-ralos-txt{margin:6px 0 0;font-size:13px;line-height:1.5;color:#344054;white-space:pre-line}
+
+@media (min-width:1001px){.m28-barra .search{flex:0 1 240px;min-width:180px}}

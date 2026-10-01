@@ -91,7 +91,7 @@ function m28ItensDaFolha(){
   let t=m28Itens();
   if(M28F.exec)t=t.filter(d=>(d.executor||"").trim()===M28F.exec);
   if(M28F.piso)t=t.filter(d=>d.piso===M28F.piso);
-  if(M28F.area)t=t.filter(d=>d.area===M28F.area);
+  if(M28F.area)t=t.filter(d=>m28NormArea(d.area)===m28NormArea(M28F.area));
   return t;
 }
 /* O QUE OS NÚMEROS CONTAM (28/08) — o mesmo que vai no papel.
@@ -448,6 +448,7 @@ function m28VerMesAntigo(comp){
   if(m.folhas.length===1){m28VerFolha(m.folhas[0].uid);return;}
   M28_MES_ANTIGO=comp;renderMnt28();
 }
+function m28NormArea(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim().toLowerCase();}
 function m28VoltarMeses(){
   M28_FOLHA_ABERTA=null;M28_FOLHA_VER=null;M28_MES_ANTIGO=null;
   M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
@@ -796,9 +797,11 @@ async function renderMnt28(){
   /* estas duas listas alimentam os SELETORES: saem da base plena, nunca do
      recorte, ou não haveria caminho de volta depois de escolher um piso */
   const pisos=[...new Set(basePlena.map(d=>d.piso))].sort(m28CmpPiso);
-  const areasTodas=[...new Set(
-    basePlena.filter(d=>!M28F.piso||d.piso===M28F.piso).map(d=>d.area)
-  )].filter(Boolean).sort();
+  /* áreas que só diferem em maiúscula, acento ou espaço contam como UMA */
+  const areasTodas=(()=>{const vis=new Map();
+    basePlena.filter(d=>!M28F.piso||d.piso===M28F.piso).forEach(d=>{
+      const k=m28NormArea(d.area);if(k&&!vis.has(k))vis.set(k,String(d.area).trim().replace(/\s+/g," "));});
+    return [...vis.values()].sort((a,b)=>a.localeCompare(b,"pt"));})();
 
   /* CABEÇALHO COMPACTO (29/07): título com o mês da emissão, que se atualiza
      sozinho — mas a data continua editável por ela (o lápis ao lado).
@@ -882,8 +885,8 @@ async function renderMnt28(){
   })();
 
   const nVer=m28QtdVerificar();
-  const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>${esc(p)}</option>`).join("");
-  const opArea=areasTodas.map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>${esc(a)}</option>`).join("");
+  const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>Piso: ${esc(p)}</option>`).join("");
+  const opArea=areasTodas.map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>Área: ${esc(a)}</option>`).join("");
   /* só aparece quando há mais de uma pessoa com serviço — com um executor só,
      um seletor de um item é ruído na barra */
   /* sai de TODOS, nunca dos filtrados: senão, escolhida uma pessoa, o seletor
@@ -897,17 +900,17 @@ async function renderMnt28(){
     <div class="search">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="m28q" aria-label="Buscar nesta folha" autocomplete="off" spellcheck="false"
-        placeholder="Buscar por serviço, área ou observação…" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
+        placeholder="Buscar serviço…" title="Busca no serviço, na área e na observação" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
     </div>
     ${opExec?`<select aria-label="Escolher de quem é a folha" onchange="m28Filtro('exec',this.value)"
       title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Folha de: todos</option>${opExec}</select>`:""}
-    <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Todos os pisos</option>${opPiso}</select>
-    <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Todas as áreas</option>${opArea}</select>
+    <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Piso: todos</option>${opPiso}</select>
+    <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Área: todas</option>${opArea}</select>
     <select aria-label="Mostrar" onchange="m28Filtro('ver',this.value)">
-      <option value="todos"${M28F.ver==="todos"?" selected":""}>Todos</option>
-      <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Só o que falta</option>
-      <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Só os feitos</option>
-      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Só com o meu lembrete</option>
+      <option value="todos"${M28F.ver==="todos"?" selected":""}>Mostrar: tudo</option>
+      <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Mostrar: só o que falta</option>
+      <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Mostrar: só os feitos</option>
+      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Mostrar: só com meu lembrete</option>
     </select>
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
@@ -947,7 +950,7 @@ async function renderMnt28(){
   }
   if(!M28_FOLHA_ABERTA){ el.innerHTML=abas+m28PilhaMesesHTML(); return; }
 
-  el.innerHTML=abas+m28BarraMesHTML()+capa+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+'<div id="m28-lista"></div>';
+  el.innerHTML=m28BarraMesHTML()+capa+abas+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+porPessoa+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 
