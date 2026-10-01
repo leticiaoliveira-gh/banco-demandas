@@ -73,7 +73,7 @@ function aplicarSeloConexao(){
      ?(seloPendentes+(seloPendentes===1?" alteração esperando":" alterações esperando"))
      :"⇅ Sincronizando…";
  }else{
-   seloPendentes=0;s="ok";cor="var(--green)";
+   seloPendentes=0;s="ok";cor="#7dffc4";
    /* 24/09: a hora e a da ULTIMA confirmacao da nuvem, nao a do relogio.
       Assim o selo so diz "salvo" quando a nuvem de fato respondeu. */
    const ok=nuvemLig&&typeof nuvemHoraOk==="function"?nuvemHoraOk():null;

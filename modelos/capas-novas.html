@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Modelos de capa</title>
+<!-- 01/10/2026: capas SEM cards de números, só o que é útil. Página-museu: nada aqui mexe em dado. -->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f7f7f5;color:#2d2e3a;
+    padding:24px 16px 60px;max-width:1000px;margin:0 auto;font-size:14px;line-height:1.5}
+  h1{font-size:22px;color:#155244;margin:8px 0 4px}
+  .desc{color:#5c5d68;font-size:13px;margin-bottom:24px}
+  h2{font-size:15px;color:#155244;margin:34px 0 4px}
+  .d{font-size:12.5px;color:#5c5d68;margin-bottom:10px}
+  .tela{border-radius:16px;padding:28px 24px;color:#fff;background:linear-gradient(160deg,#2a9d8a 0%,#1d6b57 45%,#155244 100%);
+    box-shadow:0 2px 8px rgba(16,24,40,.12);max-width:760px}
+  .tela h3{font-size:24px;font-weight:700}
+  .rt{font-size:12.5px;opacity:.85;margin-top:2px}
+  .btn{display:inline-block;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;
+    padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn.cheio{background:#fff;color:#155244;border-color:#fff}
+  .btn.verde{background:#1d6b57;color:#fff;border-color:#1d6b57}
+  .chip{display:inline-block;font-size:12px;font-weight:650;border-radius:99px;padding:5px 11px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3)}
+  .chip.urg{background:rgba(240,68,56,.28);border-color:rgba(254,205,202,.6)}
+  .busca{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:9px 12px;font-size:13px;opacity:.9}
+  .linha{background:#fff;color:#2d2e3a;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-top:10px}
+  .linha b{font-size:15px;flex:1}
+  .linha small{color:#b42318;font-weight:700;font-size:12px;display:block}
+  .go{background:#1d6b57;color:#fff;border-radius:9px;padding:8px 16px;font-weight:700;font-size:13px}
+  .off{opacity:.55}
+  .bloco{background:#fff;color:#2d2e3a;border-radius:14px;padding:18px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
+  .bloco b{font-size:15px}
+  .bloco small{color:#b42318;font-weight:700;font-size:12px}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .mais{border:2px dashed rgba(255,255,255,.5);border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;min-height:120px}
+  .linhaTopo{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .foco{background:#fff;color:#2d2e3a;border-radius:16px;padding:22px;margin-top:18px}
+  .foco .peq{font-size:12px;color:#5c5d68;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+  .foco .nome{font-size:22px;font-weight:700;color:#155244;margin:4px 0 14px}
+  .foco .grande{display:block;text-align:center;background:#1d6b57;color:#fff;border-radius:12px;padding:16px;font-size:16px;font-weight:700}
+  .duas{display:grid;grid-template-columns:230px 1fr;gap:24px}
+  .atalho{display:block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:12px 14px;margin-top:10px;font-weight:600;font-size:13px}
+  .papel{border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(16,24,40,.12);max-width:760px}
+  .papel .topo{background:linear-gradient(160deg,#2a9d8a,#1d6b57 45%,#155244);color:#fff;padding:22px 24px}
+  .papel .corpo{padding:18px 24px 24px;background:#f7faf9}
+  .papel .linha{border:1px solid #e3ece8;margin-top:8px}
+  .tira{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .sel{display:inline-block;font-size:10px;font-weight:700;border-radius:99px;padding:2px 8px;background:#e8f5f0;color:#155244;border:1px solid #bfe0d4;margin-left:6px;vertical-align:2px;text-transform:uppercase}
+  .aurora{background:
+    radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.55),transparent 60%),
+    radial-gradient(ellipse 40% 90% at 65% 40%,rgba(10,160,140,.45),transparent 65%),
+    radial-gradient(ellipse 50% 60% at 20% 60%,rgba(16,120,105,.35),transparent 70%),
+    linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)}
+  .aurora .linha,.vidro{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px)}
+  .aurora .linha small{color:#ffb4ab}
+  .aurora .go{background:#2fe0c0;color:#02302a}
+  .aurora .bloco{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px)}
+  .aurora .bloco small{color:#ffb4ab}
+  .aurora .bloco span[style*="5c5d68"]{color:rgba(255,255,255,.7)!important}
+  .aurora .foco{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px)}
+  .aurora .foco .nome,.aurora .foco .peq{color:#fff}
+  .aurora .foco .grande{background:#2fe0c0;color:#02302a}
+  .aurora .btn.cheio{background:#2fe0c0;color:#02302a;border-color:#2fe0c0}
+  .aurora .linha.off .go{background:rgba(255,255,255,.25)!important;color:#fff}
+  @media(max-width:640px){.duas{grid-template-columns:1fr}.grade{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Modelos de capa</h1>
+<p class="desc">Sem os cards de números. Mesmo tom de verde de hoje. Só ficou o que serve: o nome da empresa, o botão de entrar, a busca e o aviso de urgentes. Diga a letra que você prefere (A a G).</p>
+
+<h2>A — Lista limpa <span class="sel">mais parecida com a de hoje</span></h2>
+<p class="d">O mesmo desenho de hoje, só que sem os 4 cards. Uma empresa por linha.</p>
+<div class="tela">
+  <h3>Central Compliance ✎</h3>
+  <p class="rt">Letícia Oliveira — Nutricionista de Produção – RT · CRN-4: 22103217</p>
+  <div class="linhaTopo"><span class="btn">⚙ Sincronização</span><span class="chip urg">3 urgentes</span><span class="chip">128 em aberto</span></div>
+  <div class="linhaTopo" style="margin-top:20px"><div class="busca" style="flex:1">🔍 Pesquisar empresa...</div><span class="btn cheio">+ Nova empresa</span></div>
+  <div class="linha"><b>Arraial do Cabo · Super Fricarnes (AC)<small>3 urgentes</small></b><span class="go">Iniciar →</span></div>
+  <div class="linha off"><b>Outra empresa (XX)</b><span class="go" style="background:#98a2b3">🔒</span></div>
+</div>
+
+<h2>B — Blocos grandes</h2>
+<p class="d">Cada empresa vira um bloco grande, fácil de tocar no celular. A urgência aparece em vermelho dentro do bloco.</p>
+<div class="tela">
+  <h3>Central Compliance ✎</h3>
+  <p class="rt">Letícia Oliveira — Nutricionista de Produção – RT · CRN-4: 22103217</p>
+  <div class="grade">
+    <div class="bloco"><div><b>Arraial do Cabo</b><br><span style="font-size:12.5px;color:#5c5d68">Super Fricarnes (AC)</span><br><small>3 urgentes</small></div><span class="go" style="text-align:center">Iniciar →</span></div>
+    <div class="bloco off"><div><b>Outra empresa</b><br><span style="font-size:12.5px;color:#5c5d68">(XX) · desligada</span></div><span class="go" style="text-align:center;background:#98a2b3">🔒 Desligada</span></div>
+    <div class="mais">+ Nova empresa</div>
+  </div>
+</div>
+
+<h2>C — Foco na empresa de hoje</h2>
+<p class="d">Como só uma empresa fica ligada por vez, ela ganha o destaque com um botão enorme. As outras ficam numa lista pequena embaixo.</p>
+<div class="tela">
+  <h3>Central Compliance ✎</h3>
+  <p class="rt">Letícia Oliveira — Nutricionista de Produção – RT · CRN-4: 22103217</p>
+  <div class="foco">
+    <div class="peq">Você está atendendo</div>
+    <div class="nome">Arraial do Cabo · Super Fricarnes (AC)</div>
+    <span class="chip urg" style="color:#b42318;background:#fdecea;border-color:#f5c6c6;margin-bottom:14px">3 urgentes</span>
+    <span class="grande">Iniciar →</span>
+  </div>
+  <div class="linhaTopo" style="margin-top:18px"><b style="font-size:13px">Outras empresas</b><span class="btn">+ Nova empresa</span><div class="busca" style="flex:1">🔍 Pesquisar...</div></div>
+  <div class="linha off"><b>Outra empresa (XX)</b><span class="go" style="background:#98a2b3">Ligar</span></div>
+</div>
+
+<h2>D — Duas colunas com atalhos</h2>
+<p class="d">À esquerda ficam os atalhos que você usa; à direita, as empresas. No celular, os atalhos vão para cima.</p>
+<div class="tela">
+  <div class="duas">
+    <div>
+      <h3 style="font-size:20px">Central Compliance ✎</h3>
+      <p class="rt">Nutricionista de Produção – RT<br>CRN-4: 22103217</p>
+      <span class="atalho">📷 Registrar agora</span>
+      <span class="atalho" style="background:rgba(240,68,56,.28)">🔥 Ver urgentes (3)</span>
+      <span class="atalho">⚙ Sincronização</span>
+    </div>
+    <div>
+      <div class="linhaTopo" style="margin-top:0"><div class="busca" style="flex:1">🔍 Pesquisar empresa...</div><span class="btn cheio">+ Nova</span></div>
+      <div class="linha"><b>Arraial do Cabo · Super Fricarnes (AC)<small>3 urgentes</small></b><span class="go">Iniciar →</span></div>
+      <div class="linha off"><b>Outra empresa (XX)</b><span class="go" style="background:#98a2b3">🔒</span></div>
+    </div>
+  </div>
+</div>
+
+<h2>E — Faixa verde e fundo claro</h2>
+<p class="d">Só o topo é verde; a lista fica sobre fundo claro, mais descansada para ler.</p>
+<div class="papel">
+  <div class="topo">
+    <h3 style="font-size:24px">Central Compliance ✎</h3>
+    <p class="rt">Letícia Oliveira — Nutricionista de Produção – RT · CRN-4: 22103217</p>
+    <div class="linhaTopo"><span class="btn">⚙ Sincronização</span><span class="chip urg">3 urgentes</span></div>
+  </div>
+  <div class="corpo">
+    <div class="linhaTopo" style="margin-top:0"><div class="busca" style="flex:1;background:#fff;color:#5c5d68;border-color:#d0e0da">🔍 Pesquisar empresa...</div><span class="btn verde">+ Nova empresa</span></div>
+    <div class="linha"><b>Arraial do Cabo · Super Fricarnes (AC)<small>3 urgentes</small></b><span class="go">Iniciar →</span></div>
+    <div class="linha off"><b>Outra empresa (XX)</b><span class="go" style="background:#98a2b3">🔒</span></div>
+  </div>
+</div>
+
+<h2>F — Aurora (como a sua foto) <span class="sel">novo</span></h2>
+<p class="d">O clima da imagem que você mandou: fundo escuro com verde-água brilhante, e a lista em vidro. É um desenho feito no próprio site, então não pesa e funciona sem internet.</p>
+<div class="tela aurora">
+  <h3>Central Compliance ✎</h3>
+  <p class="rt">Letícia Oliveira — Nutricionista de Produção – RT · CRN-4: 22103217</p>
+  <div class="linhaTopo"><span class="btn">⚙ Sincronização</span><span class="chip urg">3 urgentes</span><span class="chip">128 em aberto</span></div>
+  <div class="linhaTopo" style="margin-top:20px"><div class="busca" style="flex:1">🔍 Pesquisar empresa...</div><span class="btn cheio">+ Nova empresa</span></div>
+  <div class="linha"><b>Arraial do Cabo · Super Fricarnes (AC)<small>3 urgentes</small></b><span class="go">Iniciar →</span></div>
+  <div class="linha off"><b>Outra empresa (XX)</b><span class="go">🔒</span></div>
+</div>
+
+<h2>G — Aurora com blocos <span class="sel">novo</span></h2>
+<p class="d">O mesmo fundo da foto, com a empresa de hoje em destaque.</p>
+<div class="tela aurora">
+  <h3>Central Compliance ✎</h3>
+  <p class="rt">Letícia Oliveira — Nutricionista de Produção – RT · CRN-4: 22103217</p>
+  <div class="foco">
+    <div class="peq">Você está atendendo</div>
+    <div class="nome">Arraial do Cabo · Super Fricarnes (AC)</div>
+    <span class="grande">Iniciar →</span>
+  </div>
+  <div class="grade">
+    <div class="bloco"><div><b>Outra empresa</b><br><span style="font-size:12.5px;color:#5c5d68">(XX) · desligada</span></div></div>
+    <div class="mais">+ Nova empresa</div>
+  </div>
+</div>
+</body>
+</html>

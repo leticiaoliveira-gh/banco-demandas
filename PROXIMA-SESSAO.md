@@ -14,6 +14,14 @@
    **riscado no lugar, com o motivo escrito**, e ela é informada.
 4. **Abertura barata:** no começo, ler só este arquivo.
 
+## 01/10 (tarde) — FEITO: folha de Manutenção com caixinha "levar ou não os serviços a verificar" (v11.23, plano v38)
+
+Serviço com lembrete particular preenchido (ou lupa) não sai no papel; a janela de imprimir tem a caixinha
+para levar. **Ela ainda vai mandar outras atualizações do site** — essas vêm ANTES da lista abaixo.
+Pontos a mostrar a ela: 33 serviços com lembrete somem do papel por padrão; há um serviço repetido de
+"estantes enferrujadas"; o botão "Tirar N VERIFICAR da folha impressa" promete mais do que faz.
+Prova: `...\PLANO (atualizações e status)\Provas (01-10-26)11.23 janela imprimir no ar.png`.
+
 ## 01/10 — PRIMEIRA DEMANDA DA PRÓXIMA SESSÃO: a entrada no site (os 4 pontos que ela levantou)
 
 São os itens **29 a 32** do plano (bloco "A entrada no site"), levantados por ela mesma e ainda não

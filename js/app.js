@@ -32,7 +32,7 @@ let RT_INFO="",RT_INFO_MOD="";
 async function loadRtInfo(){RT_INFO=await metaGet("rtInfo")||"";RT_INFO_MOD=await metaGet("rtInfoMod")||"";}
 function renderRtInfo(){
  const el=document.getElementById("rt-linha");
- if(el)el.textContent="👩‍⚕️ "+(RT_INFO||"Nome e registro profissional · toque p/ preencher")+"  ✎";
+ if(el)el.textContent=(RT_INFO||"Nome e registro profissional · toque p/ preencher");
 }
 /* Renomear a tela inicial. Ela cobriu em 20/07 ("NÃO CONSIGO EDITARRRR / dica: troca
    nome"): o modo edição existia, mas exigia ligar um botão antes — e nada na tela
@@ -1023,7 +1023,7 @@ async function renderHome(){
  const dias=lb?Math.floor((Date.now()-new Date(lb).getTime())/864e5):null;
  const tempSync=(typeof syncIsTemporario==="function")&&syncIsTemporario();
  document.getElementById("backup-banner").innerHTML=
-   (vivos.length&&!noCel&&!autoOk&&!nuvemOk&&!tempSync&&(dias===null||dias>=14))?
+   false&&(vivos.length&&!noCel&&!autoOk&&!nuvemOk&&!tempSync&&(dias===null||dias>=14))?
    `<div style="font-size:12.5px;margin:0 0 16px;opacity:.75">${lb?("Último backup há "+dias+" dias"):"Nenhum backup feito neste navegador"} · <span class="back-link" onclick="exportExcel()">baixar agora</span></div>`:"";
  let html="";
  /* busca, filtro e ordenação das empresas (capa) */
@@ -1981,7 +1981,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.29";
+const APP_VERSAO="11.30";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
