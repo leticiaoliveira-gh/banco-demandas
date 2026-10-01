@@ -1212,7 +1212,11 @@ function m28RenderListaDesenho(){
         +(rx?`<p class="m28-ralos-txt">${esc(m28SemTravessao(rx))}</p>`:"")+`</div>`;}
     if(d.piso!==piso){piso=d.piso;area=null;fecha();
       const np=nPiso[pre(d)+d.piso]||0;
-      html+=`<div class="m28-piso">${esc(piso||"Sem piso")}${emRalos?" · Ralos":""}<span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
+      const kp="P|"+pre(d)+d.piso,pf=!!M28F.fechadas[kp];
+      html+=`<div class="m28-piso${pf?" fechado":""}"><button class="m28-abrefecha m28-abrefecha-piso" onclick="m28AbreFecha('${esc(kp).replace(/'/g,"'")}')"
+          aria-expanded="${pf?"false":"true"}" title="${pf?"Abrir este piso":"Fechar este piso inteiro"}"
+          aria-label="${pf?"Abrir":"Fechar"} o piso ${esc(piso||"Sem piso")}">${pf?"›":"⌄"}</button><span class="m28-piso-nome">${esc(piso||"Sem piso")}${emRalos?" · Ralos":""}</span><span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
+    if(M28F.fechadas["P|"+pre(d)+d.piso]){area=null;fecha();continue;}   /* piso fechado: some tudo dele */
     if(d.area!==area){area=d.area;nDemanda=0;const k=pre(d)+d.piso+"|"+d.area;
       fecha();html+='<div class="m28-grupo">';aberto=true;
       const f=fArea[k]||0,n=nArea[k]||0,v=vArea[k]||0;

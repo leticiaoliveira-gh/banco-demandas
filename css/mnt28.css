@@ -483,3 +483,11 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 /* o selo "Parada há N dias" quebra de linha dentro da coluna, nunca passa por baixo da observação */
 .m28-desde .prd-selo,.m28-item .prd-selo{display:flex;width:fit-content;max-width:100%;margin:6px 0 0;
   white-space:normal;line-height:1.3;overflow-wrap:anywhere}
+
+/* botões de abrir/fechar maiores (pedido dela, 01/10): piso e área */
+.m28-abrefecha{width:32px;height:32px;font-size:24px;font-weight:700;background:rgba(21,82,68,.10);border-radius:8px}
+.m28-abrefecha:hover{background:rgba(21,82,68,.20)}
+.m28-abrefecha-piso{align-self:center}
+.m28-piso{align-items:center}
+.m28-piso-nome{flex:1;min-width:0}
+.m28-piso.fechado{margin-bottom:12px}
