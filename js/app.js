@@ -996,8 +996,6 @@ async function renderHome(){
     <div class="org-tit">↕ Organizando a capa</div>
     <p class="org-txt">Segure a alça <b>⠿</b> de cada empresa e arraste para a ordem que você quiser.
       Marque abaixo o que deve aparecer nesta tela.</p>
-    <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarNumeros?"checked":""}
-      onchange="capaMostrar('mostrarNumeros',this.checked)"> Faixa com os <b>números</b> (Quadro Geral, Urgentes, Manutenções, Inspeções)</label>
     <label class="org-op"><input type="checkbox" ${CAPA_CFG.mostrarAgenda?"checked":""}
       onchange="capaMostrar('mostrarAgenda',this.checked)"> <b>Minha agenda</b> dentro de cada empresa: o que tem data marcada, de todos os quadros, e os dias em que você estará na loja</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -1199,6 +1197,8 @@ function abrirQuadro(tab){
    Agora vêm DESLIGADOS; ela liga em Organizar a capa se um dia quiser. */
 function renderHomeStats(vivos){
  const box=document.getElementById("home-stats");if(!box)return;
+ /* 01/10/2026: cards de números removidos de vez a pedido dela ("inúteis, não quero mais") */
+ box.innerHTML="";box.hidden=true;return;
  if(!CAPA_CFG.mostrarNumeros){box.innerHTML="";box.hidden=true;return;}
  box.hidden=false;
  const cod=EMPRESAS.map(e=>e.code);
@@ -1990,7 +1990,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.24";
+const APP_VERSAO="11.25";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
