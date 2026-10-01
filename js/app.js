@@ -1015,7 +1015,7 @@ async function renderHome(){
  const nuvemOk=lc&&(Date.now()-new Date(lc).getTime())<36*3600e3;   /* enviado nas últimas 36h */
  const nuvemTxt=lc?` · nuvem ${brDateTime(lc)} ✓`:"";
  const topB=document.getElementById("backup-top");
- if(topB)topB.innerHTML=noCel?"":`<span class="backup-top-lbl" title="Backup baixado: o arquivo que você guarda. Nuvem: o repositório privado, que guarda todas as versões e sobrevive a trocar de computador.">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}${nuvemTxt}</span>${backupBtns}`;
+ if(topB)topB.innerHTML="";/* 01/10/26: texto de backup do topo removido a pedido dela */ if(false)topB.innerHTML=`<span class="backup-top-lbl" title="Backup baixado: o arquivo que você guarda. Nuvem: o repositório privado, que guarda todas as versões e sobrevive a trocar de computador.">Backup: ${lb?brDateTime(lb):"nenhum ainda"}${backupInfo}${nuvemTxt}</span>${backupBtns}`;
  /* Lembrete de backup SILENCIADO (23/07, pedido dela: "parar de pedir").
     Não aparece: com backup automático ativo, com backup recente (<14 dias),
     em dispositivo temporário (PC do trabalho — nada fica lá mesmo) ou sem dados.
@@ -1079,17 +1079,8 @@ async function renderHome(){
  document.getElementById("store-list").innerHTML=html;
  /* ETIQUETAS DO TOPO (só no computador, pelo CSS) e BOTÃO DE REGISTRAR (só no celular).
     Números de verdade, tirados do banco — nada escrito na mão. */
- const chips=document.getElementById("home-chips");
- if(chips){
-   const urgT=vivos.filter(d=>d.tipo==="nc"&&d.urgencia==="URGENTE"&&isPendente(d)).length;
-   const abertoT=vivos.filter(d=>isPendente(d)).length;
-   const ativasT=EMPRESAS.filter(e=>e.ativa).length;
-   chips.innerHTML=
-     /* BOTÃO de verdade, não texto clicável: quem navega por teclado tem de alcançar */
-     (urgT?`<button type="button" class="chip urg" onclick="abrirUrgentes()" title="Ver as urgentes">${urgT} urgente${urgT===1?"":"s"}</button>`:"")+
-     `<span class="chip">${abertoT} em aberto</span>`+
-     `<span class="chip">${ativasT} loja${ativasT===1?"":"s"} ligada${ativasT===1?"":"s"}</span>`;
- }
+ /* 01/10/26 (pedido dela): etiquetas "urgentes / em aberto / lojas ligadas" removidas */
+ const chips=document.getElementById("home-chips");if(chips)chips.innerHTML="";
  const acaoCel=document.getElementById("capa-acao-cel");
  if(acaoCel)acaoCel.innerHTML=EMPRESAS.some(e=>e.ativa)
    ?`<button class="btn" onclick="registrarAgora()" title="Abre o registro com a câmera a um toque">📷 Registrar agora</button>`:"";
@@ -1990,7 +1981,7 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.27";
+const APP_VERSAO="11.28";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
