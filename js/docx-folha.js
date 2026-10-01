@@ -113,7 +113,7 @@ function celula(c){
 function tabela(linhas,larguras,o){
   o=o||{};
   const tot=larguras.reduce((a,b)=>a+b,0);
-  let x="<w:tbl><w:tblPr><w:tblW w:w=\""+tot+"\" w:type=\"dxa\"/><w:tblInd w:w=\"0\" w:type=\"dxa\"/>"
+  let x="<w:tbl><w:tblPr><w:tblW w:w=\""+tot+"\" w:type=\"dxa\"/><w:tblInd w:w=\""+(o.ind||0)+"\" w:type=\"dxa\"/>"
     +"<w:tblBorders>"+["top","left","bottom","right","insideH","insideV"].map(l=>bd(l,o.borda&&o.borda[l])).join("")+"</w:tblBorders>"
     +"<w:tblLayout w:type=\"fixed\"/>"
     +"<w:tblCellMar><w:top w:w=\"0\" w:type=\"dxa\"/><w:left w:w=\"0\" w:type=\"dxa\"/><w:bottom w:w=\"0\" w:type=\"dxa\"/><w:right w:w=\"0\" w:type=\"dxa\"/></w:tblCellMar>"
@@ -140,7 +140,8 @@ const solido=c=>c?"<a:solidFill><a:srgbClr val=\""+c+"\"/></a:solidFill>":"<a:no
 const linha=(c,px)=>c?"<a:ln w=\""+EMU(px||1)+"\">"+solido(c)+"</a:ln>":"<a:ln><a:noFill/></a:ln>";
 /* o.w/o.h em px; o.fill/o.line em xml DrawingML; o.dentro = parágrafos/tabelas; o.ins = {l,t,r,b} px */
 function forma(o){
-  const id=++idForma,cx=EMU(o.w),cy=EMU(o.h);
+  /* o Word desenha a borda metade por fora da forma: tira a grossura da borda (o.lw) para ficar da largura do site */
+  const id=++idForma,cx=EMU(o.w-(o.lw||0)),cy=EMU(o.h);
   const adj=Math.max(0,Math.min(50000,Math.round((o.raio||0)/Math.max(1,Math.min(o.w,o.h))*100000)));
   const i=o.ins||{};
   return "<w:r>"+(o.rpr||"<w:rPr><w:sz w:val=\"2\"/></w:rPr>")+"<w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+cx+"\" cy=\""+cy+"\"/>"
@@ -447,7 +448,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       regs.push({y0:(r.top-G.top)/G.height,y1:(r.bottom-G.top)/G.height,cor:c});}}
     const tab=montaGrade(linhas,bcor,true);
     return paraForma(forma({w:G.width,h:G.height,raio:parseFloat(cs(g).borderTopLeftRadius)||9,
-      fill:regs.length?(faixasPng(base,regs,G)||faixas(base,regs)):solido(base),line:linha(bcor,bw),cresce:1,
+      fill:regs.length?(faixasPng(base,regs,G)||faixas(base,regs)):solido(base),line:linha(bcor,bw),lw:bw,cresce:1,
       ins:{t:bw,b:0},dentro:tab+fimCaixa}),quebra);
   }
   /* tabela com colunas variáveis por linha: uma grade comum com tantas colunas quantas as bordas pedem.
@@ -582,7 +583,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
     })];
     const T=R(t),bw=parseFloat(cs(t).borderTopWidth)||1;
     return paraForma(forma({w:T.width,h:T.height,raio:parseFloat(cs(t).borderTopLeftRadius)||5,fill:solido("FFFFFF"),
-      line:linha(cor,bw),cresce:1,ins:{t:bw,b:0},dentro:tabela(lin,larg,{})+fimCaixa}),quebra);
+      line:linha(cor,bw),lw:bw,cresce:1,ins:{t:bw,b:0},dentro:tabela(lin,larg,{})+fimCaixa}),quebra);
   }
 
   /* ---- os dois números (.nums) ---- */
@@ -600,7 +601,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       const D2=R(d),k2=cs(d);
       /* o Word deixa a caixinha ~3pt mais alta embaixo: a margem de baixo desconta isso */
       lin[0].push({w:larg[i*2],xml:paraForma(forma({w:D2.width,h:D2.height,raio:parseFloat(k2.borderTopLeftRadius)||7,
-        fill:solido(fundo),line:linha(cor,parseFloat(k2.borderTopWidth)||1),cresce:1,
+        fill:solido(fundo),line:linha(cor,parseFloat(k2.borderTopWidth)||1),lw:parseFloat(k2.borderTopWidth)||1,cresce:1,
         ins:{t:parseFloat(k2.paddingTop)||5,b:Math.max(0,(parseFloat(k2.paddingBottom)||5)-4),l:parseFloat(k2.paddingLeft)||9,r:parseFloat(k2.paddingRight)||9},
         dentro:para(run(sp.textContent.toUpperCase(),{sz:fs.sz,bold:fs.bold||700,color:fs.color,ls:fs.ls}),{jc:"center",exato:1,linha:tw(fs.lh)})
           +para(run(b.textContent,{sz:fb.sz,bold:fb.bold||700,color:fb.color}),{jc:"center",exato:1,linha:tw(fb.lh)})}))});
@@ -620,12 +621,12 @@ window.m28DomParaDocx=async function(win,modoImagem){
     if(t){
       const ft=fmt(win,t),cl=hex(cs(t).borderLeftColor)||"1D6B57";
       x+=espaco(parseFloat(cs(t).marginTop)||6);
-      x+=para(run(t.textContent.trim(),{sz:ft.sz,color:ft.color}),
-        {exato:1,linha:tw(ft.lh),fundo:hex(cs(t).backgroundColor)||"F9FAFB",ind:{l:tw(11),r:tw(11)},
-         /* bordas da cor do fundo em cima e embaixo = o respiro (padding) do quadro cinza do site */
-         borda:"<w:top w:val=\"single\" w:sz=\"4\" w:space=\""+Math.round((parseFloat(cs(t).paddingTop)||8)*0.75)+"\" w:color=\""+(hex(cs(t).backgroundColor)||"F9FAFB")+"\"/>"
-           +"<w:left w:val=\"single\" w:sz=\"18\" w:space=\"8\" w:color=\""+cl+"\"/>"
-           +"<w:bottom w:val=\"single\" w:sz=\"4\" w:space=\""+Math.round((parseFloat(cs(t).paddingBottom)||8)*0.75)+"\" w:color=\""+(hex(cs(t).backgroundColor)||"F9FAFB")+"\"/>"});
+      /* caixa cinza = tabela de 1 célula: largura, respiro e barra verde exatamente como no site */
+      const fundoT=hex(cs(t).backgroundColor)||"F9FAFB",ct=cs(t),bl=parseFloat(ct.borderLeftWidth)||3;
+      x+=tabela([[{w:LARG,fundo:fundoT,b:{left:{sz:Math.round(bl*6),cor:cl}},
+        mar:{t:tw(parseFloat(ct.paddingTop)||8),b:tw(parseFloat(ct.paddingBottom)||8),
+             l:tw((parseFloat(ct.paddingLeft)||11)),r:tw(parseFloat(ct.paddingRight)||11)},
+        xml:para(run(t.textContent.trim(),{sz:ft.sz,color:ft.color}),{exato:1,linha:tw(ft.lh)})}]],[LARG],{ind:-26});  /* o Word empurra a tabela ~1,3pt para a direita */
     }
     return x;
   }
