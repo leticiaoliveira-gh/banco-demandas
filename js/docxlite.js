@@ -125,14 +125,15 @@ DocxLite.prototype.blob=function(){
   +' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
   +' xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
   +'<w:body>'+this.body.join("")
-  +'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
-  +'<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr></w:body></w:document>';
+  +(this.sect||('<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
+  +'<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr>'))+'</w:body></w:document>';
  const contentTypes=XMLH+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
   +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
   +'<Default Extension="xml" ContentType="application/xml"/>'
   +'<Default Extension="jpeg" ContentType="image/jpeg"/>'
   +'<Default Extension="png" ContentType="image/png"/>'
   +'<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+  +(this.footerXml?'<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>':'')
   +'<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
   +'<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
   +'<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
@@ -144,10 +145,11 @@ DocxLite.prototype.blob=function(){
   +'</Relationships>';
  const relsDoc=XMLH+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
   +'<Relationship Id="rStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+  +(this.footerXml?'<Relationship Id="rFooter" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>':'')
   +this.media.map(m=>`<Relationship Id="${m.rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.name}"/>`).join("")
   +'</Relationships>';
  const styles=XMLH+'<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-  +'<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>'
+  +'<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="'+(this.fonte||'Calibri')+'" w:hAnsi="'+(this.fonte||'Calibri')+'"/>'
   +'<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>';
  const core=XMLH+'<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"'
   +' xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Relatório de Não Conformidades</dc:title>'
@@ -160,6 +162,7 @@ DocxLite.prototype.blob=function(){
   {name:"word/document.xml",data:enc(doc)},
   {name:"word/_rels/document.xml.rels",data:enc(relsDoc)},
   {name:"word/styles.xml",data:enc(styles)},
+  ...(this.footerXml?[{name:"word/footer1.xml",data:enc(XMLH+this.footerXml)}]:[]),
   {name:"docProps/core.xml",data:enc(core)},
   {name:"docProps/app.xml",data:enc(app)},
   ...this.media.map(m=>({name:"word/media/"+m.name,data:m.data}))

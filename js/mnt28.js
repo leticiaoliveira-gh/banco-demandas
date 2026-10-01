@@ -893,7 +893,7 @@ async function renderMnt28(){
   const execs=m28Executores(basePlena);
   const opExec=execs.length>1?execs.map(e=>{
     const n=basePlena.filter(d=>(d.executor||"").trim()===e&&(!M28F.piso||d.piso===M28F.piso)).length;
-    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Folha para: ${esc(m28NomeExec(e))} (${n})</option>`;
+    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Para: ${esc(m28NomeExec(e))} (${n})</option>`;
   }).join(""):"";
   const barra=`<div class="toolbar m28-barra m28-filtros">
     <div class="search">
@@ -902,7 +902,7 @@ async function renderMnt28(){
         placeholder="Buscar serviço…" title="Busca no serviço, na área e na observação" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
     </div>
     ${opExec?`<select aria-label="Escolher de quem é a folha" onchange="m28Filtro('exec',this.value)"
-      title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Folha para: todos</option>${opExec}</select>`:""}
+      title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Para: todos</option>${opExec}</select>`:""}
     <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Piso: todos</option>${opPiso}</select>
     <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Área: todas</option>${opArea}</select>
     <select aria-label="Situação" onchange="m28Filtro('ver',this.value)">
@@ -920,7 +920,7 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">${icone("pdf")} PDF</button>
     ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
          filtros — escolhida a folha do Matheus, sai só a dele. */""}
-    <button class="btn ghost sm" onclick="m28ParaWord()" title="Baixar esta folha em Word, para editar ou anexar">${icone("doc")} Word</button>
+    <button class="btn ghost sm" onclick="m28Imprimir('word')" title="Baixar esta folha em Word, igual ao PDF, para editar">${icone("doc")} Word</button>
     <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">${icone("planilha")} Planilha</button>
     <button class="btn ghost sm" onclick="m28PainelRalos()" title="Rastreamento de ralos: a lista que sai no fim da folha">${icone("gota")} Rastreamento ralos</button>
@@ -1349,105 +1349,10 @@ function m28ParaPlanilha(){
    (m28ImprimirFolha) — cabeçalho verde, faixa loja/piso/mês, números,
    bloco por área e lista numerada — só que em tabelas e parágrafos de Word
    de verdade, então ela continua editando e formatando à vontade. */
-async function m28ParaWord(){
-  if(typeof DocxLite!=="function"){toast("O gerador de Word não carregou — recarregue a página.");return;}
-  const todas=m28Filtradas();
-  if(!todas.length){alert("Nenhum serviço para gerar com os filtros atuais.");return;}
-  /* RALOS (28/09): igual ao papel -- saem das areas, vao para a lista do fim */
-  const sep=m28SepararRalos(todas), rows=sep.manut;
-  const c=m28Cab(todas);
-  const exec=M28F.exec||c.executor||(rows.find(d=>d.executor)||{}).executor||"";
-  const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
-  const urgentes=rows.filter(d=>d.urg&&!d.feito).length/* ralo nao conta urgente */;
-  const ident=m28Identidade();
-  const pisosNaFolha=[...new Set(todas.map(d=>(d.piso||"").trim()).filter(Boolean))]
-    .sort(m28CmpPiso).map(x=>m28PisoBonito(x));
-  const pisoDaFolha=(M28F.piso||"").trim()
-    ? m28PisoBonito((M28F.piso||"").trim())
-    : pisosNaFolha.join(" e ");
-
-  const doc=new DocxLite();
-
-  /* CABEÇALHO — mesmo verde da capa impressa, com identidade, a faixa de
-     loja/piso/mês e os dados de emissão/executor/responsável técnico. */
-  const faixaTxt=[loja,pisoDaFolha,m28Mes(c)].filter(Boolean).join("   ·   ");
-  const cpeTxt1=m28T().rotUnidade+": "+loja+"     "+m28T().rotEmitido+": "+brDate(c.emitidoEm||today());
-  const cpeTxt2=(exec?m28T().rotExec+": "+exec+"     ":"")+m28RtNome(c)+" — "+m28RtLinha(c);
-  doc.table([[{lines:[
-    {text:(ident.tipo?ident.tipo.toUpperCase()+(ident.resto?" · "+ident.resto:""):m28Titulo(c)),bold:true,color:"FFFFFF",size:30,align:"left"},
-    {text:faixaTxt,bold:true,color:"FFFFFF",size:22,align:"left"},
-    {text:cpeTxt1,color:"E5F3F0",size:18,align:"left"},
-    {text:cpeTxt2,color:"E5F3F0",size:18,align:"left"}
-  ],fill:"1A7A70"}]],{widths:[1],noBorder:true});
-
-  /* OS DOIS NÚMEROS — mesma ordem da folha impressa: urgentes primeiro. */
-  doc.table([[
-    {lines:[{text:"URGENTES",bold:true,color:"B42318",size:16},{text:String(urgentes),bold:true,color:"912018",size:30}],fill:"FEF3F2"},
-    {lines:[{text:"DEMANDAS GERAIS",bold:true,color:"667085",size:16},{text:String(rows.length+sep.ralos.length),bold:true,color:"101828",size:30}],fill:"F9FAFB"}
-  ]],{widths:[0.5,0.5],borderColor:"EAECF0"});
-  doc.p("");
-
-  /* CADA ÁREA VIRA UM BLOCO: faixa verde com o nome + tabela dos serviços,
-     numeração recomeçando em cada área, igual ao papel. */
-  let piso=null,area=null,itens=[],nDemanda=0;
-  const flush=()=>{
-    if(!itens.length)return;
-    doc.table(itens,{widths:[0.1,0.65,0.25],borderColor:"D7DCE2"});
-    itens=[];
-  };
-  for(const d of rows){
-    if(d.piso!==piso){
-      flush();
-      piso=d.piso;area=null;
-      doc.p((piso||"Sem piso").toUpperCase(),{bold:true,size:24,color:"0F5B52",borderBottom:"1D6B57",spacingBefore:200,spacingAfter:100});
-    }
-    if(d.area!==area){
-      flush();
-      area=d.area;nDemanda=0;
-      doc.table([[{text:area,bold:true,color:"155244",align:"left"}]],{widths:[1],noBorder:true,fill:"E8F5F0"});
-    }
-    nDemanda++;
-    const meses=m28Meses(d.dataRegistro),tempo=m28TempoTexto(meses);
-    const linhas=[{text:(d.urg?"URGENTE — ":"")+(d.fazer||""),bold:!!d.urg,color:d.urg?"B42318":"1F2937",size:19,align:"left"}];
-    if((d.obs||"").trim())linhas.push({text:"Obs: "+m28SemTravessao((d.obs||"").trim()),color:"475467",size:17,align:"left"});
-    /* o lembrete 🔒 dela NUNCA sai — nem aqui */
-    itens.push([
-      {text:(d.feito?"[x]":"[ ]")+" "+nDemanda+".",bold:true,color:"475467"},
-      {lines:linhas,align:"left"},
-      {lines:[{text:d.dataRegistro?brDate(d.dataRegistro):"",color:"344054",size:17},
-        {text:tempo||"",color:meses>=1?"B42318":"667085",bold:meses>=1,size:16}]}
-    ]);
-  }
-  flush();
-
-  if(sep.ralos.length){
-    doc.p((m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo).toUpperCase(),{bold:true,size:24,color:"0F5B52",borderBottom:"1D6B57",spacingBefore:300,spacingAfter:100});
-    const rx=(m28T().ralosTexto||"").trim();
-    if(rx)doc.table([[{lines:m28SemTravessao(rx).split("\n").map(l=>({text:l||" ",color:"344054",size:19,align:"left"})),fill:"F9FAFB"}]],{widths:[1],noBorder:true});
-    let rp=null,nr=0;
-    for(const r of sep.ralos){
-      if(r.piso!==rp){flush();rp=r.piso;nr=0;
-        doc.table([[{text:(m28PisoBonito(r.piso||"")||"Sem piso").toUpperCase()+" · Ralos",bold:true,color:"155244",align:"left"}]],{widths:[1],noBorder:true,fill:"E8F5F0"});}
-      nr++;
-      itens.push([
-        {text:(r.feito?"[x]":"[ ]")+" "+nr+".",bold:true,color:"475467"},
-        {text:r.area||"Sem área",color:"1F2937",align:"left"},
-        {text:""}]);
-    }
-    flush();
-  }
-
-  const ct=(m28T().causaTitulo||"").trim(),cx=(m28T().causaTexto||"").trim();
-  if(ct||cx){
-    doc.p("");
-    doc.table([[{lines:[
-      {text:(ct||"Por que isto se repete").toUpperCase(),bold:true,color:"4A6B62",size:16,align:"left"},
-      {text:cx,color:"344054",size:19,align:"left"}
-    ],fill:"F9FAFB"}]],{widths:[1],noBorder:true});
-  }
-  download(m28NomeArquivo()+".docx",await doc.blob());
-  toast("Word gerado ✓ ("+todas.length+" serviços)");
-}
+/* 01/10/2026: o Word nasce da MESMA folha paginada do PDF (js/docx-folha.js lê a
+   janela da folha). A versão antiga, que remontava a folha por conta própria,
+   saía só parecida e foi retirada. */
+function m28ParaWord(){ m28Imprimir("word"); }
 /* F-4: texto pronto para colar no WhatsApp — sem tabela, sem formatação que
    o WhatsApp não entenda; só *negrito* e traços */
 function m28ParaWhatsApp(){
@@ -1975,7 +1880,7 @@ function m28FotosFolha(d){
    ===================================================================== */
 let M28_SAIDA="imprimir";   /* "imprimir" (papel) ou "pdf": só muda o texto da janela da folha */
 function m28Imprimir(saida){
-  M28_SAIDA=saida==="pdf"?"pdf":"imprimir";
+  M28_SAIDA=saida==="pdf"?"pdf":(saida==="word"?"word":"imprimir");
   const todosIt=m28ItensDaFolha();
   const itens=todosIt.filter(d=>!m28AVerificar(d));   /* a janela promete o que a folha vai levar */
   const nVer=todosIt.length-itens.length;             /* os "a verificar": ela escolhe levar ou não */
@@ -2754,12 +2659,17 @@ function m28ImprimirFolha(op){
   doc.open();
   doc.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'
     +esc(titulo)+'</title><style>'+ESTILO+'</style></head><body>'
-    +'<div class="aviso"><b>Antes de '+(M28_SAIDA==="pdf"?'salvar em PDF':'imprimir')+':</b> na caixa que abrir, '
-    +(M28_SAIDA==="pdf"?'em <b>Destino</b> escolha <b>Salvar como PDF</b>, depois ':'')
-    +'abra <b>Mais definições</b> e <b>desmarque “Cabeçalhos e rodapés”</b>. '
-    +'Isso tira a data, a hora e o “about:blank”. A numeração das páginas é nossa '
-    +'e continua aparecendo embaixo.<br>'
-    +'<button onclick="print()">'+(M28_SAIDA==="pdf"?'Salvar PDF':'Imprimir')+'</button></div>'
+    +'<div class="aviso">'+(M28_SAIDA==="word"
+      ? '<b>Word:</b> a folha abaixo é a mesma do PDF. O download começa sozinho; se não começar, use o botão.<br>'
+        +'<button onclick="baixarWord()">Baixar Word</button>'
+      : '<b>Antes de '+(M28_SAIDA==="pdf"?'salvar em PDF':'imprimir')+':</b> na caixa que abrir, '
+        +(M28_SAIDA==="pdf"?'em <b>Destino</b> escolha <b>Salvar como PDF</b>, depois ':'')
+        +'abra <b>Mais definições</b> e <b>desmarque “Cabeçalhos e rodapés”</b>. '
+        +'Isso tira a data, a hora e o “about:blank”. A numeração das páginas é nossa '
+        +'e continua aparecendo embaixo.<br>'
+        +'<button onclick="print()">'+(M28_SAIDA==="pdf"?'Salvar PDF':'Imprimir')+'</button> '
+        +'<button onclick="baixarWord()" style="background:#fff;color:#1d6b57;border:1px solid #1d6b57">Baixar Word</button>')
+    +'</div>'
     +'<div id="alvo"></div></body></html>');
   doc.close();
   /* passa os dados por variável (nada de montar script dentro de string) */
@@ -2768,6 +2678,23 @@ function m28ImprimirFolha(op){
   const s=doc.createElement("script");
   s.textContent=PAGINADOR;
   doc.body.appendChild(s);
+  /* WORD: lê a folha já paginada (a mesma do PDF). Roda aqui, na janela da folha. */
+  const nomeWord=m28NomeArquivo()+".docx";
+  w.baixarWord=async function(){
+    try{
+      const blob=await m28DomParaDocx(w);
+      download(nomeWord,blob);
+      toast("Word gerado ✓");
+    }catch(e){ w.alert("Não consegui gerar o Word: "+(e&&e.message||e)); }
+  };
+  if(M28_SAIDA==="word"){
+    const espera=setInterval(()=>{
+      if(w.closed){clearInterval(espera);return;}
+      if(w.document.body&&w.document.body.getAttribute("data-folha-pronta")==="1"){
+        clearInterval(espera);w.baixarWord();
+      }
+    },300);
+  }
 }
 
 /* =====================================================================
