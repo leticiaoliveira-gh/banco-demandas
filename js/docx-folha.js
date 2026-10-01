@@ -46,6 +46,7 @@ function rPr(o){
     +(o.bold?"<w:b/><w:bCs/>":"")+(o.italic?"<w:i/>":"")
     +(o.color?"<w:color w:val=\""+o.color+"\"/>":"")
     +(o.ls?"<w:spacing w:val=\""+o.ls+"\"/>":"")
+    +(o.w&&o.w!==100?"<w:w w:val=\""+o.w+"\"/>":"")
     +"<w:sz w:val=\""+o.sz+"\"/><w:szCs w:val=\""+o.sz+"\"/>"
     +(o.borda?"<w:bdr w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\""+o.borda+"\"/>":"")
     +(o.fundo?"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\""+o.fundo+"\"/>":"")
@@ -330,7 +331,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
       let corpo="";
       for(const n of obs.childNodes){
         if(n===b||(n.nodeType===1&&(n.tagName==="B"||n.classList.contains("fts"))))continue;
-        if(n.nodeType===3){const t=n.textContent;if(t)corpo+=run(t,{sz:fo.sz,color:fo.color});}
+        /* o Word só aceita letra em meio ponto: estreita a letra na mesma medida, para a linha quebrar onde a folha quebra */
+        if(n.nodeType===3){const t=n.textContent;if(t)corpo+=run(t,{sz:fo.sz,color:fo.color,w:Math.round(parseFloat(cs(obs).fontSize)*150/fo.sz)});}
       }
       sv+=para(pill+"<w:r><w:tab/></w:r>"+corpo,
         {antes:tw(parseFloat(cs(obs).marginTop)||6),exato:1,linha:tw(fo.lh),ind:{l:tw(ind),h:tw(ind)}});
