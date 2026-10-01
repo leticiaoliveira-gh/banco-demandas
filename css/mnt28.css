@@ -573,3 +573,17 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 #tab-mnt28 .ck-sec.m28-ver{background:#f04438;color:#fff}
 #tab-mnt28 .ck-sec.m28-ver:hover{color:#fff}
 #tab-mnt28 .ck-sec.m28-ver.on{background:#b42318;color:#fff;box-shadow:0 0 0 3px rgba(240,68,56,.25)}
+
+/* 01/10: filtros em negrito (pedido de Le) */
+#tab-mnt28 .m28-barra.m28-filtros select[aria-label="Filtrar por piso"],
+#tab-mnt28 .m28-barra.m28-filtros select[aria-label="Filtrar por área"],
+#tab-mnt28 .m28-barra.m28-filtros select[aria-label="Pendências"]{font-weight:700}
+
+/* 01/10 (2ª rodada): linha de cima numa linha só, mais compacta; LEMBRETES em quadrado igual aos outros botões */
+#tab-mnt28 .m28-barra.m28-filtros{flex-wrap:nowrap;overflow-x:auto;gap:6px}
+#tab-mnt28 .m28-barra.m28-filtros select{flex:none;width:auto;font-size:12px;height:34px;min-height:34px;padding:0 24px 0 8px}
+#tab-mnt28 .m28-barra.m28-filtros .btn,
+#tab-mnt28 .m28-barra.m28-filtros .m28-lemb{flex:none;font-size:12px;height:34px;min-height:34px;padding:0 10px;white-space:nowrap}
+#tab-mnt28 .m28-barra .m28-lemb{border-radius:8px;font-weight:700}
+#tab-mnt28 .m28-barra .search.m28-lupa{height:34px;width:38px}
+#tab-mnt28 .m28-barra .search.m28-lupa input{height:34px;min-height:34px}
