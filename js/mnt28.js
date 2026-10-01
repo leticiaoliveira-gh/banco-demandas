@@ -896,11 +896,6 @@ async function renderMnt28(){
     return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Para: ${esc(m28NomeExec(e))} (${n})</option>`;
   }).join(""):"";
   const barra=`<div class="toolbar m28-barra m28-filtros">
-    <div class="search">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="m28q" aria-label="Buscar nesta folha" autocomplete="off" spellcheck="false"
-        placeholder="Buscar serviço…" title="Busca no serviço, na área e na observação" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
-    </div>
     ${opExec?`<select aria-label="Escolher de quem é a folha" onchange="m28Filtro('exec',this.value)"
       title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Para: todos</option>${opExec}</select>`:""}
     <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Piso: todos</option>${opPiso}</select>
@@ -910,23 +905,26 @@ async function renderMnt28(){
       <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Pendências: ativas</option>
       <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Pendências: concluídas</option>
     </select>
-    <button class="btn ghost sm m28-lemb${M28F.ver==="lembretes"?" on":""}" aria-pressed="${M28F.ver==="lembretes"}"
+    <button class="m28-lemb${M28F.ver==="lembretes"?" on":""}" aria-pressed="${M28F.ver==="lembretes"}"
       onclick="m28Filtro('ver',M28F.ver==='lembretes'?'todos':'lembretes')"
       title="Mostrar só os serviços com lembrete da Letícia">Lembretes Letícia</button>
+    <div class="search m28-lupa">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="m28q" aria-label="Buscar nesta folha" autocomplete="off" spellcheck="false"
+        placeholder="Buscar serviço…" title="Busca no serviço, na área e na observação" value="${esc(M28F.q)}" oninput="m28Filtro('q',this.value)">
+    </div>
+    <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
   </div>
   <div class="toolbar m28-barra m28-botoes">
-    <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>
     ${nVer?`<button class="btn ghost sm" onclick="m28MoverVerificar()"
       title="Tirar da folha impressa as ${nVer} observações que começam com VERIFICAR — elas continuam aqui, só para você">${icone("cadeado")} Tirar ${nVer} “VERIFICAR” da folha impressa</button>`:""}
     <button class="btn ghost sm" onclick="m28Imprimir('imprimir')" title="Abrir a folha pronta para imprimir no papel">${icone("imprimir")} Imprimir</button>
     <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">${icone("pdf")} PDF</button>
-    ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
-         filtros — escolhida a folha do Matheus, sai só a dele. */""}
     <button class="btn ghost sm" onclick="m28Imprimir('word')" title="Baixar esta folha em Word, para editar o texto">${icone("doc")} Word</button>
     <button class="btn ghost sm" onclick="m28Imprimir('wordimg')" title="Baixar em Word IDÊNTICO ao PDF (cada página vira figura, não edita)">${icone("doc")} Word idêntico</button>
-    <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">${icone("planilha")} Planilha</button>
-    <button class="btn ghost sm" onclick="m28PainelRalos()" title="Rastreamento de ralos: a lista que sai no fim da folha">${icone("gota")} Rastreamento ralos</button>
+    <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
+    <button class="btn ghost sm" onclick="m28PainelRalos()" title="Rastreamento de ralos: a lista que sai no fim da folha">${icone("gota")} Rastreamento Ralos</button>
   </div>`;
 
   /* AS QUATRO DIVISÕES (28/08) — o desenho dos Checklists, que ela já conhece.
