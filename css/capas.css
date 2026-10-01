@@ -48,6 +48,19 @@
   body[data-capa="aurora"] #view-home .emp-toolbar select option{color:#2d2e3a;background:#fff}
   body[data-capa="aurora"] #view-home .btn.ghost.sm{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)}
 }
+/* barra lateral no Aurora: vidro escuro combinando com o fundo, e por cima de tudo
+   (as dicas dos ícones não podem ficar atrás da lista) */
+@media (min-width:1001px){
+  body[data-capa="aurora"] .app{background:linear-gradient(155deg,#02100d 0%,#04302a 55%,#064b40 100%)}
+  body[data-capa="aurora"] .rail{
+    z-index:100;
+    background:linear-gradient(170deg,rgba(255,255,255,.1),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.2);
+    box-shadow:0 10px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  body[data-capa="aurora"] .rail .logo{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35)}
+}
+
 @media (prefers-reduced-motion:reduce){
   body[data-capa] #view-home .btn.iniciar,body[data-capa] #view-home .btn-nova{transition:none !important}
 }
