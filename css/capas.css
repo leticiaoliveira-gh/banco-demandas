@@ -74,6 +74,19 @@
   body[data-capa="aurora"] .rail{box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18)}
 }
 
+/* abas internas no Aurora: o conteúdo (antes branco) vira vidro escuro.
+   Técnica: inverte as cores do conteúdo e devolve o tom ao normal; fotos, assinaturas
+   e gráficos voltam ao natural. Só no computador; o celular mantém o modo claro. */
+@media (min-width:1001px){
+  body[data-capa="aurora"] #view-app{background:transparent;box-shadow:none}
+  body[data-capa="aurora"] #view-app>:not(.head){
+    filter:invert(.88) hue-rotate(180deg);
+  }
+  body[data-capa="aurora"] #view-app>:not(.head) :is(img,canvas,video,svg image,.ck-assin-img){
+    filter:invert(1) hue-rotate(180deg);
+  }
+}
+
 @media (prefers-reduced-motion:reduce){
   body[data-capa] #view-home .btn.iniciar,body[data-capa] #view-home .btn-nova{transition:none !important}
 }
