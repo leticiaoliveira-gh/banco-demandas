@@ -905,12 +905,14 @@ async function renderMnt28(){
       title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Para: todos</option>${opExec}</select>`:""}
     <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Piso: todos</option>${opPiso}</select>
     <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Área: todas</option>${opArea}</select>
-    <select aria-label="Situação" onchange="m28Filtro('ver',this.value)">
-      <option value="todos"${M28F.ver==="todos"?" selected":""}>Situação: tudo</option>
-      <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Situação: pendentes</option>
-      <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Situação: concluídos</option>
-      <option value="lembretes"${M28F.ver==="lembretes"?" selected":""}>Situação: com lembrete</option>
+    <select aria-label="Pendências" onchange="m28Filtro('ver',this.value)">
+      <option value="todos"${M28F.ver==="todos"?" selected":""}>Pendências: todas</option>
+      <option value="fazer"${M28F.ver==="fazer"?" selected":""}>Pendências: ativas</option>
+      <option value="feitos"${M28F.ver==="feitos"?" selected":""}>Pendências: concluídas</option>
     </select>
+    <button class="btn ghost sm m28-lemb${M28F.ver==="lembretes"?" on":""}" aria-pressed="${M28F.ver==="lembretes"}"
+      onclick="m28Filtro('ver',M28F.ver==='lembretes'?'todos':'lembretes')"
+      title="Mostrar só os serviços com lembrete da Letícia">Lembretes Letícia</button>
   </div>
   <div class="toolbar m28-barra m28-botoes">
     <button class="btn ghost sm" onclick="m28Novo()" title="Acrescentar um serviço nesta folha">+ Serviço</button>

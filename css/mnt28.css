@@ -541,3 +541,5 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 
 /* 01/10: filtros da barra da folha em MAIÚSCULO (pedido de Le) */
 .m28-barra.m28-filtros select{text-transform:uppercase}
+.m28-barra.m28-filtros .btn{text-transform:uppercase;height:36px}
+.m28-barra.m28-filtros .btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
