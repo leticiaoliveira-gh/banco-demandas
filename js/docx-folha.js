@@ -112,7 +112,7 @@ function tabela(linhas,larguras,o){
     +"<w:tblLayout w:type=\"fixed\"/>"
     +"<w:tblCellMar><w:top w:w=\"0\" w:type=\"dxa\"/><w:left w:w=\"0\" w:type=\"dxa\"/><w:bottom w:w=\"0\" w:type=\"dxa\"/><w:right w:w=\"0\" w:type=\"dxa\"/></w:tblCellMar>"
     +"</w:tblPr><w:tblGrid>"+larguras.map(w=>"<w:gridCol w:w=\""+w+"\"/>").join("")+"</w:tblGrid>";
-  for(const l of linhas)x+="<w:tr><w:trPr><w:cantSplit/></w:trPr>"+l.map(celula).join("")+"</w:tr>";
+  for(const l of linhas)x+="<w:tr><w:trPr><w:cantSplit/>"+(l[0]&&l[0].altLinha?"<w:trHeight w:val=\""+l[0].altLinha+"\" w:hRule=\"exact\"/>":"")+"</w:trPr>"+l.map(celula).join("")+"</w:tr>";
   return x+"</w:tbl>";
 }
 /* converte medidas em px (que somam a largura real da caixa) em twips que somam EXATO "total" */
@@ -296,7 +296,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const gap=parseFloat(cs(li).columnGap)||7;
     const larg=escalar(px,LARG);
     px.length=0;
-    const marV=tw(padV);
+    /* o Word põe a última linha um pouco mais baixa que o site: tira a sobra no fim da caixa */
+    const marV=tw(padV),marB=ultima?Math.max(0,marV-50):marV;
     const borda=ultima?null:{sz:6,cor:hex(cs(li).borderBottomColor)||"C3CCD4"};
     const fn=fmt(win,nm);
     const fc=fmt(win,li.querySelector(".bx"));
@@ -341,9 +342,9 @@ window.m28DomParaDocx=async function(win,modoImagem){
       const ft=f.querySelector(":scope > .fts");if(ft)sv+=await fotos(ft,0,false);
     }
     const cel=[
-      {w:larg[0],mar:{t:marV,b:marV,l:tw(pad),r:tw(gap)},xml:cx,b:{bottom:borda}},
-      {w:larg[1],mar:{t:marV,b:marV,r:tw(gap)},xml:num,b:{bottom:borda}},
-      {w:larg[2],mar:{t:marV,b:marV,r:Math.max(0,tw(gap)-90)},xml:sv,b:{bottom:borda}}
+      {w:larg[0],mar:{t:marV,b:marB,l:tw(pad),r:tw(gap)},xml:cx,b:{bottom:borda}},
+      {w:larg[1],mar:{t:marV,b:marB,r:tw(gap)},xml:num,b:{bottom:borda}},
+      {w:larg[2],mar:{t:marV,b:marB,r:Math.max(0,tw(gap)-90)},xml:sv,b:{bottom:borda}}
     ];
     if(q){
       const fq=fmt(win,q);
@@ -356,7 +357,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
           {sz:f2.sz,bold:f2.bold,color:f2.color,fundo:n.tagName==="I"?f2.fundo:null});
         if(n.tagName==="B")dq+=run(" ",{sz:f2.sz});
       }
-      cel.push({w:larg[3],mar:{t:marV,b:marV,r:tw(pad)},xml:para(dq,{jc:"right",exato:1,linha:tw(fq.lh),quebra:quebra}),b:{bottom:borda}});
+      cel.push({w:larg[3],mar:{t:marV,b:marB,r:tw(pad)},xml:para(dq,{jc:"right",exato:1,linha:tw(fq.lh),quebra:quebra}),b:{bottom:borda}});
     }
     return {cel:cel,larg:larg};
   }
@@ -370,7 +371,8 @@ window.m28DomParaDocx=async function(win,modoImagem){
                 :[R(cont).left-A.left,A.right-R(cont).left];
     const larg=escalar(px,LARG);
     if(sub&&larg[2]<1700){const d=1700-larg[2];larg[2]+=d;larg[0]-=d;}
-    const pv=tw(parseFloat(cs(ar).paddingTop)||6),pl=tw(parseFloat(cs(ar).paddingLeft)||11);
+    /* no Word a letra da faixa fica mais baixa: sobe a margem de cima e devolve um pouco embaixo */
+    const pv0=tw(parseFloat(cs(ar).paddingTop)||6),pt=Math.max(0,pv0-50),pv=pv0+30,pl=tw(parseFloat(cs(ar).paddingLeft)||11);
     /* altura da linha = a da faixa no site (os selos deixam a faixa mais alta que a letra) */
     const lhAr=Math.max(fa.lh,A.height-2*(parseFloat(cs(ar).paddingTop)||6)-(parseFloat(cs(ar).borderBottomWidth)||0));
     let esq="";
@@ -386,10 +388,10 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const dir=para(selo(cont,"rgb(232,245,240)"),
       {jc:"right",exato:1,linha:tw(lhAr),keepNext:1});
     const bb={bottom:{sz:6,cor:"D7E6E0"}};
-    const cel=[{w:larg[0],v:"center",mar:{t:pv,b:pv,l:pl},b:bb,xml:para(esq,{exato:1,linha:tw(lhAr),keepNext:1,quebra:quebra})},
-               {w:larg[1],v:"center",mar:{t:pv,b:pv,r:sub?tw(10):pl},b:bb,xml:dir}];
+    const cel=[{w:larg[0],v:"center",mar:{t:pt,b:pv,l:pl},b:bb,xml:para(esq,{exato:1,linha:tw(lhAr),keepNext:1,quebra:quebra})},
+               {w:larg[1],v:"center",mar:{t:pt,b:pv,r:sub?tw(10):pl},b:bb,xml:dir}];
     if(sub){const fs=fmt(win,sub.querySelector(".qh"));
-      cel.push({w:larg[2],v:"center",mar:{t:pv,b:pv,r:pl},b:bb,
+      cel.push({w:larg[2],v:"center",mar:{t:pt,b:pv,r:pl},b:bb,
         xml:para(run(fs.caps?"DATA REGISTRADA":sub.textContent,{sz:fs.sz,bold:true,color:fs.color,ls:fs.ls}),{jc:"right",exato:1,linha:tw(lhAr),keepNext:1})});}
     return {cel:cel,larg:larg};
   }
