@@ -137,7 +137,7 @@ async function bytesDaFoto(win,img){
 }
 
 /* ---------- a exportação ---------- */
-window.m28DomParaDocx=async function(win){
+window.m28DomParaDocx=async function(win,modoImagem){
   const D=win.document;
   const alvo=D.getElementById("alvo");
   const folhas=Array.from(alvo.querySelectorAll(".folha"));
@@ -330,13 +330,15 @@ window.m28DomParaDocx=async function(win){
 
 
   /* ---- capa como figura: degradê, cantos e sombras idênticos ao PDF (fallback: capa editável) ---- */
-  async function capaImagem(c,quebra){
+  async function capaImagem(c,quebra,pagina){
     try{
-      const r=R(c),W=Math.ceil(r.width),H=Math.ceil(r.height),E=3;
+      const r=R(c),W=pagina?Math.round(r.width):Math.ceil(r.width),H=pagina?Math.round(r.height):Math.ceil(r.height),E=pagina?2.5:3;
       const cl=c.cloneNode(true);
       const o=[c].concat(Array.from(c.querySelectorAll("*"))),d=[cl].concat(Array.from(cl.querySelectorAll("*")));
       o.forEach((e,i)=>{const k=cs(e);let t="";for(let j=0;j<k.length;j++){const n=k[j];t+=n+":"+k.getPropertyValue(n)+";";}
-        d[i].setAttribute("style",t);});
+        d[i].setAttribute("style",t);
+        if(e!==c&&!e.children.length&&e.textContent.trim()){const rr=R(e),lh=parseFloat(k.lineHeight)||rr.height;
+          if(rr.height<=lh*1.4)d[i].style.whiteSpace="nowrap";}});
       cl.style.margin="0";cl.style.width=W+"px";cl.style.height=H+"px";cl.style.boxSizing="border-box";
       const xml=new XMLSerializer().serializeToString(cl);
       const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W*E+'" height="'+H*E+'"><foreignObject width="'+W+'" height="'+H+'" transform="scale('+E+')">'+xml+'</foreignObject></svg>';
@@ -349,7 +351,7 @@ window.m28DomParaDocx=async function(win){
       const bin=atob(b64),dados=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)dados[i]=bin.charCodeAt(i);
       const n=doc.media.length+1,rid="rImg"+n,nome="image"+n+".png";
       doc.media.push({name:nome,data:dados,rid:rid});
-      const cx=Math.round(W*9525),cy=Math.round(H*9525);
+      const cx=pagina?7560310:Math.round(W*9525),cy=pagina?10690860:Math.round(H*9525);
       const run1="<w:r><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+cx+"\" cy=\""+cy+"\"/>"
         +"<wp:docPr id=\""+n+"\" name=\""+nome+"\"/><a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
         +"<pic:pic><pic:nvPicPr><pic:cNvPr id=\""+n+"\" name=\""+nome+"\"/><pic:cNvPicPr/></pic:nvPicPr>"
@@ -469,6 +471,17 @@ window.m28DomParaDocx=async function(win){
     return x;
   }
 
+  if(modoImagem){
+    let x="";
+    for(let i=0;i<folhas.length;i++){
+      const p=await capaImagem(folhas[i],i>0,true);
+      if(!p)throw new Error("Não consegui desenhar a página "+(i+1));
+      x+=p;
+    }
+    doc.body.push(x);
+    doc.sect="<w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/><w:pgMar w:top=\"0\" w:right=\"0\" w:bottom=\"0\" w:left=\"0\" w:header=\"0\" w:footer=\"0\" w:gutter=\"0\"/></w:sectPr>";
+    return doc.blob();
+  }
   /* ---- percorre cada folha, na ordem, com os mesmos espaços ---- */
   let corpoXml="";
   for(let fi=0;fi<folhas.length;fi++){

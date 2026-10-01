@@ -922,7 +922,8 @@ async function renderMnt28(){
     <button class="btn ghost sm" onclick="m28Imprimir('pdf')" title="Abrir a folha pronta para salvar em PDF">${icone("pdf")} PDF</button>
     ${/* F-4 e PL-1: as mesmas linhas da tela, levadas para fora. Respeitam os
          filtros — escolhida a folha do Matheus, sai só a dele. */""}
-    <button class="btn ghost sm" onclick="m28Imprimir('word')" title="Baixar esta folha em Word, igual ao PDF, para editar">${icone("doc")} Word</button>
+    <button class="btn ghost sm" onclick="m28Imprimir('word')" title="Baixar esta folha em Word, para editar o texto">${icone("doc")} Word</button>
+    <button class="btn ghost sm" onclick="m28Imprimir('wordimg')" title="Baixar em Word IDÊNTICO ao PDF (cada página vira figura, não edita)">${icone("doc")} Word idêntico</button>
     <button class="btn ghost sm" onclick="m28ParaWhatsApp()" title="Copiar esta folha em texto, pronta para colar no WhatsApp">${icone("conversa")} WhatsApp</button>
     <button class="btn ghost sm" onclick="m28ParaPlanilha()" title="Baixar esta folha em planilha (abre no Excel)">${icone("planilha")} Planilha</button>
     <button class="btn ghost sm" onclick="m28PainelRalos()" title="Rastreamento de ralos: a lista que sai no fim da folha">${icone("gota")} Rastreamento ralos</button>
@@ -1882,7 +1883,7 @@ function m28FotosFolha(d){
    ===================================================================== */
 let M28_SAIDA="imprimir";   /* "imprimir" (papel) ou "pdf": só muda o texto da janela da folha */
 function m28Imprimir(saida){
-  M28_SAIDA=saida==="pdf"?"pdf":(saida==="word"?"word":"imprimir");
+  M28_SAIDA=saida==="pdf"?"pdf":(saida==="word"?"word":(saida==="wordimg"?"wordimg":"imprimir"));
   const todosIt=m28ItensDaFolha();
   const itens=todosIt.filter(d=>!m28AVerificar(d));   /* a janela promete o que a folha vai levar */
   const nVer=todosIt.length-itens.length;             /* os "a verificar": ela escolhe levar ou não */
@@ -2661,7 +2662,7 @@ function m28ImprimirFolha(op){
   doc.open();
   doc.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'
     +esc(titulo)+'</title><style>'+ESTILO+'</style></head><body>'
-    +'<div class="aviso">'+(M28_SAIDA==="word"
+    +'<div class="aviso">'+((M28_SAIDA==="word"||M28_SAIDA==="wordimg")
       ? '<b>Word:</b> a folha abaixo é a mesma do PDF. O download começa sozinho; se não começar, use o botão.<br>'
         +'<button onclick="baixarWord()">Baixar Word</button>'
       : '<b>Antes de '+(M28_SAIDA==="pdf"?'salvar em PDF':'imprimir')+':</b> na caixa que abrir, '
@@ -2684,12 +2685,12 @@ function m28ImprimirFolha(op){
   const nomeWord=m28NomeArquivo()+".docx";
   w.baixarWord=async function(){
     try{
-      const blob=await m28DomParaDocx(w);
+      const blob=await m28DomParaDocx(w,M28_SAIDA==="wordimg");
       download(nomeWord,blob);
       toast("Word gerado ✓");
     }catch(e){ w.alert("Não consegui gerar o Word: "+(e&&e.message||e)); }
   };
-  if(M28_SAIDA==="word"){
+  if(M28_SAIDA==="word"||M28_SAIDA==="wordimg"){
     const espera=setInterval(()=>{
       if(w.closed){clearInterval(espera);return;}
       if(w.document.body&&w.document.body.getAttribute("data-folha-pronta")==="1"){
