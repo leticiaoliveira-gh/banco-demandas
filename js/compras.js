@@ -39,7 +39,8 @@
 
 /* as quatro situações possíveis, na ordem em que a vida acontece */
 const CMP_SIT = {
-  pedido:   {rot:"Pedido",              selo:"bd-selo-info"},
+  /* 05/10: "Pedido" virou "Solicitado" (anotação dela no papel); a chave fica "pedido" para não mexer nos dados */
+  pedido:   {rot:"Solicitado",          selo:"bd-selo-info"},
   comprado: {rot:"Comprado",            selo:"bd-selo-ok"},
   instalar: {rot:"Comprado, a instalar", selo:"bd-selo-atencao"},
   recusado: {rot:"Não vai comprar",     selo:"bd-selo-neutro"}
@@ -443,29 +444,29 @@ function cmpImprimir(){
       color:#344054;font-size:12.4px;line-height:1.5;background:#e9ebee}
     .folha{width:210mm;min-height:297mm;background:#fff;margin:0 auto 14px;padding:11mm 12mm 15mm;
       box-shadow:0 4px 18px rgba(16,24,40,.14)}
-    .topo{font-size:8.6px;color:#667085;border-bottom:1px solid #eaecf0;padding-bottom:5px;margin-bottom:9px}
-    /* mesmo cabecalho da folha de manutencao -- se um mudar, o outro muda junto */
+    /* 05/10 (anotação dela no papel): sem a linha de cima, faixa verde compacta
+       e só "Emitido em" e "Itens", no alto, ao lado do título */
     .capa{background:${capaFundoFolha('linear-gradient(155deg,#146b61 0%,#1a8074 100%)')};color:#fff;
-      padding:12px 16px;border-radius:8px;margin-bottom:11px;
+      padding:8px 12px;border-radius:8px;margin-bottom:8px;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .et{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.88)}
-    .assunto{font-size:21px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:3px}
-    .faixa{display:flex;margin-top:10px;border:1px solid rgba(255,255,255,.34);border-radius:6px;
+    .linha1{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+    .et{font-size:7.4px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:rgba(255,255,255,.88)}
+    .assunto{font-size:16px;font-weight:700;letter-spacing:-.3px;line-height:1.1;margin-top:2px}
+    .pe{display:flex;gap:14px;align-items:baseline;font-size:9.6px;white-space:nowrap}
+    .pe div{display:flex;align-items:baseline;gap:5px}
+    .pe span{font-size:7.4px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
+    .pe b{font-weight:600;font-size:10.2px;color:#fff}
+    .faixa{display:flex;margin-top:6px;border:1px solid rgba(255,255,255,.34);border-radius:6px;
       overflow:hidden;background:rgba(255,255,255,.14);
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .faixa div{flex:1;padding:7px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
+    .faixa div{flex:1;padding:3px 10px;border-right:1px solid rgba(255,255,255,.28);text-align:center}
     .faixa div:last-child{border-right:0}
-    .faixa span{display:block;font-size:7.4px;text-transform:uppercase;letter-spacing:1px;
+    .faixa span{display:block;font-size:6.8px;text-transform:uppercase;letter-spacing:1px;
       color:rgba(255,255,255,.92);font-weight:600}
-    .faixa b{font-size:14.5px;font-weight:700;letter-spacing:.2px;color:#fff}
+    .faixa b{font-size:12px;font-weight:700;letter-spacing:.2px;color:#fff}
     .faixa .mes{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .faixa .mes span{color:#7a2b23}
     .faixa .mes b{color:#b42318}
-    .pe{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-top:9px;padding-top:7px;
-      border-top:1px solid rgba(255,255,255,.26);font-size:9.6px}
-    .pe div{display:flex;align-items:baseline;gap:5px}
-    .pe span{font-size:7.6px;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.82)}
-    .pe b{font-weight:600;font-size:10.2px;color:#fff}
     .ar{display:flex;justify-content:space-between;align-items:baseline;background:#e8f5f0;
       border-left:3px solid #1d6b57;padding:5px 9px;margin-top:14px;font-size:12px;font-weight:700;
       color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -483,16 +484,16 @@ function cmpImprimir(){
     .li .obs-p b{font-weight:700;color:#344054;margin-right:4px}
     .ug{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px}
     </style></head><body><div class="folha">
-      <div class="topo">Central de Demandas NP · ${esc(loja)} · Emitido em ${brDate(iso)}</div>
       <div class="capa">
-        <div class="et">Lista de compras</div>
-        <div class="assunto">Compras e Reposição</div>
-        ${faixa ? `<div class="faixa">${faixa}</div>` : ""}
-        <div class="pe">
-          <div><span>Unidade</span><b>${esc(loja)}</b></div>
-          <div><span>Emitido em</span><b>${brDate(iso)}</b></div>
-          <div><span>Itens</span><b>${n}</b></div>
+        <div class="linha1">
+          <div><div class="et">Lista de compras</div>
+            <div class="assunto">Compras e Reposição</div></div>
+          <div class="pe">
+            <div><span>Emitido em</span><b>${brDate(iso)}</b></div>
+            <div><span>Itens</span><b>${n}</b></div>
+          </div>
         </div>
+        ${faixa ? `<div class="faixa">${faixa}</div>` : ""}
       </div>
       ${corpo}
     </div></body></html>`;
