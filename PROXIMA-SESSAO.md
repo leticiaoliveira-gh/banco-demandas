@@ -3,6 +3,14 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **05/10/2026 (fim da tarde): no ar v11.81 (cache v260).** Compras AC: anotações dela no papel aplicadas
+> item por item no D1 (puxador da ilha de volta; Dayse como solicitante em 4 compras; lixeiras, contêiner,
+> cestos; tampo e base da seladora do hortifrúti apagados). Situação "Pedido" virou "Solicitado" (só o nome;
+> a chave segue "pedido"). Topo da folha impressa de compras compacto (sem linha cinza, faixa verde baixa,
+> só Emitido em e Itens). ATENÇÃO: há trabalho de OUTRA conversa sem commit na pasta (biblioteca, catalogo,
+> css, ind.js, CLAUDE.md); por isso o deploy foi feito de uma cópia limpa do commit (git archive). Ideia em
+> aberto para ela: tirar da folha impressa os itens já comprados (o papel diz "Comprado → sai da lista").
+
 > **05/10/2026 (13:45): conferência da Manutenção AC — sem mudança no site (continua v11.80).**
 > Ela editou a folha AC no PC fora de casa. Conferido direto na nuvem (D1 `central-demandas`): as 11
 > mudanças de hoje chegaram (rev entre 14:27 e 16:35 UTC), e nada chegou depois disso. Resumo:
