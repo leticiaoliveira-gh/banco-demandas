@@ -3,6 +3,20 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **05/10/2026 (13:45): conferência da Manutenção AC — sem mudança no site (continua v11.80).**
+> Ela editou a folha AC no PC fora de casa. Conferido direto na nuvem (D1 `central-demandas`): as 11
+> mudanças de hoje chegaram (rev entre 14:27 e 16:35 UTC), e nada chegou depois disso. Resumo:
+> rodapé do açougue (34d28475) feito · chapas da padaria (ac-114), paletes (ac-002 e ac-071),
+> batente F&L (ac-051), limpeza da desativada (ac-127), rejunte (ac-117) e fechadura UAN (ac-084)
+> com texto novo · desativada: porta+trilho viraram 1 (ac-055), trilho 0d214e0f excluído,
+> paredes 092923c6 marcado para verificar · excluídos: canos da produção (4584079e) e estantes
+> dos salgados (4a442e7d). O PDF que ela mandou ("31.08.26 AC - MNT FINALIZADO", 9 páginas) foi
+> gerado em 01/10 à 01:18, ANTES dessas edições; ela achou que só a data estava errada. O resto
+> bate 1 a 1 com o site, inclusive os ralos. **NÃO sincronizar o site com esse PDF** (desfaria as
+> edições de hoje). Erros de digitação para ela corrigir pelo ✎: "commpleta" e "tubulaçao"
+> (ac-127), "vitrini" (ac-025). Ofertas em aberto: gerar a folha AC nova em PDF; comparar um
+> PDF novo, se ela mandar. Ela segue em outra sessão com as melhorias.
+
 > **01/10/2026 (noite): no ar v11.60 (cache v237).** v11.59/11.60: a seta do topo que dizia Capa agora é "← Voltar" e sobe só uma página (relatório → área dos relatórios da empresa → Capa). Plano na v39, PDF gerado. Ela ainda vai mandar mais edições.
 
 > **01/10/2026 (noite): no ar v11.58 (cache v235).** Barra lateral se esconde sozinha ao entrar em qualquer relatório (vindo do Hub); no Hub/Capa aparece. Botões da Manutenção todos com ícone (inclui PDF), mesma altura, descem de linha se faltar espaço (nada some).
