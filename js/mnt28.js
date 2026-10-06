@@ -2097,7 +2097,7 @@ function m28ImprimirFolha(op){
           +`<b>${porPiso[r.piso]} ${porPiso[r.piso]===1?"área":"áreas"}</b></div></div>`;}
       nr++;
       blocos+=`<div class="bl li rl" data-piso="${esc(pb)}"><span class="c"><i class="bx">${r.feito?"✓":""}</i></span>`
-        +`<span class="nm">${nr}.</span><span class="f">${esc(r.area||"Sem área")}</span><span class="q"></span></div>`;
+        +`<span class="nm">${nr}.</span><span class="f">${esc(r.area||"Sem área")}${m28FotosFolha({fotos:r.itens.flatMap(d=>d.fotos||[])})}</span><span class="q"></span></div>`;
     }
   }
   /* SJ-1c: o bloco de causa fecha a folha — a gerência lê no fim e entende que
