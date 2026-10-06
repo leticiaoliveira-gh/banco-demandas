@@ -3,6 +3,10 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **PRÓXIMA SESSÃO (escrito 06/10/2026 13:30) — NO AR v11.85 (cache v264, app.js/compras.js ?v=264, commits e4cd77c + rodapé). COMECE AQUI.**
+> Feito: v11.85 = lista de compras impressa (js/compras.js): topo só "COMPRAS" com os pisos escritos ("1º PISO • 2º PISO"), sem "emitido em" nem "itens"; área+demanda+obs nunca cortadas entre páginas; foto da demanda de manutenção ligada (origemMnt) aparece depois da Obs; itens com `ultimo:true` vão por último (cestos); quantidade pode ficar em branco ("A definir"). D1: cmp-ac-cestos-ralos-1piso com qtd "", ultimo:true e obs "Fazer balanço geral com o Sr. João para definir a quantidade." (sem histórico $.h). Registro em Tarefas\Site 11.85 + DIARIO + Provas. Rodapé v11.85 publicado de cópia limpa.
+> Ainda em aberto (só se ela pedir): "Não salvou" de 05/10 (prioridade); folha de Cabo Frio do Sr. João; entrada no site; item 5 (teste local).
+
 > **PRÓXIMA SESSÃO (escrito 06/10/2026 10:45) — NO AR v11.84 (cache v263, commits 2f18cad + seguinte). COMECE AQUI, NÃO RELEIA NADA.**
 > Le vai CONTINUAR mandando correções (fotos do papel ou texto). Fazer cada uma direto, sem reler arquivos à toa.
 > - Pedido de dado (texto de compra, serviço, obs): editar no D1 `central-demandas` (tabela itens; subir mod/rev e pôr histórico em $.h). Aparece na hora, não precisa publicar.
