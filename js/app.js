@@ -1144,28 +1144,32 @@ async function renderHome(){
    como todo bloco de tela desde 23/07: ela ja mandou tirar cards duas vezes.
    visitas: por loja, os dias em que ela estara la. Viaja no backup e no sync
    junto com o resto do capaCfg, sem tocar em js/sync.js. */
-let CAPA_CFG={layout:"vidro",abas:"claro",mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
+let CAPA_CFG={layout:"simples",abas:"claro",mostrarNumeros:false,mostrarPendencias:true,mostrarAgenda:false,visitas:{}},CAPA_CFG_MOD="";
 let CAPA_ORGANIZANDO=false;
 async function loadCapaCfg(){
   const v=await metaGet("capaCfg");
   if(v&&typeof v==="object")CAPA_CFG={...CAPA_CFG,...v};
   CAPA_CFG_MOD=await metaGet("capaCfgMod")||"";
+  /* 06/10/2026, pedido dela: o Verde simples virou o padrão. Troca uma vez só;
+     depois disso vale o que ela escolher no 🎨. */
+  if(!CAPA_CFG.simplesPadrao){CAPA_CFG.layout="simples";CAPA_CFG.simplesPadrao=true;CAPA_CFG_MOD=nowISO();await metaSetU("capaCfg",CAPA_CFG);await metaSetU("capaCfgMod",CAPA_CFG_MOD);}
   capaAplicarLayout();
 }
 /* LAYOUTS DE CAPA (01/10/2026): todo layout aprovado fica nesta lista PARA SEMPRE — ela
    volta a qualquer um quando quiser. Novo = uma linha aqui + um bloco em css/capas.css. */
 const CAPA_LAYOUTS=[
+  {id:"simples",nome:"Verde simples",desc:"Faixa verde lisa, do escuro ao verde-água, sem brilho nem sombra. Igual na tela, na impressão, no PDF e no Word. (06/10/2026)"},
   {id:"vidro", nome:"Vidro verde", desc:"O de sempre: painel de vidro verde, lista de cartões brancos."},
   {id:"aurora",nome:"Aurora",      desc:"Fundo escuro com verde-água brilhante, lista em vidro, botões em vidro com borda clara."},
   {id:"fluido",nome:"Aurora fluida",desc:"Igual ao Aurora, mas com a foto de água-marinha fluida no fundo. No PDF: título em negrito e mês em vermelho de vidro."}
 ];
 function capaAplicarLayout(){
   const ok=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout);
-  document.body.dataset.capa=ok?CAPA_CFG.layout:"vidro";document.body.dataset.abas=CAPA_CFG.abas==="escuro"?"escuro":"claro";
+  document.body.dataset.capa=ok?CAPA_CFG.layout:"simples";document.body.dataset.abas=CAPA_CFG.abas==="escuro"?"escuro":"claro";
   capaFotoPreparar();
 }
 function capaLayoutsAbrir(){
-  const atual=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout)?CAPA_CFG.layout:"vidro";
+  const atual=CAPA_LAYOUTS.some(l=>l.id===CAPA_CFG.layout)?CAPA_CFG.layout:"simples";
   ncModal(`
    <h2>🎨 Layouts da capa</h2>
    <p class="desc">Toque num modelo para trocar na hora. Todos ficam guardados: dá para voltar a qualquer um quando quiser. (No celular a capa continua no modo loja.)</p>
@@ -1188,6 +1192,7 @@ function capaFotoPreparar(){
 }
 function capaFundoFolha(verde){
   const l=document.body.dataset.capa;
+  if(l==="simples")return "linear-gradient(120deg,#062a24 0%,#0c4a3f 45%,#1e8f7e 70%,#073029 100%)";
   if(l==="aurora")return "linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)";
   if(l!=="fluido")return verde;
   return CAPA_FOTO_URI?`linear-gradient(rgba(2,16,13,.2),rgba(2,16,13,.2)),url("${CAPA_FOTO_URI}") center 58%/cover no-repeat,#02100d`
@@ -2063,11 +2068,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.92";
+const APP_VERSAO="11.93";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="06/10/2026 · 14:23";
+const APP_DATA="06/10/2026 · 18:44";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

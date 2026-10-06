@@ -548,6 +548,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
     const base=(()=>{const b=cs(c).backgroundImage||"";const m=/#([0-9a-f]{6})\b/ig.exec(b);
       const l=(window.document.body.dataset||{}).capa;
       if(l==="aurora"||l==="fluido")return "03211C";
+      if(l==="simples")return "0C4A3F";
       /* verde do meio do degradê claro */
       return "1A7A70";})();
     const sobre="rgb("+parseInt(base.slice(0,2),16)+","+parseInt(base.slice(2,4),16)+","+parseInt(base.slice(4,6),16)+")";

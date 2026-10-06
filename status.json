@@ -1,7 +1,7 @@
 {
   "atualizadoEm": "2026-10-06",
-  "versao": "11.92",
-  "qa": "06/10/2026 - título do relatório de compras: \"Resumo Compras MNT - <loja>\"; PDF conferido.",
-  "ondeParamos": "v11.92: relatório de compras com título \"Resumo Compras MNT - Arraial do Cabo\" e data de emissão.",
+  "versao": "11.93",
+  "qa": "06/10/2026 - layout Verde simples (padrão) conferido na tela, folha e Word.",
+  "ondeParamos": "v11.93: layout de capa Verde simples virou o padrão (cabeçalho, faixa dos relatórios, impressão, PDF e Word).",
   "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

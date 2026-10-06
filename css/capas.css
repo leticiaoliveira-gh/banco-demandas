@@ -127,3 +127,12 @@
   }
 }
 .capa-mini.fluido{background:url("../img/fundo-aurora.jpg") center/cover,#02100d}
+
+/* ═════ VERDE SIMPLES (4º layout e PADRÃO, 06/10/2026, aprovado por ela): faixa verde lisa ═════
+   Base igual ao Vidro; só o cabeçalho e a faixa dos relatórios ganham o verde simples.
+   Vale no computador e no celular. A folha impressa usa o mesmo degradê (capaFundoFolha). */
+body[data-capa="simples"]{--capa-simples:linear-gradient(120deg,#062a24 0%,#0c4a3f 45%,#1e8f7e 70%,#073029 100%)}
+body[data-capa="simples"] .head,
+body[data-capa="simples"] :is(.m28-capa,.cmp-capa){background:var(--capa-simples);box-shadow:none;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body[data-capa="simples"] :is(.m28-capa,.cmp-capa){border-radius:12px}
+.capa-mini.simples{background:linear-gradient(120deg,#062a24 0%,#0c4a3f 45%,#1e8f7e 70%,#073029 100%)}
