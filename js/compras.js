@@ -436,20 +436,25 @@ function cmpImprimir(){
     return typeof m28FotosFolha === "function" ? m28FotosFolha({ fotos: todas }) : "";
   };
   Object.keys(por).sort(cmpCmpPiso).forEach(p => {
+    /* 06/10 (escolha dela): o piso aparece UMA vez, no alto do grupo, e não em
+       cada área. Sai junto com a 1ª área e a 1ª demanda, nunca sozinho no pé */
+    let pisoTit = `<div class="pisotit">${esc(p)}</div>`;
     Object.keys(por[p]).sort((x,y) => ult(por[p][x]) - ult(por[p][y]) || x.localeCompare(y)).forEach(a => {
-      /* a área, o cabeçalho e a 1ª demanda andam juntos: nunca um título
+      /* a área, o título do piso e a 1ª demanda andam juntos: nunca um título
          sozinho no pé da folha. Cada demanda é inteira (texto, Obs e foto). */
-      let bloco = `<div class="ar">${esc(a)} <b>${esc(p)}</b></div>
-        <div class="cab"><div class="c">Nº</div><div class="f">O que comprar</div>
-                <div class="c">Qtd.</div><div class="c">Situação</div></div>`;
+      let bloco = pisoTit + `<div class="ar">${esc(a)}</div>`;
+      pisoTit = "";
       por[p][a].slice().sort((x,y) => (x.ultimo?1:0) - (y.ultimo?1:0)).forEach((d, i) => {
         n++;
         const fts = fotosDe(d);
-        const li = `<div class="li"><div class="c">${n}</div>
-          <div class="f">${d.urg ? '<i class="ug">URGENTE</i> ' : ""}<span class="tx">${esc(cmpTexto(d))}</span>
-            ${d.obs ? `<i class="obs-p"><b>Obs:</b>${esc(d.obs)}</i>` : ""}${fts}</div>
-          <div class="c">${d.qtd === "" ? "" : (Number(d.qtd) || 1)}</div>
-          <div class="c">${CMP_SIT[cmpSit(d)].rot}</div></div>`;
+        /* 06/10 (escolha dela): foto no canto direito; número em bolinha; URGENTE
+           em linha própria; quantidade e situação numa linha de baixo do texto */
+        const qtdTxt = d.qtd === "" ? "Qtd. a definir" : "Qtd. " + (Number(d.qtd) || 1);
+        const li = `<div class="li"><div class="bola">${n}</div>
+          <div class="f">${d.urg ? '<i class="ug">URGENTE</i>' : ""}<span class="tx">${esc(cmpTexto(d))}</span>
+            <div class="info">${esc(qtdTxt)} · ${CMP_SIT[cmpSit(d)].rot}</div>
+            ${d.obs ? `<i class="obs-p"><b>Obs:</b>${esc(d.obs)}</i>` : ""}</div>
+          <div class="canto">${fts}</div></div>`;
         if (i === 0) corpo += `<div class="junto">${bloco}${li}</div>`;
         else corpo += li;
       });
@@ -493,19 +498,23 @@ function cmpImprimir(){
       border-left:3px solid #1d6b57;padding:5px 9px;margin-top:14px;font-size:12px;font-weight:700;
       color:#155244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .ar b{font-weight:600;color:#667085;font-size:9px}
-    .cab,.li{display:grid;grid-template-columns:32px 1fr 46px 96px;gap:8px;padding:4px 8px}
-    .cab{font-size:9.3px;text-transform:uppercase;letter-spacing:.5px;color:#667085;font-weight:700;
-      text-align:center;border-bottom:1px solid #eaecf0}
-    .cab .f{text-align:left}
-    .cab .c,.li .c{text-align:center}
-    .li{border-bottom:1px solid #f2f4f7;align-items:start}
+    .li{display:flex;gap:10px;padding:6px 8px;border-bottom:1px solid #f2f4f7;align-items:flex-start}
+    .pisotit{font-size:12px;font-weight:700;color:#155244;text-transform:uppercase;letter-spacing:.8px;
+      margin-top:16px;padding-bottom:3px;border-bottom:2px solid #1d6b57}
+    .li .bola{width:24px;height:24px;flex:none;border-radius:50%;background:#1d6b57;color:#fff;
+      font-weight:700;font-size:11.5px;display:flex;align-items:center;justify-content:center;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .li .f{flex:1;min-width:0}
+    .li .canto{width:36mm;flex:none}
+    .li .info{font-size:11px;color:#667085;margin-top:2px}
+    .li .ug{display:block;font-size:10.5px;margin-bottom:1px}
     /* 06/10 (pedido dela, mesma regra da manutenção): demanda nunca parte entre
        duas folhas; área + cabeçalho + 1ª demanda também não */
     .li,.junto{break-inside:avoid;page-break-inside:avoid}
     .ar,.cab{break-after:avoid;page-break-after:avoid}
     /* a foto da demanda de manutenção, no mesmo tamanho da folha de lá */
     .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:flex-start}
-    .li .fts img{max-width:54mm;max-height:48mm;width:auto;height:auto;object-fit:contain;
+    .li .fts img{max-width:36mm;max-height:34mm;width:auto;height:auto;object-fit:contain;
       border:1px solid #eaecf0;border-radius:3px;background:#f8fafc;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
     .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
