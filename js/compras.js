@@ -286,7 +286,8 @@ function cmpForm(d, n){
       </div>
       <div class="cmp-form-linha">
         <div class="bd-grupo"><label class="bd-rotulo" for="cmpf-qtd">Quantidade</label>
-          <input class="bd-campo" id="cmpf-qtd" type="number" min="1" value="${Number(d.qtd) || 1}"></div>
+          <input class="bd-campo" id="cmpf-qtd" type="number" min="1" value="${d.qtd === "" ? "" : (Number(d.qtd) || 1)}"
+            placeholder="A definir"></div>
         <div class="bd-grupo"><label class="bd-rotulo" for="cmpf-piso">Piso</label>
           <select class="bd-campo" id="cmpf-piso">
             ${pisos.map(p => `<option${p===d.piso?" selected":""}>${esc(p)}</option>`).join("")}
@@ -361,7 +362,10 @@ async function cmpSalvar(id){
   const oque = document.getElementById("cmpf-oque").value.trim();
   if (!oque){ toast("Escreva o que precisa ser comprado."); return; }
   d.oque = oque;
-  d.qtd = Math.max(1, Number(document.getElementById("cmpf-qtd").value) || 1);
+  /* 06/10 (pedido dela): quantidade em branco = "a definir" (ex.: os cestos,
+     que dependem do balanço com o Sr. João). Nunca inventar um número. */
+  const qv = document.getElementById("cmpf-qtd").value.trim();
+  d.qtd = qv === "" ? "" : Math.max(1, Number(qv) || 1);
   d.piso = document.getElementById("cmpf-piso").value;
   d.area = document.getElementById("cmpf-area").value;
   d.situacao = document.getElementById("cmpf-sit").value;
@@ -406,8 +410,11 @@ function cmpImprimir(){
   const mes = meses[Number(partes[1]) - 1] || "";
   const quando = mes ? (mes.charAt(0).toUpperCase() + mes.slice(1) + " de " + partes[0]) : "";
 
+  /* 06/10 (pedido dela): no lugar de "Todos", os pisos que a folha traz */
+  const pisosFolha = CMPF.piso ? [CMPF.piso]
+    : [...new Set(itens.map(d => d.piso).filter(Boolean))].sort(cmpCmpPiso);
   const faixa = [["loja", "Loja", (currentStore || "").trim()],
-                 ["piso", "Piso", CMPF.piso || "Todos"],
+                 ["piso", "Piso", pisosFolha.map(p => p.toUpperCase()).join(" • ")],
                  ["mes",  "Mês",  quando]]
     .filter(x => x[2])
     .map(x => `<div class="${x[0]}"><span>${esc(x[1])}</span><b>${esc(x[2])}</b></div>`).join("");
@@ -418,18 +425,33 @@ function cmpImprimir(){
     const p = d.piso || "Sem piso", a = d.area || "Sem área";
     (por[p] = por[p] || {}), (por[p][a] = por[p][a] || []).push(d);
   });
+  /* 06/10 (pedido dela): item marcado "ultimo" (os cestos dos ralos) vai para
+     o fim: a área dele fecha o piso e ele fecha a área */
+  const ult = l => l.some(d => d.ultimo) ? 1 : 0;
+  /* 06/10 (pedido dela): compra que veio de uma demanda da manutenção leva a
+     foto dessa demanda junto, igual sai na folha de manutenção */
+  const fotosDe = d => {
+    const orig = d.origemMnt ? DATA.find(x => x.uid === d.origemMnt) : null;
+    const todas = [...(d.fotos || []), ...((orig && orig.fotos) || [])];
+    return typeof m28FotosFolha === "function" ? m28FotosFolha({ fotos: todas }) : "";
+  };
   Object.keys(por).sort(cmpCmpPiso).forEach(p => {
-    Object.keys(por[p]).sort().forEach(a => {
-      corpo += `<div class="ar">${esc(a)} <b>${esc(p)}</b></div>`;
-      corpo += `<div class="cab"><div class="c">Nº</div><div class="f">O que comprar</div>
+    Object.keys(por[p]).sort((x,y) => ult(por[p][x]) - ult(por[p][y]) || x.localeCompare(y)).forEach(a => {
+      /* a área, o cabeçalho e a 1ª demanda andam juntos: nunca um título
+         sozinho no pé da folha. Cada demanda é inteira (texto, Obs e foto). */
+      let bloco = `<div class="ar">${esc(a)} <b>${esc(p)}</b></div>
+        <div class="cab"><div class="c">Nº</div><div class="f">O que comprar</div>
                 <div class="c">Qtd.</div><div class="c">Situação</div></div>`;
-      por[p][a].forEach(d => {
+      por[p][a].slice().sort((x,y) => (x.ultimo?1:0) - (y.ultimo?1:0)).forEach((d, i) => {
         n++;
-        corpo += `<div class="li"><div class="c">${n}</div>
+        const fts = fotosDe(d);
+        const li = `<div class="li"><div class="c">${n}</div>
           <div class="f">${d.urg ? '<i class="ug">URGENTE</i> ' : ""}<span class="tx">${esc(cmpTexto(d))}</span>
-            ${d.obs ? `<i class="obs-p"><b>Obs:</b>${esc(d.obs)}</i>` : ""}</div>
-          <div class="c">${Number(d.qtd) || 1}</div>
+            ${d.obs ? `<i class="obs-p"><b>Obs:</b>${esc(d.obs)}</i>` : ""}${fts}</div>
+          <div class="c">${d.qtd === "" ? "" : (Number(d.qtd) || 1)}</div>
           <div class="c">${CMP_SIT[cmpSit(d)].rot}</div></div>`;
+        if (i === 0) corpo += `<div class="junto">${bloco}${li}</div>`;
+        else corpo += li;
       });
     });
   });
@@ -477,6 +499,23 @@ function cmpImprimir(){
     .cab .f{text-align:left}
     .cab .c,.li .c{text-align:center}
     .li{border-bottom:1px solid #f2f4f7;align-items:start}
+    /* 06/10 (pedido dela, mesma regra da manutenção): demanda nunca parte entre
+       duas folhas; área + cabeçalho + 1ª demanda também não */
+    .li,.junto{break-inside:avoid;page-break-inside:avoid}
+    .ar,.cab{break-after:avoid;page-break-after:avoid}
+    /* a foto da demanda de manutenção, no mesmo tamanho da folha de lá */
+    .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:flex-start}
+    .li .fts img{max-width:54mm;max-height:48mm;width:auto;height:auto;object-fit:contain;
+      border:1px solid #eaecf0;border-radius:3px;background:#f8fafc;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
+    .li .obs-p .fts{white-space:normal}
+    /* no papel, a margem vem da página: assim a folha 2 também tem respiro em cima */
+    @media print{
+      @page{size:A4;margin:11mm 12mm 15mm}
+      body{background:#fff}
+      .folha{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}
+    }
     /* 06/10: o enter que ela deu no texto vira quebra de linha no papel */
     .li .tx{white-space:pre-wrap}
     /* a pastilha do recado, igual a da folha de manutencao */
@@ -488,17 +527,16 @@ function cmpImprimir(){
     </style></head><body><div class="folha">
       <div class="capa">
         <div class="linha1">
-          <div><div class="et">Lista de compras</div>
-            <div class="assunto">Compras e Reposição</div></div>
-          <div class="pe">
-            <div><span>Emitido em</span><b>${brDate(iso)}</b></div>
-            <div><span>Itens</span><b>${n}</b></div>
-          </div>
+          <div><div class="assunto">COMPRAS</div></div>
         </div>
         ${faixa ? `<div class="faixa">${faixa}</div>` : ""}
       </div>
       ${corpo}
     </div></body></html>`;
   w.document.open(); w.document.write(html); w.document.close();
-  setTimeout(() => { try { w.focus(); w.print(); } catch(e){} }, 300);
+  /* espera as fotos carregarem: sem isso a foto sai em branco no papel */
+  const imprimir = () => { try { w.focus(); w.print(); } catch(e){} };
+  const imgs = [...w.document.images].filter(i => !i.complete);
+  if (!imgs.length) setTimeout(imprimir, 300);
+  else { let f = imgs.length; imgs.forEach(i => { i.onload = i.onerror = () => { if (--f <= 0) setTimeout(imprimir, 200); }; }); }
 }
