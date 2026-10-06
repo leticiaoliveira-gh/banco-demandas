@@ -1,7 +1,7 @@
 {
  "atualizadoEm": "2026-10-06",
- "versao": "11.82",
- "qa": "06/10/2026 (v11.82): teste com dois aparelhos na copia local: um mudou o texto dos ralos, o outro mudou so a aparencia da folha sem baixar antes; o texto dos ralos ficou nos dois e na nuvem. Aparelho com versao antiga mandando pacote incompleto tambem nao apaga mais nada. Lista de compras impressa com Enter conferida no papel.",
- "ondeParamos": "06/10 (v11.82): texto dos ralos devolvido e protegido: um aparelho nao apaga mais o texto da folha que voce escreveu em outro. Lista de compras impressa respeita o Enter (cada item na sua linha). | 05/10 (v11.81): lista de compras com as anotacoes dela no papel (AC); status 'Pedido' virou 'Solicitado'; topo da folha impressa de compras mais compacto.",
+ "versao": "11.83",
+ "qa": "06/10/2026 (v11.83): rodape mostra a data certa da publicacao. 06/10/2026 (v11.82): teste com dois aparelhos na copia local: um mudou o texto dos ralos, o outro mudou so a aparencia da folha sem baixar antes; o texto dos ralos ficou nos dois e na nuvem. Aparelho com versao antiga mandando pacote incompleto tambem nao apaga mais nada. Lista de compras impressa com Enter conferida no papel.",
+ "ondeParamos": "06/10 (v11.83): rodape do site volta a mostrar a data certa da ultima atualizacao. | 06/10 (v11.82): texto dos ralos devolvido e protegido: um aparelho nao apaga mais o texto da folha que voce escreveu em outro. Lista de compras impressa respeita o Enter (cada item na sua linha). | 05/10 (v11.81): lista de compras com as anotacoes dela no papel (AC); status 'Pedido' virou 'Solicitado'; topo da folha impressa de compras mais compacto.",
  "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }
