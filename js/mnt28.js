@@ -2077,10 +2077,10 @@ function m28ImprimirFolha(op){
     const recado=(d.obs||"").trim();
     blocos+=`<div class="bl li${d.urg?" urgl":""}" data-piso="${esc(m28PisoBonito(d.piso||""))}"><span class="c"><i class="bx">${d.feito?"✓":""}</i></span>`
       +`<span class="nm">${nDemanda}.</span>`
-      +`<span class="f linhas">${d.urg?'<i class="ug">URGENTE</i> ':""}${esc(m28SemTravessao(d.fazer||""))}`
+      +`<span class="f linhas">${esc(m28SemTravessao(d.fazer||""))}`
       +(ori?`<i class="ori-p">${esc(ori)}</i>`:"")
       +(recado?`<i class="obs-p linhas"><b>${esc(m28T().colObsImp)}</b>${esc(m28SemTravessao(recado))}${m28FotosFolha(d)}</i>`:m28FotosFolha(d))
-      +`</span><span class="q">${desde}</span></div>`;
+      +`</span><span class="q">${desde}${d.urg?'<br><i class="ug">URGENTE</i>':""}</span></div>`;
   }
   /* O RASTREAMENTO DE RALOS (28/09) vem depois de todas as areas, em folha
      propria: explicacao uma vez so e, por piso, a lista numerada das areas. */
@@ -2395,6 +2395,11 @@ function m28ImprimirFolha(op){
   .ug{display:inline-block;font-style:normal;font-weight:700;letter-spacing:.4px;
     background:#fff;color:#b42318;border:1px solid #b42318;border-radius:3px;padding:0 5px;margin-right:4px;
     font-size:8.6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 06/10 (pedido dela na folha impressa: "esse urgente antes do texto nao ta bom"):
+     o selo saiu da frente do servico e foi para a coluna da data, embaixo dela.
+     Assim todo servico comeca no mesmo alinhamento. */
+  .li .q .ug{margin:5px 0 0;font-size:8.6px;font-weight:700;background:#fff;color:#b42318;
+    border:1px solid #b42318;border-radius:3px;padding:0 5px}
   .bx{display:inline-block;width:12px;height:12px;border:1.4px solid #667085;border-radius:2px;
     line-height:10px;font-size:10px;color:#067647;font-weight:700;font-style:normal;text-align:center}
   .pe{position:absolute;left:12mm;right:12mm;bottom:6mm;display:flex;justify-content:flex-end;

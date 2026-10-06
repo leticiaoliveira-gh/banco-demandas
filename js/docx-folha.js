@@ -373,6 +373,7 @@ window.m28DomParaDocx=async function(win,modoImagem){
       let dq="";
       for(const n of q.childNodes){
         if(n.nodeType!==1)continue;
+        if(n.tagName==="BR"){dq+="<w:r><w:br/></w:r>";continue;}  /* URGENTE embaixo da data (06/10) */
         const f2=fmt(win,n,"rgb(255,255,255)");
         if(ehSelo(n)){dq+=selo(n);continue;}
         dq+=run((n.tagName==="I"?" ":"")+n.textContent+(n.tagName==="I"?" ":""),
