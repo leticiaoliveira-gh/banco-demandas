@@ -1,7 +1,7 @@
 {
- "atualizadoEm": "2026-10-05",
- "versao": "11.81",
- "qa": "01/10/2026 (v11.24): na folha de manutenção, a foto do serviço com Obs agora começa no início do texto da Obs (o hífen), não na caixinha \"Obs:\".",
- "ondeParamos": "05/10 (v11.81): lista de compras com as anotacoes dela no papel (AC); status 'Pedido' virou 'Solicitado'; topo da folha impressa de compras mais compacto.",
+ "atualizadoEm": "2026-10-06",
+ "versao": "11.82",
+ "qa": "06/10/2026 (v11.82): teste com dois aparelhos na copia local: um mudou o texto dos ralos, o outro mudou so a aparencia da folha sem baixar antes; o texto dos ralos ficou nos dois e na nuvem. Aparelho com versao antiga mandando pacote incompleto tambem nao apaga mais nada. Lista de compras impressa com Enter conferida no papel.",
+ "ondeParamos": "06/10 (v11.82): texto dos ralos devolvido e protegido: um aparelho nao apaga mais o texto da folha que voce escreveu em outro. Lista de compras impressa respeita o Enter (cada item na sua linha). | 05/10 (v11.81): lista de compras com as anotacoes dela no papel (AC); status 'Pedido' virou 'Solicitado'; topo da folha impressa de compras mais compacto.",
  "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

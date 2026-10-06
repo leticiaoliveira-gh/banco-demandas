@@ -426,7 +426,7 @@ function cmpImprimir(){
       por[p][a].forEach(d => {
         n++;
         corpo += `<div class="li"><div class="c">${n}</div>
-          <div class="f">${d.urg ? '<i class="ug">URGENTE</i> ' : ""}${esc(cmpTexto(d))}
+          <div class="f">${d.urg ? '<i class="ug">URGENTE</i> ' : ""}<span class="tx">${esc(cmpTexto(d))}</span>
             ${d.obs ? `<i class="obs-p"><b>Obs:</b>${esc(d.obs)}</i>` : ""}</div>
           <div class="c">${Number(d.qtd) || 1}</div>
           <div class="c">${CMP_SIT[cmpSit(d)].rot}</div></div>`;
@@ -477,6 +477,8 @@ function cmpImprimir(){
     .cab .f{text-align:left}
     .cab .c,.li .c{text-align:center}
     .li{border-bottom:1px solid #f2f4f7;align-items:start}
+    /* 06/10: o enter que ela deu no texto vira quebra de linha no papel */
+    .li .tx{white-space:pre-wrap}
     /* a pastilha do recado, igual a da folha de manutencao */
     .li .obs-p{display:block;font-style:normal;font-size:11.2px;line-height:1.45;
       color:#475467;background:#f2f4f7;border-radius:6px;padding:5px 9px;margin-top:5px;

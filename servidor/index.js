@@ -591,6 +591,46 @@ async function rotaMetaBaixar(url, env) {
   return ok({ ok: true, meta });
 }
 
+/* 06/10 (v11.82): CONFIGURACAO DAS FOLHAS junta CHAVE POR CHAVE.
+   Antes o pacote inteiro substituia o da nuvem: em 01/10 um aparelho que
+   so tinha a aparencia da folha apagou o texto dos ralos que ela escreveu
+   no outro. Agora a chave que nao veio fica como esta, e cada chave vence
+   pelo proprio carimbo. Aparelho ainda na versao antiga (sem "mods"):
+   so a chave que ele MUDOU entra, com o carimbo do pacote. */
+async function juntarFolhasCfg(env, item, mod, agora) {
+  const atual = await env.DB.prepare("SELECT v, mod FROM meta WHERE k = 'folhasCfg'").first();
+  let velho = {};
+  if (atual) { try { velho = JSON.parse(atual.v) || {}; } catch (e) { velho = {}; } }
+  if (!velho || typeof velho !== "object") velho = {};
+  const modVelho = (atual && atual.mod) || "";
+  const { _mods: mv0, ...valVelho } = velho;
+  const mv = Object.assign({}, mv0 || {});
+  const veio = (item.v && typeof item.v === "object") ? item.v : {};
+  const { _mods: _ignorado, ...valNovo } = veio;
+  const mn = item.mods && typeof item.mods === "object" ? item.mods : null;
+
+  const junto = Object.assign({}, valVelho), mods = {};
+  for (const ch of Object.keys(valVelho)) mods[ch] = mv[ch] || modVelho;
+  let mudou = false;
+  for (const ch of Object.keys(valNovo)) {
+    const igual = JSON.stringify(valNovo[ch]) === JSON.stringify(valVelho[ch]);
+    const tem = Object.prototype.hasOwnProperty.call(valVelho, ch);
+    const mN = mn ? (mn[ch] || mod) : mod;
+    if (igual) { if (mN > (mods[ch] || "")) mods[ch] = mN; continue; }
+    if (!tem || mN > (mods[ch] || "")) { junto[ch] = valNovo[ch]; mods[ch] = mN; mudou = true; }
+  }
+  if (!mudou && atual) return null;
+  /* o carimbo da linha tem de subir alem do que chegou, para quem enviou
+     baixar de volta o que a nuvem tinha e ele nao */
+  let modFinal = [mod, modVelho, agora].sort().pop();
+  if (modFinal <= mod) modFinal = new Date(Date.parse(mod) + 1).toISOString();
+  junto._mods = mods;
+  return env.DB.prepare(
+    `INSERT INTO meta (k, v, mod) VALUES ('folhasCfg', ?1, ?2)
+     ON CONFLICT(k) DO UPDATE SET v = ?1, mod = ?2`
+  ).bind(JSON.stringify(junto), modFinal);
+}
+
 async function rotaMetaEnviar(req, env) {
   let corpo;
   try { corpo = await req.json(); } catch (e) { return erro("corpo invalido"); }
@@ -605,6 +645,11 @@ async function rotaMetaEnviar(req, env) {
     const item = pacote[k];
     if (!item || typeof item !== "object") { ignorados++; continue; }
     const mod = item.mod || agora;
+    if (k === "folhasCfg") {
+      const c = await juntarFolhasCfg(env, item, mod, agora);
+      if (c) { comandos.push(c); gravados++; } else ignorados++;
+      continue;
+    }
     const atual = await env.DB.prepare("SELECT mod FROM meta WHERE k = ?1").bind(k).first();
     if (atual && (atual.mod || "") >= mod) { ignorados++; continue; }
     comandos.push(env.DB.prepare(

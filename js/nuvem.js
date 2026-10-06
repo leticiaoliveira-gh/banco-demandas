@@ -167,6 +167,8 @@ async function nuvemPull() {
   nuvemMesclando = true;
   let res;
   try { res = await syncMergeEnvelope(env); } finally { nuvemMesclando = false; }
+  /* 06/10: o aparelho tem configuracao que a nuvem nao tem -> manda nesta mesma conversa */
+  if (res && res.localAhead) nuvemDirty = true;
   await nuvemSetMarco("rev_desde", desde);
   await nuvemSetMarco("rev_cursor", cursor);
   await nuvemSetMarco("metaDesde", metaUltimo);
@@ -244,6 +246,13 @@ async function nuvemPush() {
     const mod = env[chaveMod] || "";
     if (!mod) continue;                       /* sem carimbo, sem envio */
     pacote[chave] = { v: env[chave], mod };
+  }
+  /* 06/10 (v11.82): a configuracao das folhas leva o carimbo de CADA chave
+     separado ("mods"), para a nuvem juntar chave por chave e nunca apagar
+     o que este aparelho nao tem */
+  if (pacote.folhasCfg && pacote.folhasCfg.v) {
+    const { _mods, ...valores } = pacote.folhasCfg.v;
+    pacote.folhasCfg = { v: valores, mod: pacote.folhasCfg.mod, mods: _mods || {} };
   }
   if (Object.keys(pacote).length) {
     const r = await fetch(c.endereco + "/api/meta", {

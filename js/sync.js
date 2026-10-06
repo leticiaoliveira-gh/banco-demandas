@@ -279,19 +279,34 @@ async function _syncMergeEnvelope2(env){
     disto ficavam presos no aparelho onde ela editou: trocava o título no
     computador e o celular continuava com o antigo. */
  const modFC=()=>typeof FOLHAS_CFG_MOD!=="undefined"?(FOLHAS_CFG_MOD||""):"";
- if(env&&env.folhasCfg&&(env.folhasCfgMod||"")>modFC()&&typeof FOLHAS_CHAVES!=="undefined"){
+ /* 06/10 (v11.82): junta CHAVE POR CHAVE. Antes o pacote que chegava trocava
+    o do aparelho inteiro — chave que faltava nele sumia (foi assim que o texto
+    dos ralos se perdeu em 01/10). Agora: chave que não veio fica como está;
+    chave que veio vence só se o carimbo DELA for mais novo. */
+ if(env&&env.folhasCfg&&typeof FOLHAS_CHAVES!=="undefined"){
+   const fc=env.folhasCfg,em=fc._mods||{},envMod=env.folhasCfgMod||"";
+   const lm=(typeof FOLHAS_CFG_MODS!=="undefined"&&FOLHAS_CFG_MODS)||{};
+   let veio=false;
    for(const k of FOLHAS_CHAVES){
-     if(Object.prototype.hasOwnProperty.call(env.folhasCfg,k))await metaSet(k,env.folhasCfg[k]);
+     const temR=Object.prototype.hasOwnProperty.call(fc,k);
+     const temL=Object.prototype.hasOwnProperty.call(FOLHAS_CFG,k);
+     const mR=em[k]||envMod,mL=lm[k]||modFC();
+     if(temR&&(!temL||mR>mL)){
+       if(JSON.stringify(FOLHAS_CFG[k])!==JSON.stringify(fc[k])){await metaSet(k,fc[k]);veio=true;}
+       FOLHAS_CFG[k]=fc[k];lm[k]=mR;
+     }else if(temL&&(!temR||mL>mR))localAhead=true;   /* o aparelho tem coisa que a nuvem não tem */
    }
-   FOLHAS_CFG=env.folhasCfg;FOLHAS_CFG_MOD=env.folhasCfgMod;
-   await metaSet("folhasCfgMod",FOLHAS_CFG_MOD);
-   /* o que está na memória da página é o valor VELHO — recarregar, senão a
-      tela continua mostrando o texto antigo mesmo com o novo já no banco */
-   if(window.m28RecarregarConfig)await m28RecarregarConfig();
-   if(window.ncRecarregarTextos)await ncRecarregarTextos();
-   if(window.renderMnt28&&currentTab==="mnt28")renderMnt28();
-   if(window.renderNC&&currentTab==="nc")renderNC();
-   changed=true;
+   FOLHAS_CFG_MODS=lm;await metaSet("folhasCfgMods",lm);
+   if(envMod>modFC()){FOLHAS_CFG_MOD=envMod;await metaSet("folhasCfgMod",envMod);}
+   if(veio){
+     /* o que está na memória da página é o valor VELHO — recarregar, senão a
+        tela continua mostrando o texto antigo mesmo com o novo já no banco */
+     if(window.m28RecarregarConfig)await m28RecarregarConfig();
+     if(window.ncRecarregarTextos)await ncRecarregarTextos();
+     if(window.renderMnt28&&currentTab==="mnt28")renderMnt28();
+     if(window.renderNC&&currentTab==="nc")renderNC();
+     changed=true;
+   }
  }else if(env&&modFC()>(env.folhasCfgMod||""))localAhead=true;
  /* ordem dos quadros do Sumário e os que ela escondeu (05/08) */
  const modHub=()=>typeof HUB_CFG_MOD!=="undefined"?(HUB_CFG_MOD||""):"";
