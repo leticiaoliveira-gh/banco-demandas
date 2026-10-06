@@ -2577,7 +2577,17 @@ function m28ImprimirFolha(op){
         /* CADA PISO COMECA EM FOLHA NOVA (pedido dela, 24/09: "quando imprimo 2
            pisos juntos precisa existir uma quebra; a diferenca e a numeracao
            unificada"). A numeracao das paginas continua de 1 ate o fim. */
-        if(corpo.children.length){ folha=novaFolha(false); corpo=folha.querySelector(".corpo"); }
+        /* O BURACO ENTRE OS PISOS (06/10). Vendo a folha de outubro: "se ainda
+           tiver um espaco grande entre 5 e 6 sobe uma demanda que couber pra nao
+           ficar esse buraco". Entao a folha nova so vem quando o que sobra e'
+           pouco; com espaco o piso seguinte comeca ali mesmo, com a faixa dele
+           separando os dois. Se a primeira demanda do piso nao couber, a faixa
+           desce junto com ela (nunca fica sozinha no pe da folha). */
+        if(corpo.children.length){
+          var fR=folha.getBoundingClientRect(), cR=corpo.getBoundingClientRect();
+          var sobra=(fR.height-RESERVA)-(cR.bottom-fR.top);
+          if(sobra<fR.height*0.15){ folha=novaFolha(false); corpo=folha.querySelector(".corpo"); }
+        }
         corpo.appendChild(el);
         if(estourou()){
           corpo.removeChild(el);
@@ -2598,7 +2608,11 @@ function m28ImprimirFolha(op){
            órfão no pé da página */
         var soCabecalho = grupo.children.length<=1;
         if(soCabecalho && grupo.parentNode===corpo) corpo.removeChild(grupo);
+        /* a faixa do piso nao fica sozinha no pe da folha: desce junto */
+        var faixa=(soCabecalho && corpo.lastElementChild && tem(corpo.lastElementChild.className||"","piso"))
+          ? corpo.removeChild(corpo.lastElementChild) : null;
         folha=novaFolha(false); corpo=folha.querySelector(".corpo");
+        if(faixa) corpo.appendChild(faixa);
         if(soCabecalho){ corpo.appendChild(grupo); }
         else if(cabAtual){ abreGrupo(cabAtual,true); }
         else { grupo=corpo.appendChild(document.createElement("div")); grupo.className="grupo"; }
@@ -2642,9 +2656,13 @@ function m28ImprimirFolha(op){
     var comTopo=alvo.querySelectorAll(".folha .topo2 .pp");
     for(var t=0;t<comTopo.length;t++){
       var f2=comTopo[t].closest(".folha");
-      var prim=f2&&f2.querySelector("[data-piso]");
-      if(prim&&prim.getAttribute("data-piso"))
-        comTopo[t].textContent=prim.getAttribute("data-piso").toUpperCase();
+      /* folha com dois pisos (06/10) diz os dois */
+      var tds=f2?f2.querySelectorAll("[data-piso]"):[], vistos=[];
+      for(var v=0;v<tds.length;v++){
+        var pv=(tds[v].getAttribute("data-piso")||"").toUpperCase();
+        if(pv && vistos.indexOf(pv)<0) vistos.push(pv);
+      }
+      if(vistos.length) comTopo[t].textContent=vistos.sort().join(" E ");
     }
     /* SEMPRE AVISAR (28/09): foto encolhida para caber aparece aqui, na tela,
        antes de ela imprimir. O aviso some no papel, igual o amarelo de cima. */
