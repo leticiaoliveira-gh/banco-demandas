@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório de Não Conformidades — modelo</title>
+<link rel="stylesheet" href="relatorio.css">
+</head>
+<body>
+
+<!-- Some no PDF -->
+<div class="rel-barra">
+  <span class="dica">Confira e clique no botão. Escolha “Salvar como PDF”.</span>
+  <button class="rel-bt" onclick="window.print()">⎙ Gerar PDF</button>
+</div>
+
+<div class="rel-folha">
+
+  <!-- ══════════ CAPA ══════════ -->
+  <div class="rel-capa">
+    <div class="rel-capa-etiqueta">Relatório de Inspeção</div>
+    <h1>Não Conformidades</h1>
+    <div class="rel-capa-sub">Avaliação higiênico-sanitária e boas práticas</div>
+    <div class="rel-capa-linha">
+      <div class="rel-capa-item"><div class="rot">Unidade</div><div class="val">Loja Centro — UAN</div></div>
+      <div class="rel-capa-item"><div class="rot">Período</div><div class="val">01 a 25 de julho de 2026</div></div>
+      <div class="rel-capa-item"><div class="rot">Emitido em</div><div class="val">25/07/2026</div></div>
+      <div class="rel-capa-item"><div class="rot">Responsável técnica</div><div class="val">Letícia Oliveira</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ RESUMO ══════════ -->
+  <div class="rel-secao">
+    <h2>Resumo do período</h2>
+  </div>
+
+  <div class="rel-numeros">
+    <div class="rel-num"><div class="rot">Itens avaliados</div><div class="val">64</div><div class="obs">em 8 setores</div></div>
+    <div class="rel-num rel-num-ok"><div class="rot">Conformes</div><div class="val">46</div><div class="obs">72% do total</div></div>
+    <div class="rel-num rel-num-at"><div class="rot">Em correção</div><div class="val">13</div><div class="obs">dentro do prazo</div></div>
+    <div class="rel-num rel-num-er"><div class="rot">Críticas</div><div class="val">5</div><div class="obs">ação imediata</div></div>
+  </div>
+
+  <div class="rel-nota">
+    <b>Leitura do período:</b> o índice de conformidade subiu de 61% para 72% em relação ao mês anterior.
+    As 5 ocorrências críticas concentram-se em controle de temperatura e estão detalhadas na página seguinte.
+  </div>
+
+  <!-- ══════════ GRÁFICO ══════════ -->
+  <div class="rel-secao">
+    <h2>Conformidade por setor</h2>
+    <p>Percentual de itens conformes em cada área avaliada.</p>
+  </div>
+
+  <div class="rel-graf">
+    <div class="rel-graf-linha">
+      <div class="rel-graf-nome">Recebimento</div>
+      <div class="rel-graf-trilho"><div class="rel-graf-barra" style="width:92%"></div></div>
+      <div class="rel-graf-val">92%</div>
+    </div>
+    <div class="rel-graf-linha">
+      <div class="rel-graf-nome">Armazenamento</div>
+      <div class="rel-graf-trilho"><div class="rel-graf-barra" style="width:85%"></div></div>
+      <div class="rel-graf-val">85%</div>
+    </div>
+    <div class="rel-graf-linha">
+      <div class="rel-graf-nome">Pré-preparo</div>
+      <div class="rel-graf-trilho"><div class="rel-graf-barra at" style="width:68%"></div></div>
+      <div class="rel-graf-val">68%</div>
+    </div>
+    <div class="rel-graf-linha">
+      <div class="rel-graf-nome">Cocção</div>
+      <div class="rel-graf-trilho"><div class="rel-graf-barra at" style="width:64%"></div></div>
+      <div class="rel-graf-val">64%</div>
+    </div>
+    <div class="rel-graf-linha">
+      <div class="rel-graf-nome">Câmara fria</div>
+      <div class="rel-graf-trilho"><div class="rel-graf-barra er" style="width:41%"></div></div>
+      <div class="rel-graf-val">41%</div>
+    </div>
+    <div class="rel-graf-linha">
+      <div class="rel-graf-nome">Higienização</div>
+      <div class="rel-graf-trilho"><div class="rel-graf-barra" style="width:88%"></div></div>
+      <div class="rel-graf-val">88%</div>
+    </div>
+  </div>
+
+  <!-- ══════════ TABELA ══════════ -->
+  <div class="rel-secao">
+    <h2>Ocorrências registradas</h2>
+    <p>Ordenadas por criticidade. O prazo segue o procedimento operacional padrão da unidade.</p>
+  </div>
+
+  <table class="rel-tab">
+    <thead>
+      <tr><th style="width:34%">Ocorrência</th><th style="width:17%">Setor</th>
+      <th style="width:19%">Situação</th><th style="width:17%">Responsável</th><th class="num">Prazo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Temperatura da câmara acima de 7 °C</td><td>Câmara fria</td>
+        <td><span class="rel-selo rel-selo-er">Crítica</span></td><td>Manutenção</td><td class="num">imediato</td></tr>
+      <tr><td>Produto aberto sem etiqueta de validade</td><td>Armazenamento</td>
+        <td><span class="rel-selo rel-selo-er">Crítica</span></td><td>Estoque</td><td class="num">26/07</td></tr>
+      <tr><td>Filtro da coifa com acúmulo de gordura</td><td>Cocção</td>
+        <td><span class="rel-selo rel-selo-at">Em correção</span></td><td>Cozinha</td><td class="num">28/07</td></tr>
+      <tr><td>Tábua de corte com sulcos profundos</td><td>Pré-preparo</td>
+        <td><span class="rel-selo rel-selo-at">Em correção</span></td><td>Cozinha</td><td class="num">30/07</td></tr>
+      <tr><td>Ausência de papel-toalha na pia</td><td>Higienização</td>
+        <td><span class="rel-selo rel-selo-ok">Resolvida</span></td><td>Limpeza</td><td class="num">22/07</td></tr>
+      <tr><td>Caixas apoiadas diretamente no piso</td><td>Recebimento</td>
+        <td><span class="rel-selo rel-selo-ok">Resolvida</span></td><td>Estoque</td><td class="num">21/07</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════ FOTOS (página nova) ══════════ -->
+  <div class="rel-secao rel-nova-pagina">
+    <h2>Registro fotográfico</h2>
+    <p>Imagens coletadas durante a inspeção, com data e local.</p>
+  </div>
+
+  <div class="rel-fotos">
+    <div class="rel-foto">
+      <img src="" alt="Câmara fria — termômetro marcando 8,4 °C">
+      <div class="rel-foto-legenda"><b>Foto 1 — Câmara fria</b>Termômetro marcando 8,4 °C · 24/07, 09h12</div>
+    </div>
+    <div class="rel-foto">
+      <img src="" alt="Prateleira com produto aberto sem etiqueta">
+      <div class="rel-foto-legenda"><b>Foto 2 — Armazenamento</b>Produto aberto sem etiqueta · 24/07, 09h31</div>
+    </div>
+    <div class="rel-foto">
+      <img src="" alt="Coifa com acúmulo de gordura no filtro">
+      <div class="rel-foto-legenda"><b>Foto 3 — Cocção</b>Filtro da coifa com acúmulo · 24/07, 10h05</div>
+    </div>
+    <div class="rel-foto">
+      <img src="" alt="Tábua de corte com sulcos">
+      <div class="rel-foto-legenda"><b>Foto 4 — Pré-preparo</b>Tábua com sulcos profundos · 24/07, 10h22</div>
+    </div>
+  </div>
+
+  <!-- ══════════ ASSINATURA ══════════ -->
+  <div class="rel-assinatura">
+    <div class="risco"></div>
+    <div class="nome">Letícia Oliveira</div>
+    <div class="cargo">Nutricionista — Responsável Técnica · CRN-4 22103217</div>
+  </div>
+
+  <!-- ══════════ RODAPÉ (repete em toda página) ══════════ -->
+  <div class="rel-rodape">
+    <span>Relatório de Não Conformidades · Loja Centro — UAN · 01 a 25/07/2026</span>
+    <span>Documento gerado em 25/07/2026</span>
+  </div>
+
+</div>
+</body>
+</html>

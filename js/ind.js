@@ -147,7 +147,7 @@ function indPctTexto(nums){
 }
 
 /* =====================================================================
-   OS GRÁFICOS — usam as peças bd-g-* da biblioteca (catalogo/graficos).
+   OS GRÁFICOS — usam as peças bd-g-* da biblioteca (biblioteca/catalogo-graficos.html).
    Regras da biblioteca respeitadas aqui:
    · o valor vai SEMPRE escrito junto da cor (cor nunca conta sozinha);
    · a 2ª série é TRACEJADA, então dá para ler impresso em preto e branco;
@@ -286,7 +286,7 @@ function renderInd(){
     ${cartao(nums.semVolta,txt("ind.c.reinc","Sem reincidência"),"resolvidos que não voltaram")}
   </div>
 
-  <!-- GRÁFICOS: peças bd-g-* da biblioteca de design (catalogo/graficos).
+  <!-- GRÁFICOS: peças bd-g-* da biblioteca de design (biblioteca/catalogo-graficos.html).
        Nada desenhado à mão aqui, e nenhum texto dentro do desenho — nome de
        mês e número ficam fora, em texto normal, para não esticarem. -->
   <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));margin-bottom:22px">

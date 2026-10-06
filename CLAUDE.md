@@ -20,18 +20,12 @@ Site de trabalho da Lê (Central de Demandas NP). **HTML, CSS e JS puro** — se
 ## 0. PRIMEIRA COISA DE TODA SESSÃO (automática)
 
 O hook `SessionStart` em `.claude/settings.json` roda sozinho
-`ferramentas\sincronizar-biblioteca.ps1`, que:
+`ferramentas\sincronizar-biblioteca.ps1`, que agora só **confere** a biblioteca
+(desde 01/10/2026 ela mora dentro do site — não há mais cópia para sincronizar)
+e imprime o lembrete de nunca construir do zero.
 
-- traz para `biblioteca/` a versão mais nova das peças da biblioteca de design;
-- se algo mudou, **sobe sozinho o `const CACHE` do `sw.js`** (senão a peça nova
-  não chega ao celular dela, que usa o site instalado e offline);
-- imprime o que existe hoje e o lembrete de nunca construir do zero.
-
-**Se você for mexer em qualquer coisa visual e o hook não tiver rodado, rode à mão:**
-
-```
-powershell -ExecutionPolicy Bypass -File ferramentas\sincronizar-biblioteca.ps1
-```
+**Mudou peça em `biblioteca/`? Suba o `const CACHE` do `sw.js` à mão**, senão a
+peça nova não chega ao celular dela (site instalado e offline).
 
 ---
 
@@ -41,34 +35,21 @@ powershell -ExecutionPolicy Bypass -File ferramentas\sincronizar-biblioteca.ps1
 Peça que não existe: criar **dentro da biblioteca** e catalogar lá — nunca solta
 no site, nunca uma variação parecida de uma peça que já existe.
 
-Origem (fonte da verdade, fora do site):
+**Lugar ÚNICO (unificado em 01/10/2026, pedido dela):** `biblioteca/` deste site.
+Não existe outra cópia viva. A antiga "biblioteca-design" / "- Identidade Visual"
+e a pasta `catalogo/` foram para `1. PROJETO - Trabalho (website)\0. Arquivo Morto`.
 
 ```
-- PROJETOS CENTRAL\1. PROJETO - Trabalho (website)\biblioteca-design\   (desde 21/09 nao e mais vizinha do site)
-  templates\pecas\pecas.css           16 peças, classes com prefixo bd-
-  templates\pecas\catalogo.html       o catálogo que a Lê abre
-  templates\graficos\graficos.css     8 gráficos, classes com prefixo bd-g-
-  templates\graficos\catalogo-graficos.html
-  templates\relatorios\relatorio.css  modelo A4 que vira PDF pelo navegador
-  templates\relatorios\modelo-relatorio.html
-  regras\paleta-e-tons.md             todas as cores permitidas
-  regras\checklist-antes-de-publicar.md
-  regras\relatorios.md
+biblioteca/pecas.css               16 peças, prefixo bd-   (ligado no index.html)
+biblioteca/graficos.css            8 gráficos, prefixo bd-g- (ligado no index.html)
+biblioteca/relatorio.css           modelo A4 → PDF (só nas páginas de relatório)
+biblioteca/catalogo.html           catálogo das peças (o que a Lê abre)
+biblioteca/catalogo-graficos.html  catálogo dos gráficos
+biblioteca/catalogo-capas.html     layouts de capa
+biblioteca/modelo-relatorio.html
+biblioteca/regras/                 paleta-e-tons, checklist-antes-de-publicar,
+                                   relatorios, layouts-de-capa, LEIA-ME (.md não vai para o ar)
 ```
-
-Cópias dentro do site (é o que o site usa; o script mantém iguais):
-
-```
-biblioteca/pecas.css        ligado no index.html
-biblioteca/graficos.css     ligado no index.html
-biblioteca/relatorio.css    NÃO ligado no index — só nas páginas de relatório
-biblioteca/catalogo.html
-```
-
-Catálogos publicados (abrem no celular e funcionam offline):
-
-- Peças: https://leticiaoliveira-gh.github.io/banco-demandas/catalogo/
-- Gráficos: https://leticiaoliveira-gh.github.io/banco-demandas/catalogo/graficos/
 
 **As 16 peças:** botões (5 tipos, tamanhos, redondo, largo, desativado,
 carregando, com ícone) · campos de formulário (com rótulo, obrigatório, ajuda,
@@ -191,7 +172,7 @@ Caminho curto: pasta até 30 letras, arquivo até 60.
 
 | Quem | Quando | O que barra |
 |---|---|---|
-| `ferramentas\sincronizar-biblioteca.ps1` | início de toda sessão | traz a biblioteca nova e sobe o cache sozinho |
+| `ferramentas\sincronizar-biblioteca.ps1` | início de toda sessão | só confere a biblioteca (lugar único desde 01/10/26) |
 | `ferramentas\guardiao-offline.ps1` | depois de cada Write/Edit | arquivo ligado no index que ficou fora da lista `SHELL` do sw.js, `?v=` desalinhado do `CACHE`, arquivo solto que ninguém usa |
 | `ferramentas\guardiao-versao.ps1` | antes de cada `git commit` | `APP_VERSAO`, `CACHE`, `?v=` e `status.json` contando versões diferentes |
 | `ferramentas\guardiao-do-plano.ps1` | início de toda sessão e antes de cada `git commit` | guarda a cópia do plano (o "antes" da sessão) e barra se a contagem de itens caiu, se um item sumiu em vez de ficar riscado, ou se o plano mudou sem subir a versão |

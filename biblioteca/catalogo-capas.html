@@ -1,0 +1,32 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Modelos de capa</title>
+<style>
+body{font-family:"Segoe UI",Arial,sans-serif;background:#f9fafb;color:#344054;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1{font-size:22px;color:#155244}h2{font-size:16px;color:#155244;margin:28px 0 4px}
+p{font-size:13px;color:#667085;margin:0 0 10px}
+.fundo{border-radius:12px;padding:18px;color:#fff;margin-bottom:10px}
+.vidro{background:radial-gradient(125% 120% at 10% 0%,#2a9d8a 0%,#146055 46%,#0c3f38 100%)}
+.aurora{background:radial-gradient(ellipse 60% 70% at 85% 80%,rgba(20,220,190,.5),transparent 60%),linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)}
+.fluido{background:linear-gradient(rgba(2,16,13,.18),rgba(2,16,13,.18)),url("../img/fundo-aurora.jpg") center/cover no-repeat,#02100d}
+.fundo b{font-size:15px}
+.pdf{border-radius:10px;padding:11px 16px;color:#fff;margin-bottom:6px}
+.pdf.vidro{background:linear-gradient(178deg,#14655d 0%,#1a7a70 60%,#1e8578 100%)}
+.pdf.aurora{background:linear-gradient(135deg,#02100d 0%,#03211c 45%,#064b40 100%)}
+.pdf.fluido{background:linear-gradient(rgba(2,16,13,.2),rgba(2,16,13,.2)),url("../img/fundo-aurora.jpg") center 58%/cover no-repeat,#02100d}
+.t{font-size:20px;font-weight:600}.fluido .t{font-size:17px;font-weight:700;letter-spacing:3.2px;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.fx{display:flex;margin-top:7px;border:1px solid rgba(255,255,255,.34);border-radius:6px;overflow:hidden;background:rgba(255,255,255,.14)}
+.fluido .fx{border-radius:8px;background:rgba(2,16,13,.38)}
+.fx div{flex:1;padding:5px 11px;border-right:1px solid rgba(255,255,255,.28);text-align:center;font-weight:700}
+.fx div:last-child{border-right:0}.fx span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.fx .mes{background:#b42318}.fluido .fx .mes{background:linear-gradient(180deg,rgba(235,60,60,.55),rgba(185,28,28,.5));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+</style><main>
+<h1>Modelos de capa</h1>
+<p>Os 3 layouts do botão 🎨. Cada um mostra a capa do site e a capa do PDF. Nenhum se apaga; layout novo entra como mais um bloco aqui.</p>
+<h2>1. Vidro verde (o de sempre)</h2><div class="fundo vidro"><b>Central de Empresas</b></div>
+<div class="pdf vidro"><div class="t">MANUTENÇÃO E INFRAESTRUTURA</div><div class="fx"><div><span>Loja</span>AC</div><div><span>Piso</span>1º e 2º Piso</div><div class="mes"><span>Mês</span>Agosto de 2026</div></div></div>
+<h2>2. Aurora (degradê escuro)</h2><div class="fundo aurora"><b>Central de Empresas</b></div>
+<div class="pdf aurora"><div class="t">MANUTENÇÃO E INFRAESTRUTURA</div><div class="fx"><div><span>Loja</span>AC</div><div><span>Piso</span>1º e 2º Piso</div><div class="mes"><span>Mês</span>Agosto de 2026</div></div></div>
+<h2>3. Aurora fluida (foto de água-marinha) — v11.47</h2><div class="fundo fluido"><b>Central de Empresas</b></div>
+<div class="pdf fluido"><div class="t">MANUTENÇÃO E INFRAESTRUTURA</div><div class="fx"><div><span>Loja</span>AC</div><div><span>Piso</span>1º e 2º Piso</div><div class="mes"><span>Mês</span>Agosto de 2026</div></div></div>
+<p>A foto fica em <code>../img/fundo-aurora.jpg</code>. Mês em vermelho de vidro (quadrado, sem pílula).</p>
+</main></html>

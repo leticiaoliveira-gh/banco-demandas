@@ -1,106 +1,35 @@
-﻿# =====================================================================
-#  SINCRONIZAR A BIBLIOTECA DE DESIGN COM O SITE
+# =====================================================================
+#  CONFERIR A BIBLIOTECA DE DESIGN DO SITE
 #  ---------------------------------------------------------------------
-#  O que faz, em português simples:
-#  A biblioteca de peças (botões, cartões, gráficos, modelo de relatório)
-#  mora numa pasta só dela. O site usa CÓPIAS dessas peças. Este script
-#  compara as duas e, se a biblioteca mudou, traz a versão nova para o
-#  site — e sobe o número do cache, para a peça nova não desaparecer
-#  quando a Lê estiver sem internet.
+#  Desde 01/10/2026 (pedido da Le) a biblioteca mora num lugar so:
+#  a pasta biblioteca\ deste site. Nao existe mais copia em outra pasta,
+#  entao este script NAO copia nada: so confere se as pecas estao la e
+#  lembra a regra de nunca construir do zero.
 #
-#  Como rodar (botão direito > Executar com PowerShell), ou:
-#     powershell -ExecutionPolicy Bypass -File ferramentas\sincronizar-biblioteca.ps1
-#
-#  Roda sozinho no início de toda sessão (hook em .claude\settings.json).
-#  Não apaga nada. Se a biblioteca não for encontrada, avisa e para.
+#  Roda sozinho no inicio de toda sessao (hook em .claude\settings.json).
+#  Mudou peca na biblioteca? Suba o "const CACHE" do sw.js a mao.
 # =====================================================================
 
-$ErrorActionPreference = 'Stop'
+$projeto = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$pasta   = Join-Path $projeto 'biblioteca'
 
-$projeto    = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$biblioteca = Resolve-Path (Join-Path $projeto '..\..\biblioteca-design') -ErrorAction SilentlyContinue
-# 21/09/2026: o site saiu da 6. REPOSITORIOS e foi para a (CENTRAL) SOFTWARES,
-# entao a biblioteca deixou de ser vizinha. Procura no endereco fixo dela
-# (o nome da pasta do OneDrive tem acento, por isso vai por busca).
-if (-not $biblioteca) {
-  $biblioteca = Resolve-Path (Join-Path $env:USERPROFILE 'OneDrive\*\- PROJETOS CENTRAL\1. PROJETO - Trabalho (website)\biblioteca-design') -ErrorAction SilentlyContinue | Select-Object -First 1
-}
-$destino   = Join-Path $projeto 'biblioteca'
-$swjs       = Join-Path $projeto 'sw.js'
-
-if (-not $biblioteca) {
-  Write-Output "BIBLIOTECA NAO ENCONTRADA - nada foi copiado."
-  Write-Output "Confira se a pasta 'biblioteca-design' continua em 1. PROJETO - Trabalho (website)."
-  exit 1
-}
-if (-not (Test-Path $destino)) { New-Item -ItemType Directory -Path $destino | Out-Null }
-
-# origem -> destino (nome dentro do site)
-$pares = @(
-  @{ de = 'templates\pecas\pecas.css';           para = 'pecas.css';     o_que = 'pecas (botoes, cartoes, selos)' },
-  @{ de = 'templates\graficos\graficos.css';     para = 'graficos.css';  o_que = 'graficos (barras, linha, rosca, medidor)' },
-  @{ de = 'templates\relatorios\relatorio.css';  para = 'relatorio.css'; o_que = 'modelo de relatorio A4' },
-  @{ de = 'templates\pecas\catalogo.html';       para = 'catalogo.html'; o_que = 'catalogo das pecas' }
+$itens = @(
+  @{ n = 'pecas.css';              o = 'pecas (botoes, cartoes, selos)' },
+  @{ n = 'graficos.css';           o = 'graficos (barras, linha, rosca, medidor)' },
+  @{ n = 'relatorio.css';          o = 'modelo de relatorio A4' },
+  @{ n = 'catalogo.html';          o = 'catalogo das pecas' },
+  @{ n = 'catalogo-graficos.html'; o = 'catalogo dos graficos' },
+  @{ n = 'catalogo-capas.html';    o = 'layouts de capa' },
+  @{ n = 'regras\paleta-e-tons.md';              o = 'cores permitidas' },
+  @{ n = 'regras\checklist-antes-de-publicar.md'; o = 'checklist antes de publicar' }
 )
 
-function Hash-Arquivo($caminho) {
-  if (-not (Test-Path $caminho)) { return '' }
-  return (Get-FileHash -Path $caminho -Algorithm SHA256).Hash
-}
-
-$atualizados = @()
-$faltando    = @()
-
-foreach ($p in $pares) {
-  $origem = Join-Path $biblioteca $p.de
-  $alvo   = Join-Path $destino  $p.para
-  if (-not (Test-Path $origem)) { $faltando += $p.de; continue }
-  if ((Hash-Arquivo $origem) -ne (Hash-Arquivo $alvo)) {
-    Copy-Item $origem $alvo -Force
-    $atualizados += $p.o_que
-  }
-}
-
-# Se algo mudou, o cache do site TEM que subir, senao a peca nova nao chega
-# ao celular dela (o site guarda a versao antiga para funcionar offline).
-$cacheNovo = ''
-if ($atualizados.Count -gt 0 -and (Test-Path $swjs)) {
-  $texto = Get-Content $swjs -Raw
-  $m = [regex]::Match($texto, 'np-demandas-v(\d+)')
-  if ($m.Success) {
-    $n = [int]$m.Groups[1].Value + 1
-    $cacheNovo = "np-demandas-v$n"
-    $texto = [regex]::Replace($texto, 'np-demandas-v\d+', $cacheNovo)
-    Set-Content -Path $swjs -Value $texto -Encoding utf8 -NoNewline
-  }
-}
-
-# ---------------------------------------------------------------- relatorio
-Write-Output "=== BIBLIOTECA DE DESIGN — o site usa estas pecas ==="
-foreach ($p in $pares) {
-  $alvo = Join-Path $destino $p.para
-  if (Test-Path $alvo) {
-    $kb = [math]::Round((Get-Item $alvo).Length / 1KB)
-    Write-Output ("  OK  biblioteca/{0}  ({1} KB) - {2}" -f $p.para, $kb, $p.o_que)
-  } else {
-    Write-Output ("  --  biblioteca/{0} AUSENTE - {1}" -f $p.para, $p.o_que)
-  }
-}
-if ($faltando.Count -gt 0) {
-  Write-Output "AVISO: nao achei na biblioteca: $($faltando -join ', ')"
-}
-if ($atualizados.Count -gt 0) {
-  Write-Output ""
-  Write-Output "ATUALIZADO AGORA (a biblioteca tinha versao mais nova):"
-  foreach ($a in $atualizados) { Write-Output "  - $a" }
-  if ($cacheNovo) { Write-Output "  Cache do site subiu para $cacheNovo (senao a peca nova nao chegaria no celular)." }
-  Write-Output "  Confira no navegador antes de publicar."
-} else {
-  Write-Output ""
-  Write-Output "Nada mudou - o site ja esta com a versao mais nova da biblioteca."
+Write-Output "=== BIBLIOTECA DE DESIGN (lugar unico: biblioteca\ do site) ==="
+foreach ($i in $itens) {
+  $alvo = Join-Path $pasta $i.n
+  if (Test-Path $alvo) { Write-Output ("  OK  biblioteca\{0} - {1}" -f $i.n, $i.o) }
+  else                 { Write-Output ("  --  biblioteca\{0} AUSENTE - {1}" -f $i.n, $i.o) }
 }
 Write-Output ""
-Write-Output "REGRA: nunca construir do zero. Olhe o catalogo primeiro:"
-Write-Output "  https://leticiaoliveira-gh.github.io/banco-demandas/catalogo/           (16 pecas, bd-*)"
-Write-Output "  https://leticiaoliveira-gh.github.io/banco-demandas/catalogo/graficos/  (8 graficos, bd-g-*)"
-Write-Output "Peca que nao existe: criar DENTRO da biblioteca-design e catalogar la."
+Write-Output "REGRA: nunca construir do zero. Olhe biblioteca\catalogo.html primeiro."
+Write-Output "Peca que nao existe: criar DENTRO de biblioteca\pecas.css e catalogar em biblioteca\catalogo.html."
