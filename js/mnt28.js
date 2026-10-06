@@ -2586,7 +2586,9 @@ function m28ImprimirFolha(op){
         if(corpo.children.length){
           var fR=folha.getBoundingClientRect(), cR=corpo.getBoundingClientRect();
           var sobra=(fR.height-RESERVA)-(cR.bottom-fR.top);
-          if(sobra<fR.height*0.15){ folha=novaFolha(false); corpo=folha.querySelector(".corpo"); }
+          /* 06/10 (pedido dela): o rastreamento de ralos SEMPRE abre folha nova,
+             separado de onde acabam as demandas do ultimo piso */
+          if(sobra<fR.height*0.15 || tem(cls,"rl-cab")){ folha=novaFolha(false); corpo=folha.querySelector(".corpo"); }
         }
         corpo.appendChild(el);
         if(estourou()){
