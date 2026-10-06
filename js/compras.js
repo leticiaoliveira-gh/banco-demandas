@@ -523,7 +523,7 @@ function cmpImprimir(){
     </style></head><body><div class="folha">
       <div class="capa">
         <div class="linha1">
-          <div><div class="assunto">COMPRAS</div></div>
+          <div><div class="assunto">Resumo Compras MNT - ${esc(String(loja).split(/\s+[–—·-]\s+/)[0])}</div></div>
           <div class="pe"><div><span>Emitido em</span><b>${esc(partes.slice().reverse().join("/"))}</b></div></div>
         </div>
         ${faixa ? `<div class="faixa">${faixa}</div>` : ""}

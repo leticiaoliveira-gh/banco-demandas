@@ -1,7 +1,7 @@
 {
   "atualizadoEm": "2026-10-06",
-  "versao": "11.91",
-  "qa": "06/10/2026 14:17 - relatório de compras com \"Emitido em\" na capa; PDF conferido.",
-  "ondeParamos": "v11.91: relatório de compras mostra a data de emissão. Lista de compras AC atualizada (15 itens).",
+  "versao": "11.92",
+  "qa": "06/10/2026 - título do relatório de compras: \"Resumo Compras MNT - <loja>\"; PDF conferido.",
+  "ondeParamos": "v11.92: relatório de compras com título \"Resumo Compras MNT - Arraial do Cabo\" e data de emissão.",
   "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }
