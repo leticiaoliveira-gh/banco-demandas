@@ -3,6 +3,62 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **PRÓXIMA SESSÃO (escrito 06/10/2026 10:45) — NO AR v11.84 (cache v263, commits 2f18cad + seguinte). COMECE AQUI, NÃO RELEIA NADA.**
+> Le vai CONTINUAR mandando correções (fotos do papel ou texto). Fazer cada uma direto, sem reler arquivos à toa.
+> - Pedido de dado (texto de compra, serviço, obs): editar no D1 `central-demandas` (tabela itens; subir mod/rev e pôr histórico em $.h). Aparece na hora, não precisa publicar.
+> - Pedido de tela/folha: mexer no código, conferir no navegador, publicar (versão nos 4 lugares + APP_DATA à mão + `?v=` do arquivo mexido no index.html), commit SÓ dos arquivos mexidos (a pasta tem trabalho de outra conversa sem commit: CLAUDE.md, biblioteca, catalogo, css, ind.js — NÃO incluir), deploy de cópia limpa (git archive HEAD → npx wrangler deploy), conferir no ar com `?q=aleatorio`.
+> - Se ela disser "não publica", só juntar e esperar o "pode".
+> Feito hoje: v11.84 = na folha de manutenção o URGENTE saiu da frente do texto e foi para embaixo da data (folha, PDF e Word: js/mnt28.js e js/docx-folha.js). Dados: termômetro retirado, contêiner sem cor, lixeira hortifrúti inox grande, fechadura UAN só "Fechadura.", obs da cola dos puxadores e da borracha da câmara retiradas. Registros 11.82, 11.83 e 11.84 feitos (Tarefas + DIARIO + Provas). Plano: sem mudança (não precisou PDF).
+> Ainda em aberto (só se ela pedir): item 5 abaixo (teste local); entrada no site; folha de Cabo Frio do Sr. João; o erro passageiro "Não salvou" de 05/10 (mais abaixo).
+
+> **PRÓXIMA SESSÃO (escrito 06/10/2026 à tarde) — no ar v11.82 (commit dab1ded). FAZER TUDO ISTO:**
+> 1. ~~**Data do rodapé errada:**~~ FEITO 06/10 09:40: v11.83 no ar (commit 368040a), APP_DATA trocado à mão. A trava automática não roda porque as conversas abrem fora da pasta banco-demandas: trocar APP_DATA em TODA versão.
+>    (texto antigo:) o site mostra "v11.82 · atualizado em 01/10/2026 · 07:49". É a constante
+>    `APP_DATA` em js/app.js (~linha 2070), que não foi trocada desde 01/10. Pôr a data/hora da publicação
+>    e incluir no ritual de TODA versão (checklist de publicar). Publicar como v11.83.
+> 2. FEITO 06/10 (conferido no D1, nada mudado): 10 compras AC vivas, todas com nota "Quem solicita a compra: Dayse."; só sobra na manutenção o mnt28 29076b6a (termômetro deslocado, câmara F&L 2º piso, executor Dayse, de 24/08) — perguntado a Le se vira compra. (texto antigo:) **Dayse = Compras (mesmo relatório).** Na manutenção AC só 1 serviço está com executor Dayse; conferir
+>    se as coisas dela estão como compras (D1, tipo cmp, empresa AC: 10 vivas) e se nada ficou no lugar errado.
+> 2b. 06/10 09:51 (D1, pedido de Le): termômetro 29076b6a apagado ("por enquanto"); contêiner sem a frase de cor (não especificar cor); lixeira hortifrúti = "1 unidade. Lixeira de inox, tamanho grande." (obs do pedal mantida). Le disse: NÃO publicar versão nova ainda, ela tem mais coisa para ver.
+> 2c. 06/10 10:00 (D1, foto do papel): fechadura UAN 204aa64d oque="Fechadura." (texto antigo no histórico); obs apagada da cola dos puxadores e da borracha da câmara.
+> 3. FEITO 06/10: a conversa é "Trazer conversas nuvem" (local_72cf77f3). Tudo que ela decidiu lá está no D1: puxador de volta, Dayse nas compras, lixeira inox redonda, lixeira receb com tampa e pedal, contêiner 120 a 240 L tampa e pedal sem cor, obs dos cestos limpa, tampo e base da seladora apagados, fita e lixeiras duplicadas apagadas. (texto antigo:) **3º link de conversa que ela vai mandar** (trabalho de 05/10, "tem bastante coisa dela > dayse/compras"):
+>    conferir item por item se foi salvo no D1. Só dizer "salvo" depois de ver no banco.
+> 4. FEITO 06/10 (registros 11.82, 11.83, 11.84). (texto antigo:) **Ritual da v11.82 não feito:** Tarefas `Site 11.82 - assunto.md` + print; linha no DIARIO + print em
+>    Provas; plano +1 e PDF (ferramentas\entregar-pdf-plano.ps1, mandar com SendUserFile); revisor-do-site
+>    e auditor-da-sessao; cartão de fechamento.
+> 5. Teste local: o arquivo só do PC `dados/mnt28-carga.js` (lista de julho) reinjeta 17 serviços que ela
+>    APAGOU em 31/07 quando o banco de teste nasce sem a meta "mnt28Cargas". No site real não aparecem.
+>    Em teste local, semear também a meta mnt28Cargas (ou filtrar) para não confundir contagens.
+> Entregue em 06/10 (pasta Tarefas): manutenção AC só o que falta (63), Sr. João só o que falta (33),
+> lista de compras AC (10).
+
+> **06/10/2026 — FEITO (v11.82 publicada: folhasCfg chave por chave, ralos devolvido, Enter nas compras).**
+> 1. **Texto dos ralos sumiu (bug grave de sincronização).** Ela trocou o "ralosTexto" (folha de manutenção)
+>    na noite de 30/09; na madrugada de 01/10 (folhasCfgMod 2026-10-01T07:53Z) outro aparelho salvou só
+>    `mnt28Visual` e o pacote `folhasCfg` inteiro sobrescreveu a nuvem → `mnt28Textos` sumiu. Hoje o D1
+>    (tabela `meta`, k='folhasCfg') tem só mnt28Visual + mnt28Cabecalho. Causa: `folhasCfg` é tudo-ou-nada
+>    (sync.js ~282: `FOLHAS_CFG=env.folhasCfg`; app.js folhasCfgSet empurra o objeto inteiro). Consertar
+>    juntando chave por chave (o que falta no pacote que chega NÃO apaga o local; ao salvar, manda tudo o
+>    que o aparelho tem). Conferido nos backups: só folhasCfg perdeu conteúdo, o resto está igual.
+> 2. **Devolver o texto dela:** está inteiro em `Backups\Backup NC - 28.09.26\Backup completo do site
+>    (nuvem).json` → folhasCfg.mnt28Textos.ralosTexto ("1. Conferência Obrigatória… 2. Manutenção
+>    Corretiva… 3. Telas…"). Gravar de volta na nuvem com folhasCfgMod novo, DEPOIS do conserto do item 1.
+> 3. **Lista de Compras impressa respeita o Enter** (Janela Cozinha UAN, itens 1-2-3 colados no papel):
+>    já editado em js/compras.js (span .tx com white-space:pre-wrap), SEM commit. Publicar junto.
+> 4. Versão: v11.82, cache v261, `?v=` do compras.js (e dos arquivos mexidos) → 261. Commit SÓ dos
+>    arquivos destas mudanças (a pasta tem trabalho de outra conversa sem commit: CLAUDE.md, biblioteca,
+>    css, ind.js etc. — não incluir). Deploy com `wrangler deploy` de cópia limpa (git archive), como na v11.81.
+> 5. Teste QA antes de publicar (ela pediu, está desconfiada): dois aparelhos/abas — editar texto dos ralos
+>    num, outra configuração no outro, conferir que nada some; console limpo; 375px e 768px; mostrar a ela.
+> 6. Ela ainda vai mandar o 3º link de conversa da nuvem (trabalho de 05/10) para conferir.
+
+> **05/10/2026 (15:30 BRT) — INVESTIGAR:** no PC do trabalho apareceu "⚠ Não salvou, tentar de novo" + faixa
+> "ainda NÃO foi para a nuvem" logo depois de entrar (foto dela). Na tabela sessoes: entrou e saiu 3x entre
+> 18:28 e 18:34 UTC; o login das 18:32 criou DUAS sessões no mesmo segundo (035ca22c fica aberta, 8be67543 foi
+> encerrada pelo Guardar e fechar às 18:34:05, o que só acontece depois de nuvemGarantirEnviado confirmar o envio).
+> Nada dela ficou de fora do D1. Causa do erro passageiro após o login NÃO achada: a faixa não mostra o motivo.
+> Ideia: mostrar o motivo (nuvemUltimoErro) em letra pequena na faixa e evitar login duplo (clique duplo em Entrar).
+> Ela está muito insegura com o site ("não salva, frágil"): prioridade.
+
 > **05/10/2026 (fim da tarde): no ar v11.81 (cache v260).** Compras AC: anotações dela no papel aplicadas
 > item por item no D1 (puxador da ilha de volta; Dayse como solicitante em 4 compras; lixeiras, contêiner,
 > cestos; tampo e base da seladora do hortifrúti apagados). Situação "Pedido" virou "Solicitado" (só o nome;
