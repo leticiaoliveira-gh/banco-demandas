@@ -524,6 +524,7 @@ function cmpImprimir(){
       <div class="capa">
         <div class="linha1">
           <div><div class="assunto">COMPRAS</div></div>
+          <div class="pe"><div><span>Emitido em</span><b>${esc(partes.slice().reverse().join("/"))}</b></div></div>
         </div>
         ${faixa ? `<div class="faixa">${faixa}</div>` : ""}
       </div>
