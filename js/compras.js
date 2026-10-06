@@ -428,13 +428,8 @@ function cmpImprimir(){
   /* 06/10 (pedido dela): item marcado "ultimo" (os cestos dos ralos) vai para
      o fim: a área dele fecha o piso e ele fecha a área */
   const ult = l => l.some(d => d.ultimo) ? 1 : 0;
-  /* 06/10 (pedido dela): compra que veio de uma demanda da manutenção leva a
-     foto dessa demanda junto, igual sai na folha de manutenção */
-  const fotosDe = d => {
-    const orig = d.origemMnt ? DATA.find(x => x.uid === d.origemMnt) : null;
-    const todas = [...(d.fotos || []), ...((orig && orig.fotos) || [])];
-    return typeof m28FotosFolha === "function" ? m28FotosFolha({ fotos: todas }) : "";
-  };
+  /* 06/10 (pedido dela, 2ª vez): lista de compra SEM foto, direta e prática:
+     o que comprar à esquerda, a quantidade à direita */
   Object.keys(por).sort(cmpCmpPiso).forEach(p => {
     /* 06/10 (escolha dela): o piso aparece UMA vez, no alto do grupo, e não em
        cada área. Sai junto com a 1ª área e a 1ª demanda, nunca sozinho no pé */
@@ -446,15 +441,12 @@ function cmpImprimir(){
       pisoTit = "";
       por[p][a].slice().sort((x,y) => (x.ultimo?1:0) - (y.ultimo?1:0)).forEach((d, i) => {
         n++;
-        const fts = fotosDe(d);
-        /* 06/10 (escolha dela): foto no canto direito; número em bolinha; URGENTE
-           em linha própria; quantidade e situação numa linha de baixo do texto */
-        const qtdTxt = d.qtd === "" ? "Qtd. a definir" : "Qtd. " + (Number(d.qtd) || 1);
+        /* número em bolinha; URGENTE em linha própria; quantidade no canto direito */
+        const qtdTxt = d.qtd === "" ? "a definir" : String(Number(d.qtd) || 1);
         const li = `<div class="li"><div class="bola">${n}</div>
           <div class="f">${d.urg ? '<i class="ug">URGENTE</i>' : ""}<span class="tx">${esc(cmpTexto(d))}</span>
-            <div class="info">${esc(qtdTxt)} · ${CMP_SIT[cmpSit(d)].rot}</div>
-            ${d.obs ? `<i class="obs-p"><b>Obs:</b>${esc(d.obs)}</i>` : ""}</div>
-          <div class="canto">${fts}</div></div>`;
+            ${d.obs ? `<i class="obs-p">${esc(d.obs)}</i>` : ""}</div>
+          <div class="qt"><span>Qtd.</span><b>${esc(qtdTxt)}</b></div></div>`;
         if (i === 0) corpo += `<div class="junto">${bloco}${li}</div>`;
         else corpo += li;
       });
@@ -505,20 +497,15 @@ function cmpImprimir(){
       font-weight:700;font-size:11.5px;display:flex;align-items:center;justify-content:center;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
     .li .f{flex:1;min-width:0}
-    .li .canto{width:36mm;flex:none}
-    .li .info{font-size:11px;color:#667085;margin-top:2px}
+    .li .tx{font-weight:600;color:#1d2939;font-size:12.8px}
+    .li .qt{width:22mm;flex:none;text-align:right;line-height:1.2}
+    .li .qt span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:#667085}
+    .li .qt b{font-size:13px;color:#155244}
     .li .ug{display:block;font-size:10.5px;margin-bottom:1px}
     /* 06/10 (pedido dela, mesma regra da manutenção): demanda nunca parte entre
        duas folhas; área + cabeçalho + 1ª demanda também não */
     .li,.junto{break-inside:avoid;page-break-inside:avoid}
     .ar,.cab{break-after:avoid;page-break-after:avoid}
-    /* a foto da demanda de manutenção, no mesmo tamanho da folha de lá */
-    .li .fts{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:flex-start}
-    .li .fts img{max-width:36mm;max-height:34mm;width:auto;height:auto;object-fit:contain;
-      border:1px solid #eaecf0;border-radius:3px;background:#f8fafc;
-      -webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .li .fts i{font-style:normal;font-size:9px;color:#667085;align-self:flex-end}
-    .li .obs-p .fts{white-space:normal}
     /* no papel, a margem vem da página: assim a folha 2 também tem respiro em cima */
     @media print{
       @page{size:A4;margin:11mm 12mm 15mm}

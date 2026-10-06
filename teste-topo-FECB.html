@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teste de topo — F, E, C, B</title>
+<link rel="stylesheet" href="biblioteca/pecas.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bd-c50);color:var(--bd-texto);font-family:Inter,"Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.45}
+.pagina{max-width:1180px;margin:0 auto;padding:32px 16px 96px}
+h1{font-size:28px;margin:0 0 8px;letter-spacing:-.01em}
+.intro{color:var(--bd-c600);margin:0 0 8px;max-width:760px}
+.indice{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 32px}
+.indice a{padding:6px 12px;border-radius:999px;background:#fff;border:1px solid var(--bd-borda);color:var(--bd-c700);text-decoration:none;font-size:13px;font-weight:600}
+.indice a:hover{border-color:var(--bd-verde);color:var(--bd-verde)}
+.indice a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--bd-verde-vivo);outline-offset:2px}
+
+/* cartão de cada opção */
+.opcao{background:#fff;border:1px solid var(--bd-borda);border-radius:var(--bd-r-gg);margin:0 0 32px;box-shadow:var(--bd-sombra1)}
+.op-cab{padding:20px 24px 16px;border-bottom:1px solid var(--bd-borda)}
+.op-letra{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--bd-verde);color:#fff;font-weight:800;margin-right:8px}
+.op-cab h2{display:inline;font-size:20px;vertical-align:middle}
+.op-cab p{margin:8px 0 0;color:var(--bd-c600)}
+.pros{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:12px;font-size:13.5px}
+.pros span::before{font-weight:800;margin-right:4px}
+.pros .g::before{content:"Ganha:";color:var(--bd-ok-texto)}
+.pros .p::before{content:"Perde:";color:var(--bd-erro-texto)}
+.palco{background:#f4f6f8;padding:24px;border-radius:0 0 18px 18px}
+.tela{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--bd-c200);max-width:1100px}
+
+/* capa resumida (igual em todas, só para dar contexto) */
+.capa{border-radius:12px;padding:16px 20px;color:#fff;background:linear-gradient(120deg,#062a24 0%,#0c4a3f 45%,#1e8f7e 70%,#073029 100%);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.capa small{font-size:11px;letter-spacing:.08em;opacity:.75;font-weight:700}
+.capa b{display:block;font-size:20px}
+.capa .dir{text-align:right;font-size:12px;opacity:.85}
+.topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.topo .mes{font-weight:700;font-size:17px;margin-right:auto}
+
+/* peças simuladas */
+.b{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--bd-c300);background:#fff;color:var(--bd-c700);font:600 14px/1 inherit;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background var(--bd-rapido),border-color var(--bd-rapido)}
+.b:hover{background:var(--bd-c50);border-color:var(--bd-c400)}
+.b.forte{background:var(--bd-verde);border-color:var(--bd-verde);color:#fff}
+.b.forte:hover{background:var(--bd-verde-escuro)}
+.b.leve{border-color:transparent;background:transparent}
+.b.leve:hover{background:var(--bd-c100)}
+.b.ico{width:36px;padding:0;justify-content:center}
+.b svg,.i{width:16px;height:16px;flex:none}
+.cont{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 6px;border-radius:999px;font-size:12px;font-weight:700;background:var(--bd-c100);color:var(--bd-c700)}
+.cont.verm{background:var(--bd-erro-fundo);color:var(--bd-erro-texto)}
+.cont.amar{background:var(--bd-atencao-fundo);color:var(--bd-atencao-texto)}
+.linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.linha+.linha{margin-top:12px}
+.esp{flex:1}
+.sep{width:1px;height:24px;background:var(--bd-c200);margin:0 4px}
+
+/* abas em pílula (segmentadas) */
+.seg{display:inline-flex;padding:4px;background:var(--bd-c100);border-radius:12px;gap:4px}
+.seg button{border:0;background:transparent;height:32px;padding:0 14px;border-radius:9px;font:600 14px inherit;font-family:inherit;color:var(--bd-c600);display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.seg button[aria-pressed=true]{background:#fff;color:var(--bd-c900);box-shadow:var(--bd-sombra2)}
+
+/* abas sublinhadas */
+.sub{display:flex;gap:24px;border-bottom:1px solid var(--bd-c200);overflow-x:auto}
+.sub button{border:0;background:none;padding:10px 0 12px;font:600 15px inherit;font-family:inherit;color:var(--bd-c500);border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;gap:8px;align-items:center;cursor:pointer;white-space:nowrap}
+.sub button[aria-pressed=true]{color:var(--bd-verde);border-bottom-color:var(--bd-verde)}
+
+/* filtro em chip */
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--bd-c200);background:#fff;font-size:13.5px;color:var(--bd-c700);cursor:pointer;font-family:inherit}
+.chip b{font-weight:700;color:var(--bd-c900)}
+.chip.on{background:var(--bd-verde-claro);border-color:#b7dccf;color:var(--bd-verde-escuro)}
+.chip.on b{color:var(--bd-verde-escuro)}
+.chip:hover{border-color:var(--bd-c400)}
+
+/* busca */
+.busca{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid var(--bd-c300);border-radius:10px;background:#fff;color:var(--bd-c500);min-width:200px}
+.busca input{border:0;outline:0;font:inherit;width:100%;background:transparent}
+
+/* menu que abre */
+details.menu{position:relative;display:inline-block}
+details.menu>summary{list-style:none}
+details.menu>summary::-webkit-details-marker{display:none}
+.caixa{position:absolute;right:0;top:calc(100% + 6px);z-index:5;background:#fff;border:1px solid var(--bd-c200);border-radius:12px;box-shadow:var(--bd-sombra4);padding:6px;min-width:220px}
+.caixa.esq{left:0;right:auto}
+.caixa a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--bd-c700);text-decoration:none;font-size:14px}
+.caixa a:hover{background:var(--bd-c50)}
+.caixa .tit{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--bd-c400);padding:8px 10px 4px;text-transform:uppercase}
+.caixa hr{border:0;border-top:1px solid var(--bd-c100);margin:4px 0}
+
+/* aviso fino */
+.fino{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:var(--bd-atencao-fundo);color:var(--bd-atencao-texto);font-size:13.5px;margin-top:12px}
+.fino a{margin-left:auto;color:var(--bd-atencao-texto);font-weight:700}
+
+/* área das demandas (sombra do conteúdo) */
+.conteudo{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.conteudo div{height:64px;border-radius:12px;background:var(--bd-c50);border:1px dashed var(--bd-c200)}
+
+/* E — lateral */
+.lado{display:grid;grid-template-columns:220px 1fr;gap:16px}
+.lado aside{border-right:1px solid var(--bd-c200);padding-right:16px}
+.lado label{display:block;font-size:12px;font-weight:700;color:var(--bd-c500);margin:12px 0 4px}
+.lado select{width:100%;height:34px;border:1px solid var(--bd-c300);border-radius:8px;padding:0 8px;font:inherit;background:#fff}
+
+/* D — fita com grupos */
+.fita{display:flex;gap:16px;flex-wrap:wrap;padding:8px;border:1px solid var(--bd-c200);border-radius:12px;background:var(--bd-c25)}
+.grupo{display:flex;flex-direction:column;gap:4px}
+.grupo .nome{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--bd-c400);text-transform:uppercase;padding-left:4px}
+.grupo .bts{display:flex;gap:4px}
+.grupo .bts button{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:transparent;border-radius:8px;padding:6px 10px;font:600 12px inherit;font-family:inherit;color:var(--bd-c700);cursor:pointer}
+.grupo .bts button:hover{background:var(--bd-c100)}
+.grupo .bts svg{width:20px;height:20px}
+
+/* F — barra de baixo */
+.celular{width:375px;max-width:100%;margin:0 auto;border:8px solid #1a1d24;border-radius:32px;overflow:hidden;background:#fff;position:relative;height:560px}
+.celular .dentro{padding:12px;height:100%;overflow:hidden}
+.celular .capa{padding:12px 14px}
+.celular .capa b{font-size:16px}
+.baixo{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--bd-c200);padding:6px 4px 10px}
+.baixo button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 11px inherit;font-family:inherit;color:var(--bd-c600);padding:6px 0;cursor:pointer}
+.baixo button.mais{color:#fff}
+.baixo button.mais span.bola{width:44px;height:44px;border-radius:50%;background:var(--bd-verde);display:grid;place-items:center;margin-top:-22px;box-shadow:var(--bd-sombra3)}
+.baixo svg{width:20px;height:20px}
+.dois{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+
+/* G — busca grande */
+.buscao{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:48px;padding:6px 8px 6px 14px;border:1.5px solid var(--bd-c300);border-radius:14px;background:#fff}
+.buscao:focus-within{border-color:var(--bd-verde)}
+.token{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:8px;background:var(--bd-verde-claro);color:var(--bd-verde-escuro);font-size:13px;font-weight:600}
+.token button{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+.buscao input{flex:1;min-width:140px;border:0;outline:0;font:inherit;height:32px}
+.sugest{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--bd-c500)}
+.sugest button{border:0;background:none;color:var(--bd-verde);font:600 13px inherit;font-family:inherit;cursor:pointer;padding:0}
+
+.recomenda{background:var(--bd-verde-claro);border:1px solid #b7dccf;border-radius:14px;padding:16px 20px;margin:0 0 32px;color:var(--bd-verde-escuro)}
+.recomenda b{display:block;margin-bottom:4px}
+
+@media (max-width:760px){
+  .lado{grid-template-columns:1fr}
+  .lado aside{border-right:0;border-bottom:1px solid var(--bd-c200);padding:0 0 12px}
+  .dois{grid-template-columns:1fr}
+  .conteudo{grid-template-columns:1fr}
+  .palco{padding:12px}
+  .busca{min-width:0;flex:1}
+  .seg{display:flex;width:100%}
+  .seg button{flex:1;justify-content:center;padding:0 8px;font-size:13px;gap:4px}
+  .tela{padding:12px}
+  .op-cab{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.seletor{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--bd-borda);padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seletor b{font-size:13px;color:var(--bd-c600);margin-right:4px}
+.seletor button{height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--bd-c300);background:#fff;font:700 14px inherit;font-family:inherit;color:var(--bd-c700);cursor:pointer}
+.seletor button[aria-pressed=true]{background:var(--bd-verde);border-color:var(--bd-verde);color:#fff}
+.nota{max-width:1180px;margin:12px auto 0;padding:0 16px;color:var(--bd-c600);font-size:13.5px}
+.pagina{padding-top:12px}
+.tela{max-width:none}
+.item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--bd-c200);border-radius:12px;background:#fff;margin-top:8px}
+.item b{flex:1;font-size:14.5px}.item small{display:block;color:var(--bd-c500);font-weight:500;font-size:12.5px}
+.sel-urg{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bd-erro-fundo);color:var(--bd-erro-texto)}
+.sel-ver{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bd-atencao-fundo);color:var(--bd-atencao-texto)}
+.barraF{position:sticky;top:60px;z-index:10;display:flex;align-items:center;gap:12px;padding:8px 12px;background:#fff;border:1px solid var(--bd-c200);border-radius:16px;box-shadow:var(--bd-sombra2);margin-bottom:12px}
+.acoesF{display:flex;align-items:flex-end;gap:4px;margin:0 auto}
+.acoesF>button,.acoesF>details>summary{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 12px inherit;font-family:inherit;color:var(--bd-c600);padding:6px 16px;border-radius:10px;cursor:pointer;min-width:72px;list-style:none;position:relative}
+.acoesF>details>summary::-webkit-details-marker{display:none}
+.acoesF>button:hover,.acoesF>details>summary:hover{background:var(--bd-c50);color:var(--bd-c900)}
+.acoesF svg{width:20px;height:20px}
+.acoesF .bola{width:44px;height:44px;border-radius:50%;background:var(--bd-verde);color:#fff;display:grid;place-items:center;box-shadow:var(--bd-sombra3)}
+.acoesF .bola svg{width:20px;height:20px}
+.acoesF details{position:relative}
+.acoesF .caixa{left:50%;transform:translateX(-50%);right:auto;text-align:left}
+.buscaF{display:none;flex:1}
+.barraF.buscando .acoesF,.barraF.buscando .segF{display:none}.barraF.buscando .buscaF{display:flex}
+.fita-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;font-size:13px;color:var(--bd-c500)}
+@media (max-width:760px){.barraF{flex-wrap:wrap;top:112px}.acoesF{width:100%;justify-content:space-around;margin:0}.acoesF>button,.acoesF>details>summary{min-width:0;padding:6px 8px}.capa .dir{text-align:left}}
+
+.capaF{border-radius:12px;padding:14px 20px 16px;color:#fff;background:linear-gradient(120deg,#062a24 0%,#0c4a3f 45%,#1e8f7e 70%,#073029 100%);display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.capaF small{font-size:11px;letter-spacing:.08em;opacity:.75;font-weight:700}
+.capaF b{font-size:20px}
+.capaF .segF{display:inline-flex;padding:4px;gap:4px;background:rgba(255,255,255,.14);border-radius:12px}
+.capaF .segF button{border:0;background:transparent;height:34px;padding:0 16px;border-radius:9px;font:600 14px inherit;font-family:inherit;color:#fff;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.capaF .segF button[aria-pressed=true]{background:#fff;color:var(--bd-c900)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="s-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></symbol>
+  <symbol id="s-filtro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+  <symbol id="s-baixar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="s-mais" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="s-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="s-imp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></symbol>
+  <symbol id="s-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></symbol>
+  <symbol id="s-tab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></symbol>
+  <symbol id="s-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
+  <symbol id="s-gota" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></symbol>
+  <symbol id="s-sino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
+  <symbol id="s-lista" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+  <symbol id="s-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="s-env" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7h16v-7M12 3v12M8 7l4-4 4 4"/></symbol>
+</svg>
+<div class="seletor" role="group" aria-label="Modelo"><b>Modelo:</b>
+ <button data-m="F" aria-pressed="true">F · Barra de ações no topo</button>
+ <button data-m="E" aria-pressed="false">E · Filtros ao lado</button>
+ <button data-m="C" aria-pressed="false">C · Abas sublinhadas</button>
+ <button data-m="B" aria-pressed="false">B · Tudo em menus</button>
+</div>
+<p class="nota" id="nota"></p>
+<div class="pagina"><div class="tela" id="tela"></div></div>
+<script>
+const S=n=>`<svg class="i"><use href="#s-${n}"/></svg>`;
+const capa=`<div class="capa"><div><small>RELATÓRIO DE MANUTENÇÃO</small><b>AC · Agosto de 2026</b></div><div class="dir"><b style="font-size:14px">Letícia Oliveira</b>Nutricionista – RT</div></div>`;
+const topo=()=>`<div class="topo"><button class="b leve">← Meses</button><span class="mes">Setembro/2026</span><button class="b">${S('check')}Concluir este mês</button></div>`;
+const ITENS=[['Ralo entupido — Açougue','Térreo · Sr. João','Urgente'],['Lâmpada queimada — Câmara fria','1º piso · Sr. João','Verificar'],['Porta da câmara não veda','Térreo · Sr. João','Urgente'],['Torneira pingando — Padaria','Térreo · Sr. João','Verificar'],['Piso solto — Hortifruti','1º piso · Sr. João','Verificar']];
+const lista=()=>`<div>`+ITENS.map(i=>`<div class="item"><b>${i[0]}<small>${i[1]}</small></b><span class="${i[2]=='Urgente'?'sel-urg':'sel-ver'}">${i[2]}</span><button class="b ico leve" aria-label="Mais">⋯</button></div>`).join('')+`</div>`;
+const envia=`<div class="caixa"><div class="tit">Baixar</div><a href="#">${S('doc')}PDF</a><a href="#">${S('doc')}Word</a><a href="#">${S('doc')}Word idêntico ao PDF</a><a href="#">${S('tab')}Planilha</a><hr><div class="tit">Enviar</div><a href="#">${S('msg')}WhatsApp</a><a href="#">${S('imp')}Imprimir</a><hr><a href="#">${S('gota')}Rastreamento de ralos</a></div>`;
+const filtrosCx=`<div class="caixa" style="min-width:280px;padding:12px;text-align:left"><div class="tit" style="padding-left:0">Para quem</div><button class="chip on">Sr. João (70)</button> <button class="chip">Todos</button><div class="tit" style="padding-left:0">Piso</div><button class="chip on">Todos</button> <button class="chip">Térreo</button> <button class="chip">1º</button><div class="tit" style="padding-left:0">Área</div><button class="chip on">Todas</button> <button class="chip">Açougue</button> <button class="chip">Padaria</button><div class="tit" style="padding-left:0">Outros</div><button class="chip">Lembretes Letícia</button></div>`;
+const seg=(c)=>`<div class="${c||'seg'}" role="group"><button aria-pressed="true">Demandas <span class="cont">42</span></button><button aria-pressed="false">Verificar <span class="cont verm">28</span></button><button aria-pressed="false">Paradas <span class="cont amar">63</span></button></div>`;
+const M={
+F:{nota:'F: igual ao F do celular, sem o rodapé. Demandas e Verificar dividem a largura toda, logo abaixo da capa; os filtros vêm numa linha embaixo.',
+html:()=>`<div class="topo"><button class="b leve">← Meses</button><span class="mes">Setembro/2026</span></div>
+ <div class="capa"><div><small>MANUTENÇÃO</small><b>AC · Agosto de 2026</b></div></div>
+ <div class="seg" style="display:flex;width:100%" role="group"><button aria-pressed="true" style="flex:1;justify-content:center">Demandas <span class="cont">42</span></button><button aria-pressed="false" style="flex:1;justify-content:center">Verificar <span class="cont verm">28</span></button></div>
+ <div class="linha" style="margin-top:12px"><button class="chip on">Para: <b>Sr. João (70)</b> ▾</button><button class="chip">Piso: <b>Todos</b> ▾</button><button class="chip">Área: <b>Todas</b> ▾</button><button class="chip">Pendências: <b>Todas</b> ▾</button><span class="esp"></span><label class="busca">${S('busca')}<input placeholder="Buscar demanda"></label></div>
+ <div class="fino">! 63 paradas <a href="#">Ver</a></div>`+lista()},
+E:{nota:'E: filtros numa coluna à esquerda; em cima ficam só abas, Baixar/Enviar e + Serviço.',
+html:()=>topo()+capa+`<div class="lado"><aside>
+ <label for="e1">Para quem</label><select id="e1"><option>Sr. João (70)</option></select>
+ <label for="e2">Piso</label><select id="e2"><option>Todos</option></select>
+ <label for="e3">Área</label><select id="e3"><option>Todas</option></select>
+ <label for="e4">Pendências</label><select id="e4"><option>Todas</option></select>
+ <label>Atalhos</label>
+ <button class="b leve" style="width:100%;justify-content:flex-start">${S('sino')}Lembretes Letícia</button>
+ <button class="b leve" style="width:100%;justify-content:flex-start">${S('gota')}Rastreamento de ralos</button>
+ <button class="b leve" style="width:100%;justify-content:flex-start;color:var(--bd-atencao-texto)">! Paradas <span class="cont amar">63</span></button></aside>
+ <div><div class="linha">${seg()}<span class="esp"></span><details class="menu"><summary class="b">${S('env')}Baixar / Enviar</summary>${envia}</details><button class="b forte">${S('mais')}Serviço</button></div>
+ <div class="linha"><label class="busca" style="flex:1">${S('busca')}<input placeholder="Buscar demanda"></label></div>${lista()}</div></div>`},
+C:{nota:'C: abas com traço embaixo e uma frase de filtros em que cada pedaço é clicável.',
+html:()=>`<div class="topo"><button class="b leve">← Meses</button><span class="mes">Setembro/2026</span><details class="menu"><summary class="b ico" aria-label="Baixar ou enviar">${S('env')}</summary>${envia}</details><button class="b">${S('check')}Concluir este mês</button></div>`+capa+
+ `<div class="sub" role="group"><button aria-pressed="true">Demandas <span class="cont">42</span></button><button aria-pressed="false">Verificar <span class="cont verm">28</span></button><button aria-pressed="false">Paradas <span class="cont amar">63</span></button><button aria-pressed="false">Lembretes</button></div>
+ <div class="linha" style="margin:12px 0;font-size:14.5px;color:var(--bd-c600)"><span>Mostrando de <button class="chip on" style="height:28px">Sr. João ▾</button> em <button class="chip" style="height:28px">todos os pisos ▾</button> e <button class="chip" style="height:28px">todas as áreas ▾</button></span><span class="esp"></span><button class="b ico leve" aria-label="Buscar">${S('busca')}</button><button class="b forte">${S('mais')}Serviço</button></div>`+lista()},
+B:{nota:'B: uma linha só — abas à esquerda; Buscar, Filtros, Baixar/Enviar e + Serviço à direita.',
+html:()=>topo()+capa+`<div class="linha">${seg()}<span class="esp"></span><button class="b ico" aria-label="Buscar">${S('busca')}</button>
+ <details class="menu"><summary class="b">${S('filtro')}Filtros <span class="cont">1</span></summary>${filtrosCx}</details>
+ <details class="menu"><summary class="b">${S('env')}Baixar / Enviar</summary>${envia}</details><button class="b forte">${S('mais')}Serviço</button></div><div style="height:12px"></div>`+lista()}
+};
+function mostra(m){document.getElementById('tela').innerHTML=M[m].html();document.getElementById('nota').textContent=M[m].nota;
+ document.querySelectorAll('.seletor button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m));
+ try{history.replaceState(null,'','#'+m)}catch(e){}
+ const bf=document.getElementById('barraF');if(bf){document.getElementById('bBuscar').onclick=()=>{bf.classList.add('buscando');document.getElementById('inBusca').focus()};document.getElementById('bFecha').onclick=()=>bf.classList.remove('buscando')}}
+document.querySelector('.seletor').addEventListener('click',e=>{const b=e.target.closest('button');if(b)mostra(b.dataset.m)});
+document.addEventListener('click',e=>{const g=e.target.closest('.seg,.sub'),b=e.target.closest('button');if(g&&b)g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+ document.querySelectorAll('details.menu[open]').forEach(d=>{if(!d.contains(e.target))d.removeAttribute('open')});if(e.target.closest('.caixa a'))e.preventDefault()});
+mostra((location.hash||'#F').slice(1).toUpperCase().replace(/[^FECB]/g,'')||'F');
+
+</script>
+</body>
+</html>
