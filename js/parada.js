@@ -25,7 +25,7 @@ async function paradaSalvarDias(n){
   await metaSetU("paradaDias",n);          /* metaSetU: o desfazer pega */
   if(typeof dataChanged==="function")dataChanged();
   paradaPintarJanela();
-  if(typeof renderMnt28==="function"&&currentTab==="mnt28")renderMnt28();
+  if(typeof renderMnt28==="function"&&(currentTab==="mnt28"||currentTab==="ele28"))renderMnt28();
   if(typeof renderCompras==="function"&&currentTab==="compras")renderCompras();
 }
 
@@ -54,6 +54,11 @@ function paradaLista(tipo){
       if(!PARADA_TIPOS[d.tipo])return false;
       if(tipo&&d.tipo!==tipo)return false;
       if(loja&&d.loja!==loja)return false;
+      /* 06/10, pedido dela: serviço que repete (pintura a cada 3 meses) não é
+         serviço parado — ele volta sozinho na data. */
+      if(d.recorrente)return false;
+      /* dentro da Manutenção ou da Elétrica, conta só a aba aberta */
+      if(tipo==="mnt28"&&typeof m28DoSetor==="function"&&!m28DoSetor(d))return false;
       if(paradaEncerrada(d))return false;
       const n=paradaQuantosDias(d);
       return n!==null&&n>=PARADA_DIAS;

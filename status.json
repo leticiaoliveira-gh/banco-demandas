@@ -1,7 +1,7 @@
 {
-  "atualizadoEm": "2026-10-06",
-  "versao": "11.93",
-  "qa": "06/10/2026 - layout Verde simples (padrão) conferido na tela, folha e Word.",
-  "ondeParamos": "v11.93: layout de capa Verde simples virou o padrão (cabeçalho, faixa dos relatórios, impressão, PDF e Word).",
+  "atualizadoEm": "2026-10-08",
+  "versao": "11.94",
+  "qa": "08/10/2026 - aba Elétrica, pinturas que repetem a cada 3 meses e Manutenção sem divisão por pessoas, conferidas com os dados reais.",
+  "ondeParamos": "v11.94: nova aba Elétrica (igual à Manutenção, com os serviços do Matheus); pintura de câmaras e portas repete a cada 3 meses (próxima dez/2026); Manutenção sem 'Para:' e sem folhas somadas.",
   "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }

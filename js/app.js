@@ -119,7 +119,7 @@ async function removePendencia(i){
    no celular continuava o antigo. Vale desde 30/07, quando os lápis nasceram.
    Aqui elas viajam juntas, com um único carimbo de hora: quem editou por
    último vence, igual às urgências e às áreas. */
-const FOLHAS_CHAVES=["mnt28Textos","mnt28Cabecalho","mnt28Visual","mnt28Ordem","ncTextos"];
+const FOLHAS_CHAVES=["mnt28Textos","mnt28Cabecalho","mnt28Visual","mnt28Ordem","ele28Textos","ele28Cabecalho","ele28Visual","ele28Ordem","ncTextos"];
 let FOLHAS_CFG={},FOLHAS_CFG_MOD="";
 /* 06/10 (v11.82): cada chave tem o PRÓPRIO carimbo. Antes o pacote ia inteiro
    com um carimbo só: em 01/10 um aparelho salvou só a aparência da folha e o
@@ -359,7 +359,7 @@ function icone(n){return '<span class="bd-ico" aria-hidden="true">'+(ICO_ACAO[n]
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","compras","ind","add"];
+const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","ele28","compras","ind","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
@@ -400,7 +400,15 @@ const TABS={
       icone:ICO.mnt,cor:"#155244",corFundo:"#e8f5f0",hub:true,
       subtitle:n=>"Obras, consertos e instalações — "+n,
       renderCards(){document.getElementById("cards").innerHTML="";},
-      onShow(){currentTipo="mnt28";if(typeof renderMnt28==="function")renderMnt28();}},
+      onShow(){currentTipo="mnt28";if(typeof m28AplicarSetor==="function")m28AplicarSetor("mnt");if(typeof renderMnt28==="function")renderMnt28();}},
+  /* ELÉTRICA (06/10/2026), pedido dela: "o mesmo layout de manutenções ...
+     Copia e cola. A única coisa que vai mudar são os dados." Usa o mesmo
+     js/mnt28.js; os itens são "mnt28" com setor:"eletrica". */
+  ele28:{label:"Elétrica",tipo:"mnt28",panel:"tab-ele28",
+      icone:ICO.mnt,cor:"#155244",corFundo:"#e8f5f0",hub:true,
+      subtitle:n=>"Serviços de elétrica — "+n,
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="mnt28";if(typeof m28AplicarSetor==="function")m28AplicarSetor("ele");if(typeof renderMnt28==="function")renderMnt28();}},
   /* COMPRAS (26/08): a aba de quem compra. Nasceu porque 63 pedidos viviam
      espalhados na qualidade e na folha de manutencao -- quem compra nunca via a
      lista, e o numero de nao conformidades da gerencia contava compra como se
@@ -558,7 +566,10 @@ function renderHub(){
      Sem js/edicao.js carregado, cai na ordem de fábrica — como sempre foi. */
   const abas=(typeof hubVisiveis==="function")?hubVisiveis(ABAS_HUB()):ABAS_HUB();
   box.innerHTML=abas.map(t=>{const a=TABS[t];
-    const meus=a.tipo?vivos.filter(d=>d.tipo===a.tipo):[];
+    let meus=a.tipo?vivos.filter(d=>d.tipo===a.tipo):[];
+    /* Manutenção e Elétrica guardam o mesmo tipo de item: separa pelo setor */
+    if(t==="ele28")meus=meus.filter(d=>d.setor==="eletrica");
+    else if(t==="mnt28")meus=meus.filter(d=>d.setor!=="eletrica");
     const pend=meus.filter(isPendente).length, done=meus.filter(isConcluido).length;
     const tot=pend+done, pct=tot?Math.round(done/tot*100):0;
     const urg=a.tipo==="nc"?meus.filter(d=>d.urgencia==="URGENTE"&&isPendente(d)).length:0;
@@ -881,7 +892,7 @@ async function histAplicar(passo,voltando){
     if(typeof renderNC==="function"&&currentTab==="nc")renderNC();
     /* faltava a folha de manutenção: o desfazer mexia no banco e a folha do
        Sr. João continuava mostrando o valor anterior */
-    if(typeof renderMnt28==="function"&&currentTab==="mnt28")renderMnt28();
+    if(typeof renderMnt28==="function"&&(currentTab==="mnt28"||currentTab==="ele28"))renderMnt28();
     if(typeof render==="function"&&(currentTab==="list"||currentTab==="add"))render();
     /* 05/08: faltava o Sumário. Desfazer um arrastar ou um "esconder" mexia no
        banco e a tela continuava igual — o mesmo defeito que a folha teve. */
@@ -2068,11 +2079,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.93";
+const APP_VERSAO="11.94";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="06/10/2026 · 18:44";
+const APP_DATA="08/10/2026 · 09:34";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

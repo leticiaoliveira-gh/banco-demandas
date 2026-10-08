@@ -42,7 +42,37 @@ function m28SetSec(s){
    Matheus e nunca entra na folha de quem faz obra — mas as duas moram na mesma
    aba, com o mesmo desenho. Trocar o nome aqui troca a folha inteira, inclusive
    a impressa. */
-let M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
+/* 06/10/2026, pedido dela: a divisão por pessoa SAIU desta aba. O relatório
+   de manutenção nunca sai junto com outra pessoa — a elétrica ganhou aba
+   própria (abaixo, M28_SETOR). */
+let M28F={q:"",piso:"",area:"",ver:"todos",fechadas:{}};
+
+/* ===== DUAS ABAS, O MESMO DESENHO (06/10/2026) =====
+   Palavras dela: "Cria a aba ... elétrica. Vai ser o mesmo layout de
+   manutenções ... Copia e cola. A única coisa que vai mudar são os dados."
+   As duas abas usam ESTE arquivo inteiro. O que muda é só o setor:
+   - mnt = Manutenções e Infraestrutura (item sem setor)
+   - ele = Elétrica (item com setor:"eletrica")
+   Os itens continuam do tipo "mnt28"; os textos, a ordem, o cabeçalho e o
+   visual de cada aba moram em chaves próprias (mnt28… / ele28…). */
+let M28_SETOR="mnt";
+function m28DoSetor(d){ return M28_SETOR==="ele"?d.setor==="eletrica":d.setor!=="eletrica"; }
+function m28K(base){ return (M28_SETOR==="ele"?"ele28":"mnt28")+base; }
+function m28AbaAtual(){ return M28_SETOR==="ele"?"ele28":"mnt28"; }
+function m28Painel(){ return document.getElementById(M28_SETOR==="ele"?"tab-ele28":"tab-mnt28"); }
+function m28AplicarSetor(s){
+  s=s==="ele"?"ele":"mnt";
+  if(s===M28_SETOR)return;
+  M28_SETOR=s;
+  M28_ORDEM=null;M28_CAB=null;M28_TXT=null;M28_VIS=null;
+  M28F={q:"",piso:"",area:"",ver:"todos",fechadas:{}};
+  M28_FOLHA_ABERTA=null;M28_FOLHA_VER=null;
+  if(typeof M28_MES_ANTIGO!=="undefined")M28_MES_ANTIGO=null;
+  if(typeof M28_EDITANDO!=="undefined")M28_EDITANDO=null;
+  /* o painel da outra aba fica vazio: os dois usam os mesmos ids por dentro */
+  const outro=document.getElementById(s==="ele"?"tab-mnt28":"tab-ele28");
+  if(outro)outro.innerHTML="";
+}
 
 /* quem tem serviço nesta folha — sai dos próprios itens, não de uma lista fixa,
    para o seletor nunca oferecer um nome sem nenhum serviço atrás */
@@ -55,7 +85,7 @@ function m28PessoasOpcoes(sel){
   const nomes=[];
   const add=n=>{n=(n||"").trim();if(n&&n!=="Outro"&&!nomes.some(x=>x.toLowerCase()===n.toLowerCase()))nomes.push(n);};
   (typeof EXECUTORES!=="undefined"?EXECUTORES:[]).forEach(e=>add(e.nome));
-  DATA.filter(d=>!d.deleted&&d.tipo==="mnt28").map(d=>d.executor).sort().forEach(add);
+  DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&m28DoSetor(d)).map(d=>d.executor).sort().forEach(add);
   add(sel);
   return `<option value=""${sel?"":" selected"}>Ninguém definido</option>`+
     nomes.map(n=>`<option value="${esc(n)}"${n===sel?" selected":""}>${esc(n)}</option>`).join("")+
@@ -89,7 +119,6 @@ function m28Executores(itens){
    situacao faria cada um deles contar de uma base diferente. */
 function m28ItensDaFolha(){
   let t=m28Itens();
-  if(M28F.exec)t=t.filter(d=>(d.executor||"").trim()===M28F.exec);
   if(M28F.piso)t=t.filter(d=>d.piso===M28F.piso);
   if(M28F.area)t=t.filter(d=>m28NormArea(d.area)===m28NormArea(M28F.area));
   return t;
@@ -123,7 +152,8 @@ function m28ParaVerificar(){ return m28ItensCru().filter(d=>d.verificar); }
    histórico tem de continuar apontando para o mesmo serviço.
    ===================================================================== */
 function m28Folhas(status){
-  let t=DATA.filter(d=>!d.deleted&&d.tipo==="m28f"&&d.loja===currentStore);
+  let t=DATA.filter(d=>!d.deleted&&d.tipo==="m28f"&&d.loja===currentStore
+    &&(M28_SETOR==="ele"?d.setor==="eletrica":d.setor!=="eletrica"));
   if(status)t=t.filter(d=>d.status===status);
   return t.sort((a,b)=>String(b.emitidoEm||b.criadoEm||"").localeCompare(String(a.emitidoEm||a.criadoEm||"")));
 }
@@ -134,16 +164,21 @@ function m28ItensDaEntrega(f){
      daquele dia (f.snap) e não muda mais, aconteça o que acontecer depois.
      Pedido dela: "só o relatório do mês atual é atualizado". Folhas antigas
      concluídas antes desta versão não têm snap: caem no modo antigo (vivo). */
-  if(f&&f.status==="concluida"&&Array.isArray(f.snap))return f.snap;
+  /* item que mudou de aba (manutenção ↔ elétrica) sai desta folha */
+  const fora=m28UidsDoOutroSetor();
+  if(f&&f.status==="concluida"&&Array.isArray(f.snap))return f.snap.filter(d=>!d||!fora.has(d.uid));
   const por={};for(const d of m28ItensCru())por[d.uid]=d;
-  return (f.itens||[]).map(u=>por[u]||null);
+  return (f.itens||[]).filter(u=>!fora.has(u)).map(u=>por[u]||null);
 }
 /* quantos daquela folha já estão feitos HOJE. Enquanto a folha está aberta o
    número é vivo; ao concluir, ele é congelado em feitosNoFim. */
 function m28AndamentoFolha(f){
   if(f.status==="concluida")return {feitas:f.feitosNoFim||0,total:f.totalNoFim||(f.itens||[]).length};
   const itens=m28ItensDaEntrega(f);
-  return {feitas:itens.filter(d=>d&&d.feito).length,total:(f.itens||[]).length};
+  return {feitas:itens.filter(d=>d&&d.feito).length,total:itens.length};
+}
+function m28UidsDoOutroSetor(){
+  return new Set(DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&d.loja===currentStore&&!m28DoSetor(d)).map(d=>d.uid));
 }
 function m28NomeFolha(f){
   const mes=m28Mes({emitidoEm:f.emitidoEm||f.criadoEm||""});
@@ -155,7 +190,7 @@ function m28AcharFolha(uid){ return DATA.find(d=>d.uid===uid&&d.tipo==="m28f"); 
    os filtros daquela folha, para ela continuar marcando o que foi feito. */
 function m28Retomar(uid){
   const f=m28AcharFolha(uid);if(!f)return;
-  M28F.piso=f.piso||"";M28F.exec=f.executor||"";M28F.area="";M28F.ver="todos";
+  M28F.piso=f.piso||"";M28F.area="";M28F.ver="todos";
   M28F.q="";M28F.fechadas={};
   M28_FOLHA_ABERTA=uid;
   m28SetSec("demandas");
@@ -208,7 +243,7 @@ let M28_FOLHA_VER=null,M28_FOLHA_ABERTA=null;
 /* CRU = a loja inteira, sem recorte de mês. É a base de: pilha de meses,
    nascimento do mês novo, e a aba "Verificar". */
 function m28ItensCru(){
-  return DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&d.loja===currentStore);
+  return DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&d.loja===currentStore&&m28DoSetor(d));
 }
 /* m28Itens = o recorte do mês aberto. Fora de um mês (a pilha), é a loja
    inteira. Dentro de um mês do formato novo em andamento, são só os itens
@@ -235,7 +270,7 @@ let M28_ORDEM=null,M28_CAB=null;
 /* 30/07 — padrões trocados pela folha anotada dela (Folha 1):
    título por extenso, colunas "Feito? | Demanda | Data Registro | Observações".
    Continua tudo editável pelo ✎ — isto é só o novo ponto de partida. */
-const M28_TXT_PADRAO={
+const M28_TXT_BASE={
   /* IDENTIDADE C (27/08): ela vai ter relatorio de manutencao, de qualidade e
      de eletrica, e quer bater o olho e saber qual e' qual sem ler tudo -- e sem
      repetir a mesma ideia duas vezes, que era o problema do "Relatorio de
@@ -267,13 +302,40 @@ const M28_TXT_PADRAO={
      cima; embaixo, so o piso e a area de cada ralo, com a caixinha. */
   ralosTitulo:"Rastreamento de Conferência de Ralos",
   ralosTexto:"Em cada área abaixo, conferir TODOS os ralos:\n• o ralo é sifonado?\n• a grelha tem dispositivo de fechamento funcionando?\n\nPrender o ralo que estiver solto.\nTrocar a grelha (ou o ralo) que estiver quebrada, amassada, sem fechamento ou que não for sifonada.\n\nTela improvisada não serve: no lugar dela, usar cesto coletor removível embaixo da grelha."};
+/* O PADRÃO DE CADA ABA (06/10). Na Elétrica o ponto de partida é a folha de
+   manutenção do jeito que ela deixou (textos dela inclusos) — só o nome muda.
+   Assim o "copia e cola" vale também para as palavras, e o que ela trocar só
+   na Elétrica fica só na Elétrica. */
+const M28_ID_ELE={tipoRelatorio:"Elétrica",etiqueta:"Relatório de elétrica",tituloPrefixo:"Elétrica —"};
+let M28_TXT_PADRAO=M28_TXT_BASE;
 let M28_TXT=null,M28_VIS=null;
 function m28T(){return M28_TXT||M28_TXT_PADRAO;}
 async function m28Config(){
-  if(M28_ORDEM===null)M28_ORDEM=await metaGet("mnt28Ordem")||{};
-  if(M28_CAB===null)M28_CAB=await metaGet("mnt28Cabecalho")||{};
-  if(M28_TXT===null)M28_TXT=Object.assign({},M28_TXT_PADRAO,await metaGet("mnt28Textos")||{});
-  if(M28_VIS===null)M28_VIS=Object.assign({kpis:true,origem:true},await metaGet("mnt28Visual")||{});
+  const ele=M28_SETOR==="ele";
+  if(M28_ORDEM===null){
+    M28_ORDEM=await metaGet(m28K("Ordem"))||{};
+    if(ele&&!Object.keys(M28_ORDEM).length)M28_ORDEM=await metaGet("mnt28Ordem")||{};
+  }
+  if(M28_CAB===null){
+    M28_CAB=await metaGet(m28K("Cabecalho"))||{};
+    if(ele){   /* quem assina é a mesma; quem executa e a data não vêm de lá */
+      const m=await metaGet("mnt28Cabecalho")||{};
+      ["rtNome","rtLinha","rt","crn","cargo","lojaNome"].forEach(k=>{if(M28_CAB[k]===undefined&&m[k]!==undefined)M28_CAB[k]=m[k];});
+    }
+  }
+  if(M28_TXT===null){
+    if(ele){
+      const m=Object.assign({},await metaGet("mnt28Textos")||{});
+      Object.keys(M28_ID_ELE).forEach(k=>delete m[k]);
+      M28_TXT_PADRAO=Object.assign({},M28_TXT_BASE,m,M28_ID_ELE);
+    }else M28_TXT_PADRAO=M28_TXT_BASE;
+    M28_TXT=Object.assign({},M28_TXT_PADRAO,await metaGet(m28K("Textos"))||{});
+  }
+  if(M28_VIS===null){
+    let v=await metaGet(m28K("Visual"));
+    if(ele&&!v)v=await metaGet("mnt28Visual");
+    M28_VIS=Object.assign({kpis:true,origem:true},v||{});
+  }
 }
 /* recarga forçada — chamada pelo Ctrl+Z e pela sincronização, que mudam o banco
    por baixo do que já está na memória da página. Sem isto, ela desfazia a troca
@@ -321,6 +383,30 @@ function m28Titulo(c){
    ===================================================================== */
 function m28CompDe(iso){const p=String(iso||"").split("-");return (p[0]&&p[1])?p[0]+"-"+p[1]:"";}
 function m28CompHoje(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+/* "2026-09" + 3 → "2026-12" */
+function m28SomaMeses(comp,n){
+  const p=String(comp||"").split("-");const t=Number(p[0])*12+(Number(p[1])-1)+Number(n||0);
+  return Math.floor(t/12)+"-"+String(t%12+1).padStart(2,"0");
+}
+/* "2026-12" → "dez/2026" (para o selo) */
+function m28CompCurta(comp){
+  const p=String(comp||"").split("-");const m=M28_MESES[Number(p[1])-1]||"";
+  return m?m.slice(0,3)+"/"+p[0]:comp;
+}
+/* REPETE (06/10): o serviço feito cuja hora de repetir chegou volta a ficar
+   "a fazer" e entra na folha do mês corrente. Roda quando ela abre a aba. */
+async function m28Recorrencias(){
+  const hoje=m28CompHoje();
+  const voltam=m28ItensCru().filter(d=>d.recorrente&&d.feito&&d.recorrente.proxima&&d.recorrente.proxima<=hoje);
+  if(!voltam.length)return;
+  for(const d of voltam){d.feito=false;d.mod=nowISO();await putItem(d);}
+  const f=m28Folhas().find(x=>x.competencia===hoje&&x.status==="andamento");
+  if(f){
+    const falta=voltam.map(d=>d.uid).filter(u=>!(f.itens||[]).includes(u));
+    if(falta.length){f.itens=[...(f.itens||[]),...falta];f.total=f.itens.length;f.mod=nowISO();await putItem(f);}
+  }
+  dataChanged();
+}
 function m28TituloComp(comp){
   const p=String(comp||"").split("-");
   const mes=M28_MESES[Number(p[1])-1]||"";
@@ -392,15 +478,16 @@ async function m28CriarMes(comp,uids){
     competencia:comp,titulo:m28TituloComp(comp),piso:"",executor:"",
     emitidoEm:comp+"-01",criadoEm:today(),concluidaEm:null,corte:"",
     itens,total:itens.length,feitosNaEntrega:0,urgentes:0,criado:"mes-automatico"};
+  if(M28_SETOR==="ele")o.setor="eletrica";
   o.id=await putItem(o);DATA.push(o);dataChanged();
   return o;
 }
 /* roda dentro do renderMnt28: garante que o mês corrente existe.
    Sem relógio nem setInterval — acontece quando ela abre a aba. */
-let M28_MES_CHECADO=false;
+let M28_MES_CHECADO={mnt:false,ele:false};
 async function m28GarantirMesCorrente(){
-  if(M28_MES_CHECADO)return;
-  M28_MES_CHECADO=true;
+  if(M28_MES_CHECADO[M28_SETOR])return;
+  M28_MES_CHECADO[M28_SETOR]=true;
   const hoje=m28CompHoje();
   const novas=m28Folhas().filter(f=>f.competencia);
   if(novas.find(f=>f.competencia===hoje))return;
@@ -436,7 +523,7 @@ function m28PilhaSet(k,v){
 
 function m28AbrirMes(uid){
   const f=m28AcharFolha(uid);if(!f)return;
-  M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
+  M28F={q:"",piso:"",area:"",ver:"todos",fechadas:{}};
   M28_MES_ANTIGO=null;
   if(f.status==="concluida"){M28_FOLHA_ABERTA=null;M28_FOLHA_VER=uid;m28SetSec("ver");return;}
   M28_FOLHA_VER=null;M28_FOLHA_ABERTA=uid;m28SetSec("demandas");
@@ -453,7 +540,7 @@ function m28NomeExec(e){return /^dayse$/i.test(String(e||"").trim())?"Compras":e
 function m28NormArea(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim().toLowerCase();}
 function m28VoltarMeses(){
   M28_FOLHA_ABERTA=null;M28_FOLHA_VER=null;M28_MES_ANTIGO=null;
-  M28F={q:"",piso:"",area:"",ver:"todos",exec:"",fechadas:{}};
+  M28F={q:"",piso:"",area:"",ver:"todos",fechadas:{}};
   m28SetSec("demandas");
 }
 function m28VoltarDoVer(){
@@ -650,7 +737,7 @@ async function m28TrocarRt(qual){
       :"A linha de baixo (cargo e registro), como deve sair na folha:",atual);
   if(v===null)return;                       /* cancelou: não mexe em nada */
   M28_CAB=Object.assign({},M28_CAB||{},ehNome?{rtNome:v.trim()}:{rtLinha:v.trim()});
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB); /* metaSetU: o desfazer pega */
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Cabecalho"),M28_CAB); /* metaSetU: o desfazer pega */
   dataChanged();renderMnt28();toast(ehNome?"Nome atualizado ✓":"Linha atualizada ✓");
 }
 async function m28TrocarEmissao(){
@@ -664,7 +751,7 @@ async function m28TrocarEmissao(){
   const iso=`${a.length===2?"20"+a:a}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
   if(isNaN(new Date(iso).getTime())){toast("Data não reconhecida. Escreva assim: 29/07/2026");return;}
   M28_CAB=Object.assign({},M28_CAB||{},{emitidoEm:iso});
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Cabecalho"),M28_CAB);
   dataChanged();renderMnt28();toast("Data de emissão atualizada ✓");
 }
 function m28Cab(itens){
@@ -741,6 +828,7 @@ function m28Comparar(a,b){
    ===================================================================== */
 async function m28CargaInicial(){
   const c=window.MNT28_CARGA;
+  if(M28_SETOR==="ele")return false;   /* a carga de julho é só da manutenção */
   if(!c||!Array.isArray(c.itens)||!c.itens.length)return false;
   const feitas=await metaGet("mnt28Cargas")||[];
   if(feitas.includes(c.cargaId))return false;
@@ -762,10 +850,10 @@ async function m28CargaInicial(){
   }
   /* guarda a ordem oficial e o cabeçalho NO BANCO: é o que faz a folha continuar
      organizada no celular dela, onde o arquivo da carga não existe */
-  if(c.ordemAreas){M28_ORDEM=c.ordemAreas;await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Ordem",c.ordemAreas);}
+  if(c.ordemAreas){M28_ORDEM=c.ordemAreas;await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Ordem"),c.ordemAreas);}
   M28_CAB={periodo:c.periodo||"",rt:c.rt||"",crn:c.crn||"",
     emitidoEm:c.emitidoEm||today(),executor:c.executor||"",lojaNome:c.lojaNome||""};
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Cabecalho"),M28_CAB);
   await metaSetU("mnt28Cargas",feitas.concat([c.cargaId]));
   if(novos.length){dataChanged();toast(novos.length+" serviços carregados ✓");}
   return novos.length>0;
@@ -773,10 +861,11 @@ async function m28CargaInicial(){
 
 /* ---- tela ---- */
 async function renderMnt28(){
-  const el=document.getElementById("tab-mnt28");if(!el)return;
+  const el=m28Painel();if(!el)return;
   await m28Config();
   await m28CargaInicial();
   await m28GarantirMesCorrente();   /* o mês corrente nasce sozinho quando a data vira */
+  await m28Recorrencias();          /* o que repete e chegou a hora volta a "a fazer" */
   /* DUAS BASES, e nao uma -- cada seletor da barra precisa continuar mostrando
      TODOS os caminhos, senao ela escolhe um piso e fica presa nele.
        basePlena = a loja inteira    -> monta os seletores (piso, area, pessoa)
@@ -793,7 +882,7 @@ async function renderMnt28(){
   const loja=(empresa(currentStore)||{}).name||currentStoreName||currentStore||"";
   /* o executor que ELA gravou no cabeçalho vence o que veio na carga —
      antes era ao contrário e a edição dela não aparecia (F-3) */
-  const exec=M28F.exec||c.executor||(itens.find(d=>d.executor)||{}).executor||"";
+  const exec=c.executor||(itens.find(d=>d.executor)||{}).executor||"";
   const total=itens.length,feitos=itens.filter(d=>d.feito).length;
   const areas=[...new Set(itens.map(d=>d.area))];        /* para o "em N áreas" */
   /* estas duas listas alimentam os SELETORES: saem da base plena, nunca do
@@ -858,46 +947,12 @@ async function renderMnt28(){
     ${kpi("Feitos",feitos,"m28-ok",M28F.ver==="feitos")}
   </div>`;
 
-  /* SÃO DUAS FOLHAS JUNTAS (26/08).
-     Ela escolheu o 1º piso e "só o que falta", viu 35 e esperava 17. Os 35
-     estavam certos: são 17 de uma pessoa mais 18 da outra. Mas nada na tela
-     dizia isso -- o seletor marcava "Folha de: todos" numa letra discreta, e
-     ela pensa nas duas como documentos separados (a manutenção dele, a elétrica
-     do outro). Palavras dela: "já adianto que não está batendo".
-     O número não muda: o que faltava era ele se explicar. E cada nome vira
-     botão, para escolher num toque em vez de procurar o seletor. */
-  const porPessoa=(()=>{
-    if(M28F.exec)return "";                        /* já escolheu alguém */
-    const quem=m28Executores(itens);
-    if(quem.length<2)return "";                    /* uma pessoa só: nada a dividir */
-    const partes=quem.map(e=>{
-      const n=itens.filter(d=>(d.executor||"").trim()===e&&!d.feito).length;
-      return `<button type="button" class="m28-pessoa" onclick="m28Filtro('exec',${JSON.stringify(e).replace(/"/g,"&quot;")})">`
-        +`<b>${n}</b> de ${esc(m28NomeExec(e))}</button>`;
-    }).join("");
-    return `<div class="bd-aviso bd-aviso-info m28-juntas">
-      <span class="bd-aviso-ico" aria-hidden="true">${icone("pessoas")}</span>
-      <div><b>São ${quem.length} folhas somadas aqui.</b>
-        Toque num nome para ver só a folha dele:
-        <span class="m28-pessoas">${partes}</span></div>
-    </div>`;
-  })();
-
+  /* 06/10: a caixa "São N folhas somadas aqui" saiu, pedido dela. O relatório
+     desta aba é um só; a elétrica tem aba própria. */
   const nVer=m28QtdVerificar();
   const opPiso=pisos.map(p=>`<option value="${esc(p)}"${M28F.piso===p?" selected":""}>Piso: ${esc(p)}</option>`).join("");
   const opArea=areasTodas.map(a=>`<option value="${esc(a)}"${M28F.area===a?" selected":""}>Área: ${esc(a)}</option>`).join("");
-  /* só aparece quando há mais de uma pessoa com serviço — com um executor só,
-     um seletor de um item é ruído na barra */
-  /* sai de TODOS, nunca dos filtrados: senão, escolhida uma pessoa, o seletor
-     ficaria só com ela e não haveria caminho de volta */
-  const execs=m28Executores(basePlena);
-  const opExec=execs.length>1?execs.map(e=>{
-    const n=basePlena.filter(d=>(d.executor||"").trim()===e&&(!M28F.piso||d.piso===M28F.piso)).length;
-    return `<option value="${esc(e)}"${M28F.exec===e?" selected":""}>Para: ${esc(m28NomeExec(e))} (${n})</option>`;
-  }).join(""):"";
   const barra=`<div class="toolbar m28-barra m28-filtros">
-    ${opExec?`<select aria-label="Escolher de quem é a folha" onchange="m28Filtro('exec',this.value)"
-      title="A folha inteira passa a ser desta pessoa — na tela e na impressão"><option value="">Para: todos</option>${opExec}</select>`:""}
     <select aria-label="Filtrar por piso" onchange="m28Filtro('piso',this.value)"><option value="">Piso: todos</option>${opPiso}</select>
     <select aria-label="Filtrar por área" onchange="m28Filtro('area',this.value)"><option value="">Área: todas</option>${opArea}</select>
     <select aria-label="Pendências" onchange="m28Filtro('ver',this.value)">
@@ -953,7 +1008,7 @@ async function renderMnt28(){
   if(!M28_FOLHA_ABERTA){ el.innerHTML=abas+m28PilhaMesesHTML(); return; }
 
   /* v11.57: os 3 cards ficam embaixo do aviso das paradas */
-  el.innerHTML=m28BarraMesHTML()+capa+abas+porPessoa+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+'<div id="m28-lista"></div>';
+  el.innerHTML=m28BarraMesHTML()+capa+abas+barra+(typeof paradaFaixa==="function"?paradaFaixa("mnt28"):"")+(M28_VIS&&M28_VIS.kpis===false?"":numeros)+'<div id="m28-lista"></div>';
   m28RenderLista();
 }
 
@@ -1147,7 +1202,6 @@ function m28LinhasDaTela(){
     /* o que está em "Verificar" tem divisão própria desde 28/08: sai daqui.
        Quantos há em cada área continua na pastilha, em "N a verificar". */
     if(d.verificar)return false;
-    if(M28F.exec&&(d.executor||"").trim()!==M28F.exec)return false;   /* a folha é de uma pessoa só */
     if(M28F.piso&&d.piso!==M28F.piso)return false;
     if(M28F.area&&d.area!==M28F.area)return false;
     if(M28F.ver==="fazer"&&d.feito)return false;
@@ -1260,7 +1314,7 @@ function m28RenderListaDesenho(){
            ELA deu vira quebra de linha. Antes o pre-wrap pegava a div inteira e
            a indentacao do proprio codigo aqui embaixo virava linha em branco
            depois de cada demanda -- era o "espaco" que ela via. */""}
-      <div class="m28-fazer">${d.urg&&!ehR.has(d)?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">Verificar · não sai na folha</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
+      <div class="m28-fazer">${d.urg&&!ehR.has(d)?`<span class="m28-urgselo">Urgente</span> `:""}${d.verificar?`<span class="m28-verselo">Verificar · não sai na folha</span> `:""}${d.recorrente?`<span class="m28-recselo">Repete a cada ${d.recorrente.meses||3} meses${d.feito&&d.recorrente.proxima?" · próxima: "+m28CompCurta(d.recorrente.proxima):""}</span> `:""}${m28TemCompra(d)?`<span class="m28-cmpselo">Na lista de compras</span> `:""}<span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span>${(d.origem&&!(M28_VIS&&M28_VIS.origem===false))?` <span class="m28-origem">${esc(d.origem)}</span>`:""}${typeof orientacaoHTML==="function"?orientacaoHTML(d):""}${fotos?`<div class="m28-fotos">${fotos}</div>`:""}</div>
       <div class="m28-desde">${m28Desde(d)}</div>
       ${/* DUAS CAIXAS DIFERENTES (29/07): o RECADO sai na folha de quem
             conserta; o LEMBRETE é só dela e nunca é impresso. Antes havia
@@ -1327,7 +1381,7 @@ function m28SepararRalos(rows){
 }
 function m28NomeArquivo(){
   const c=m28Cab(m28Filtradas());
-  const quem=M28F.exec||c.executor||"";
+  const quem=c.executor||"";
   return m28Titulo(c).replace(/[\\/:*?"<>|]/g,"-")+(quem?" - "+quem.replace(/[\\/:*?"<>|]/g,"-"):"");
 }
 /* PL-1: a planilha vira EXPORTAÇÃO. O site é o original — ela edita aqui e
@@ -1365,7 +1419,7 @@ function m28ParaWhatsApp(){
   if(!todas.length){alert("Nenhum serviço para enviar com os filtros atuais.");return;}
   const sep=m28SepararRalos(todas), rows=sep.manut;
   const c=m28Cab(todas);
-  const exec=M28F.exec||c.executor||"";
+  const exec=c.executor||"";
   let t="*"+m28Titulo(c)+"*\n";
   if(exec)t+=m28T().rotExec+": "+exec+"\n";
   t+=m28T().rotEmitido+": "+brDate(c.emitidoEm||today())+"\n";
@@ -1446,7 +1500,7 @@ async function m28SalvarRalos(imprimir){
   novo.ralosTexto=tx||M28_TXT_PADRAO.ralosTexto;
   const guardar={};
   for(const k in M28_TXT_PADRAO)if(novo[k]&&novo[k]!==M28_TXT_PADRAO[k])guardar[k]=novo[k];
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Textos",guardar);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Textos"),guardar);
   M28_TXT=Object.assign({},M28_TXT_PADRAO,guardar);
   p.remove();dataChanged();renderMnt28();toast("Rastreamento de ralos salvo ✓");
   if(imprimir)m28ImprimirFolha({soRalos:true});
@@ -1601,6 +1655,12 @@ async function m28ParaCompras(id){
 async function m28Marcar(id){
   const d=DATA.find(x=>x.id===id);if(!d)return;
   d.feito=!d.feito;d.mod=nowISO();
+  /* REPETE (06/10): serviço que volta sozinho (pintura das câmaras a cada 3
+     meses). Marcou feito: anota o mês de hoje e quando ele volta. */
+  if(d.feito&&d.recorrente){
+    const hoje=m28CompHoje();
+    d.recorrente=Object.assign({},d.recorrente,{ultima:hoje,proxima:m28SomaMeses(hoje,d.recorrente.meses||3)});
+  }
   await putItem(d);
   /* concluiu a demanda: o item vinculado sai da lista de Compras (pedido dela
      29/08). Para trazer de volta, ela toca em "Compras" na demanda de novo. */
@@ -1717,6 +1777,19 @@ function m28FormHTML(d){
       <label class="m28-urgchk"><input type="checkbox" id="m28f-urg" ${d.urg?"checked":""}>
         <span class="m28-urgselo">Urgente</span> destacar este serviço para o executor</label>
     </div>
+    ${/* REPETE (06/10): pintura das câmaras volta sozinha a cada 3 meses */""}
+    <div class="bd-grupo">
+      <label class="m28-urgchk"><input type="checkbox" id="m28f-rec" ${d.recorrente?"checked":""}>
+        <span class="m28-recselo">Repete a cada 3 meses</span> volta sozinho para "a fazer"</label>
+    </div>
+    ${/* SETOR (06/10): a demanda pode trocar de relatório (Manutenção ↔ Elétrica) */""}
+    <div class="bd-grupo">
+      <label class="bd-rotulo" for="m28f-setor">Relatório</label>
+      <select class="bd-campo" id="m28f-setor">
+        <option value="mnt"${d.setor!=="eletrica"?" selected":""}>Manutenção</option>
+        <option value="ele"${d.setor==="eletrica"?" selected":""}>Elétrica</option>
+      </select>
+    </div>
     <div class="bd-grupo">
       <span class="bd-rotulo">Fotos</span>
       <div class="m28-thumbs">${fotos}
@@ -1754,9 +1827,31 @@ async function m28Salvar(id){
   const ex=document.getElementById("m28f-exec");
   const execAntes=(d.executor||"").trim();
   if(ex&&ex.value!=="__nova")d.executor=ex.value==="Outro"?"":ex.value;
+  /* repete a cada 3 meses: liga guarda o mês; desliga apaga */
+  const rec=!!document.getElementById("m28f-rec")?.checked;
+  if(rec&&!d.recorrente){
+    const base=d.feito?m28CompHoje():"";
+    d.recorrente={meses:3,ultima:base,proxima:base?m28SomaMeses(base,3):""};
+  }else if(!rec&&d.recorrente)delete d.recorrente;
+  /* trocou de relatório: sai desta aba e entra no mês aberto da outra */
+  const st=document.getElementById("m28f-setor")?.value||"mnt";
+  const mudouSetor=(st==="ele")!==(d.setor==="eletrica");
+  if(st==="ele")d.setor="eletrica";else delete d.setor;
   d.mod=nowISO();
-  await putItem(d);dataChanged();
+  await putItem(d);
+  if(mudouSetor){
+    const hoje=m28CompHoje(),alvo=st==="ele"?"eletrica":"";
+    const f=DATA.find(x=>x.tipo==="m28f"&&!x.deleted&&x.loja===currentStore&&x.competencia===hoje
+      &&x.status==="andamento"&&((x.setor||"")===alvo));
+    if(f&&!(f.itens||[]).includes(d.uid)){f.itens=[...(f.itens||[]),d.uid];f.total=f.itens.length;f.mod=nowISO();await putItem(f);}
+  }
+  dataChanged();
   M28_EDITANDO=null;m28AtualizarTopo();
+  if(mudouSetor){
+    const g=(typeof lugarGuardar==="function")?lugarGuardar():null;
+    renderMnt28();if(g)lugarVoltar(g);
+    toast("Serviço enviado para o relatório de "+(st==="ele"?"Elétrica":"Manutenção")+" ✓");
+    if(typeof telaPendenteAplicar==="function")telaPendenteAplicar();return;}
   /* trocou de dono: a barra precisa se refazer, senão o seletor fica sem o nome
      novo (ou com um nome que já não tem nenhum serviço atrás) */
   if((d.executor||"").trim()!==execAntes){
@@ -1805,6 +1900,7 @@ async function m28Novo(){
     origem:"",executor:(itens.find(d=>d.executor)||{}).executor||"",
     feito:false,ordem:(m28PosArea(piso,area)*1000)+999,
     relato:today(),criado:"manual"};
+  if(M28_SETOR==="ele")o.setor="eletrica";
   const id=await putItem(o);o.id=id;DATA.push(o);dataChanged();
   /* nasceu dentro de um mês aberto? entra na lista daquele mês na hora */
   const fMes=(typeof M28_FOLHA_ABERTA!=="undefined"&&M28_FOLHA_ABERTA)&&m28AcharFolha(M28_FOLHA_ABERTA);
@@ -1821,7 +1917,7 @@ async function m28Novo(){
 /* só os números do topo — evita redesenhar a folha inteira a cada toque */
 function m28AtualizarTopo(){
   const itens=m28ItensContados(),total=itens.length,feitos=itens.filter(d=>d.feito).length;
-  const el=document.getElementById("tab-mnt28");if(!el)return;
+  const el=m28Painel();if(!el)return;
   const nums=el.querySelectorAll(".m28-nums .bd-kpi");
   if(nums.length>=3){
     nums[0].querySelector(".bd-kpi-num").textContent=total-feitos;
@@ -1905,10 +2001,7 @@ function m28Imprimir(saida){
   m.setAttribute("aria-label","Qual folha você quer");
   m.innerHTML=`<div class="bd-janela m28-escolha" onclick="event.stopPropagation()">
       <div class="bd-janela-topo"><div><b>Qual folha você quer?</b>
-        <div class="m28-escolha-sub">${M28F.exec
-          ? `Folha de <b>${esc(M28F.exec)}</b>${M28F.piso?` · ${esc(m28PisoBonito(M28F.piso))}`:""}`
-          : `<b>Sem escolher a pessoa:</b> vai sair uma folha só, com o serviço de
-             todo mundo misturado. Feche aqui e escolha o nome lá em cima.`}</div></div>
+        <div class="m28-escolha-sub">${esc(m28T().etiqueta)}${M28F.piso?` · ${esc(m28PisoBonito(M28F.piso))}`:""}</div></div>
         <button class="bd-janela-x" aria-label="Fechar">✕</button></div>
       <div class="bd-janela-corpo">
         <button class="m28-opcao" data-modo="falta">
@@ -2029,7 +2122,7 @@ function m28ImprimirFolha(op){
   /* LAY-3: com a folha filtrada por pessoa, quem manda no cabeçalho é ELA —
      imprimir a folha do Matheus com o nome do Sr. João no topo seria pior que
      não ter folha. Sem filtro, vale o que ela gravou no cabeçalho, como antes. */
-  const exec=M28F.exec||c.executor||(todas.find(d=>d.executor)||{}).executor||"";
+  const exec=c.executor||(todas.find(d=>d.executor)||{}).executor||"";
   /* cada area da lista de ralos conta como UMA demanda: e' uma caixinha a marcar */
   const urgentes=rows.filter(d=>d.urg&&!d.feito).length/* ralo nao conta urgente */;
   const totalDemandas=rows.length+sep.ralos.length;
@@ -2742,14 +2835,14 @@ async function m28TrocarExecutor(){
   const v=prompt("Quem é o responsável pelos serviços desta folha?",atual);
   if(v===null)return;
   M28_CAB=Object.assign({},M28_CAB||{},{executor:v.trim()});
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Cabecalho",M28_CAB);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Cabecalho"),M28_CAB);
   dataChanged();renderMnt28();toast("Responsável atualizado ✓");
 }
 /* mostrar/esconder pedaços da tela (painel de números, selos de origem) */
 async function m28Alternar(chave){
   await m28Config();
   M28_VIS=Object.assign({},M28_VIS,{[chave]:M28_VIS[chave]===false});
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Visual",M28_VIS);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Visual"),M28_VIS);
   dataChanged();renderMnt28();
   if(typeof cfgAbrir==="function")cfgAbrir();   /* reabre o painel no lugar */
 }
@@ -2813,7 +2906,7 @@ async function m28SalvarTextos(){
     const v=el.value.trim();
     if(v&&v!==M28_TXT_PADRAO[k])novo[k]=v;    /* só guarda o que difere do padrão */
   }
-  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)("mnt28Textos",novo);
+  await (typeof folhasCfgSet==="function"?folhasCfgSet:metaSetU)(m28K("Textos"),novo);
   M28_TXT=Object.assign({},M28_TXT_PADRAO,novo);
   const j=document.getElementById("m28-txcfg");if(j)j.remove();
   dataChanged();renderMnt28();toast("Textos da folha atualizados ✓");

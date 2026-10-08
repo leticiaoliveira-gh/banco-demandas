@@ -131,9 +131,10 @@ function paChecklists(d,loja){
    entregue só um botão de menu — ela corrigiu: é para entrar no BACKUP dela.
    Estes arquivos entram no ⬇ Fazer backup E na pasta do backup automático. */
 /* folha de manutenção (serviços por piso/área, com feito e urgente) */
-function paFolhaManutencao(d,loja){
-  paCabecalho(d,rotuloAba("mnt28"),loja+" · "+brDate(today()));
-  const base=DATA.filter(x=>!x.deleted&&x.tipo==="mnt28"&&x.loja===currentStore);
+function paFolhaManutencao(d,loja,ele){
+  paCabecalho(d,rotuloAba(ele?"ele28":"mnt28"),loja+" · "+brDate(today()));
+  /* 06/10: Manutenção e Elétrica são abas separadas, cada uma com os seus */
+  const base=DATA.filter(x=>!x.deleted&&x.tipo==="mnt28"&&x.loja===currentStore&&(ele?x.setor==="eletrica":x.setor!=="eletrica"));
   const feitos=base.filter(x=>x.feito).length;
   d.texto(base.length+" serviços · "+(base.length-feitos)+" a fazer · "+feitos+" feitos · "
     +base.filter(x=>x.urg&&!x.feito).length+" urgentes",{x:PA_M,y:d.y,tam:9,cor:PA_CINZA});d.y+=18;
@@ -147,7 +148,7 @@ function paFolhaManutencao(d,loja){
         [x.piso,x.executor,x.obs].filter(Boolean).join(" · "),x.urg?"#d92d3a":null);
   }
 }
-const PA_MONTADORES={dg:paQuadroGeral,ck:paChecklists,nc:paNaoConformidades,list:paManutencoes,mnt28:paFolhaManutencao};
+const PA_MONTADORES={dg:paQuadroGeral,ck:paChecklists,nc:paNaoConformidades,list:paManutencoes,mnt28:paFolhaManutencao,ele28:(d,loja)=>paFolhaManutencao(d,loja,true)};
 /* envelope de atualização escondido no PDF: o mesmo do .json, sem as fotos (pesam muito;
    sem o campo, a junção mantém as fotos que já estão no aparelho) */
 function pdfEnvelopeDeDados(){
@@ -198,7 +199,7 @@ async function pdfDeTodasAsAbas(){
   d.texto("Gerado em "+brDate(today()),{x:PA_M,y:156,tam:8,cor:"#cfe4df"});
   d.y=210;
   d.texto("O que tem neste documento",{x:PA_M,y:d.y,tam:11,cor:PA_VERDE,negrito:true});d.y+=20;
-  const secoes=[["dg",rotuloAba("dg")],["ck",rotuloAba("ck")],["nc",rotuloAba("nc")],["list",rotuloAba("list")],["mnt28",rotuloAba("mnt28")]];
+  const secoes=[["dg",rotuloAba("dg")],["ck",rotuloAba("ck")],["nc",rotuloAba("nc")],["list",rotuloAba("list")],["mnt28",rotuloAba("mnt28")],["ele28",rotuloAba("ele28")]];
   for(const [,nome] of secoes){
     d.texto("•  "+nome,{x:PA_M,y:d.y,tam:10,cor:PA_TEXTO});d.y+=17;
   }

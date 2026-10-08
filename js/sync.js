@@ -303,7 +303,7 @@ async function _syncMergeEnvelope2(env){
         tela continua mostrando o texto antigo mesmo com o novo já no banco */
      if(window.m28RecarregarConfig)await m28RecarregarConfig();
      if(window.ncRecarregarTextos)await ncRecarregarTextos();
-     if(window.renderMnt28&&currentTab==="mnt28")renderMnt28();
+     if(window.renderMnt28&&(currentTab==="mnt28"||currentTab==="ele28"))renderMnt28();
      if(window.renderNC&&currentTab==="nc")renderNC();
      changed=true;
    }

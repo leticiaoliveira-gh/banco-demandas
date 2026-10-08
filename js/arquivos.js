@@ -717,10 +717,11 @@ async function aplicarTranscricaoPDF(escolhidos,querRalos){
     const o={uid:newUid(),mod:nowISO(),tipo:"mnt28",loja:currentStore,
       piso:g.piso,area:g.area,fazer:p.fazer,obs:p.obs||"",nota:"",
       dataRegistro:p.dataRegistro||"",fotos:[],origem:"",
-      executor:(DATA.find(d=>d.tipo==="mnt28"&&d.loja===currentStore&&d.executor)||{}).executor||"",
+      executor:(DATA.find(d=>d.tipo==="mnt28"&&d.loja===currentStore&&d.executor&&(typeof m28DoSetor!=="function"||m28DoSetor(d)))||{}).executor||"",
       feito:!!p.feito,urg:!!p.urg,
       ordem:((typeof m28PosArea==="function"?m28PosArea(g.piso,g.area):999)*1000)+900+Math.min(p.num||0,99),
       relato:p.dataRegistro||today(),criado:"pdf"};
+    if(typeof M28_SETOR!=="undefined"&&M28_SETOR==="ele")o.setor="eletrica";
     const id=await putItem(o);o.id=id;DATA.push(o);
     tocados.push({uid:o.uid,fazer:o.fazer});
     /* se há um mês aberto, o serviço novo entra na lista daquele mês na hora */

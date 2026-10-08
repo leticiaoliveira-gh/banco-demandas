@@ -545,45 +545,54 @@ body[data-aba="mnt28"] .head{padding-top:10px;padding-bottom:10px}
 .m28-barra.m28-filtros .btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 /* 01/10: contornos mais fundos nos filtros, botões e cards da folha (pedido de Le; primeira rodada, ainda vai subir) */
-#tab-mnt28{--m28-contorno:#7f8794}
-#tab-mnt28 .m28-barra select,
-#tab-mnt28 .m28-barra .search input,
-#tab-mnt28 .m28-barra .btn,
-#tab-mnt28 .m28-pessoas .btn,
-#tab-mnt28 .m28-pessoa,
-#tab-mnt28 .m28-pilha-seg,
-#tab-mnt28 .m28-pessoas button{border:1.5px solid var(--m28-contorno)}
-#tab-mnt28 .ck-secs{border:1.5px solid var(--m28-contorno)}
-#tab-mnt28 .ck-sec.on{box-shadow:0 0 0 1.5px var(--m28-contorno)}
+:is(#tab-mnt28,#tab-ele28){--m28-contorno:#7f8794}
+:is(#tab-mnt28,#tab-ele28) .m28-barra select,
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search input,
+:is(#tab-mnt28,#tab-ele28) .m28-barra .btn,
+:is(#tab-mnt28,#tab-ele28) .m28-pessoas .btn,
+:is(#tab-mnt28,#tab-ele28) .m28-pessoa,
+:is(#tab-mnt28,#tab-ele28) .m28-pilha-seg,
+:is(#tab-mnt28,#tab-ele28) .m28-pessoas button{border:1.5px solid var(--m28-contorno)}
+:is(#tab-mnt28,#tab-ele28) .ck-secs{border:1.5px solid var(--m28-contorno)}
+:is(#tab-mnt28,#tab-ele28) .ck-sec.on{box-shadow:0 0 0 1.5px var(--m28-contorno)}
 
 /* 01/10: lupa só o ícone (abre ao tocar) e LEMBRETES LETÍCIA em pílula vermelha */
-#tab-mnt28 .m28-barra .search.m28-lupa{flex:none;min-width:0;width:40px;transition:width .15s}
-#tab-mnt28 .m28-barra .search.m28-lupa input{padding-left:34px;cursor:pointer}
-#tab-mnt28 .m28-barra .search.m28-lupa input::placeholder{color:transparent}
-#tab-mnt28 .m28-barra .search.m28-lupa:focus-within,
-#tab-mnt28 .m28-barra .search.m28-lupa:has(input:not(:placeholder-shown)){width:min(240px,100%)}
-#tab-mnt28 .m28-barra .search.m28-lupa:focus-within input,
-#tab-mnt28 .m28-barra .search.m28-lupa input:not(:placeholder-shown){cursor:text}
-#tab-mnt28 .m28-barra .search.m28-lupa:focus-within input::placeholder{color:var(--muted)}
-#tab-mnt28 .m28-barra .m28-lemb{font:inherit;font-size:12px;font-weight:650;line-height:1;padding:0 14px;height:36px;
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa{flex:none;min-width:0;width:40px;transition:width .15s}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa input{padding-left:34px;cursor:pointer}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa input::placeholder{color:transparent}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa:focus-within,
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa:has(input:not(:placeholder-shown)){width:min(240px,100%)}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa:focus-within input,
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa input:not(:placeholder-shown){cursor:text}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa:focus-within input::placeholder{color:var(--muted)}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .m28-lemb{font:inherit;font-size:12px;font-weight:650;line-height:1;padding:0 14px;height:36px;
   border-radius:999px;white-space:nowrap;cursor:pointer;text-transform:uppercase;
   background:#f04438;color:#fff;border:1.5px solid #f04438}
-#tab-mnt28 .m28-barra .m28-lemb.on{background:#b42318;border-color:#b42318;box-shadow:0 0 0 3px rgba(240,68,56,.25)}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .m28-lemb.on{background:#b42318;border-color:#b42318;box-shadow:0 0 0 3px rgba(240,68,56,.25)}
 /* aba "Verificar": mesmo vermelho do botão "Lembretes Letícia" */
-#tab-mnt28 .ck-sec.m28-ver{background:#f04438;color:#fff}
-#tab-mnt28 .ck-sec.m28-ver:hover{color:#fff}
-#tab-mnt28 .ck-sec.m28-ver.on{background:#b42318;color:#fff;box-shadow:0 0 0 3px rgba(240,68,56,.25)}
+:is(#tab-mnt28,#tab-ele28) .ck-sec.m28-ver{background:#f04438;color:#fff}
+:is(#tab-mnt28,#tab-ele28) .ck-sec.m28-ver:hover{color:#fff}
+:is(#tab-mnt28,#tab-ele28) .ck-sec.m28-ver.on{background:#b42318;color:#fff;box-shadow:0 0 0 3px rgba(240,68,56,.25)}
 
 /* 01/10: filtros em negrito (pedido de Le) */
-#tab-mnt28 .m28-barra.m28-filtros select[aria-label="Filtrar por piso"],
-#tab-mnt28 .m28-barra.m28-filtros select[aria-label="Filtrar por área"],
-#tab-mnt28 .m28-barra.m28-filtros select[aria-label="Pendências"]{font-weight:700}
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros select[aria-label="Filtrar por piso"],
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros select[aria-label="Filtrar por área"],
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros select[aria-label="Pendências"]{font-weight:700}
 
 /* 01/10 (2ª rodada): linha de cima numa linha só, mais compacta; LEMBRETES em quadrado igual aos outros botões */
-#tab-mnt28 .m28-barra.m28-filtros{flex-wrap:nowrap;overflow-x:auto;gap:6px}
-#tab-mnt28 .m28-barra.m28-filtros select{flex:none;width:auto;font-size:12px;height:34px;min-height:34px;padding:0 24px 0 8px}
-#tab-mnt28 .m28-barra.m28-filtros .btn,
-#tab-mnt28 .m28-barra.m28-filtros .m28-lemb{flex:none;font-size:12px;height:34px;min-height:34px;padding:0 10px;white-space:nowrap}
-#tab-mnt28 .m28-barra .m28-lemb{border-radius:8px;font-weight:700}
-#tab-mnt28 .m28-barra .search.m28-lupa{height:34px;width:38px}
-#tab-mnt28 .m28-barra .search.m28-lupa input{height:34px;min-height:34px}
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros{flex-wrap:nowrap;overflow-x:auto;gap:6px}
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros select{flex:none;width:auto;font-size:12px;height:34px;min-height:34px;padding:0 24px 0 8px}
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros .btn,
+:is(#tab-mnt28,#tab-ele28) .m28-barra.m28-filtros .m28-lemb{flex:none;font-size:12px;height:34px;min-height:34px;padding:0 10px;white-space:nowrap}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .m28-lemb{border-radius:8px;font-weight:700}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa{height:34px;width:38px}
+:is(#tab-mnt28,#tab-ele28) .m28-barra .search.m28-lupa input{height:34px;min-height:34px}
+
+/* selo do serviço que repete sozinho (06/10): pintura das câmaras a cada 3
+   meses. Tom azul, diferente do âmbar de Compras; a palavra diz tudo. */
+.m28-recselo{
+  display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;
+  background:#e8f1fb;border:1px solid #9cc1e8;color:#1458a0;
+  font-size:10.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap;
+}
+.m28-urgchk .m28-recselo{margin-right:0}
