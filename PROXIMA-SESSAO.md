@@ -3,6 +3,12 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **PRÓXIMA SESSÃO (escrito 08/10/2026 09:40) — NO AR v11.94 (cache v273, commit 1a0e0c8). COMECE AQUI.**
+> Feito: aba Elétrica (TABS.ele28, mesmo js/mnt28.js; itens mnt28 com dados.setor="eletrica"; folhas m28f com setor; configs ele28* herdam de mnt28*). Recorrência: dados.recorrente={meses,ultima,proxima}; m28Recorrencias() devolve para "a fazer" quando proxima<=mês atual. Manutenção sem porPessoa/"Para:". D1: 41 itens do Matheus com setor eletrica; 14 pinturas recorrentes (11 feitas, próxima 2026-12; 3 pendentes).
+> Teste com dados reais: `npx wrangler dev --remote --port 8788` na pasta do site e abrir http://127.0.0.1:8788/.
+> Erro antigo (não é desta versão): no 1º login às vezes aparece no console "reading 'transaction'" (renderHome chamado antes do banco do aparelho abrir — login.js L151). Some ao recarregar.
+> Ainda em aberto (só se ela pedir): 3º link (Dayse/compras); "tem coisa que mexeu sem eu mandar".
+
 > **PRÓXIMA SESSÃO (escrito 06/10/2026 13:30) — NO AR v11.85 (cache v264, app.js/compras.js ?v=264, commits e4cd77c + rodapé). COMECE AQUI.**
 > Feito: v11.85 = lista de compras impressa (js/compras.js): topo só "COMPRAS" com os pisos escritos ("1º PISO • 2º PISO"), sem "emitido em" nem "itens"; área+demanda+obs nunca cortadas entre páginas; foto da demanda de manutenção ligada (origemMnt) aparece depois da Obs; itens com `ultimo:true` vão por último (cestos); quantidade pode ficar em branco ("A definir"). D1: cmp-ac-cestos-ralos-1piso com qtd "", ultimo:true e obs "Fazer balanço geral com o Sr. João para definir a quantidade." (sem histórico $.h). Registro em Tarefas\Site 11.85 + DIARIO + Provas. Rodapé v11.85 publicado de cópia limpa.
 > Ainda em aberto (só se ela pedir): "Não salvou" de 05/10 (prioridade); folha de Cabo Frio do Sr. João; entrada no site; item 5 (teste local).
