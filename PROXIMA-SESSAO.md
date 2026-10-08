@@ -3,7 +3,7 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
-> **08/10/2026 — NO AR v11.96 (cache v275).** Aviso "Não salvou" honesto: nuvem só conversa depois de abrir (nuvemAbriu/nuvemIniciado em js/nuvem.js), trava de entrada dupla (loginUmaVez em js/login.js), sem reenvio do que veio da nuvem (nuvemNaNuvem), nuvemPedir tenta 3x, erro tenta de novo em 30s, faixa só com pendente real e com motivo (js/sync.js). Falta só: teste com a senha real num navegador zerado (pedir OK dela antes de digitar).
+> **08/10/2026 — NO AR v11.96 (cache v275).** Aviso "Não salvou" honesto: nuvem só conversa depois de abrir (nuvemAbriu/nuvemIniciado em js/nuvem.js), trava de entrada dupla (loginUmaVez em js/login.js), sem reenvio do que veio da nuvem (nuvemNaNuvem), nuvemPedir tenta 3x, erro tenta de novo em 30s, faixa só com pendente real e com motivo (js/sync.js). Teste real feito em 08/10 (com OK dela): 1 entrada só, "✓ Salvo na nuvem", sem faixa, console limpo. Concluído.
 
 > **08/10/2026 — NO AR v11.95 (cache v274).** Comprado sai da lista impressa (js/compras.js cmpImprimir). Conversa "Trazer conversas nuvem" (37bc232e) conferida no D1: tudo entrou; a única pergunta aberta dela (comprado sai da lista) foi feita nesta versão.
 
