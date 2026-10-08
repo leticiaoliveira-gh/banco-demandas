@@ -3,6 +3,20 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **PRÓXIMA SESSÃO (escrito 08/10/2026) — CARD E BOTÕES DA MANUTENÇÃO. COMECE AQUI. NUNCA MEXER NO SITE DIRETO: começar MOSTRANDO uma página de comparação.**
+> No ar: v11.94 já inclui o Verde simples (v11.93, layout padrão; os outros layouts seguem guardados no 🎨). Registro: Tarefas\Site 11.93 - Verde simples.md + DIARIO + Provas\Verde simples *.png.
+> Ordem que Le aprovou (06/10), nesta ordem, um passo de cada vez:
+> 1. Levantar tudo do ⋯ e do ⚙ Configurações. Para cada opção: o que faz; a lógica; quando seria útil; se repete algo do card.
+> 2. Explicar cada função para ela com uma página para VER.
+> 3. ELA decide o que fica, o que sai e o que aparece. Palavras dela: "Não quero que você decida sozinho quais funções devem aparecer." e "'o que não fizer sentido fica riscado' não é uma regra que eu defini." Não riscar nada por conta própria.
+> 4. Definir a nova arquitetura dos botões e menus.
+> 5. Card verde único: barra de cima + vão branco + card viram um só.
+> 6. Card = fonte única: "O que eu vejo no card precisa ser exatamente o que sai na impressão/arquivo gerado." Título, nome, responsável, unidade, data e tudo mais iguais em impressão, PDF e Word. Nunca duas versões do mesmo relatório.
+> 7. "Emitido em": automático por padrão (dia de hoje, muda sozinho) e pode trocar à mão. Ela AINDA NÃO decidiu se a troca à mão é temporária ou fica guardada: NÃO implementar antes de ela decidir.
+> 8. Testar tudo.
+> 9. MANUTENÇÕES ↔ MANUTENÇÕES/ELÉTRICA (MATHEUS) = MESMA ESTRUTURA: layout, componentes, botões, funções, organização, lógica e folha compartilhados; mudou num, muda no outro sozinho. Só os dados são separados. Estrutura diferente para o Matheus só se ela pedir exceção.
+> 10. Os outros relatórios NÃO mudam sozinhos; só recebem a estrutura quando fizer sentido ou quando ela pedir.
+
 > **PRÓXIMA SESSÃO (escrito 08/10/2026 09:40) — NO AR v11.94 (cache v273, commit 1a0e0c8). COMECE AQUI.**
 > Feito: aba Elétrica (TABS.ele28, mesmo js/mnt28.js; itens mnt28 com dados.setor="eletrica"; folhas m28f com setor; configs ele28* herdam de mnt28*). Recorrência: dados.recorrente={meses,ultima,proxima}; m28Recorrencias() devolve para "a fazer" quando proxima<=mês atual. Manutenção sem porPessoa/"Para:". D1: 41 itens do Matheus com setor eletrica; 14 pinturas recorrentes (11 feitas, próxima 2026-12; 3 pendentes).
 > Teste com dados reais: `npx wrangler dev --remote --port 8788` na pasta do site e abrir http://127.0.0.1:8788/.
