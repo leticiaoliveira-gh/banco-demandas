@@ -64,6 +64,31 @@ function nuvemHoraOk() { return nuvemUltimoOk; }
 let nuvemUltimoErro = null;
 function nuvemTemErro() { return nuvemLigada() && !!nuvemUltimoErro; }
 
+/* 08/10: o site so conversa com a nuvem DEPOIS de abrir por inteiro.
+   Antes, ao entrar no PC do trabalho, a tela de entrada ja chamava a nuvem
+   com a gaveta do aparelho ainda fechada: a conversa falhava e acendia
+   "Nao salvou" sem nada estar faltando. */
+let nuvemAbriu = false, nuvemIniciado = false;
+/* o que a nuvem tem (lista completa, so quando a conversa conferiu tudo
+   desde o zero): serve para nao devolver a ela o que acabou de chegar dela */
+let nuvemNaNuvem = null;
+
+/* soluco da rede ou nuvem ocupada nao e erro: espera um pouco e pede de
+   novo (3 vezes). So falha de verdade se as tres falharem. */
+async function nuvemPedir(url, opcoes) {
+  let ultimo = null;
+  for (let tentativa = 0; tentativa < 3; tentativa++) {
+    if (tentativa) await new Promise(f => setTimeout(f, 800 * tentativa));
+    try {
+      const r = await fetch(url, opcoes);
+      if (r.ok || (r.status !== 429 && r.status < 500)) return r;
+      ultimo = r;
+    } catch (e) { ultimo = e; }
+  }
+  if (ultimo instanceof Error) throw ultimo;
+  return ultimo;
+}
+
 /* ---------------------------------------------------------------------
    ONDE MORA A CHAVE
    Mesmo cuidado do sync.js: no aparelho dela fica guardado de verdade;
@@ -120,6 +145,7 @@ async function nuvemPull() {
      comeca do zero e confere tudo — mas so baixa (e so busca foto de)
      ficha que o aparelho nao tem igual. */
   let desde = await nuvemMarco("rev_desde"), cursor = await nuvemMarco("rev_cursor");
+  const completo = !desde && !cursor, vistos = new Set();
   const itens = [];
   const localPorUid = new Map(DATA.filter(d => d.uid).map(d => [d.uid, d]));
   let voltas = 0;
@@ -127,10 +153,11 @@ async function nuvemPull() {
   while (voltas++ < 40) {
     const u = c.endereco + "/api/itens?desde=" + encodeURIComponent(desde) +
       "&cursor=" + encodeURIComponent(cursor) + "&limite=500";
-    const r = await fetch(u, { headers: nuvemHdrs(), cache: "no-store" });
+    const r = await nuvemPedir(u, { headers: nuvemHdrs(), cache: "no-store" });
     if (!r.ok) throw new Error("GET itens " + r.status);
     const j = await r.json();
     for (const it of (j.itens || [])) {
+      if (it && it.uid) vistos.add(it.uid);
       const l = localPorUid.get(it.uid);
       if (l && (l.mod || "") >= (it.mod || "")) {
         /* o aparelho ja tem esta versao (ou uma mais nova, que ainda nao
@@ -144,9 +171,10 @@ async function nuvemPull() {
     cursor = j.proxCursor || cursor;
     if (!j.temMais) break;
   }
+  if (completo) nuvemNaNuvem = vistos;
 
   /* configuracoes */
-  const rm = await fetch(c.endereco + "/api/meta?desde=" + encodeURIComponent(await nuvemMarco("metaDesde")),
+  const rm = await nuvemPedir(c.endereco + "/api/meta?desde=" + encodeURIComponent(await nuvemMarco("metaDesde")),
     { headers: nuvemHdrs(), cache: "no-store" });
   if (!rm.ok) throw new Error("GET meta " + rm.status);
   const jm = await rm.json();
@@ -192,7 +220,12 @@ async function nuvemPush() {
      inteiro, para sempre e em silencio — foi assim que o trabalho de 28/09
      ficou preso num computador e se perdeu. */
   if (!(await metaGet("nuvemFilaLigada"))) {
-    DATA.forEach(d => { if (d && d.uid && nuvemDoQuadro(d)) nuvemFila.add(d.uid); });
+    /* 08/10: o que a nuvem ja tem (conferido agora, desde o zero) nao volta
+       para ela. Num PC que acabou de entrar, tudo veio da nuvem: fila vazia.
+       Ficha mais nova aqui do que la ja entrou na fila durante o baixar. */
+    DATA.forEach(d => {
+      if (d && d.uid && nuvemDoQuadro(d) && !(nuvemNaNuvem && nuvemNaNuvem.has(d.uid))) nuvemFila.add(d.uid);
+    });
     nuvemFilaGuardar();
     await metaSet("nuvemFilaLigada", nowISO());
   }
@@ -212,7 +245,7 @@ async function nuvemPush() {
       catch (e) { falhou = e; console.warn("[nuvem] ficha nao saiu:", d.uid, e && e.message || e); }
     }
     if (!lote.length) continue;
-    const r = await fetch(c.endereco + "/api/itens", {
+    const r = await nuvemPedir(c.endereco + "/api/itens", {
       method: "POST", headers: nuvemHdrs(), body: JSON.stringify({ itens: lote })
     });
     if (!r.ok) throw new Error("POST itens " + r.status);
@@ -255,7 +288,7 @@ async function nuvemPush() {
     pacote.folhasCfg = { v: valores, mod: pacote.folhasCfg.mod, mods: _mods || {} };
   }
   if (Object.keys(pacote).length) {
-    const r = await fetch(c.endereco + "/api/meta", {
+    const r = await nuvemPedir(c.endereco + "/api/meta", {
       method: "POST", headers: nuvemHdrs(), body: JSON.stringify({ meta: pacote })
     });
     if (!r.ok) throw new Error("POST meta " + r.status);
@@ -272,7 +305,7 @@ async function nuvemPush() {
    A CONVERSA COMPLETA
    --------------------------------------------------------------------- */
 async function nuvemNow() {
-  if (!nuvemLigada() || nuvemBusy) return;
+  if (!nuvemLigada() || nuvemBusy || !nuvemAbriu) return;
   nuvemBusy = true; clearTimeout(nuvemT);
   try {
     const res = await nuvemPull();
@@ -297,6 +330,9 @@ async function nuvemNow() {
   if (typeof aplicarSeloConexao === "function") aplicarSeloConexao();
   /* alterou enquanto conversava? sai logo em seguida */
   if (!nuvemUltimoErro && nuvemFila.size) nuvemAgendar(NUVEM_ESPERA);
+  /* 08/10: deu errado? tenta de novo sozinho em 30 segundos, sem esperar
+     os 5 minutos — o aviso some assim que a nuvem responder */
+  else if (nuvemUltimoErro) nuvemAgendar(30000);
 }
 function nuvemAgendar(ms) {
   clearTimeout(nuvemT);
@@ -310,7 +346,9 @@ function nuvemSchedule() {
 }
 
 async function nuvemInit() {
-  if (!nuvemLigada()) return;
+  nuvemAbriu = true;          /* o site terminou de abrir: agora pode conversar */
+  if (!nuvemLigada() || nuvemIniciado) return;
+  nuvemIniciado = true;
   /* toda gravacao do site passa por putItem: anotar aqui cobre toda tela */
   if (typeof putItem === "function" && !putItem.__nuvem) {
     const _put = putItem;
@@ -347,7 +385,7 @@ function nuvemFotoURL(id) {
 
 async function nuvemFotoEnviar(id, blob) {
   const c = nuvemCfg();
-  const r = await fetch(c.endereco + "/api/foto?id=" + encodeURIComponent(id), {
+  const r = await nuvemPedir(c.endereco + "/api/foto?id=" + encodeURIComponent(id), {
     method: "POST",
     headers: { "X-Chave": c.chave, "content-type": blob.type || "image/jpeg" },
     body: blob
@@ -482,8 +520,12 @@ async function nuvemConectar(endereco, chave, temporario) {
     guarda.setItem("nuvem_endereco", endereco.replace(/\/+$/, ""));
     guarda.setItem("nuvem_chave", chave);
   } catch (e) { return "Este navegador nao deixou guardar o acesso."; }
-  nuvemDirty = true;
-  nuvemNow();
+  /* 08/10: entrar NAO marca "falta enviar". O que estiver mais novo aqui
+     ja entra na fila ao baixar (fichas) ou pelo localAhead (configuracoes);
+     marcar tudo como pendente acendia "Nao salvou" sem nada pendente. */
+  /* 08/10: na entrada (site ainda abrindo) quem conversa e o nuvemInit,
+     no fim da abertura. Com o site ja aberto, conversa agora. */
+  if (nuvemAbriu) { if (nuvemIniciado) nuvemNow(); else nuvemInit(); }
   return "";
 }
 

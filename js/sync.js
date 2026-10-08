@@ -59,8 +59,12 @@ function setSyncState(s){ syncUltimoEstado=s; aplicarSeloConexao(); }
 function aplicarSeloConexao(){
  const githubLigado=syncUltimoEstado!=="off";
  const nuvemLig=typeof nuvemLigada==="function"&&nuvemLigada();
- const nuvemErro=typeof nuvemTemErro==="function"&&nuvemTemErro();
  const nuvemPendente=nuvemLig&&((typeof nuvemDirty!=="undefined"&&nuvemDirty)||(typeof nuvemFila!=="undefined"&&nuvemFila.size>0)||(typeof nuvemBusy!=="undefined"&&nuvemBusy));
+ /* 08/10: "Não salvou" só quando há algo DESTE aparelho que a nuvem ainda
+    não recebeu. Conversa que falhou sem nada pendente não põe nada em risco:
+    o site tenta de novo sozinho em 30 segundos, sem alarme. */
+ const nuvemFalta=nuvemLig&&((typeof nuvemDirty!=="undefined"&&nuvemDirty)||(typeof nuvemFila!=="undefined"&&nuvemFila.size>0)||seloPendentes>0);
+ const nuvemErro=typeof nuvemTemErro==="function"&&nuvemTemErro()&&nuvemFalta;
  let s,texto,cor="";
  if(!githubLigado&&!nuvemLig){
    s="off";texto="⚙ Sincronização";
@@ -89,7 +93,7 @@ function aplicarSeloConexao(){
      "um jeito simples de saber que esta salvo") */
   pill.style.display=(s==="sync"||s==="err"||s==="offline"||(nuvemLig&&s==="ok"))?"":"none";
   pill.title=s==="ok"?"Tudo o que voce fez ja esta guardado na nuvem":s==="sync"?"Aguarde uns segundos antes de fechar":"O site tenta de novo sozinho";}
- avisoNuvemParada(nuvemLig&&nuvemErro&&(nuvemPendente||seloPendentes>0));
+ avisoNuvemParada(nuvemLig&&nuvemErro);
 }
 
 /* AVISO GRANDE (30/09, v11.18). O selo pequeno não bastou: em 28/09 o envio
@@ -113,9 +117,12 @@ function avisoNuvemParada(mostrar){
   document.body.appendChild(f);
  }
  const t=document.getElementById("avisoNuvemParadaTxt");
+ /* 08/10: diz QUANTO falta e POR QUÊ, em palavras simples */
+ const n=typeof nuvemFila!=="undefined"?nuvemFila.size:0;
+ const falta=n?(n===1?" Falta 1 demanda.":" Faltam "+n+" demandas."):"";
  if(t)t.textContent=navigator.onLine===false
-   ?"Este aparelho está sem internet. Está guardado só aqui — não apague nem saia deste aparelho até a internet voltar."
-   :"Está guardado só neste aparelho. Não apague nem saia dele até aparecer “✓ Salvo na nuvem”.";
+   ?"Sem internet."+falta+" Não saia deste aparelho até a internet voltar."
+   :"A nuvem não respondeu."+falta+" O site tenta de novo sozinho. Não saia até aparecer “✓ Salvo”.";
  f.style.display="";
 }
 async function avisoNuvemTentar(b){

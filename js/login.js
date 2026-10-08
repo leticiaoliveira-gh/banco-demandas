@@ -121,7 +121,18 @@ function loginMsgInfo(id,texto){
   m.textContent=texto;
 }
 
-async function loginEntrar(){
+/* 08/10: trava contra entrada em dobro. Enter + clique (ou o preenchimento
+   do navegador) mandavam o mesmo pedido duas vezes e abriam duas sessões.
+   Enquanto um pedido está andando, o segundo é ignorado. */
+let loginOcupado=false, loginChecando=false;
+async function loginUmaVez(fn){
+  if(loginOcupado)return;
+  loginOcupado=true;
+  try{await fn();}finally{loginOcupado=false;}
+}
+
+function loginEntrar(){return loginUmaVez(loginEntrarAgora);}
+async function loginEntrarAgora(){
   const email=(document.getElementById("loginEmail").value||"").trim();
   const senha=document.getElementById("loginSenha").value||"";
   const manter=document.getElementById("loginManter").checked;
@@ -148,7 +159,9 @@ function loginEntrarComSucesso(){
   loginResetIdle();
   loginIniciarVigilancia();
   toast("Entrou ✓");
-  if(window.renderHome)renderHome();
+  /* 08/10: na abertura do site quem desenha a capa é a própria abertura,
+     depois de abrir a gaveta do aparelho; desenhar antes dava erro */
+  if(window.renderHome&&typeof nuvemAbriu!=="undefined"&&nuvemAbriu)renderHome();
 }
 
 /* ---------------------------------------------------------------------
@@ -175,7 +188,8 @@ function loginTelaCriarSenha(email){
   setTimeout(()=>{const e=document.getElementById("loginNovaSenha");if(e)e.focus();},50);
 }
 
-async function loginCriarSenha(){
+function loginCriarSenha(){return loginUmaVez(loginCriarSenhaAgora);}
+async function loginCriarSenhaAgora(){
   const email=(document.getElementById("loginNovaEmail").value||"").trim();
   const s1=document.getElementById("loginNovaSenha").value||"";
   const s2=document.getElementById("loginNovaSenha2").value||"";
@@ -211,6 +225,8 @@ function loginTelaAguardando(id,codigo){
 }
 
 async function loginChecarAprovacao(id){
+  if(loginChecando)return; /* 08/10: uma checagem por vez */
+  loginChecando=true;
   try{
     const r=await fetch(loginApiBase()+"/api/aprovacoes/"+encodeURIComponent(id));
     const j=await r.json();
@@ -227,6 +243,7 @@ async function loginChecarAprovacao(id){
       loginTelaEntrada("Deu tempo. Peça a entrada de novo.");
     }
   }catch(e){/* sem internet no momento: tenta de novo no próximo tique */}
+  finally{loginChecando=false;}
 }
 
 /* ---------------------------------------------------------------------
@@ -246,7 +263,8 @@ function loginTelaEmergencia(){
     'onclick="loginTelaEntrada()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loginTelaEntrada();}">Voltar</span></div>'
   );
 }
-async function loginUsarEmergencia(){
+function loginUsarEmergencia(){return loginUmaVez(loginUsarEmergenciaAgora);}
+async function loginUsarEmergenciaAgora(){
   const email=(document.getElementById("loginEmEmail").value||"").trim();
   const codigo=(document.getElementById("loginEmCodigo").value||"").trim();
   if(!email||!codigo){loginMsgErro("loginEmMsg","Preencha e-mail e código.");return;}
@@ -288,7 +306,8 @@ function loginTelaEsqueci(){
   );
   setTimeout(function(){const e=document.getElementById("loginEsEmail");if(e)e.focus();},50);
 }
-async function loginTrocarComCodigo(){
+function loginTrocarComCodigo(){return loginUmaVez(loginTrocarComCodigoAgora);}
+async function loginTrocarComCodigoAgora(){
   const email=(document.getElementById("loginEsEmail").value||"").trim();
   const codigo=(document.getElementById("loginEsCodigo").value||"").trim();
   const nova=document.getElementById("loginEsNova").value||"";
