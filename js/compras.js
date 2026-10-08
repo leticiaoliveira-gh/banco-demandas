@@ -400,7 +400,8 @@ async function cmpExcluir(id){
 /* A lista que vai para a mão de quem compra. Mesmo desenho da folha de
    manutenção: cabeçalho verde com a faixa em três, escolhido por ela em 26/08. */
 function cmpImprimir(){
-  const itens = cmpFiltrados().filter(d => cmpSit(d) !== "recusado");
+  /* 08/10: "Comprado → sai da lista" (anotação dela no papel, confirmada no chat) */
+  const itens = cmpFiltrados().filter(d => cmpSit(d) !== "recusado" && cmpSit(d) !== "comprado");
   if (!itens.length){ toast("Não há nada para imprimir com este filtro."); return; }
   const loja = (typeof empresa === "function" && empresa(currentStore) || {}).name
                || currentStoreName || currentStore || "";

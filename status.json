@@ -1,7 +1,7 @@
 {
   "atualizadoEm": "2026-10-08",
-  "versao": "11.94",
-  "qa": "08/10/2026 - aba Elétrica, pinturas que repetem a cada 3 meses e Manutenção sem divisão por pessoas, conferidas com os dados reais.",
-  "ondeParamos": "v11.94: nova aba Elétrica (igual à Manutenção, com os serviços do Matheus); pintura de câmaras e portas repete a cada 3 meses (próxima dez/2026); Manutenção sem 'Para:' e sem folhas somadas.",
+  "versao": "11.95",
+  "qa": "08/10/2026 - lista de compras impressa sem os itens já comprados.",
+  "ondeParamos": "v11.95: item marcado como comprado sai da lista de compras impressa (anotação dela no papel).",
   "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
 }
