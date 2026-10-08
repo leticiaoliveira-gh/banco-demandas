@@ -3,8 +3,11 @@
 > Escrito em 22/09/2026, atualizado em 28/09/2026. Este arquivo é autossuficiente: **não precisa abrir
 > CONTINUIDADE.md, PENDENCIAS.md nem o PDF do plano para começar a trabalhar.**
 
+> **08/10/2026 — NO AR v11.95 (cache v274).** Comprado sai da lista impressa (js/compras.js cmpImprimir). Conversa "Trazer conversas nuvem" (37bc232e) conferida no D1: tudo entrou; a única pergunta aberta dela (comprado sai da lista) foi feita nesta versão.
+
 > **PRÓXIMA SESSÃO (escrito 08/10/2026) — CARD E BOTÕES DA MANUTENÇÃO. COMECE AQUI. NUNCA MEXER NO SITE DIRETO: começar MOSTRANDO uma página de comparação.**
 > No ar: v11.94 já inclui o Verde simples (v11.93, layout padrão; os outros layouts seguem guardados no 🎨). Registro: Tarefas\Site 11.93 - Verde simples.md + DIARIO + Provas\Verde simples *.png.
+> **08/10 10h: passos 1 e 2 FEITOS.** Página para ela ver e marcar: _comparacoes\menus-manutencao.html (cada opção do ⋯ e do ⚙ com o que faz, lógica, quando é útil, se repete o card, e botões Fica/Sai/Muda de lugar/Ainda não sei com resumo para copiar). ESPERANDO o resumo dela (passo 3). Nada do site foi mexido. Fatos achados (só informados, nada riscado): ⋯ Exportar baixa os serviços mnt28 quase em branco na planilha; ⋯ PDF de todos os quadros monta a Manutenção por outra folha (paFolhaManutencao), diferente do PDF do card; ⋯ Cadastrar manualmente cria item na lista antiga, não na folha; ⚙ da Elétrica (ele28) abre VAZIO (não há CFG_ABAS.ele28); ⚙ diz "4 cartões" (são 3) e "10 textos" (são 13 + causa).
 > Ordem que Le aprovou (06/10), nesta ordem, um passo de cada vez:
 > 1. Levantar tudo do ⋯ e do ⚙ Configurações. Para cada opção: o que faz; a lógica; quando seria útil; se repete algo do card.
 > 2. Explicar cada função para ela com uma página para VER.
