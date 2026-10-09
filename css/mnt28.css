@@ -39,6 +39,8 @@
   position:relative;
 }
 .m28-lapis:hover{background:rgba(255,255,255,.16);color:#fff}
+/* 09/10/26: o lapis virou o simbolo de traco da biblioteca (era o ✎ de letra) */
+.m28-lapis .bd-ico{width:15px;height:15px;vertical-align:-2px}
 /* o lápis é discreto, mas a área que responde ao dedo tem 44px */
 .m28-lapis::before{content:"";position:absolute;top:50%;left:50%;
   width:44px;height:44px;transform:translate(-50%,-50%)}
@@ -123,7 +125,9 @@
 .m28-item{
   /* 24/09 (pedido dela): texto com mais espaco, data curta (dd/mm/aa) numa
      coluna estreita, observacao menor e mais ar entre uma demanda e outra */
-  display:grid;grid-template-columns:44px 22px minmax(0,1fr) 92px 15% auto;gap:12px;align-items:start;
+  /* 09/10/26: a data "1 ano e 7 meses" quebrava; a coluna dela cresceu e a
+     observacao cedeu um pouco */
+  display:grid;grid-template-columns:44px 22px minmax(0,1fr) 122px 13% auto;gap:12px;align-items:start;
   padding:14px 12px;border-bottom:1px solid #eceded;background:#fff;
   content-visibility:auto;contain-intrinsic-size:auto 60px;
 }
@@ -269,7 +273,17 @@
   font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
   color:#155244;margin:0 0 10px;
 }
-#m28-lista:has(.m28-form) .m28-item{opacity:.45;transition:opacity .15s}
+/* 09/10/26 (melhorias de Le: "ao editar, nao tem contraste"): o aviso vira uma
+   faixa verde cheia com letra branca, os campos ficam brancos com borda escura
+   e o resto da lista some mais. */
+.m28-form{background:#dff0e9;padding-top:0;overflow:hidden}
+.m28-form-titulo{
+  margin:0 -16px 14px;padding:10px 16px;background:#155244;color:#fff;
+  font-size:13px;letter-spacing:.6px;
+}
+.m28-form .bd-campo{background-color:#fff;border-color:#8fb3a7}
+.m28-form .bd-rotulo{color:#123f35;font-weight:700}
+#m28-lista:has(.m28-form) .m28-item{opacity:.3;transition:opacity .15s}
 #m28-lista:has(.m28-form) .m28-item:hover{opacity:.8}
 .m28-form-linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
 .m28-form-acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}

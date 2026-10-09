@@ -1,7 +1,7 @@
 {
-  "atualizadoEm": "2026-10-08",
-  "versao": "11.96",
-  "qa": "08/10/2026 - aviso 'Não salvou' só aparece quando algo de fato não chegou na nuvem.",
-  "ondeParamos": "v11.96: o site espera abrir antes de falar com a nuvem; entrada uma vez só; tenta de novo sozinho; o aviso diz o motivo.",
-  "proximoPasso": "Le conferir a transcricao com a folha de AC; emojis das outras telas; folhas Cabo Frio (PROXIMA-SESSAO.md)."
+  "atualizadoEm": "2026-10-09",
+  "versao": "11.97",
+  "qa": "09/10/2026 - melhorias de 07/10: áreas numeradas, quebra por piso, nome padrão dos arquivos, PDF + Word juntos, compras com título novo.",
+  "ondeParamos": "v11.97: lista de melhorias de 07/10 feita no que não dependia dela; exaustor da produção (AC) incluído.",
+  "proximoPasso": "Le responder as perguntas da lista de 07/10 (situações das compras, vínculo, pastas); datas das demandas antigas da AC."
 }

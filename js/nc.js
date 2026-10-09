@@ -843,7 +843,7 @@ async function ncRelatorioPrint(){
  }
  const res=r.resolvidas.map(d=>`<li><b>${esc(d.area)}</b>: ${esc(ncTextoRelatorio(d))} <span class="mut">(resolvida em ${brDate(d.resolvida_em)})</span></li>`).join("");
  const w=window.open("");
- w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório NC ${esc(currentStoreName)} — ${ncTituloMes(ym)}</title>
+ w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(nomePadrao("NÃO CONFORMIDADES",ym))}</title>
  <style>body{font-family:"Segoe UI",Calibri,Arial,sans-serif;color:#222;max-width:820px;margin:0 auto;padding:0 16px 32px;font-size:14px;line-height:1.5}
  .cab{background:#1d6b57;color:#fff;margin:0 -16px 20px;padding:24px 24px}
  .cab h1{margin:0;font-size:20px;font-weight:600}
@@ -949,7 +949,7 @@ async function ncRelatorioDocx(){
  doc.p("_______________________________");
  doc.p(rt);
  const blob=await doc.blob();
- download("relatorio_nc_"+currentStore+"_"+ym+".docx",blob,"application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+ download(nomePadrao("NÃO CONFORMIDADES",ym)+".docx",blob,"application/vnd.openxmlformats-officedocument.wordprocessingml.document");
  toast("Relatório Word gerado ✓");
 }
 

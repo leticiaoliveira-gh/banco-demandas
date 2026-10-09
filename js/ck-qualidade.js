@@ -918,13 +918,15 @@ function ckqAbrirRelatorio(uid){
   const m=ckqAchar(p.modeloUid);if(!m){toast("Modelo excluído");return;}
   const html=ckqRelatorioHTML(p,m);
   const w=window.open("","_blank");if(!w){toast("Libere o pop-up para ver o relatório");return;}
+  /* 09/10/26: nome padrao dela, "AC – QUALIDADE – Modelo (10-2026)" */
+  const nomeQ=nomePadrao("QUALIDADE",String(p.concluidoEm||p.criadoEm||today()).slice(0,7),[m.titulo||m.nome||""]);
   const url=(typeof ckqRelPDF==="function")?URL.createObjectURL(ckqRelPDF(p,m)):"";
   const barra=`<div class="barra" style="position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:10px;display:flex;gap:8px;flex-wrap:wrap;z-index:10">
     <button onclick="window.print()">🖨 Imprimir / PDF</button>
-    ${url?`<a href="${url}" download="Relatorio-Qualidade_${p.uid.slice(0,6)}.pdf" style="text-decoration:none"><button>⬇ Baixar PDF</button></a>`:""}
+    ${url?`<a href="${url}" download="${esc(nomeQ)}.pdf" style="text-decoration:none"><button>⬇ Baixar PDF</button></a>`:""}
     <button onclick="window.close()">Fechar</button>
   </div>`;
-  w.document.write(`<!doctype html><html lang=pt-BR><head><meta charset=utf-8><title>Relatório</title>
+  w.document.write(`<!doctype html><html lang=pt-BR><head><meta charset=utf-8><title>${esc(nomeQ)}</title>
     <style>body{font-family:Arial,sans-serif;max-width:920px;margin:0 auto;padding:20px;color:#222}
       h1{font-size:22px;margin:0 0 6px}h2{font-size:15px;margin:18px 0 6px;color:#555;text-transform:uppercase;letter-spacing:.5px}
       .capa{background:${capaFundoFolha('linear-gradient(155deg,#0f5b52,#17756a,#2a9d8a)')};color:#fff;padding:22px;border-radius:10px;margin-bottom:16px}

@@ -1742,6 +1742,14 @@ async function exportExcel(){
  await metaSet("lastBackup",nowISO());
  if(document.getElementById("view-home").style.display!=="none")renderHome();
  toast("Excel (CSV) + backup exportados");}
+/* NOME PADRAO DOS ARQUIVOS (09/10/26, melhorias de Le): "AC – MNT (10-2026)",
+   "AC – MNT – Lista de Compras (10-2026)". Sigla da loja, relatorio, pedacos
+   extras e o mes no fim. Um lugar so, para todos os relatorios saírem iguais. */
+function nomePadrao(tipo,ym,extras){
+  const p=String(ym||today()).slice(0,7).split("-");
+  const pec=[(currentStore||"").trim(),tipo].concat(extras||[]).filter(Boolean);
+  return (pec.join(" – ")+(p[1]?" ("+p[1]+"-"+p[0]+")":"")).replace(/[\\/:*?"<>|]/g,"-");
+}
 function download(name,content,type){const b=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
 
 /* ===== RECIBO DA IMPORTAÇÃO (AUD-19, 04/08) =====
@@ -2079,11 +2087,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.96";
+const APP_VERSAO="11.97";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="08/10/2026 · 14:30";
+const APP_DATA="09/10/2026 · 00:20";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

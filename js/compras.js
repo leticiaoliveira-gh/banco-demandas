@@ -434,7 +434,9 @@ function cmpImprimir(){
   Object.keys(por).sort(cmpCmpPiso).forEach(p => {
     /* 06/10 (escolha dela): o piso aparece UMA vez, no alto do grupo, e não em
        cada área. Sai junto com a 1ª área e a 1ª demanda, nunca sozinho no pé */
-    let pisoTit = `<div class="pisotit">${esc(p)}</div>`;
+    /* 09/10/26 (melhorias de Le): cada piso comeca em folha nova; a numeracao
+       continua corrida */
+    let pisoTit = `<div class="pisotit${corpo ? " novapag" : ""}">${esc(p)}</div>`;
     Object.keys(por[p]).sort((x,y) => ult(por[p][x]) - ult(por[p][y]) || x.localeCompare(y)).forEach(a => {
       /* a área, o título do piso e a 1ª demanda andam juntos: nunca um título
          sozinho no pé da folha. Cada demanda é inteira (texto, Obs e foto). */
@@ -446,6 +448,7 @@ function cmpImprimir(){
         const qtdTxt = d.qtd === "" ? "a definir" : String(Number(d.qtd) || 1);
         const li = `<div class="li"><div class="bola">${n}</div>
           <div class="f">${d.urg ? '<i class="ug">URGENTE</i>' : ""}<span class="tx">${esc(cmpTexto(d))}</span>
+            <i class="sit sit-${cmpSit(d)}">${esc(CMP_SIT[cmpSit(d)].rot)}</i>
             ${d.obs ? `<i class="obs-p">${esc(d.obs)}</i>` : ""}</div>
           <div class="qt"><span>Qtd.</span><b>${esc(qtdTxt)}</b></div></div>`;
         if (i === 0) corpo += `<div class="junto">${bloco}${li}</div>`;
@@ -457,7 +460,7 @@ function cmpImprimir(){
   const w = window.open("");
   if (!w){ toast("O navegador bloqueou a janela de impressão. Libere as janelas para este site."); return; }
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-    <title>Lista de compras — ${esc(loja)}</title><style>
+    <title>${esc(nomePadrao("MNT", iso, ["Lista de Compras"]))}</title><style>
     @page{size:A4;margin:0}
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -521,11 +524,25 @@ function cmpImprimir(){
       white-space:pre-wrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .li .obs-p b{font-weight:700;color:#344054;margin-right:4px}
     .ug{font-style:normal;font-weight:700;color:#b42318;letter-spacing:.4px}
+    /* 09/10/26: situacao de cada item, com fundo proprio por tipo (a palavra
+       vai escrita: a cor nunca informa sozinha) */
+    .sit{display:inline-block;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.3px;
+      padding:1px 8px;border-radius:99px;margin-left:8px;vertical-align:1px;white-space:nowrap;
+      border:1px solid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .sit-pedido{background:#eaf2fd;border-color:#b6cff3;color:#1d4f91}
+    .sit-instalar{background:#fdf1e3;border-color:#eab676;color:#8a5216}
+    .sit-comprado{background:#e8f5ee;border-color:#9fd3b5;color:#14653f}
+    .sit-recusado{background:#f2f4f7;border-color:#d0d5dd;color:#475467}
+    /* piso novo = folha nova (so no papel; na tela continua corrido) */
+    @media print{.pisotit.novapag{break-before:page;page-break-before:always;margin-top:0}}
+    .pe .un b{font-weight:600}
     </style></head><body><div class="folha">
       <div class="capa">
         <div class="linha1">
-          <div><div class="assunto">Resumo Compras MNT - ${esc(String(loja).split(/\s+[–—·-]\s+/)[0])}</div></div>
-          <div class="pe"><div><span>Emitido em</span><b>${esc(partes.slice().reverse().join("/"))}</b></div></div>
+          <div><div class="et">Lista de compras · ${esc(String(loja).split(/\s+[–—·-]\s+/)[0])}</div>
+            <div class="assunto">Relação de Compras – Manutenções</div></div>
+          <div class="pe"><div><span>Emitido em</span><b>${esc(partes.slice().reverse().join("/"))}</b></div>
+            <div><span>Itens</span><b>${itens.length}</b></div></div>
         </div>
         ${faixa ? `<div class="faixa">${faixa}</div>` : ""}
       </div>

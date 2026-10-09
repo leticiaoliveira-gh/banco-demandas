@@ -86,13 +86,27 @@ function m28PessoasOpcoes(sel){
   const add=n=>{n=(n||"").trim();if(n&&n!=="Outro"&&!nomes.some(x=>x.toLowerCase()===n.toLowerCase()))nomes.push(n);};
   (typeof EXECUTORES!=="undefined"?EXECUTORES:[]).forEach(e=>add(e.nome));
   DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&m28DoSetor(d)).map(d=>d.executor).sort().forEach(add);
+  /* 09/10/26 (melhorias de Le): quem trabalha no OUTRO relatorio (ex.: Matheus,
+     da Eletrica) tambem aparece; ao escolher, o campo "Relatorio" troca sozinho. */
+  DATA.filter(d=>!d.deleted&&d.tipo==="mnt28"&&!m28DoSetor(d)).map(d=>d.executor).sort().forEach(add);
   add(sel);
   return `<option value=""${sel?"":" selected"}>Ninguém definido</option>`+
     nomes.map(n=>`<option value="${esc(n)}"${n===sel?" selected":""}>${esc(n)}</option>`).join("")+
     `<option value="__nova">Outra pessoa (escrever o nome)…</option>`;
 }
+/* Setor onde a pessoa mais trabalha ("mnt" ou "ele"); "" se nao tem servico. */
+function m28SetorDaPessoa(n){
+  n=(n||"").trim().toLowerCase();if(!n)return "";
+  let mnt=0,ele=0;
+  DATA.forEach(d=>{if(d.deleted||d.tipo!=="mnt28"||(d.executor||"").trim().toLowerCase()!==n)return;
+    if(d.setor==="eletrica")ele++;else mnt++;});
+  return ele>mnt?"ele":mnt>ele?"mnt":"";
+}
 function m28TrocouPessoa(sel){
-  if(sel.value!=="__nova"){sel.dataset.antes=sel.value;return;}
+  if(sel.value!=="__nova"){sel.dataset.antes=sel.value;
+    const st=m28SetorDaPessoa(sel.value),cx=document.getElementById("m28f-setor");
+    if(st&&cx&&[...cx.options].some(o=>o.value===st))cx.value=st;
+    return;}
   const n=(prompt("Nome da pessoa que vai fazer este serviço:")||"").trim();
   if(!n){sel.value=sel.dataset.antes||"";return;}
   let o=[...sel.options].find(x=>x.value.toLowerCase()===n.toLowerCase());
@@ -904,9 +918,9 @@ async function renderMnt28(){
         ${/* o lápis fica NO título (30/07): ela toca na palavra que quer mudar,
              não procura num menu. Abre a janelinha com todos os textos da folha. */""}
         <div class="m28-capa-et">${esc(m28T().etiqueta)}
-          <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar esta etiqueta e os outros textos da folha" aria-label="Trocar esta etiqueta e os outros textos da folha">✎</button></div>
+          <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar esta etiqueta e os outros textos da folha" aria-label="Trocar esta etiqueta e os outros textos da folha">${icone("lapis")}</button></div>
         <h1>${esc(m28Titulo(c))}
-          <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar o título e os outros textos da folha" aria-label="Trocar o título e os outros textos da folha">✎</button></h1>
+          <button class="m28-lapis" onclick="m28GerirTextos()" title="Trocar o título e os outros textos da folha" aria-label="Trocar o título e os outros textos da folha">${icone("lapis")}</button></h1>
       </div>
       ${/* 29/07: a informação de nutricionista aparecia DUAS VEZES — uma dentro do
             nome (o texto livre que ela digitou nos "seus dados") e outra na linha de
@@ -914,18 +928,18 @@ async function renderMnt28(){
             linha embaixo — e as duas ela edita pelo lápis, sem código. */""}
       <div class="m28-capa-rt">
         <div class="nome">${esc(m28RtNome(c))}
-          <button class="m28-lapis" onclick="m28TrocarRt('nome')" title="Trocar o seu nome" aria-label="Trocar o seu nome">✎</button></div>
+          <button class="m28-lapis" onclick="m28TrocarRt('nome')" title="Trocar o seu nome" aria-label="Trocar o seu nome">${icone("lapis")}</button></div>
         <div class="crn">${esc(m28RtLinha(c))}
-          <button class="m28-lapis" onclick="m28TrocarRt('linha')" title="Trocar o cargo e o registro" aria-label="Trocar o cargo e o registro">✎</button></div>
+          <button class="m28-lapis" onclick="m28TrocarRt('linha')" title="Trocar o cargo e o registro" aria-label="Trocar o cargo e o registro">${icone("lapis")}</button></div>
       </div>
     </div>
     <div class="m28-capa-linha">
       ${/* Folha 1 dela: o responsável saiu de baixo do título e veio para esta linha */""}
       ${exec?`<div class="m28-capa-i"><span class="rot">${esc(m28T().rotExec)}</span><span class="val">${esc(m28NomeExec(exec))}</span>
-        <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">✎</button></div>`:""}
+        <button class="m28-lapis" onclick="m28TrocarExecutor()" title="Trocar o responsável pelos serviços" aria-label="Trocar o responsável pelos serviços">${icone("lapis")}</button></div>`:""}
       <div class="m28-capa-i"><span class="rot">${esc(m28T().rotUnidade)}</span><span class="val">${esc(loja)}</span></div>
       <div class="m28-capa-i"><span class="rot">${esc(m28T().rotEmitido)}</span><span class="val">${brDate(c.emitidoEm||today())}</span>
-        <button class="m28-lapis" onclick="m28TrocarEmissao()" title="Trocar a data de emissão" aria-label="Trocar a data de emissão">✎</button></div>
+        <button class="m28-lapis" onclick="m28TrocarEmissao()" title="Trocar a data de emissão" aria-label="Trocar a data de emissão">${icone("lapis")}</button></div>
     </div></div>`;
 
   /* painel de números: peça PRONTA da biblioteca (bd-kpis / bd-kpi), nada do zero */
@@ -1103,7 +1117,7 @@ function m28VerificarHTML(){
       <div class="m28-fazer"><span class="m28-linhas">${esc(m28SemTravessao(d.fazer||""))}</span></div>
       <div class="m28-desde">${m28Desde(d)}</div>
       <div class="m28-obs">${d.obs?m28Texto(d.obs):""}${d.nota?`<div class="m28-nota"><span class="m28-nota-selo">só eu vejo</span>${m28Texto(d.nota)}</div>`:""}</div>
-      <div class="m28-acts"><button class="btn ghost sm" onclick="m28Editar(${d.id})" title="Mudar este serviço">✎</button></div></div>`;
+      <div class="m28-acts"><button class="btn ghost sm" onclick="m28Editar(${d.id})" title="Mudar este serviço">${icone("lapis")}</button></div></div>`;
   }
   if(html)html+="</div>";
   return `<div class="m28-folha-topo">
@@ -1258,7 +1272,7 @@ function m28RenderListaDesenho(){
   /* MESMO DESENHO DA FOLHA IMPRESSA (27/08): cada área é um bloco fechado, e a
      lista é numerada, sem os títulos de coluna. Ela pediu o padrão igual em
      tudo, tela e papel. `aberto` guarda se já existe um bloco a fechar. */
-  let html="",piso=null,area=null,nDemanda=0,aberto=false,emRalos=false;
+  let html="",piso=null,area=null,nDemanda=0,nArea2=0,aberto=false,emRalos=false;
   const fecha=()=>{if(aberto){html+="</div>";aberto=false;}};
   for(const d of rows){
     if(ehR.has(d)&&!emRalos){emRalos=true;piso=null;area=null;fecha();
@@ -1270,14 +1284,14 @@ function m28RenderListaDesenho(){
           aria-label="${rf?"Abrir":"Fechar"} o rastreamento de ralos">${M28_CHEV}</button>${icone("gota")} ${esc(m28T().ralosTitulo||M28_TXT_PADRAO.ralosTitulo)}</div>`
         +(rx&&!rf?`<p class="m28-ralos-txt">${esc(m28SemTravessao(rx))}</p>`:"")+`</div>`;}
     if(emRalos&&M28F.fechadas["RALOS"])continue;   /* bloco de ralos fechado: some tudo dele */
-    if(d.piso!==piso){piso=d.piso;area=null;fecha();
+    if(d.piso!==piso){piso=d.piso;area=null;nArea2=0;fecha();
       const np=nPiso[pre(d)+d.piso]||0;
       const kp="P|"+pre(d)+d.piso,pf=!!M28F.fechadas[kp];
       html+=`<div class="m28-piso${pf?" fechado":""}"><button class="m28-abrefecha m28-abrefecha-piso" onclick="m28AbreFecha('${esc(kp).replace(/'/g,"'")}')"
           aria-expanded="${pf?"false":"true"}" title="${pf?"Abrir este piso":"Fechar este piso inteiro"}"
           aria-label="${pf?"Abrir":"Fechar"} o piso ${esc(piso||"Sem piso")}">${M28_CHEV}</button><span class="m28-piso-nome">${esc(piso||"Sem piso")}${emRalos?" · Ralos":""}</span><span class="m28-count">${np} ${np===1?"serviço":"serviços"}</span></div>`;}
     if(M28F.fechadas["P|"+pre(d)+d.piso]){area=null;fecha();continue;}   /* piso fechado: some tudo dele */
-    if(d.area!==area){area=d.area;nDemanda=0;const k=pre(d)+d.piso+"|"+d.area;
+    if(d.area!==area){area=d.area;nDemanda=0;nArea2++;const k=pre(d)+d.piso+"|"+d.area;
       fecha();html+='<div class="m28-grupo">';aberto=true;
       const f=fArea[k]||0,n=nArea[k]||0,v=vArea[k]||0;
       const fechada=!!M28F.fechadas[k];
@@ -1287,9 +1301,9 @@ function m28RenderListaDesenho(){
         +`<button class="m28-abrefecha" onclick="m28AbreFecha('${esc(k).replace(/'/g,"\'")}')"
             aria-expanded="${fechada?"false":"true"}" title="${fechada?"Abrir esta área":"Fechar esta área"}"
             aria-label="${fechada?"Abrir":"Fechar"} a área ${esc(area)}">${M28_CHEV}</button>`
-        +`<span class="m28-area-nome">${esc(area)}</span>`
+        +`<span class="m28-area-nome">${emRalos?"":nArea2+". "}${esc(area)}</span>`
         +`<button class="m28-lapis m28-lapis-area" onclick="m28RenomearArea('${esc(d.piso).replace(/'/g,"\'")}','${esc(area).replace(/'/g,"\'")}')"
-            title="Renomear esta área (vale para a folha inteira)" aria-label="Renomear a área ${esc(area)}">✎</button>`
+            title="Renomear esta área (vale para a folha inteira)" aria-label="Renomear a área ${esc(area)}">${icone("lapis")}</button>`
         /* área que só tem item em verificação não diz "0 serviços": diria a ela
            que não há nada aqui, quando na verdade há algo esperando a conferência */
         +`<span class="m28-count">${n?(f?f+" de "+n+" feitos":n+(n===1?" serviço":" serviços")):""}`
@@ -1380,9 +1394,11 @@ function m28SepararRalos(rows){
   return {manut,ralos};
 }
 function m28NomeArquivo(){
+  /* 09/10/26: nome padrao dela, "AC – MNT (10-2026)" / "AC – ELÉTRICA (10-2026)";
+     o piso entra no meio quando a folha e de um piso so */
   const c=m28Cab(m28Filtradas());
-  const quem=c.executor||"";
-  return m28Titulo(c).replace(/[\\/:*?"<>|]/g,"-")+(quem?" - "+quem.replace(/[\\/:*?"<>|]/g,"-"):"");
+  const piso=(M28F.piso||"").trim();
+  return nomePadrao(M28_SETOR==="ele"?"ELÉTRICA":"MNT",c.emitidoEm||today(),piso?[m28PisoBonito(piso)]:[]);
 }
 /* PL-1: a planilha vira EXPORTAÇÃO. O site é o original — ela edita aqui e
    a planilha sai igual, quando precisar mandar para alguém. */
@@ -1527,7 +1543,7 @@ function m28CausaHTML(){
   return `<div class="ori-causa">
     <div class="ori-causa-t">${esc(t||"Por que isto se repete")}
       <button class="m28-lapis m28-lapis-area" onclick="m28GerirTextos()"
-        title="Mudar este bloco" aria-label="Mudar o bloco de causa">✎</button></div>
+        title="Mudar este bloco" aria-label="Mudar o bloco de causa">${icone("lapis")}</button></div>
     <div class="ori-causa-tx">${esc(x)}</div></div>`;
 }
 
@@ -2140,16 +2156,16 @@ function m28ImprimirFolha(op){
      A LISTA É NUMERADA e os títulos de coluna saíram: caixinha, número, texto.
      A numeração RECOMEÇA em cada área, como ela pediu. */
   const nArea={};for(const d of rows){const k=d.piso+"|"+d.area;nArea[k]=(nArea[k]||0)+1;}
-  let blocos="",piso=null,area=null,nDemanda=0;
+  let blocos="",piso=null,area=null,nDemanda=0,nAr=0;
   for(const d of rows){
-    if(d.piso!==piso){piso=d.piso;area=null;
+    if(d.piso!==piso){piso=d.piso;area=null;nAr=0;
       blocos+=`<div class="bl piso"><h2>${esc(piso||"Sem piso")}</h2></div>`;}
-    if(d.area!==area){area=d.area;nDemanda=0;
+    if(d.area!==area){area=d.area;nDemanda=0;nAr++;
       /* Pedido dela (17/09): o piso tambem aparece AQUI, na faixa de cada area --
          nao so uma vez no topo da secao. Assim nenhuma pagina fica sem dizer de
          qual piso e', mesmo que a area continue depois de uma quebra. */
       const pisoArea=m28PisoBonito(d.piso||"");
-      blocos+=`<div class="bl ar" data-piso="${esc(pisoArea)}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><div class="ar-top"><span class="ar-e">${pisoArea?`<i class="ar-piso">${esc(pisoArea)}</i>`:""}${esc(area)}</span>`
+      blocos+=`<div class="bl ar" data-piso="${esc(pisoArea)}" data-area="${esc(area)}" data-n="${nArea[d.piso+"|"+d.area]}"><div class="ar-top"><span class="ar-e">${pisoArea?`<i class="ar-piso">${esc(pisoArea)}</i>`:""}${nAr}. ${esc(area)}</span>`
         +`<b>${nArea[d.piso+"|"+d.area]} ${nArea[d.piso+"|"+d.area]===1?"serviço":"serviços"}</b></div>`
         +`<div class="ar-sub"><i class="qh">Data registrada</i></div></div>`;}
     nDemanda++;
@@ -2681,7 +2697,10 @@ function m28ImprimirFolha(op){
           var sobra=(fR.height-RESERVA)-(cR.bottom-fR.top);
           /* 06/10 (pedido dela): o rastreamento de ralos SEMPRE abre folha nova,
              separado de onde acabam as demandas do ultimo piso */
-          if(sobra<fR.height*0.15 || tem(cls,"rl-cab")){ folha=novaFolha(false); corpo=folha.querySelector(".corpo"); }
+          /* 09/10/26 (anotacao dela de 07/10: "ja havia consertado, porem na ultima
+             impressao permaneceu o erro"): entre um piso e outro SEMPRE folha nova.
+             O "sobe uma demanda" de 06/10 continua valendo dentro do mesmo piso. */
+          folha=novaFolha(false); corpo=folha.querySelector(".corpo");
         }
         corpo.appendChild(el);
         if(estourou()){
@@ -2780,8 +2799,9 @@ function m28ImprimirFolha(op){
 
   const doc=w.document;
   doc.open();
+  /* o titulo da janela vira o nome do PDF salvo: mesmo nome padrao do Word */
   doc.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'
-    +esc(titulo)+'</title><style>'+ESTILO+'</style></head><body>'
+    +esc(m28NomeArquivo())+'</title><style>'+ESTILO+'</style></head><body>'
     +'<div class="aviso">'+((M28_SAIDA==="word"||M28_SAIDA==="wordimg")
       ? '<b>Word:</b> a folha abaixo é a mesma do PDF. O download começa sozinho; se não começar, use o botão.<br>'
         +'<button onclick="baixarWord()">Baixar Word</button>'
@@ -2790,8 +2810,12 @@ function m28ImprimirFolha(op){
         +'abra <b>Mais definições</b> e <b>desmarque “Cabeçalhos e rodapés”</b>. '
         +'Isso tira a data, a hora e o “about:blank”. A numeração das páginas é nossa '
         +'e continua aparecendo embaixo.<br>'
-        +'<button onclick="print()">'+(M28_SAIDA==="pdf"?'Salvar PDF':'Imprimir')+'</button> '
-        +'<button onclick="baixarWord()" style="background:#fff;color:#1d6b57;border:1px solid #1d6b57">Baixar Word</button>')
+        /* 09/10/26 (pedido dela): no PDF, o Word desce junto, com o mesmo nome */
+        +(M28_SAIDA==="pdf"
+          ? '<button onclick="baixarWord().finally(function(){print()})">Salvar PDF e Word</button> '
+            +'<button onclick="print()" style="background:#fff;color:#1d6b57;border:1px solid #1d6b57">Só o PDF</button>'
+          : '<button onclick="print()">Imprimir</button> '
+            +'<button onclick="baixarWord()" style="background:#fff;color:#1d6b57;border:1px solid #1d6b57">Baixar Word</button>'))
     +'</div>'
     +'<div id="alvo"></div></body></html>');
   doc.close();
