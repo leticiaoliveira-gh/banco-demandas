@@ -1,0 +1,164 @@
+/* ==================================================================
+   CONTROLES DA LOJA (13/10/2026): Temperatura das Câmaras e Cronograma
+   As peças vêm da biblioteca (bd-*); aqui só o que é próprio destas telas.
+   Mesmas cores do site e mesmo desenho da aba Compras.
+   ================================================================== */
+
+/* cabeçalho verde, igual ao de Compras e ao da folha impressa */
+.ctl-capa{background:linear-gradient(155deg,#146b61 0%,#1a8074 100%);
+  color:#fff;padding:16px 20px;border-radius:10px;margin-bottom:16px}
+.ctl-capa-et{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.72)}
+.ctl-capa-tit{font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:4px}
+.ctl-capa-sub{font-size:13px;color:rgba(255,255,255,.86);margin-top:4px}
+
+.ctl-aviso{margin-bottom:12px}
+.ctl-aviso b{display:block}
+.ctl-aviso-btn{margin-top:8px}
+.ctl-nums{margin-bottom:16px}
+.ctl-nums .bd-kpi-obs{font-size:12px;color:#667085;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.ctl-barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.ctl-barra .bd-btn{min-height:44px}
+.ctl-freq{display:flex;align-items:center;gap:8px;font-size:13px;color:#475467;margin-left:auto}
+.ctl-freq .bd-campo{min-height:44px;width:auto}
+
+.ctl-bloco{padding:16px;margin-bottom:16px}
+.ctl-rot{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:#475467}
+.ctl-rot .bd-campo{min-height:44px;font-weight:400}
+.ctl-obs{margin-top:16px}
+.ctl-ajuda{font-size:13px;color:#667085;line-height:1.5;margin:0 0 12px}
+.ctl-pe{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.ctl-pe-txt{font-size:12px;color:#667085}
+.ctl-pe-btns{display:flex;gap:8px;flex-wrap:wrap}
+.ctl-pe-btns .bd-btn{min-height:44px}
+.ctl-regra{font-size:12px;color:#667085;line-height:1.5;margin:12px 0 0;padding-top:12px;border-top:1px solid #eaecf0}
+.ctl-regra b{color:#344054}
+.ctl-sec{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#0f5b52;
+  border-bottom:2px solid #1d6b57;padding-bottom:4px;margin:24px 0 8px;
+  display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.ctl-piso{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#155244;
+  background:#e8f5f0;border-left:3px solid #1d6b57;padding:6px 12px;margin-top:16px}
+.ctl-piso:first-child{margin-top:4px}
+.ctl-check{display:flex;align-items:center;gap:8px;min-height:44px;font-size:13px;color:#344054}
+.ctl-check input{width:20px;height:20px}
+.ctl-form-btns{grid-column:1/-1}
+
+/* lembrete na linha da empresa (capa) */
+.ctl-lembra{color:#8a5216;font-weight:700}
+body:is([data-capa="aurora"],[data-capa="fluido"]) #view-home .ctl-lembra{color:#ffd59a}
+
+/* ---------------------------------------------------------- temperatura */
+.tmp-cab{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,2fr);gap:12px;margin-bottom:8px}
+.tmp-lin,.tmp-cam{display:grid;grid-template-columns:36px minmax(0,1fr) auto auto;gap:12px;align-items:center;
+  padding:8px 4px;border-bottom:1px solid #eaecf0}
+.tmp-cam{grid-template-columns:36px minmax(0,1fr) auto auto}
+.tmp-id{font-size:15px;font-weight:700;color:#155244;text-align:center;font-variant-numeric:tabular-nums}
+.tmp-area{font-size:14px;color:#344054;line-height:1.35;min-width:0}
+.tmp-area b{color:#155244}
+.tmp-area small{display:block;font-size:12px;color:#667085}
+.tmp-area .tmp-ant{color:#98a2b3}
+.tmp-leits{display:flex;gap:8px}
+.tmp-leit{display:flex;flex-direction:column;gap:2px;font-size:11px;font-weight:600;color:#667085}
+.tmp-leit .bd-campo{width:76px;min-height:44px;text-align:center;font-size:16px;font-weight:700;
+  font-variant-numeric:tabular-nums;padding:4px}
+.tmp-risco{white-space:nowrap;min-width:96px;justify-content:center}
+.tmp-desat{font-size:12px;color:#98a2b3;font-style:italic}
+.tmp-off .tmp-area,.tmp-off .tmp-id{opacity:.55}
+.tmp-camform{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px;
+  background:#f9fafb;border:1px solid #eaecf0;border-radius:8px;margin:8px 0}
+.ctl-rot-largo{grid-column:span 2}
+.tmp-cab .ctl-rot-largo{grid-column:auto}
+
+.ctl-hist{padding:4px 0;margin-bottom:8px}
+.ctl-hist-lin{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 16px;
+  background:none;border:0;border-bottom:1px solid #eaecf0;cursor:pointer;text-align:left;font:inherit;color:#344054}
+.ctl-hist-lin:last-child{border-bottom:0}
+.ctl-hist-lin:hover{background:#f9fafb}
+.ctl-hist-lin:focus-visible{outline:2px solid #2a9d8a;outline-offset:-2px}
+.ctl-hist-atual{background:#e8f5f0}
+.ctl-hist-imp{margin-left:auto;font-size:12px;color:#667085}
+.ctl-hist-pe{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:16px}
+
+/* ----------------------------------------------------------- cronograma */
+.cro-lista{padding:4px 16px}
+.cro-lin{display:grid;grid-template-columns:minmax(0,1.6fr) 160px 130px 130px auto;gap:12px;align-items:center;
+  padding:12px 0;border-bottom:1px solid #eaecf0;border-left:3px solid transparent;padding-left:8px;margin-left:-11px}
+.cro-lin:last-child{border-bottom:0}
+.cro-s-vencido{border-left-color:#b42318}
+.cro-s-logo{border-left-color:#b3730a}
+.cro-area{font-size:15px;color:#344054;line-height:1.35;min-width:0}
+.cro-area small{display:block;font-size:12px;color:#667085}
+.cro-prox{display:flex;flex-direction:column;font-size:14px;color:#344054}
+.cro-prox span{font-size:12px;font-weight:600;color:#475467}
+.cro-prox small{font-size:12px;color:#667085}
+.cro-s-vencido .cro-prox b,.cro-s-vencido .cro-prox small{color:#b42318}
+.cro-sit{white-space:nowrap;justify-self:start}
+.cro-acoes{display:flex;gap:4px;justify-content:flex-end}
+.cro-acoes .bd-btn{min-height:44px}
+.cro-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px;margin:8px 0;
+  background:#f9fafb;border:1px solid #eaecf0;border-radius:8px}
+
+.cro-sec{align-items:center}
+.cro-nav{display:flex;gap:4px;text-transform:none;letter-spacing:0}
+.cro-nav .bd-btn{min-height:44px;min-width:44px}
+.cro-grade-box{padding:0;overflow-x:auto;margin-bottom:8px}
+.cro-grade{width:100%;min-width:720px;border-collapse:collapse;table-layout:fixed}
+.cro-grade th,.cro-grade td{border-bottom:1px solid #eaecf0;border-left:1px solid #f2f4f7;text-align:center;
+  font-size:12px;padding:6px 2px;height:40px}
+.cro-grade thead th{font-size:11px;font-weight:700;color:#475467;background:#f9fafb}
+.cro-grade thead th small{display:block;font-weight:400;color:#98a2b3;font-size:10px}
+.cro-grade .cro-mes-atual{background:#e8f5f0;color:#155244}
+.cro-g-area{width:180px;text-align:left!important;font-size:13px!important;font-weight:600;color:#344054;padding-left:12px!important}
+.cro-g-area small{display:block;font-weight:400;color:#667085;font-size:11px}
+.cro-indet{color:#1d4ed8;font-style:italic;background:#f5f8ff}
+.cro-mk{display:inline-block;border-radius:4px;padding:2px 4px;font-weight:700;font-size:11px;border:1px solid;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.cro-mk-feito{background:#e8f5ee;border-color:#9fd3b5;color:#14653f}
+.cro-mk-feito::before{content:"✓ "}
+.cro-mk-previsto{background:#fff;border-color:#98a2b3;color:#344054}
+.cro-mk-logo{background:#fdf1e3;border-color:#eab676;color:#8a5216}
+.cro-mk-vencido{background:#fef3f2;border-color:#f3b4ae;color:#b42318}
+.cro-leg{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:#475467;margin-bottom:24px}
+.cro-leg>span{display:flex;align-items:center;gap:4px}
+
+/* ------------------------------------------------------------- celular */
+@media (max-width:760px){
+  .cro-lin{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}
+  .cro-area{grid-column:1/-1}
+  .cro-ult{grid-column:1}
+  .cro-prox{grid-column:2}
+  .cro-acoes{grid-column:1/-1;justify-content:flex-start}
+  .cro-form,.tmp-camform{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tmp-cab{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tmp-cab .ctl-rot-largo{grid-column:1/-1}
+}
+@media (max-width:560px){
+  .ctl-capa-tit{font-size:20px}
+  .ctl-freq{margin-left:0}
+  .ctl-barra .bd-btn{flex:1 1 auto}
+  .tmp-lin{grid-template-columns:32px minmax(0,1fr);row-gap:8px}
+  .tmp-lin .tmp-leits{grid-column:2}
+  .tmp-lin .tmp-risco{grid-column:2;justify-self:start}
+  .tmp-cam{grid-template-columns:32px minmax(0,1fr) auto}
+  .tmp-cam .bd-selo{display:none}
+  .tmp-cab{grid-template-columns:1fr 1fr}
+  .tmp-cab .ctl-rot:first-child{grid-column:1/-1}
+  .ctl-hist-lin{flex-wrap:wrap;gap:4px 12px}
+}
+
+/* ------------------------------------------- empresa nova (capa, 13/10/2026) */
+.emp-bloco{border-top:1px solid #eaecf0;margin-top:16px;padding-top:12px}
+.emp-bloco-tit{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#0f5b52}
+.emp-ajuda{font-size:13px;color:#667085;margin:4px 0 8px}
+.emp-piso{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px;align-items:start;
+  padding:12px;background:#f9fafb;border:1px solid #eaecf0;border-radius:8px;margin-bottom:8px}
+.emp-piso>.btn{grid-column:1/-1;justify-self:start}
+.emp-cam{display:grid;grid-template-columns:56px minmax(0,1fr) minmax(0,1fr) minmax(0,1.4fr) 72px 72px auto;gap:8px;
+  align-items:end;padding:8px 12px;background:#f9fafb;border:1px solid #eaecf0;border-radius:8px;margin-bottom:8px}
+.emp-cam .field,.emp-piso .field{margin:0}
+.emp-bloco .btn.sm,.emp-cam .btn{min-height:44px}
+@media (max-width:760px){
+  .emp-piso{grid-template-columns:1fr}
+  .emp-cam{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .emp-cam>.btn{grid-column:1/-1;justify-self:start}
+}

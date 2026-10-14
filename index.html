@@ -30,6 +30,7 @@
 <!-- MNT 28.07.26: cabeçalho do relatório e lista agrupada por piso → área -->
 <link rel="stylesheet" href="css/mnt28.css?v=276">
 <link rel="stylesheet" href="css/compras.css?v=233">
+<link rel="stylesheet" href="css/controles.css?v=277">
 </head>
 <body>
 <!-- ENTRADA COM E-MAIL E SENHA (Parte 3, 20/09/2026): trava a tela até ela
@@ -133,10 +134,24 @@
               <div class="grid2">
                 <div class="field"><label>Nome da empresa *</label><input id="empNome" placeholder="Ex.: Búzios" required></div>
                 <div class="field"><label>Código (sigla) *</label><input id="empCode" placeholder="Ex.: BZ" maxlength="4" style="text-transform:uppercase" required></div>
+                <div class="field"><label>CNPJ</label><input id="empCnpj" placeholder="00.000.000/0000-00" inputmode="numeric" maxlength="18" oninput="empCnpjMascara(this)"></div>
+              </div>
+              <!-- 13/10/26 (pedido dela): a empresa já nasce com pisos, áreas e câmaras frias -->
+              <div class="emp-bloco">
+                <div class="emp-bloco-tit">Pisos e áreas</div>
+                <p class="emp-ajuda">Um quadro por piso. Escreva uma área por linha.</p>
+                <div id="emp-pisos"></div>
+                <button type="button" class="bd-btn bd-btn-secundario" onclick="empPisoMais()">+ Outro piso</button>
+              </div>
+              <div class="emp-bloco">
+                <div class="emp-bloco-tit">Câmaras frias</div>
+                <p class="emp-ajuda">Se ainda não tiver os dados, deixe em branco e cadastre depois na aba Temperatura.</p>
+                <div id="emp-cams"></div>
+                <button type="button" class="bd-btn bd-btn-secundario" onclick="empCamMais()">+ Câmara</button>
               </div>
               <div class="form-actions">
                 <button type="submit" class="btn">Adicionar empresa</button>
-                <button type="button" class="btn ghost" onclick="toggleEmpresaForm()">Cancelar</button>
+                <button type="button" class="bd-btn bd-btn-secundario" onclick="toggleEmpresaForm()">Cancelar</button>
               </div>
             </form>
           </div>
@@ -266,6 +281,8 @@
 
     <!-- COMPRAS: a lista de quem compra, por piso e area (js/compras.js) -->
     <div id="tab-compras" class="tab-panel" style="display:none"></div>
+    <div id="tab-tmp" class="tab-panel" style="display:none"></div>
+    <div id="tab-cro" class="tab-panel" style="display:none"></div>
 
     <div id="tab-ind" class="tab-panel" style="display:none"></div>
 
@@ -334,9 +351,9 @@
      Entra ANTES da entrada com e-mail e senha: a tela de entrada confere
      "este aparelho já está conectado?" assim que a página abre, sem esperar
      nada, e por isso precisa que nuvem.js já tenha carregado. -->
-<script src="js/nuvem.js?v=275"></script>
+<script src="js/nuvem.js?v=277"></script>
 <script src="js/login.js?v=275"></script>
-<script src="js/app.js?v=276"></script>
+<script src="js/app.js?v=277"></script>
 <script src="js/docxlite.js?v=237"></script>
 <script src="js/docx-folha.js?v=272"></script>
 <script src="js/dg.js?v=233"></script>
@@ -359,8 +376,11 @@
 <script src="dados/mnt28-carga.js"></script>
 <script src="js/mnt28.js?v=276"></script>
 <script src="js/compras.js?v=276"></script>
+<script src="js/controles.js?v=277"></script>
+<script src="js/temperatura.js?v=277"></script>
+<script src="js/cronograma.js?v=277"></script>
 <!-- Agenda do Sumario: o que tem data marcada, de todos os quadros (js/agenda.js) -->
-<script src="js/agenda.js?v=233"></script>
+<script src="js/agenda.js?v=277"></script>
 <script src="js/sync.js?v=275"></script>
 <!-- MODO DE EDIÇÃO TOTAL (05/08): arrastar o card inteiro, esconder e trazer de
      volta. A biblioteca de arrastar mora AQUI DENTRO — nada de internet, o site

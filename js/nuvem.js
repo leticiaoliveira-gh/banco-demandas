@@ -23,7 +23,7 @@
    ===================================================================== */
 
 /* os quadros que ja moram na nuvem nova */
-const QUADROS_NUVEM = ["mnt28", "cmp"];
+const QUADROS_NUVEM = ["mnt28", "cmp", "tmpc", "tmpm", "tmpcfg", "cro"];
 
 /* de quanto em quanto tempo conversa sozinho, com o site aberto e parado */
 const NUVEM_INTERVALO = 5 * 60000;

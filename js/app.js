@@ -325,6 +325,8 @@ const ICO={
   ck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8.5 12.5l2 2 4.5-4.5"/></svg>',
   ckq:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 .9-4.5 4.2 1.2 6.4L12 16.8 6.3 19.5l1.2-6.4L3 8.9 9 8z"/></svg>',
   cmp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2.2l2.4 12.1a1.6 1.6 0 0 0 1.6 1.3h8.7a1.6 1.6 0 0 0 1.6-1.3L21 7H5.1"/></svg>',
+  tmp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V4.5a2 2 0 0 0-4 0v10.3a4 4 0 1 0 4 0z"/><path d="M12 11v6"/></svg>',
+  cro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/></svg>',
   add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   hub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'
 };
@@ -359,7 +361,7 @@ function icone(n){return '<span class="bd-ico" aria-hidden="true">'+(ICO_ACAO[n]
    FONTE ÚNICA: hub, barra lateral, barra do celular, abas de texto e a busca Ctrl+K
    são todos gerados de TAB_ORDER — nunca escrever uma lista de abas em outro lugar.
    Campos visuais: icone (SVG), cor (cor forte), corFundo (pastel), hub (aparece no hub?). */
-const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","ele28","compras","ind","add"];
+const TAB_ORDER=["dg","ck","ckq","nc","list","mnt28","ele28","compras","tmp","cro","ind","add"];
 const TABS={
   dg:{label:"Quadro Geral",tipo:"dg",panel:"tab-dg",
       icone:ICO.dg,cor:"#1d6b57",corFundo:"#e8f4ef",hub:true,
@@ -418,6 +420,18 @@ const TABS={
       subtitle:n=>"O que precisa ser comprado — "+n,
       renderCards(){document.getElementById("cards").innerHTML="";},
       onShow(){currentTipo="cmp";if(typeof renderCompras==="function")renderCompras();}},
+  /* 13/10/2026: os dois controles da loja (js/temperatura.js e js/cronograma.js).
+     O lembrete deles mora em js/controles.js: cartão do Sumário, capa e agenda. */
+  tmp:{label:"Temperatura das Câmaras",tipo:"tmpm",panel:"tab-tmp",
+      icone:ICO.tmp,cor:"#1668b8",corFundo:"#e6f0fb",hub:true,
+      subtitle:n=>"Medição das câmaras frias — "+n,
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="tmpm";if(typeof renderTemperatura==="function")renderTemperatura();}},
+  cro:{label:"Cronograma",tipo:"cro",panel:"tab-cro",
+      icone:ICO.cro,cor:"#7b5cff",corFundo:"#efebff",hub:true,
+      subtitle:n=>"Licenças e manutenções preventivas — "+n,
+      renderCards(){document.getElementById("cards").innerHTML="";},
+      onShow(){currentTipo="cro";if(typeof renderCronograma==="function")renderCronograma();}},
   ind:{label:"Indicadores",tipo:null,panel:"tab-ind",
       icone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="12" width="3.4" height="7" rx="1"/><rect x="10.3" y="7" width="3.4" height="12" rx="1"/><rect x="15.6" y="10" width="3.4" height="9" rx="1"/></svg>',
       cor:"#0e7490",corFundo:"#e2f1f5",hub:true,
@@ -588,6 +602,9 @@ function renderHub(){
       const ver=meus.filter(d=>d.verificar&&!d.feito).length;
       if(ver)selo+=`<span class="bd-selo bd-selo-info hub-selo-2"><i></i>${ver} para verificar</span>`;
     }
+    /* 13/10: temperatura e cronograma contam datas, não itens em aberto */
+    const ctl=(typeof ctlHubInfo==="function")?ctlHubInfo(t):null;
+    if(ctl)selo=ctl.selo;
     return `<button class="bd-card bd-card-clique hub-livro" data-hub="${t}"
         onclick="showTab('${t}')" title="Abrir ${esc(rotuloAba(t))}">
       <span class="bd-card-faixa" style="background:${a.cor}"></span>
@@ -597,8 +614,8 @@ function renderHub(){
           ${selo}
         </span>
         <span class="bd-card-tit">${esc(rotuloAba(t))}</span>
-        <span class="bd-card-sub">${tot?`${tot} item${tot===1?"":"ns"} no total`:"nada lançado ainda"}</span>
-        ${tot?`<span class="bd-barra"><span style="width:${pct}%"></span></span>
+        <span class="bd-card-sub">${ctl?esc(ctl.sub):(tot?`${tot} item${tot===1?"":"ns"} no total`:"nada lançado ainda")}</span>
+        ${tot&&!ctl?`<span class="bd-barra"><span style="width:${pct}%"></span></span>
         <span class="bd-barra-legenda"><span>${done} de ${tot} resolvidas</span><span>${pct}%</span></span>`:""}
       </span></button>`;}).join("");
 }
@@ -1104,6 +1121,7 @@ async function renderHome(){
             continuam existindo — moram nas etiquetas do topo e nos Indicadores.
             PARA VOLTAR: é só devolver as duas linhas que estavam aqui. */""}
        ${urg?`<div class="store-sub"><b class="sr-urg">${urg} urgente${urg===1?"":"s"}</b></div>`:""}
+       ${typeof ctlCapaLinha==="function"?ctlCapaLinha(emp.code):""}
      </div>
      ${/* ORDEM (29/07, pedido dela): lápis e lixeira primeiro, e a chavinha
           Ativa/Inativa COLADA no ▶ Iniciar — é a dupla que ela usa junto,
@@ -1318,20 +1336,78 @@ async function onToggleEmpresa(code,val){const e=empresa(code);if(!e)return;
  await saveEmpresas();fillLojaSelects();await renderHome();
  toast(val?`${code} ativada${EMPRESAS.length>1?" — as demais foram desativadas":""}`:`${code} desativada`);}
 
-function toggleEmpresaForm(){const f=document.getElementById("empresa-form");f.style.display=f.style.display==="none"?"block":"none";}
+function toggleEmpresaForm(){const f=document.getElementById("empresa-form");const abrir=f.style.display==="none";
+ f.style.display=abrir?"block":"none";
+ if(abrir){document.getElementById("emp-pisos").innerHTML="";document.getElementById("emp-cams").innerHTML="";empPisoMais("1º PISO");}}
+
+/* ===== EMPRESA NOVA COMPLETA (13/10/2026, pedido dela) =====
+   A empresa já nasce com CNPJ, pisos, áreas de cada piso e câmaras frias.
+   Tudo opcional além de nome e sigla: o que ficar em branco ela cadastra depois. */
+function empCnpjMascara(el){const d=el.value.replace(/\D/g,"").slice(0,14);
+ el.value=d.replace(/^(\d{2})(\d)/,"$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3")
+  .replace(/\.(\d{3})(\d)/,".$1/$2").replace(/(\d{4})(\d)/,"$1-$2");}
+function empPisoMais(nome){const box=document.getElementById("emp-pisos");
+ const n=box.children.length+1;
+ const d=document.createElement("div");d.className="emp-piso";
+ d.innerHTML=`<div class="field"><label>Piso</label><input class="emp-piso-nome" value="${esc(nome||n+"º PISO")}"></div>
+  <div class="field"><label>Áreas deste piso (uma por linha)</label><textarea class="emp-piso-areas" rows="4" placeholder="Ex.: Cozinha, Refeitório, Estoque seco (uma por linha)"></textarea></div>
+  ${n>1?`<button type="button" class="bd-btn bd-btn-fantasma" onclick="this.parentNode.remove()">Tirar este piso</button>`:""}`;
+ box.appendChild(d);}
+function empCamMais(){const box=document.getElementById("emp-cams");
+ const n=box.children.length+1;
+ const d=document.createElement("div");d.className="emp-cam";
+ d.innerHTML=`<div class="field"><label>Nº</label><input class="ec-num" inputmode="numeric" value="${n}"></div>
+  <div class="field"><label>Piso</label><input class="ec-piso" value="${esc((document.querySelector(".emp-piso-nome")||{}).value||"1º PISO")}"></div>
+  <div class="field"><label>Setor</label><input class="ec-secao" placeholder="Ex.: C&amp;A"></div>
+  <div class="field"><label>O que guarda</label><input class="ec-cons" placeholder="Ex.: Estoque"></div>
+  <div class="field"><label>Mín. °C</label><input class="ec-min" inputmode="decimal" value="0"></div>
+  <div class="field"><label>Máx. °C</label><input class="ec-max" inputmode="decimal" value="4"></div>
+  <button type="button" class="bd-btn bd-btn-fantasma" onclick="this.parentNode.remove()" aria-label="Tirar esta câmara">Tirar</button>`;
+ box.appendChild(d);d.querySelector(".ec-secao").focus();}
+function empLerForm(){
+ const areas=[];
+ document.querySelectorAll("#emp-pisos .emp-piso").forEach(p=>{
+   const piso=p.querySelector(".emp-piso-nome").value.trim().toUpperCase();
+   p.querySelector(".emp-piso-areas").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)
+    .forEach(nome=>areas.push({n:areas.length+1,nome,piso}));});
+ const num=v=>{const t=String(v).trim().replace(",",".");return t===""||isNaN(Number(t))?"":Number(t);};
+ const cams=[];
+ document.querySelectorAll("#emp-cams .emp-cam").forEach(c=>{
+   const q=k=>c.querySelector(k).value.trim();
+   if(!q(".ec-secao")&&!q(".ec-cons"))return;
+   cams.push({num:Number(q(".ec-num"))||q(".ec-num"),piso:q(".ec-piso").toUpperCase(),secao:q(".ec-secao"),
+     conserva:q(".ec-cons"),min:num(q(".ec-min")),max:num(q(".ec-max"))});});
+ return {areas,cams};}
 
 async function addEmpresa(ev){ev.preventDefault();
  const name=document.getElementById("empNome").value.trim();
  const code=document.getElementById("empCode").value.trim().toUpperCase();
  if(!/^[A-Z0-9]{2,4}$/.test(code)){alert("O código deve ter de 2 a 4 letras/números (ex.: BZ).");return;}
  if(empresa(code)){alert("Já existe uma empresa com o código "+code+".");return;}
+ const cnpj=document.getElementById("empCnpj").value.trim();
+ if(cnpj&&cnpj.replace(/\D/g,"").length!==14){alert("O CNPJ precisa ter 14 números (ou deixe em branco).");return;}
+ const extra=empLerForm();
+ for(const c of extra.cams)if(c.min===""||c.max===""||c.min>c.max){
+   alert("Confira a temperatura mínima e máxima da câmara "+c.num+".");return;}
  /* SÓ uma empresa ativa por vez (regra da capa: o ▶ Iniciar entra direto na única
     ativa). Antes: criar empresa nova deixava duas ativas e o botão travava. */
  for(const e of EMPRESAS)e.ativa=false;
- EMPRESAS.push({code,name,ativa:true});
+ EMPRESAS.push(cnpj?{code,name,ativa:true,cnpj}:{code,name,ativa:true});
  await saveEmpresas();
- document.getElementById("empNome").value="";document.getElementById("empCode").value="";
+ document.getElementById("empNome").value="";document.getElementById("empCode").value="";document.getElementById("empCnpj").value="";
  toggleEmpresaForm();fillLojaSelects();await renderHome();toast("Empresa "+name+" ("+code+") criada e ativada ✓");
+ /* pisos/áreas e câmaras que ela já preencheu no formulário */
+ try{
+   if(extra.areas.length&&typeof ncSaveAreas==="function"){
+     if(typeof NC_AREAS!=="undefined")NC_AREAS[code]=extra.areas;
+     await ncSaveAreas(code);
+   }
+   for(const c of extra.cams)
+     await ctlGravar({uid:newUid(),tipo:"tmpc",loja:code,ativa:true,obs:"",criado:"manual",...c});
+   if(extra.areas.length||extra.cams.length)
+     toast(name+": "+extra.areas.length+" áreas e "+extra.cams.length+" câmaras cadastradas ✓");
+ }catch(e){toast("A empresa foi criada, mas confira as áreas e câmaras dela.");}
+ if(extra.areas.length)return;
  /* ===== AR-2 · A EMPRESA JÁ NASCE COM ÁREAS (30/07) =====
     Antes: criar empresa só gravava nome e sigla — as áreas ficavam para
     depois e era aí que a bagunça começava (cada aba inventava a sua).
@@ -1363,6 +1439,10 @@ async function addEmpresa(ev){ev.preventDefault();
 async function renameEmpresa(code){const e=empresa(code);if(!e)return;
  const n=prompt("Novo nome para "+e.name+" ("+code+"):",e.name);
  if(!n||!n.trim())return;
+ const c=prompt("CNPJ de "+n.trim()+" (deixe em branco se não tiver):",e.cnpj||"");
+ if(c!==null){const d=c.replace(/\D/g,"");
+   if(d&&d.length!==14){alert("O CNPJ precisa ter 14 números. O nome foi salvo, o CNPJ não.");}
+   else e.cnpj=d?d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5"):"";}
  e.name=n.trim();await saveEmpresas();fillLojaSelects();await renderHome();toast("Empresa renomeada ✓");}
 
 async function removeEmpresa(code){const e=empresa(code);if(!e)return;
@@ -2087,11 +2167,11 @@ function atalhoRapido(){
 }
 /* VERSÃO DO SITE em UM lugar só. Estava escrita à mão em 3 pontos do index.html e
    um deles sempre ficava para trás. Todo elemento com data-versao recebe este texto. */
-const APP_VERSAO="11.97";
+const APP_VERSAO="11.98";
 /* Quando esta versão do site foi publicada. Aparece ao lado do "v" para ela
    saber, de bater o olho, se o que está na tela é o mais novo. O "v" é de
    VERSÃO: cada mexida no site sobe esse número. */
-const APP_DATA="09/10/2026 · 00:20";
+const APP_DATA="13/10/2026 · 12:00";
 
 function carimbarVersao(){
   document.querySelectorAll("[data-versao]").forEach(el=>{

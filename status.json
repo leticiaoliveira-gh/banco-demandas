@@ -1,7 +1,7 @@
 {
-  "atualizadoEm": "2026-10-09",
-  "versao": "11.97",
-  "qa": "09/10/2026 - melhorias de 07/10: áreas numeradas, quebra por piso, nome padrão dos arquivos, PDF + Word juntos, compras com título novo.",
-  "ondeParamos": "v11.97: lista de melhorias de 07/10 feita no que não dependia dela; exaustor da produção (AC) incluído.",
-  "proximoPasso": "Le responder as perguntas da lista de 07/10 (situações das compras, vínculo, pastas); datas das demandas antigas da AC."
+  "atualizadoEm": "2026-10-13",
+  "versao": "11.98",
+  "qa": "13/10/2026 - abas Temperatura das Câmaras e Cronograma (licenças e preventivas), com lembretes e impressão; empresa nova já nasce com CNPJ, pisos, áreas e câmaras.",
+  "ondeParamos": "v11.98: Temperatura e Cronograma no ar; dados de Arraial gravados; Cabo Frio com as abas vazias esperando os dados.",
+  "proximoPasso": "Le conferir AC (câmara 5, aviso de 30 dias, risco) e mandar os dados de Cabo Frio; ajustes de visual que ela pedir."
 }

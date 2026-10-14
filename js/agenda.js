@@ -80,6 +80,8 @@ function agPendencias(){
     out.push({dia,aba:"mnt28",visita:true,
       titulo:"Conferir na loja: "+nVer+(nVer===1?" serviço":" serviços")});
   }
+  /* 13/10: próxima medição de temperatura e vencimentos do cronograma */
+  if(typeof ctlAgenda==="function")out.push(...ctlAgenda(currentStore));
   return out.sort((a,b)=>a.dia.localeCompare(b.dia));
 }
 
